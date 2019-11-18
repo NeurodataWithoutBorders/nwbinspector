@@ -23,6 +23,6 @@ def main(dir_name):
 
 if __name__ == '__main__':
     """
-    Usage: python pynwb_inspect_dir.py dir_name
+    Usage: python nwbinspect.py dir_name
     """
     main(sys.argv[1])
