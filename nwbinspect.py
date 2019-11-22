@@ -13,6 +13,7 @@ def main(dir_name):
 
     dir_files = list(data_dir.glob('*.nwb'))
 
+    num_exceptions = 0
     for fi, filename in enumerate(dir_files):
         print('%d/%d %s' % (fi + 1, len(dir_files), filename))
 
@@ -27,8 +28,11 @@ def main(dir_name):
                 check_opto(nwbfile)
 
         except Exception as ex:
+            num_exceptions += 1
             print(ex)
         print()
+
+    print('%d/%d errors.' % (num_exceptions, len(dir_files)))
 
 
 def check_general(nwbfile):
