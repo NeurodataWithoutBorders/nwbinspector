@@ -4,7 +4,7 @@ A set of internal tools to help inspect NWB files for compliance with [NWB Best 
 
 ```bash
 pip install pynwb
-python inspect.py [nwb_data_dir]
+python nwbinspect.py [nwb_data_dir]
 ```
 
 ## Usage for MatNWB inspection
