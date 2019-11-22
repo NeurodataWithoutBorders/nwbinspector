@@ -21,20 +21,54 @@ def main(dir_name):
                 pynwb.validate(io)
                 nwbfile = io.read()
                 # inspect NWBFile object
+                check_general(nwbfile)
                 check_timeseries(nwbfile)
                 check_tables(nwbfile)
+                check_opto(nwbfile)
 
         except Exception as ex:
             print(ex)
         print()
 
 
+def check_general(nwbfile):
+    if not nwbfile.experimenter:
+        error_code = 'A101'
+        print("%s: /general/experimenter is missing" % error_code)
+    if not nwbfile.experiment_description:
+        error_code = 'A101'
+        print("%s: /general/experiment_description is missing" % error_code)
+    if not nwbfile.institution:
+        error_code = 'A101'
+        print("%s: /general/institution is missing" % error_code)
+    if not nwbfile.keywords:
+        error_code = 'A101'
+        print("%s: /general/keywords is missing" % error_code)
+    if nwbfile.related_publications is not None:
+        if 'doi:' not in nwbfile.related_publications:
+            error_code = 'A101'
+            print("%s: /general/related_publications does not include 'doi:'" % error_code)
+    if nwbfile.subject:
+        if not nwbfile.subject.sex:
+            error_code = 'A101'
+            print("%s: /general/subject/sex is missing" % error_code)
+        if not nwbfile.subject.subject_id:
+            error_code = 'A101'
+            print("%s: /general/subject/subject_id is missing" % error_code)
+        if not nwbfile.subject.species:
+            error_code = 'A101'
+            print("%s: /general/subject/species is missing" % error_code)
+    else:
+        error_code = 'A101'
+        print("%s: /general/subject is missing" % error_code)
+
+
 def check_timeseries(nwbfile):
     """Check dataset values in TimeSeries objects"""
-    for ts in all_timeseries(nwbfile):
+    for ts in all_of_type(nwbfile, pynwb.TimeSeries):
         if ts.data is None:
             error_code = 'A101'
-            print("%s: %s %s data is None" % (error_code, type(ts).__name__, ts.name))
+            print("%s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
             continue
 
         uniq = np.unique(ts.data)
@@ -63,7 +97,7 @@ def check_timeseries(nwbfile):
 
 def check_tables(nwbfile):
     """Check column values in DynamicTable objects"""
-    for tab in all_tables(nwbfile):
+    for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
         for col in tab.columns:
             if isinstance(col, hdmf.common.table.DynamicTableRegion):
                 continue
@@ -98,12 +132,37 @@ def check_tables(nwbfile):
                       % (tab.name, type(tab).__name__, col.name, uniq))
 
 
-def all_timeseries(nwbfile):
-    return all_of_type(nwbfile, pynwb.TimeSeries)
+def check_icephys(nwbfile):
+    for elec in all_of_type(nwbfile, pynwb.icephys.IntracellularElectrode):
+        if not elec.description:
+            error_code = 'A101'
+            print("%s: '%s' %s is missing text for attribute 'description'"
+                  % (error_code, elec.name, type(elec).__name__))
+        if not elec.filtering:
+            error_code = 'A101'
+            print("%s: '%s' %s is missing text for attribute 'filtering'"
+                  % (error_code, elec.name, type(elec).__name__))
+        if not elec.location:
+            error_code = 'A101'
+            print("%s: '%s' %s is missing text for attribute 'location'"
+                  % (error_code, elec.name, type(elec).__name__))
 
 
-def all_tables(nwbfile):
-    return all_of_type(nwbfile, pynwb.core.DynamicTable)
+def check_opto(nwbfile):
+    opto_sites = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticStimulusSite))
+    opto_series = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticSeries))
+    for site in opto_sites:
+        if not site.description:
+            error_code = 'A101'
+            print("%s: '%s' %s is missing text for attribute 'description'"
+                  % (error_code, site.name, type(site).__name__))
+        if not site.location:
+            error_code = 'A101'
+            print("%s: '%s' %s is missing text for attribute 'location'"
+                  % (error_code, site.name, type(site).__name__))
+    if opto_sites and not opto_series:
+        error_code = 'A101'
+        print("%s: OptogeneticStimulusSite object(s) exists without an OptogeneticSeries" % error_code)
 
 
 def all_of_type(nwbfile, type):
