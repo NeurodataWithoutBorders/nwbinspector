@@ -49,9 +49,10 @@ def check_general(nwbfile):
         error_code = 'A101'
         print("%s: /general/keywords is missing" % error_code)
     if nwbfile.related_publications is not None:
-        if 'doi:' not in nwbfile.related_publications:
-            error_code = 'A101'
-            print("%s: /general/related_publications does not include 'doi:'" % error_code)
+        for pub in nwbfile.related_publications:
+            if 'doi:' not in pub:
+                error_code = 'A101'
+                print("%s: /general/related_publications does not include 'doi:': %s" % (error_code, pub))
     if nwbfile.subject:
         if not nwbfile.subject.sex:
             error_code = 'A101'
