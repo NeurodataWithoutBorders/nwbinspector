@@ -134,9 +134,10 @@ def check_tables(nwbfile):
                 print("%s: '%s' %s column '%s' data has all values = %s"
                       % (error_code, tab.name, type(tab).__name__, col.name, uniq[0]))
             elif np.array_equal(uniq, [0., 1.]):
-                error_code = 'A101'
-                print("%s: '%s' %s column '%s' data should be type boolean instead of %s"
-                      % (error_code, tab.name, type(tab).__name__, col.name, col.data.dtype))
+                if col.data.dtype.type != np.bool_:
+                    error_code = 'A101'
+                    print("%s: '%s' %s column '%s' data should be type boolean instead of %s"
+                          % (error_code, tab.name, type(tab).__name__, col.name, col.data.dtype))
             elif len(uniq) == 2:
                 error_code = 'A101'
                 print(("%s: '%s' %s column '%s' data has only unique values %s. Consider storing the data "
