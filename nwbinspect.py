@@ -18,7 +18,7 @@ def main(dir_name):
         print('%d/%d %s' % (fi + 1, len(dir_files), filename))
 
         try:
-            with pynwb.NWBHDF5IO(str(filename), 'r') as io:
+            with pynwb.NWBHDF5IO(str(filename), 'r', load_namespaces=True) as io:
                 pynwb.validate(io)
                 nwbfile = io.read()
                 # inspect NWBFile object
