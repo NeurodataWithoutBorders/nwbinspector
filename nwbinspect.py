@@ -19,20 +19,32 @@ def main(dir_name):
 
         try:
             with pynwb.NWBHDF5IO(str(filename), 'r', load_namespaces=True) as io:
-                pynwb.validate(io)
-                nwbfile = io.read()
+                errors = pynwb.validate(io)
+                if errors:
+                    for e in errors:
+                        print('Validator Error:', e)
+                    num_exceptions += 1
+                else:
+                    print('Validation OK!')
+
                 # inspect NWBFile object
+                nwbfile = io.read()
                 check_general(nwbfile)
                 check_timeseries(nwbfile)
                 check_tables(nwbfile)
+                check_icephys(nwbfile)
                 check_opto(nwbfile)
+                check_ecephys(nwbfile)
 
         except Exception as ex:
             num_exceptions += 1
             print(ex)
         print()
 
-    print('%d/%d errors.' % (num_exceptions, len(dir_files)))
+    if num_exceptions:
+        print('%d/%d files had errors.' % (num_exceptions, len(dir_files)))
+    else:
+        print('All %d files validate!' % len(dir_files))
 
 
 def check_general(nwbfile):
@@ -50,9 +62,12 @@ def check_general(nwbfile):
         print("%s: /general/keywords is missing" % error_code)
     if nwbfile.related_publications is not None:
         for pub in nwbfile.related_publications:
-            if 'doi:' not in pub:
+            # TODO use regex matching, maybe even do doi lookup
+            if not (pub.startswith('doi:')
+                    or pub.startswith('http://dx.doi.org/')
+                    or pub.startswith('https://doi.org/')):
                 error_code = 'A101'
-                print("%s: /general/related_publications does not include 'doi:': %s" % (error_code, pub))
+                print("%s: /general/related_publications does not include 'doi': %s" % (error_code, pub))
     if nwbfile.subject:
         if not nwbfile.subject.sex:
             error_code = 'A101'
@@ -81,9 +96,10 @@ def check_timeseries(nwbfile):
             error_code = 'A101'
             print("%s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
         elif np.array_equal(uniq, [0., 1.]):
-            error_code = 'A101'
-            print("%s: '%s' %s data should be type boolean instead of %s"
-                  % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
+            if ts.data.dtype != bool:
+                error_code = 'A101'
+                print("%s: '%s' %s data should be type boolean instead of %s"
+                      % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
         elif len(uniq) == 2:
             error_code = 'A101'
             print("%s: '%s' %s data has only unique values %s. Consider storing the data as boolean."
@@ -92,12 +108,13 @@ def check_timeseries(nwbfile):
             print("NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
 
         # check whether rate should be used instead of timestamps
-        time_tol_decimals = 9
-        uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
-        if len(uniq_diff_ts) == 1:
-            error_code = 'A101'
-            print("%s: '%s' %s timestamps should use starting_time %f and rate %f"
-                  % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
+        if ts.timestamps:
+            time_tol_decimals = 9
+            uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
+            if len(uniq_diff_ts) == 1:
+                error_code = 'A101'
+                print("%s: '%s' %s timestamps should use starting_time %f and rate %f"
+                      % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
 
         if ts.resolution == 0 or (ts.resolution < 0 and ts.resolution != -1.0):
             error_code = 'A101'
@@ -178,6 +195,11 @@ def check_opto(nwbfile):
     if opto_sites and not opto_series:
         error_code = 'A101'
         print("%s: OptogeneticStimulusSite object(s) exists without an OptogeneticSeries" % error_code)
+
+
+def check_ecephys(nwbfile):
+    # unit spike times should not be negative
+    pass
 
 
 def all_of_type(nwbfile, type):
