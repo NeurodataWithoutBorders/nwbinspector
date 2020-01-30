@@ -3,8 +3,8 @@ A set of internal tools to help inspect NWB files for compliance with [NWB Best 
 ## Usage for PyNWB inspection
 
 ```bash
-pip install pynwb
-python nwbinspect.py [nwb_data_dir]
+pip install nwbinspector
+nwbinspector [nwb_data_dir]
 ```
 
 ## Usage for MatNWB inspection

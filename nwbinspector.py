@@ -6,7 +6,9 @@ import hdmf
 import hdmf.backends.hdf5.h5_utils
 
 
-def main(dir_name):
+def main():
+
+    dir_name = sys.argv[1]
     data_dir = Path(dir_name)
     if not data_dir.is_dir():
         raise Exception('%s should be a directory' % dir_name)
