@@ -8,16 +8,18 @@ import hdmf.backends.hdf5.h5_utils
 
 def main():
 
-    dir_name = sys.argv[1]
-    data_dir = Path(dir_name)
-    if not data_dir.is_dir():
-        raise Exception('%s should be a directory' % dir_name)
-
-    dir_files = list(data_dir.glob('*.nwb'))
+    in_path = sys.argv[1]
+    in_path = Path(in_path)
+    if in_path.is_dir():
+        files = list(in_path.glob('*.nwb'))
+    elif in_path.is_file():
+        files = [in_path]
+    else:
+        raise Exception('%s should be a directory or an NWB file' % in_path)
 
     num_exceptions = 0
-    for fi, filename in enumerate(dir_files):
-        print('%d/%d %s' % (fi + 1, len(dir_files), filename))
+    for fi, filename in enumerate(files):
+        print('%d/%d %s' % (fi + 1, len(files), filename))
 
         try:
             with pynwb.NWBHDF5IO(str(filename), 'r', load_namespaces=True) as io:
@@ -44,9 +46,9 @@ def main():
         print()
 
     if num_exceptions:
-        print('%d/%d files had errors.' % (num_exceptions, len(dir_files)))
+        print('%d/%d files had errors.' % (num_exceptions, len(files)))
     else:
-        print('All %d files validate!' % len(dir_files))
+        print('All %d files validate!' % len(files))
 
 
 def check_general(nwbfile):
