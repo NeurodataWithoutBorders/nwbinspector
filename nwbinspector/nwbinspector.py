@@ -7,9 +7,7 @@ import hdmf.backends.hdf5.h5_utils
 
 
 def main():
-
-    in_path = sys.argv[1]
-    in_path = Path(in_path)
+    in_path = Path(sys.argv[1])
     if in_path.is_dir():
         files = list(in_path.glob('*.nwb'))
     elif in_path.is_file():
@@ -214,6 +212,6 @@ def all_of_type(nwbfile, type):
 
 if __name__ == '__main__':
     """
-    Usage: python nwbinspect.py dir_name
+    Usage: python nwbinspector.py dir_name
     """
-    main(sys.argv[1])
+    main()

@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='nwbinspector',
-    version='0.2.0',
+    version='0.2.2',
     description='tool to inspect NWB files for best practices compliance',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -19,7 +19,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'nwbinspector=nwbinspector:main'
+            'nwbinspector=nwbinspector.nwbinspector:main'
         ]
     }
 )
