@@ -202,8 +202,10 @@ def check_opto(nwbfile):
 
 
 def check_ecephys(nwbfile):
-    # unit spike times should not be negative
-    pass
+    if nwbfile.units is not None:
+        if nwbfile.units.get_min_spike_time() < 0:
+            error_code = 'A101'
+            print("%s: the units table contains negative spike times." % error_code)
 
 
 def all_of_type(nwbfile, type):
