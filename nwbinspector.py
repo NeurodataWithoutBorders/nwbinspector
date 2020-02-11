@@ -54,16 +54,16 @@ def main():
 def check_general(nwbfile):
     if not nwbfile.experimenter:
         error_code = 'A101'
-        print("%s: /general/experimenter is missing" % error_code)
+        print("- %s: /general/experimenter is missing" % error_code)
     if not nwbfile.experiment_description:
         error_code = 'A101'
-        print("%s: /general/experiment_description is missing" % error_code)
+        print("- %s: /general/experiment_description is missing" % error_code)
     if not nwbfile.institution:
         error_code = 'A101'
-        print("%s: /general/institution is missing" % error_code)
+        print("- %s: /general/institution is missing" % error_code)
     if not nwbfile.keywords:
         error_code = 'A101'
-        print("%s: /general/keywords is missing" % error_code)
+        print("- %s: /general/keywords is missing" % error_code)
     if nwbfile.related_publications is not None:
         for pub in nwbfile.related_publications:
             # TODO use regex matching, maybe even do doi lookup
@@ -71,20 +71,20 @@ def check_general(nwbfile):
                     or pub.startswith('http://dx.doi.org/')
                     or pub.startswith('https://doi.org/')):
                 error_code = 'A101'
-                print("%s: /general/related_publications does not include 'doi': %s" % (error_code, pub))
+                print("- %s: /general/related_publications does not include 'doi': %s" % (error_code, pub))
     if nwbfile.subject:
         if not nwbfile.subject.sex:
             error_code = 'A101'
-            print("%s: /general/subject/sex is missing" % error_code)
+            print("- %s: /general/subject/sex is missing" % error_code)
         if not nwbfile.subject.subject_id:
             error_code = 'A101'
-            print("%s: /general/subject/subject_id is missing" % error_code)
+            print("- %s: /general/subject/subject_id is missing" % error_code)
         if not nwbfile.subject.species:
             error_code = 'A101'
-            print("%s: /general/subject/species is missing" % error_code)
+            print("- %s: /general/subject/species is missing" % error_code)
     else:
         error_code = 'A101'
-        print("%s: /general/subject is missing" % error_code)
+        print("- %s: /general/subject is missing" % error_code)
 
 
 def check_timeseries(nwbfile):
@@ -92,21 +92,21 @@ def check_timeseries(nwbfile):
     for ts in all_of_type(nwbfile, pynwb.TimeSeries):
         if ts.data is None:
             error_code = 'A101'
-            print("%s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
+            print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
             continue
 
         uniq = np.unique(ts.data)
         if len(uniq) == 1:
             error_code = 'A101'
-            print("%s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
+            print("- %s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
         elif np.array_equal(uniq, [0., 1.]):
             if ts.data.dtype != bool:
                 error_code = 'A101'
-                print("%s: '%s' %s data should be type boolean instead of %s"
+                print("- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
                       % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
         elif len(uniq) == 2:
             error_code = 'A101'
-            print("%s: '%s' %s data has only unique values %s. Consider storing the data as boolean."
+            print("- %s: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
                   % (error_code, ts.name, type(ts).__name__, uniq))
         elif len(uniq) <= 4:
             print("NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
@@ -117,17 +117,34 @@ def check_timeseries(nwbfile):
             uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
             if len(uniq_diff_ts) == 1:
                 error_code = 'A101'
-                print("%s: '%s' %s timestamps should use starting_time %f and rate %f"
+                print("- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead of"
+                      "using the timestamps array."
                       % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
 
         if ts.resolution == 0 or (ts.resolution < 0 and ts.resolution != -1.0):
             error_code = 'A101'
-            print("%s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
+            print("- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
                   % (error_code, ts.name, type(ts).__name__, ts.resolution))
 
         if not ts.unit:
             error_code = 'A101'
-            print("%s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
+            print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
+
+        # check for correct data orientation
+        if ts.data is not None and len(ts.data.shape) > 1:
+            if ts.timestamps is not None:
+                if not (len(ts.data) == len(ts.timestamps)):
+                    error_code = 'A101'
+                    print("- %s: '%s' %s data orientation appears to be incorrect. \n    The length of the first "
+                          "dimension of data does not match the length of timestamps."
+                          % (error_code, ts.name, type(ts).__name__))
+            else:
+                if any(ts.data.shape[1:] > ts.data.shape[0]):
+                    error_code = 'A101'
+                    print("- %s: '%s' %s data orientation appears to be incorrect. \n    Time should be in the first "
+                          "dimension, and is usually the longest dimension. Here, another dimension is longer. This is "
+                          "possibly correct, but usually indicates that the data is in the wrong orientation."
+                          % (error_code, ts.name, type(ts).__name__))
 
 
 def check_tables(nwbfile):
@@ -139,7 +156,7 @@ def check_tables(nwbfile):
 
             if col.data is None:
                 error_code = 'A101'
-                print("%s: '%s' %s column '%s' data is None" % (error_code, tab.name, type(tab).__name__, col.name))
+                print("- %s: '%s' %s column '%s' data is None" % (error_code, tab.name, type(tab).__name__, col.name))
                 continue
 
             if col.name.endswith('index'):  # skip index columns
@@ -152,16 +169,16 @@ def check_tables(nwbfile):
             # TODO only do this for optional columns
             if len(uniq) == 1:
                 error_code = 'A101'
-                print("%s: '%s' %s column '%s' data has all values = %s"
+                print("- %s: '%s' %s column '%s' data has all values = %s"
                       % (error_code, tab.name, type(tab).__name__, col.name, uniq[0]))
             elif np.array_equal(uniq, [0., 1.]):
                 if col.data.dtype.type != np.bool_:
                     error_code = 'A101'
-                    print("%s: '%s' %s column '%s' data should be type boolean instead of %s"
+                    print("- %s: '%s' %s column '%s' data should be type boolean instead of %s"
                           % (error_code, tab.name, type(tab).__name__, col.name, col.data.dtype))
             elif len(uniq) == 2:
                 error_code = 'A101'
-                print(("%s: '%s' %s column '%s' data has only unique values %s. Consider storing the data "
+                print(("- %s: '%s' %s column '%s' data has only unique values %s. Consider storing the data "
                       "as boolean.") % (error_code, tab.name, type(tab).__name__, col.name, uniq))
             elif len(uniq) <= 4:
                 print("NOTE: '%s' %s column '%s' data has only unique values %s"
@@ -172,15 +189,15 @@ def check_icephys(nwbfile):
     for elec in all_of_type(nwbfile, pynwb.icephys.IntracellularElectrode):
         if not elec.description:
             error_code = 'A101'
-            print("%s: '%s' %s is missing text for attribute 'description'"
+            print("- %s: '%s' %s is missing text for attribute 'description'"
                   % (error_code, elec.name, type(elec).__name__))
         if not elec.filtering:
             error_code = 'A101'
-            print("%s: '%s' %s is missing text for attribute 'filtering'"
+            print("- %s: '%s' %s is missing text for attribute 'filtering'"
                   % (error_code, elec.name, type(elec).__name__))
         if not elec.location:
             error_code = 'A101'
-            print("%s: '%s' %s is missing text for attribute 'location'"
+            print("- %s: '%s' %s is missing text for attribute 'location'"
                   % (error_code, elec.name, type(elec).__name__))
 
 
