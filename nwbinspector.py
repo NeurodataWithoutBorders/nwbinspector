@@ -180,9 +180,6 @@ def check_tables(nwbfile):
                 error_code = 'A101'
                 print(("- %s: '%s' %s column '%s' data has only unique values %s. Consider storing the data "
                       "as boolean.") % (error_code, tab.name, type(tab).__name__, col.name, uniq))
-            elif len(uniq) <= 4:
-                print("NOTE: '%s' %s column '%s' data has only unique values %s"
-                      % (tab.name, type(tab).__name__, col.name, uniq))
 
 
 def check_icephys(nwbfile):
