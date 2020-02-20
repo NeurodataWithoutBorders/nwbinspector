@@ -2,10 +2,14 @@ A set of internal tools to help inspect NWB files for compliance with [NWB Best 
 
 This project is under active development. You may use this as a stand-alone tool, but we do not advise you to code against this project at this time as we do expect the warnings to change as the project develops.
 
+## Installation
+```bash
+pip install nwbinspector
+```
+
 ## Usage
 
 ```bash
-pip install nwbinspector
 nwbinspector [nwb_data_dir]
 ```
 
