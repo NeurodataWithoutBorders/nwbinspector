@@ -128,6 +128,13 @@ def check_timeseries(nwbfile):
             error_code = 'A101'
             print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
 
+        # check that data and timestamps have the same length
+        if ts.data is not None and ts.timestamps is not None:
+            if not (len(ts.data) == len(ts.timestamps)):
+                error_code = 'A101'
+                print("- %s: '%s' %s data and timestamps have diffeerent lengths."
+                      % (error_code, ts.name, type(ts).__name__))
+
         # check for correct data orientation
         if ts.data is not None and len(ts.data.shape) > 1:
             if ts.timestamps is not None:
