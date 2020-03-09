@@ -132,7 +132,7 @@ def check_timeseries(nwbfile):
         if ts.data is not None and ts.timestamps is not None:
             if not (len(ts.data) == len(ts.timestamps)):
                 error_code = 'A101'
-                print("- %s: '%s' %s data and timestamps have diffeerent lengths."
+                print("- %s: '%s' %s data and timestamps have different lengths."
                       % (error_code, ts.name, type(ts).__name__))
 
         # check for correct data orientation
