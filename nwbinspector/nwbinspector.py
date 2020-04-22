@@ -103,11 +103,10 @@ def check_timeseries(nwbfile):
                 print("- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
                       % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
         elif len(uniq) == 2:
-            error_code = 'A101'
-            print("- %s: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
-                  % (error_code, ts.name, type(ts).__name__, uniq))
+            print("- NOTE: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
+                  % (ts.name, type(ts).__name__, uniq))
         elif len(uniq) <= 4:
-            print("NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
+            print("- NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
 
         # check whether rate should be used instead of timestamps
         if ts.timestamps:
