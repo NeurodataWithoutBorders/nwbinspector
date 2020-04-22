@@ -119,7 +119,7 @@ def check_timeseries(nwbfile):
                       "of using the timestamps array."
                       % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
 
-        if ts.resolution == 0 or (ts.resolution < 0 and ts.resolution != -1.0):
+        if not (np.isnan(ts.resolution) or ts.resolution == -1.0) and ts.resolution <= 0:
             error_code = 'A101'
             print("- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
                   % (error_code, ts.name, type(ts).__name__, ts.resolution))
