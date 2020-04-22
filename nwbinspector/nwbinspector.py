@@ -115,7 +115,7 @@ def check_timeseries(nwbfile):
             uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
             if len(uniq_diff_ts) == 1:
                 error_code = 'A101'
-                print("- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead"
+                print("- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead "
                       "of using the timestamps array."
                       % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
 
