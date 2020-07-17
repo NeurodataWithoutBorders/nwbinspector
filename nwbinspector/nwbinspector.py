@@ -1,19 +1,31 @@
-import sys
-from pathlib import Path
-import pynwb
-import numpy as np
+import argparse
 import hdmf
+import importlib
+import numpy as np
+import pathlib
+import pynwb
+
 import hdmf.backends.hdf5.h5_utils
 
 
 def main():
-    in_path = Path(sys.argv[1])
+    parser = argparse.ArgumentParser('python test.py [options]')
+    parser.add_argument('-m', '--modules', nargs='*', dest='modules',
+                        help='modules to import prior to reading the file(s)')
+    parser.add_argument('path', help='path to an NWB file or directory containing NWB files')
+    parser.set_defaults(modules=[])
+    args = parser.parse_args()
+
+    in_path = pathlib.Path(args.path)
     if in_path.is_dir():
         files = list(in_path.glob('*.nwb'))
     elif in_path.is_file():
         files = [in_path]
     else:
-        raise Exception('%s should be a directory or an NWB file' % in_path)
+        raise ValueError('%s should be a directory or an NWB file' % in_path)
+
+    for module in args.modules:
+        importlib.import_module(module)
 
     num_exceptions = 0
     for fi, filename in enumerate(files):
