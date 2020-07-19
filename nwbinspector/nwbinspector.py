@@ -98,7 +98,9 @@ def check_timeseries(nwbfile):
             error_code = 'A101'
             print("- %s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
         elif np.array_equal(uniq, [0., 1.]):
-            if ts.data.dtype != bool:
+            if ts.data.dtype != bool and type(ts) is pynwb.TimeSeries:
+                # if a base TimeSeries object has 0/1 data but is not using booleans
+                # note that this tests only base TimeSeries objects. TimeSeries subclasses may require numeric/int/etc.
                 error_code = 'A101'
                 print("- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
                       % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
