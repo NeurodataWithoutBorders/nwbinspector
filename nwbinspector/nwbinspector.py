@@ -104,8 +104,15 @@ def check_timeseries(nwbfile):
     """Check dataset values in TimeSeries objects"""
     for ts in all_of_type(nwbfile, pynwb.TimeSeries):
         if ts.data is None:
-            error_code = 'A101'
-            print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
+            # exception to the rule: ImageSeries objects are allowed to have no data
+            if not isinstance(ts, pynwb.image.ImageSeries):
+                error_code = 'A101'
+                print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
+            else:
+                if ts.external_file is None:
+                    error_code = 'A101'
+                    print("- %s: '%s' %s data is None and external_file is None"
+                          % (error_code, ts.name, type(ts).__name__))
             continue
 
         if check_dataset_size(ts, 'data'):
