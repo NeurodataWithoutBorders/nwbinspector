@@ -192,6 +192,13 @@ def check_regular_timestamps(ts):
 def check_tables(nwbfile):
     """Check column values in DynamicTable objects"""
     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
+        if len(tab.id) == 0:
+            print("NOTE: '%s' %s has no rows" % (tab.name, type(tab).__name__))
+            continue
+        if len(tab.id) == 1:
+            print("NOTE: '%s' %s has one row" % (tab.name, type(tab).__name__))
+            continue
+
         for col in tab.columns:
             if isinstance(col, hdmf.common.table.DynamicTableRegion):
                 continue
