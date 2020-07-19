@@ -7,6 +7,9 @@ import pynwb
 
 import hdmf.backends.hdf5.h5_utils
 
+# maximum size of dataset to load
+dataset_max_gb = 1  # TODO make this user specifiable
+
 
 def main():
     parser = argparse.ArgumentParser('python test.py [options]')
@@ -105,32 +108,11 @@ def check_timeseries(nwbfile):
             print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
             continue
 
-        uniq = np.unique(ts.data)
-        if len(uniq) == 1:
-            error_code = 'A101'
-            print("- %s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
-        elif np.array_equal(uniq, [0., 1.]):
-            if ts.data.dtype != bool and type(ts) is pynwb.TimeSeries:
-                # if a base TimeSeries object has 0/1 data but is not using booleans
-                # note that this tests only base TimeSeries objects. TimeSeries subclasses may require numeric/int/etc.
-                error_code = 'A101'
-                print("- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
-                      % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
-        elif len(uniq) == 2:
-            print("- NOTE: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
-                  % (ts.name, type(ts).__name__, uniq))
-        elif len(uniq) <= 4:
-            print("- NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
+        if check_dataset_size(ts, 'data'):
+            check_data_uniqueness(ts)
 
-        # check whether rate should be used instead of timestamps
-        if ts.timestamps:
-            time_tol_decimals = 9
-            uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
-            if len(uniq_diff_ts) == 1:
-                error_code = 'A101'
-                print("- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead "
-                      "of using the timestamps array."
-                      % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
+        if check_dataset_size(ts, 'timestamps'):
+            check_regular_timestamps(ts)
 
         if not (np.isnan(ts.resolution) or ts.resolution == -1.0) and ts.resolution <= 0:
             error_code = 'A101'
@@ -156,6 +138,48 @@ def check_timeseries(nwbfile):
                           "dimension, and is usually the longest dimension. Here, another dimension is longer. This is "
                           "possibly correct, but usually indicates that the data is in the wrong orientation."
                           % (error_code, ts.name, type(ts).__name__))
+
+
+def check_dataset_size(ts, field):
+    """Check whether the dataset size is not too big to load. Return True if it is under the max, False otherwise."""
+    dataset = getattr(ts, field)
+    num_gb = dataset.size * dataset.dtype.itemsize / 2**30
+    if num_gb > dataset_max_gb:
+        print("- NOTE: '%s' %s dataset '%s' is %0.1f GB > %0.1f GB max. Data values will not be checked."
+              % (ts.name, type(ts).__name__, field, num_gb, dataset_max_gb))
+        return False
+    return True
+
+
+def check_data_uniqueness(ts):
+    """Check whether data of a timeseries has few unique values and can be stored in a better way."""
+    uniq = np.unique(ts.data)
+    if len(uniq) == 1:
+        error_code = 'A101'
+        print("- %s: '%s' %s data has all values = %s" % (error_code, ts.name, type(ts).__name__, uniq[0]))
+    elif np.array_equal(uniq, [0., 1.]):
+        if ts.data.dtype != bool and type(ts) is pynwb.TimeSeries:
+            # if a base TimeSeries object has 0/1 data but is not using booleans
+            # note that this tests only base TimeSeries objects. TimeSeries subclasses may require numeric/int/etc.
+            error_code = 'A101'
+            print("- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
+                  % (error_code, ts.name, type(ts).__name__, ts.data.dtype))
+    elif len(uniq) == 2:
+        print("- NOTE: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
+              % (ts.name, type(ts).__name__, uniq))
+    elif len(uniq) <= 4:
+        print("- NOTE: '%s' %s data has only unique values %s" % (ts.name, type(ts).__name__, uniq))
+
+
+def check_regular_timestamps(ts):
+    """Check whether rate should be used instead of timestamps."""
+    time_tol_decimals = 9
+    uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
+    if len(uniq_diff_ts) == 1:
+        error_code = 'A101'
+        print("- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead "
+              "of using the timestamps array."
+              % (error_code, ts.name, type(ts).__name__, ts.timestamps[0], uniq_diff_ts[0]))
 
 
 def check_tables(nwbfile):
