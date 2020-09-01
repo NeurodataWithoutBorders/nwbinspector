@@ -30,6 +30,7 @@ def main():
     for module in args.modules:
         importlib.import_module(module)
 
+    num_invalid_files = 0
     num_exceptions = 0
     for fi, filename in enumerate(files):
         print('%d/%d %s' % (fi + 1, len(files), filename))
@@ -40,7 +41,7 @@ def main():
                 if errors:
                     for e in errors:
                         print('Validator Error:', e)
-                    num_exceptions += 1
+                    num_invalid_files += 1
                 else:
                     print('Validation OK!')
 
@@ -55,9 +56,11 @@ def main():
 
         except Exception as ex:
             num_exceptions += 1
-            print(ex)
+            print("ERROR:", ex)
         print()
 
+    if num_invalid_files:
+        print('%d/%d files are invalid.' % (num_exceptions, len(files)))
     if num_exceptions:
         print('%d/%d files had errors.' % (num_exceptions, len(files)))
     else:
