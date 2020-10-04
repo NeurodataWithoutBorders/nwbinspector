@@ -14,6 +14,7 @@ setup(
     author_email='rly@lbl.gov, ben.dichter@gmail.com',
     packages=find_packages(),
     include_package_data=True,
+    url="https://github.com/NeurodataWithoutBorders/nwbinspector",
     install_requires=[
         'pynwb'
     ],
