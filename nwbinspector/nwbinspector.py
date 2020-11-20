@@ -142,7 +142,7 @@ def check_timeseries(nwbfile):
                           "dimension of data does not match the length of timestamps."
                           % (error_code, ts.name, type(ts).__name__))
             else:
-                if any(ts.data.shape[1:] > ts.data.shape[0]):
+                if max(ts.data.shape[1:]) > ts.data.shape[0]:
                     error_code = 'A101'
                     print("- %s: '%s' %s data orientation appears to be incorrect. \n    Time should be in the first "
                           "dimension, and is usually the longest dimension. Here, another dimension is longer. This is "
@@ -151,8 +151,13 @@ def check_timeseries(nwbfile):
 
 
 def check_dataset_size(ts, field):
-    """Check whether the dataset size is not too big to load. Return True if it is under the max, False otherwise."""
+    """Check whether the dataset exists and is not too big to load.
+
+    Return True if it exists and it is under the max, False otherwise.
+    """
     dataset = getattr(ts, field)
+    if dataset is None:
+        return False
     num_gb = dataset.size * dataset.dtype.itemsize / 2**30
     if num_gb > dataset_max_gb:
         print("- NOTE: '%s' %s dataset '%s' is %0.1f GB > %0.1f GB max. Data values will not be checked."
