@@ -22,7 +22,7 @@ class TestInspectorFunctions(TestCase):
         self.base_nwbfile = pynwb.NWBFile(
             session_description="Testing inspector.",
             identifier=str(uuid4()),
-            session_start_time=datetime.now(),
+            session_start_time=datetime.now().astimezone(),
         )
 
     def tearDown(self):

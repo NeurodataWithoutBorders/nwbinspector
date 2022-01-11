@@ -1,5 +1,6 @@
 """Authors: Cody Baker and Ben Dichter."""
 import numpy as np
+from collections import defaultdict
 from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -18,7 +19,7 @@ class TestInspectorFunctions(TestCase):
         self.base_nwbfile = pynwb.NWBFile(
             session_description="Testing inspector.",
             identifier=str(uuid4()),
-            session_start_time=datetime.now(),
+            session_start_time=datetime.now().astimezone(),
         )
 
     def tearDown(self):
@@ -66,4 +67,19 @@ class TestInspectorFunctions(TestCase):
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r") as io:
             nwbfile_in = io.read()
             check_results = inspect_nwb(nwbfile=nwbfile_in)
-        # self.assertEqual(check_results, dict())  # TODO: fill in expected behavior
+
+        print(check_results)
+        true_results = defaultdict(
+            list,
+            {
+                1: [
+                    dict(
+                        check_function_name="check_dataset_compression",
+                        object_type="ElectricalSeries",
+                        object_name="test_ecephys",
+                        output="Consider enabling compression when writing a large dataset.",
+                    )
+                ]
+            },
+        )
+        self.assertDictEqual(d1=check_results, d2=true_results)
