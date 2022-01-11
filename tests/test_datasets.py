@@ -12,7 +12,7 @@ import pynwb
 from nwbinspector.check_datasets import check_dataset_compression
 
 
-class TestInspectorFunctions(TestCase):
+class TestDatasetFunctions(TestCase):
     def setUp(self):
         self.tempdir = Path(mkdtemp())
         self.base_nwbfile = pynwb.NWBFile(
@@ -24,7 +24,7 @@ class TestInspectorFunctions(TestCase):
     def tearDown(self):
         rmtree(self.tempdir)
 
-    def test_check_dset_size(self):
+    def test_check_dataset_compression(self):
         nwbfile = self.base_nwbfile
         device = nwbfile.create_device(name="test_device")
         electrode_group = nwbfile.create_electrode_group(
