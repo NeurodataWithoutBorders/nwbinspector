@@ -24,7 +24,18 @@ class TestInspectorFunctions(TestCase):
         rmtree(self.tempdir)
 
     def test_decorator(self):
-        pass
+        from nwbinspector.utils import default_checks
+
+        severities = [1, 2, 3]
+        for severity in severities:
+
+            @add_to_default_checks(severity=severity)
+            def good_check_function():
+                pass
+
+            self.assertIn(
+                member=good_check_function, container=default_checks[severity]
+            )
 
     def test_decorator_severity_error(self):
         bad_severity = 4
