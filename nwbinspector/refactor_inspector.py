@@ -54,7 +54,7 @@ default_checks = {
 
 
 def inspect_nwb(
-    nwbfile: pynwb.NWBFile, checks=default_checks, severity_threshold: int = 0
+    nwbfile: pynwb.NWBFile, checks=default_checks, severity_threshold: int = 0, skip=None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -83,18 +83,24 @@ def inspect_nwb(
             1: low severity
                 - improvable data representation
         The default is 0.
+    skip: list, optional
+        names of checks to skip
     """
     check_results = defaultdict(list)
     for severity, severity_checks in checks.items():
-        if severity > severity_threshold:
-            for obj in nwbfile.objects.values():
-                for check in severity_checks[type(obj)]:
-                    output = check(obj)
-                    if output is not None:
-                        check_results[severity] = dict(
-                            check=check.__name__,
-                            obj_type=type(obj).__name__,
-                            obj_name=obj.name,
-                            output=output,
-                        )
+        if severity < severity_threshold:
+            continue
+        for obj in nwbfile.objects.values():
+            for check in severity_checks[type(obj)]:
+                if check.__name__ in skip:
+                    continue
+                output = check(obj)
+                if output is None:
+                    continue
+                check_results[severity] = dict(
+                    check=check.__name__,
+                    obj_type=type(obj).__name__,
+                    obj_name=obj.name,
+                    output=output,
+                )
     return check_results
