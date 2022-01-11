@@ -5,15 +5,16 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from uuid import uuid4
 from datetime import datetime
+from pathlib import Path
 
 import pynwb
 
-from nwbinspector import refactor_inspector
+from nwbinspector.check_datasets import check_dataset_compression
 
 
 class TestInspectorFunctions(TestCase):
     def setUp(self):
-        self.tempdir = mkdtemp()
+        self.tempdir = Path(mkdtemp())
         self.base_nwbfile = pynwb.NWBFile(
             session_description="Testing inspector.",
             identifier=str(uuid4()),
@@ -58,10 +59,16 @@ class TestInspectorFunctions(TestCase):
         )
         nwbfile.add_acquisition(ephys_ts)
 
-        output_message = refactor_inspector.check_dset_size(
-            obj=nwbfile.acquisition["test_ecephys"]
-        )
-        self.assertEqual(
-            first=output_message,
-            second=f"Consider enabling compression when writing a large dataset.",
-        )
+        nwbfile_path = str(self.tempdir / "testing.nwb")
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+            nwbfile_in = io.read()
+            output_message = check_dataset_compression(
+                obj=nwbfile_in.acquisition["test_ecephys"].data
+            )
+            self.assertEqual(
+                first=output_message,
+                second="Consider enabling compression when writing a large dataset.",
+            )
