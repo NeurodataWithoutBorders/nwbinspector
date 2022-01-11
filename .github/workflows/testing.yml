@@ -1,13 +1,14 @@
 name: Testing
 on: pull_request
 jobs:
-  run:
+  build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-          os: ["ubuntu-lattest", "macos-latest", "windows-latest"]
-          python-version: [3.7, 3.8]
+        os: ["ubuntu-lattest", "macos-latest", "windows-latest"]
+        python-version: [3.7, 3.8]
     steps:
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
@@ -21,15 +22,13 @@ jobs:
           pip install pytest-cov
       - name: Install nwbwidgets
         run: pip install -e .
-      - name: Run pytest
-        run: pytest
-#      - name: Run pytest with coverage
-#        run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
-#      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v1
-#        with:
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          file: ./nwbinspector/nwbinspector/coverage.xml
-#          flags: unittests
-#          name: codecov-umbrella 
-#          yml: ./nwbinspector/nwbinspector/coverage.yml
+      - name: Run pytest with coverage
+        run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./nwbinspector/nwbinspector/coverage.xml
+          flags: unittests
+          name: codecov-umbrella 
+          yml: ./nwbinspector/nwbinspector/coverage.yml
