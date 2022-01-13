@@ -3,7 +3,7 @@ import pynwb
 import hdmf
 from hdmf.testing import TestCase
 
-from nwbinspector.utils import add_to_default_checks
+from nwbinspector.utils import add_to_default_checks, check_regular_series
 
 
 class TestUtils(TestCase):
@@ -84,3 +84,7 @@ class TestUtils(TestCase):
             @add_to_default_checks(severity=bad_severity, neurodata_type=None)
             def bad_severity_function():
                 pass
+
+    def test_check_regular_series(self):
+        self.assertTrue(check_regular_series(series=[1, 2, 3]))
+        self.assertFalse(check_regular_series(series=[1, 2, 4]))

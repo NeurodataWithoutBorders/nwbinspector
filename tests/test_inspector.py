@@ -25,13 +25,13 @@ class TestInspector(TestCase):
     def tearDown(self):
         rmtree(self.tempdir)
 
-    def add_bad_check_dataset_compression(self):
+    def add_big_dataset_no_compression(self):
         device = self.nwbfile.create_device(name="test_device")
         electrode_group = self.nwbfile.create_electrode_group(
             name="test_group", description="", location="", device=device
         )
-        num_electrodes = 4
-        electrode_ids = list(range(num_electrodes))
+        self.num_electrodes = 4
+        electrode_ids = list(range(self.num_electrodes))
         for id in electrode_ids:
             self.nwbfile.add_electrode(
                 id=id,
@@ -43,24 +43,34 @@ class TestInspector(TestCase):
                 filtering="",
                 group=electrode_group,
             )
-        electrode_table_region = self.nwbfile.create_electrode_table_region(
+        self.electrode_table_region = self.nwbfile.create_electrode_table_region(
             electrode_ids, description=""
         )
 
         n_bytes = 3e6
         # itemsize of 8 because of float dtype
-        n_frames = int(n_bytes / (num_electrodes * 8))
-        ephys_data = np.zeros(shape=(n_frames, num_electrodes))
+        n_frames = int(n_bytes / (self.num_electrodes * 8))
+        ephys_data = np.zeros(shape=(n_frames, self.num_electrodes))
         ephys_ts = pynwb.ecephys.ElectricalSeries(
-            name="test_ecephys",
+            name="test_ecephys_1",
             data=ephys_data,
-            electrodes=electrode_table_region,
+            electrodes=self.electrode_table_region,
             rate=10.0,
         )
         self.nwbfile.add_acquisition(ephys_ts)
 
+    def add_regular_timestamps(self):
+        time_series = pynwb.ecephys.ElectricalSeries(
+            name="test_ecephys_2",
+            data=np.zeros(shape=(3, self.num_electrodes)),
+            electrodes=self.electrode_table_region,
+            timestamps=[1.2, 3.2, 5.2],
+        )
+        self.nwbfile.add_acquisition(time_series)
+
     def test_inspect_nwb(self):
-        self.add_bad_check_dataset_compression()
+        self.add_big_dataset_no_compression()
+        self.add_regular_timestamps()
 
         nwbfile_path = str(self.tempdir / "testing.nwb")
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
@@ -70,17 +80,34 @@ class TestInspector(TestCase):
             nwbfile_in = io.read()
             check_results = inspect_nwb(nwbfile=nwbfile_in)
 
-        true_results = defaultdict(
-            list,
-            {
-                1: [
-                    dict(
-                        check_function_name="check_dataset_compression",
-                        object_type="ElectricalSeries",
-                        object_name="test_ecephys",
-                        output="Consider enabling compression when writing a large dataset.",
-                    )
-                ]
-            },
-        )
-        self.assertDictEqual(d1=check_results, d2=true_results)
+            regular_timestamp_series = nwbfile_in.acquisition["test_ecephys_2"]
+            regular_timestamp_rate = (
+                regular_timestamp_series.timestamps[1]
+                - regular_timestamp_series.timestamps[0]
+            )
+            true_results = defaultdict(
+                list,
+                {
+                    1: [
+                        dict(
+                            check_function_name="check_dataset_compression",
+                            object_type="ElectricalSeries",
+                            object_name="test_ecephys_1",
+                            output="Consider enabling compression when writing a large dataset.",
+                        )
+                    ],
+                    2: [
+                        dict(
+                            check_function_name="check_regular_timestamps",
+                            object_type="ElectricalSeries",
+                            object_name="test_ecephys_2",
+                            output=(
+                                f"The TimeSeries '{regular_timestamp_series.name}' has a constant sampling rate. "
+                                f"Consider specifying starting_time={regular_timestamp_series.timestamps[0]} "
+                                f"and rate={regular_timestamp_rate} instead of timestamps."
+                            ),
+                        )
+                    ],
+                },
+            )
+            self.assertDictEqual(d1=check_results, d2=true_results)

@@ -4,7 +4,7 @@ import numpy as np
 import pynwb
 import h5py
 
-from .utils import add_to_default_checks
+from .utils import add_to_default_checks, check_regular_series
 
 
 @add_to_default_checks(severity=1, neurodata_type=pynwb.TimeSeries)
@@ -25,15 +25,14 @@ def check_dataset_compression(time_series: pynwb.TimeSeries, bytes_threshold=2e6
 @add_to_default_checks(severity=2, neurodata_type=pynwb.TimeSeries)
 def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9):
     """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
-    if time_series.timestamps:
-        uniq_diff_ts = np.unique(
-            np.diff(time_series.timestamps).round(decimals=time_tol_decimals)
+    if time_series.timestamps and check_regular_series(
+        series=time_series.timestamps, tolerance_decimals=time_tol_decimals
+    ):
+        return (
+            f"The TimeSeries '{time_series.name}' has a constant sampling rate. "
+            f"Consider specifying starting_time={time_series.timestamps[0]} "
+            f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
         )
-        if len(uniq_diff_ts) == 1:
-            return (
-                "constant sampling rate. Consider using starting_time "
-                f"{time_series.timestamps[0]} and rate {uniq_diff_ts[0]} instead of using the timestamps array."
-            )
 
 
 @add_to_default_checks(severity=3, neurodata_type=pynwb.TimeSeries)
