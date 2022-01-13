@@ -102,9 +102,10 @@ class TestInspector(TestCase):
                             object_type="ElectricalSeries",
                             object_name="test_ecephys_2",
                             output=(
-                                f"The TimeSeries '{regular_timestamp_series.name}' has a constant sampling rate. "
-                                f"Consider specifying starting_time={regular_timestamp_series.timestamps[0]} "
-                                f"and rate={regular_timestamp_rate} instead of timestamps."
+                                f"The {type(regular_timestamp_series).__name__} '{regular_timestamp_series.name}' "
+                                "has a constant sampling rate. Consider specifying "
+                                f"starting_time={regular_timestamp_series.timestamps[0]} and "
+                                f"rate={regular_timestamp_rate} instead of timestamps."
                             ),
                         )
                     ],

@@ -29,27 +29,31 @@ def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9)
         series=time_series.timestamps, tolerance_decimals=time_tol_decimals
     ):
         return (
-            f"The TimeSeries '{time_series.name}' has a constant sampling rate. "
+            f"The {type(time_series).__name__} '{time_series.name}' has a constant sampling rate. "
             f"Consider specifying starting_time={time_series.timestamps[0]} "
             f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
         )
 
 
-@add_to_default_checks(severity=3, neurodata_type=pynwb.TimeSeries)
+@add_to_default_checks(severity=2, neurodata_type=pynwb.TimeSeries)
 def check_data_orientation(time_series: pynwb.TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
+    if any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
+        return (
+            f"The {type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
+            "Time should be in the first dimension, and is usually the longest dimension. "
+            "Here, another dimension is longer. "
+            "This is possibly correct, but usually indicates that the data is in the wrong orientation."
+        )
+
+
+@add_to_default_checks(severity=3, neurodata_type=pynwb.TimeSeries)
+def check_timestamps_match_zero_axis(time_series: pynwb.TimeSeries):
+    """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if time_series.data is not None and len(time_series.data.shape) > 1:
         if time_series.timestamps is not None:
             if not (len(time_series.data) == len(time_series.timestamps)):
                 return (
                     f"{type(time_series).__name__} {'ts.name'} data orientation appears to be incorrect."
                     "The length of the first dimension of data does not match the length of timestamps."
-                )
-        else:
-            if any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
-                return (
-                    f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
-                    "Time should be in the first dimension, and is usually the longest dimension. "
-                    "Here, another dimension is longer. "
-                    "This is possibly correct, but usually indicates that the data is in the wrong orientation."
                 )
