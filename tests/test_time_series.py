@@ -16,7 +16,7 @@ from nwbinspector.check_time_series import (
 )
 
 
-class TestInspectorFunctions(TestCase):
+class TestTimeSeriesChecks(TestCase):
     def setUp(self):
         self.tempdir = Path(mkdtemp())
         self.base_nwbfile = pynwb.NWBFile(
