@@ -130,7 +130,7 @@ class TestTimeSeriesChecks(TestCase):
             timestamps=[1.0, 2.0, 3.0],
         )
         true_message = (
-            f"{type(time_series).__name__} {'ts.name'} data orientation appears to be incorrect. "
+            f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
             "The length of the first dimension of data does not match the length of timestamps."
         )
 

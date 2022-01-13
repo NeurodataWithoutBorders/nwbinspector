@@ -64,7 +64,7 @@ class TestInspector(TestCase):
             name="test_ecephys_2",
             data=np.zeros(shape=(5, self.num_electrodes)),
             electrodes=self.electrode_table_region,
-            timestamps=np.arange(1.2, 11.2, 2.0),
+            timestamps=np.arange(1.2, 11.2, 2),
         )
         self.nwbfile.add_acquisition(time_series)
 
@@ -77,10 +77,20 @@ class TestInspector(TestCase):
         )
         self.nwbfile.add_acquisition(time_series)
 
+    def add_non_matching_timestamps_dimension(self):
+        time_series = pynwb.ecephys.ElectricalSeries(
+            name="test_ecephys_4",
+            data=np.zeros(shape=(self.num_electrodes, 5)),
+            electrodes=self.electrode_table_region,
+            timestamps=np.arange(1.1, 6.1),
+        )
+        self.nwbfile.add_acquisition(time_series)
+
     def test_inspect_nwb(self):
         self.add_big_dataset_no_compression()
         self.add_regular_timestamps()
         self.add_flipped_data_orientation()
+        self.add_non_matching_timestamps_dimension()
 
         nwbfile_path = str(self.tempdir / "testing.nwb")
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
@@ -98,7 +108,9 @@ class TestInspector(TestCase):
             flipped_data_orientation_series = written_nwbfile.acquisition[
                 "test_ecephys_3"
             ]
-            print(check_results)
+            non_matching_timestamps_dimension_series = written_nwbfile.acquisition[
+                "test_ecephys_4"
+            ]
             true_results = defaultdict(
                 list,
                 {
@@ -134,15 +146,44 @@ class TestInspector(TestCase):
                                 "that the data is in the wrong orientation."
                             ),
                         ),
+                        dict(
+                            check_function_name="check_data_orientation",
+                            object_type="ElectricalSeries",
+                            object_name="test_ecephys_4",
+                            output=(
+                                f"The {type(non_matching_timestamps_dimension_series).__name__} "
+                                f"'{non_matching_timestamps_dimension_series.name}' data orientation appears to be "
+                                "incorrect. Time should be in the first dimension, and is usually the longest "
+                                "dimension. Here, another dimension is longer. This is possibly correct, but usually "
+                                "indicates that the data is in the wrong orientation."
+                            ),
+                        ),
+                    ],
+                    3: [
+                        dict(
+                            check_function_name="check_timestamps_match_first_dimension",
+                            object_type="ElectricalSeries",
+                            object_name="test_ecephys_4",
+                            output=(
+                                f"{type(non_matching_timestamps_dimension_series).__name__} "
+                                f"'{non_matching_timestamps_dimension_series.name}' data orientation appears to be "
+                                "incorrect. The length of the first dimension of data does not match the length of "
+                                "timestamps."
+                            ),
+                        ),
                     ],
                 },
             )
             for severity, result_list in true_results.items():
                 for result in result_list:
                     check_function_name = result["check_function_name"]
+                    object_name = result["object_name"]
                     matched_dictionary = None
                     for index, check_result in enumerate(check_results[severity]):
-                        if check_result["check_function_name"] == check_function_name:
+                        if (
+                            check_result["check_function_name"] == check_function_name
+                            and check_result["object_name"] == object_name
+                        ):
                             matched_dictionary = index
                     self.assertIsNotNone(obj=matched_dictionary)
                     self.assertDictEqual(
