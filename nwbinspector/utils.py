@@ -6,7 +6,7 @@ global default_checks
 default_checks = {1: defaultdict(list), 2: defaultdict(list), 3: defaultdict(list)}
 
 
-def add_to_default_checks(severity: int, neurodata_type):
+def nwbinspector_check(severity: int, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def decorator(check_function):

@@ -3,10 +3,10 @@ import numpy as np
 
 import pynwb
 
-from ..utils import add_to_default_checks, check_regular_series
+from ..utils import nwbinspector_check, check_regular_series
 
 
-@add_to_default_checks(severity=2, neurodata_type=pynwb.TimeSeries)
+@nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
 def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9):
     """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
     if time_series.timestamps is not None and check_regular_series(
@@ -19,7 +19,7 @@ def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9)
         )
 
 
-@add_to_default_checks(severity=2, neurodata_type=pynwb.TimeSeries)
+@nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
 def check_data_orientation(time_series: pynwb.TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
     if time_series.data is not None and any(
@@ -32,7 +32,7 @@ def check_data_orientation(time_series: pynwb.TimeSeries):
         )
 
 
-@add_to_default_checks(severity=3, neurodata_type=pynwb.TimeSeries)
+@nwbinspector_check(severity=3, neurodata_type=pynwb.TimeSeries)
 def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if (

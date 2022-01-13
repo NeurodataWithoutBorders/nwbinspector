@@ -3,7 +3,7 @@ import pynwb
 import hdmf
 from hdmf.testing import TestCase
 
-from nwbinspector.utils import add_to_default_checks, check_regular_series
+from nwbinspector.utils import nwbinspector_check, check_regular_series
 
 
 class TestUtils(TestCase):
@@ -14,7 +14,7 @@ class TestUtils(TestCase):
         neurodata_type = hdmf.common.DynamicTable
         for severity in severities:
 
-            @add_to_default_checks(severity=severity, neurodata_type=neurodata_type)
+            @nwbinspector_check(severity=severity, neurodata_type=neurodata_type)
             def good_check_function():
                 pass
 
@@ -29,7 +29,7 @@ class TestUtils(TestCase):
         severity = 2
         neurodata_type = hdmf.common.DynamicTable
 
-        @add_to_default_checks(severity=severity, neurodata_type=neurodata_type)
+        @nwbinspector_check(severity=severity, neurodata_type=neurodata_type)
         def good_check_function_1():
             pass
 
@@ -38,7 +38,7 @@ class TestUtils(TestCase):
             container=default_checks[severity][neurodata_type],
         )
 
-        @add_to_default_checks(severity=severity, neurodata_type=neurodata_type)
+        @nwbinspector_check(severity=severity, neurodata_type=neurodata_type)
         def good_check_function_2():
             pass
 
@@ -54,7 +54,7 @@ class TestUtils(TestCase):
         neurodata_type_1 = hdmf.common.DynamicTable
         neurodata_type_2 = pynwb.TimeSeries
 
-        @add_to_default_checks(severity=severity, neurodata_type=neurodata_type_1)
+        @nwbinspector_check(severity=severity, neurodata_type=neurodata_type_1)
         def good_check_function_1():
             pass
 
@@ -63,7 +63,7 @@ class TestUtils(TestCase):
             container=default_checks[severity][neurodata_type_1],
         )
 
-        @add_to_default_checks(severity=severity, neurodata_type=neurodata_type_2)
+        @nwbinspector_check(severity=severity, neurodata_type=neurodata_type_2)
         def good_check_function_2():
             pass
 
@@ -81,7 +81,7 @@ class TestUtils(TestCase):
             ),
         ):
 
-            @add_to_default_checks(severity=bad_severity, neurodata_type=None)
+            @nwbinspector_check(severity=bad_severity, neurodata_type=None)
             def bad_severity_function():
                 pass
 
