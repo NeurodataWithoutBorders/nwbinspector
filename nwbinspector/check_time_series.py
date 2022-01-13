@@ -48,12 +48,12 @@ def check_data_orientation(time_series: pynwb.TimeSeries):
 
 
 @add_to_default_checks(severity=3, neurodata_type=pynwb.TimeSeries)
-def check_timestamps_match_zero_axis(time_series: pynwb.TimeSeries):
+def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if time_series.data is not None and len(time_series.data.shape) > 1:
         if time_series.timestamps is not None:
             if not (len(time_series.data) == len(time_series.timestamps)):
                 return (
-                    f"{type(time_series).__name__} {'ts.name'} data orientation appears to be incorrect."
+                    f"{type(time_series).__name__} {'ts.name'} data orientation appears to be incorrect. "
                     "The length of the first dimension of data does not match the length of timestamps."
                 )
