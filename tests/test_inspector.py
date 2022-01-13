@@ -68,23 +68,36 @@ class TestInspector(TestCase):
         )
         self.nwbfile.add_acquisition(time_series)
 
+    def add_flipped_data_orientation(self):
+        time_series = pynwb.ecephys.ElectricalSeries(
+            name="test_ecephys_3",
+            data=np.zeros(shape=(self.num_electrodes, 5)),
+            electrodes=self.electrode_table_region,
+            rate=1.0,
+        )
+        self.nwbfile.add_acquisition(time_series)
+
     def test_inspect_nwb(self):
         self.add_big_dataset_no_compression()
         self.add_regular_timestamps()
+        self.add_flipped_data_orientation()
 
         nwbfile_path = str(self.tempdir / "testing.nwb")
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
             io.write(self.nwbfile)
 
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r") as io:
-            nwbfile_in = io.read()
-            check_results = inspect_nwb(nwbfile=nwbfile_in)
+            written_nwbfile = io.read()
+            check_results = inspect_nwb(nwbfile=written_nwbfile)
 
-            regular_timestamp_series = nwbfile_in.acquisition["test_ecephys_2"]
+            regular_timestamp_series = written_nwbfile.acquisition["test_ecephys_2"]
             regular_timestamp_rate = (
                 regular_timestamp_series.timestamps[1]
                 - regular_timestamp_series.timestamps[0]
             )
+            flipped_data_orientation_series = written_nwbfile.acquisition[
+                "test_ecephys_3"
+            ]
             print(check_results)
             true_results = defaultdict(
                 list,
@@ -108,8 +121,30 @@ class TestInspector(TestCase):
                                 f"starting_time={regular_timestamp_series.timestamps[0]} and "
                                 f"rate={regular_timestamp_rate} instead of timestamps."
                             ),
-                        )
+                        ),
+                        dict(
+                            check_function_name="check_data_orientation",
+                            object_type="ElectricalSeries",
+                            object_name="test_ecephys_3",
+                            output=(
+                                f"The {type(flipped_data_orientation_series).__name__} "
+                                f"'{flipped_data_orientation_series.name}' data orientation appears to be incorrect. "
+                                "Time should be in the first dimension, and is usually the longest dimension. "
+                                "Here, another dimension is longer. This is possibly correct, but usually indicates "
+                                "that the data is in the wrong orientation."
+                            ),
+                        ),
                     ],
                 },
             )
-            self.assertDictEqual(d1=check_results, d2=true_results)
+            for severity, result_list in true_results.items():
+                for result in result_list:
+                    check_function_name = result["check_function_name"]
+                    matched_dictionary = None
+                    for index, check_result in enumerate(check_results[severity]):
+                        if check_result["check_function_name"] == check_function_name:
+                            matched_dictionary = index
+                    self.assertIsNotNone(obj=matched_dictionary)
+                    self.assertDictEqual(
+                        d1=check_results[severity][matched_dictionary], d2=result
+                    )
