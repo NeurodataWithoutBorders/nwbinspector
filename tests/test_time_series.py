@@ -67,7 +67,7 @@ class TestTimeSeriesChecks(TestCase):
             timestamps=[1.2, 3.2, 5.2],
         )
         true_message = (
-            f"The {type(time_series).__name__} '{time_series.name}' has a constant sampling rate. "
+            "TimeSeries appears to have a constant sampling rate. "
             f"Consider specifying starting_time={time_series.timestamps[0]} "
             f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
         )
@@ -98,10 +98,9 @@ class TestTimeSeriesChecks(TestCase):
             rate=1.0,
         )
         true_message = (
-            f"The {type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
+            "Data orientation may be in the wrong orientation. "
             "Time should be in the first dimension, and is usually the longest dimension. "
             "Here, another dimension is longer. "
-            "This is possibly correct, but usually indicates that the data is in the wrong orientation."
         )
 
         output_message_1 = check_data_orientation(time_series=time_series)
@@ -129,10 +128,7 @@ class TestTimeSeriesChecks(TestCase):
             data=np.zeros(shape=4),
             timestamps=[1.0, 2.0, 3.0],
         )
-        true_message = (
-            f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
-            "The length of the first dimension of data does not match the length of timestamps."
-        )
+        true_message = "The length of the first dimension of data does not match the length of timestamps."
 
         output_message_1 = check_timestamps_match_first_dimension(
             time_series=time_series
@@ -161,10 +157,7 @@ class TestTimeSeriesChecks(TestCase):
             data=np.zeros(shape=(2, 3)),
             timestamps=[1.0, 2.0, 3.0],
         )
-        true_message = (
-            f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
-            "The length of the first dimension of data does not match the length of timestamps."
-        )
+        true_message = "The length of the first dimension of data does not match the length of timestamps."
 
         output_message_1 = check_timestamps_match_first_dimension(
             time_series=time_series

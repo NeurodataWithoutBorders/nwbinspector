@@ -105,12 +105,6 @@ class TestInspector(TestCase):
                 regular_timestamp_series.timestamps[1]
                 - regular_timestamp_series.timestamps[0]
             )
-            flipped_data_orientation_series = written_nwbfile.acquisition[
-                "test_ecephys_3"
-            ]
-            non_matching_timestamps_dimension_series = written_nwbfile.acquisition[
-                "test_ecephys_4"
-            ]
             true_results = defaultdict(
                 list,
                 {
@@ -128,9 +122,8 @@ class TestInspector(TestCase):
                             object_type="ElectricalSeries",
                             object_name="test_ecephys_2",
                             output=(
-                                f"The {type(regular_timestamp_series).__name__} '{regular_timestamp_series.name}' "
-                                "has a constant sampling rate. Consider specifying "
-                                f"starting_time={regular_timestamp_series.timestamps[0]} and "
+                                "TimeSeries appears to have a constant sampling rate. "
+                                f"Consider specifying starting_time={regular_timestamp_series.timestamps[0]} and "
                                 f"rate={regular_timestamp_rate} instead of timestamps."
                             ),
                         ),
@@ -139,11 +132,9 @@ class TestInspector(TestCase):
                             object_type="ElectricalSeries",
                             object_name="test_ecephys_3",
                             output=(
-                                f"The {type(flipped_data_orientation_series).__name__} "
-                                f"'{flipped_data_orientation_series.name}' data orientation appears to be incorrect. "
+                                "Data orientation may be in the wrong orientation. "
                                 "Time should be in the first dimension, and is usually the longest dimension. "
-                                "Here, another dimension is longer. This is possibly correct, but usually indicates "
-                                "that the data is in the wrong orientation."
+                                "Here, another dimension is longer. "
                             ),
                         ),
                         dict(
@@ -151,11 +142,9 @@ class TestInspector(TestCase):
                             object_type="ElectricalSeries",
                             object_name="test_ecephys_4",
                             output=(
-                                f"The {type(non_matching_timestamps_dimension_series).__name__} "
-                                f"'{non_matching_timestamps_dimension_series.name}' data orientation appears to be "
-                                "incorrect. Time should be in the first dimension, and is usually the longest "
-                                "dimension. Here, another dimension is longer. This is possibly correct, but usually "
-                                "indicates that the data is in the wrong orientation."
+                                "Data orientation may be in the wrong orientation. "
+                                "Time should be in the first dimension, and is usually the longest dimension. "
+                                "Here, another dimension is longer. "
                             ),
                         ),
                     ],
@@ -164,12 +153,7 @@ class TestInspector(TestCase):
                             check_function_name="check_timestamps_match_first_dimension",
                             object_type="ElectricalSeries",
                             object_name="test_ecephys_4",
-                            output=(
-                                f"{type(non_matching_timestamps_dimension_series).__name__} "
-                                f"'{non_matching_timestamps_dimension_series.name}' data orientation appears to be "
-                                "incorrect. The length of the first dimension of data does not match the length of "
-                                "timestamps."
-                            ),
+                            output="The length of the first dimension of data does not match the length of timestamps.",
                         ),
                     ],
                 },
