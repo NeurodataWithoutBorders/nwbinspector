@@ -62,9 +62,9 @@ class TestInspector(TestCase):
     def add_regular_timestamps(self):
         time_series = pynwb.ecephys.ElectricalSeries(
             name="test_ecephys_2",
-            data=np.zeros(shape=(3, self.num_electrodes)),
+            data=np.zeros(shape=(5, self.num_electrodes)),
             electrodes=self.electrode_table_region,
-            timestamps=[1.2, 3.2, 5.2],
+            timestamps=np.arange(1.2, 11.2, 2.0),
         )
         self.nwbfile.add_acquisition(time_series)
 
@@ -85,6 +85,7 @@ class TestInspector(TestCase):
                 regular_timestamp_series.timestamps[1]
                 - regular_timestamp_series.timestamps[0]
             )
+            print(check_results)
             true_results = defaultdict(
                 list,
                 {

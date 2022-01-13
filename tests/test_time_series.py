@@ -13,7 +13,7 @@ from nwbinspector.check_time_series import (
     check_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
-    check_timestamps_match_zero_axis,
+    check_timestamps_match_first_dimension,
 )
 
 
@@ -31,23 +31,21 @@ class TestTimeSeriesChecks(TestCase):
         rmtree(self.tempdir)
 
     def test_check_dataset_compression(self):
-        n_frames = int(3e6 / np.dtype("float").itemsize)
         time_series = pynwb.TimeSeries(
             name="test_time_series",
             unit="test_unit",
-            data=np.zeros(shape=n_frames),
+            data=np.zeros(shape=int(3e6 / np.dtype("float").itemsize)),
             rate=1.0,
         )
-        true_message = "Consider enabling compression when writing a large dataset."
 
-        output_message_3 = check_dataset_compression(time_series=time_series)
-        self.assertEqual(first=output_message_3, second=true_message)
+        output_message_1 = check_dataset_compression(time_series=time_series)
+        self.assertEqual(first=output_message_1, second=None)
 
         self.nwbfile.add_acquisition(time_series)
-        output_message_3 = check_dataset_compression(
+        output_message_2 = check_dataset_compression(
             time_series=self.nwbfile.acquisition["test_time_series"]
         )
-        self.assertEqual(first=output_message_3, second=true_message)
+        self.assertEqual(first=output_message_2, second=None)
 
         with pynwb.NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
             io.write(self.nwbfile)
@@ -56,7 +54,10 @@ class TestTimeSeriesChecks(TestCase):
             output_message_3 = check_dataset_compression(
                 time_series=written_nwbfile.acquisition["test_time_series"]
             )
-            self.assertEqual(first=output_message_3, second=true_message)
+            self.assertEqual(
+                first=output_message_3,
+                second="Consider enabling compression when writing a large dataset.",
+            )
 
     def test_check_regular_timestamps(self):
         time_series = pynwb.TimeSeries(
@@ -107,7 +108,7 @@ class TestTimeSeriesChecks(TestCase):
         self.assertEqual(first=output_message_1, second=true_message)
 
         self.nwbfile.add_acquisition(time_series)
-        output_message_2 = check_regular_timestamps(
+        output_message_2 = check_data_orientation(
             time_series=self.nwbfile.acquisition["test_time_series"]
         )
         self.assertEqual(first=output_message_2, second=true_message)
@@ -116,26 +117,30 @@ class TestTimeSeriesChecks(TestCase):
             io.write(self.nwbfile)
         with pynwb.NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
-            output_message_3 = check_regular_timestamps(
+            output_message_3 = check_data_orientation(
                 time_series=written_nwbfile.acquisition["test_time_series"]
             )
             self.assertEqual(first=output_message_3, second=true_message)
 
-    def test_check_timestamps_match_zero_axis(self):
+    def test_check_timestamps_match_first_dimension(self):
         time_series = pynwb.TimeSeries(
-            name="test_time_series", unit="test_units", data=np.zeros(shape=3), rate=1.0
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=(2, 3)),
+            timestamps=[1.0, 2.0, 3.0],
         )
         true_message = (
-            f"The {type(time_series).__name__} '{time_series.name}' has a constant sampling rate. "
-            f"Consider specifying starting_time={time_series.timestamps[0]} "
-            f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+            f"{type(time_series).__name__} {'ts.name'} data orientation appears to be incorrect. "
+            "The length of the first dimension of data does not match the length of timestamps."
         )
 
-        output_message_1 = check_data_orientation(time_series=time_series)
+        output_message_1 = check_timestamps_match_first_dimension(
+            time_series=time_series
+        )
         self.assertEqual(first=output_message_1, second=true_message)
 
         self.nwbfile.add_acquisition(time_series)
-        output_message_2 = check_regular_timestamps(
+        output_message_2 = check_timestamps_match_first_dimension(
             time_series=self.nwbfile.acquisition["test_time_series"]
         )
         self.assertEqual(first=output_message_2, second=true_message)
@@ -144,7 +149,7 @@ class TestTimeSeriesChecks(TestCase):
             io.write(self.nwbfile)
         with pynwb.NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
-            output_message_3 = check_regular_timestamps(
+            output_message_3 = check_timestamps_match_first_dimension(
                 time_series=written_nwbfile.acquisition["test_time_series"]
             )
             self.assertEqual(first=output_message_3, second=true_message)
