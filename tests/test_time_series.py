@@ -122,7 +122,39 @@ class TestTimeSeriesChecks(TestCase):
             )
             self.assertEqual(first=output_message_3, second=true_message)
 
-    def test_check_timestamps_match_first_dimension(self):
+    def test_check_timestamps_match_first_dimension_1d(self):
+        time_series = pynwb.TimeSeries(
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=4),
+            timestamps=[1.0, 2.0, 3.0],
+        )
+        true_message = (
+            f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "
+            "The length of the first dimension of data does not match the length of timestamps."
+        )
+
+        output_message_1 = check_timestamps_match_first_dimension(
+            time_series=time_series
+        )
+        self.assertEqual(first=output_message_1, second=true_message)
+
+        self.nwbfile.add_acquisition(time_series)
+        output_message_2 = check_timestamps_match_first_dimension(
+            time_series=self.nwbfile.acquisition["test_time_series"]
+        )
+        self.assertEqual(first=output_message_2, second=true_message)
+
+        with pynwb.NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
+            io.write(self.nwbfile)
+        with pynwb.NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            written_nwbfile = io.read()
+            output_message_3 = check_timestamps_match_first_dimension(
+                time_series=written_nwbfile.acquisition["test_time_series"]
+            )
+            self.assertEqual(first=output_message_3, second=true_message)
+
+    def test_check_timestamps_match_first_dimension_2d(self):
         time_series = pynwb.TimeSeries(
             name="test_time_series",
             unit="test_units",

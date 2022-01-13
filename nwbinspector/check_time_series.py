@@ -54,9 +54,8 @@ def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if (
         time_series.data is not None
-        and len(time_series.data.shape) > 1
         and time_series.timestamps is not None
-        and len(time_series.data) != len(time_series.timestamps)
+        and time_series.data.shape[0] != len(time_series.timestamps)
     ):
         return (
             f"{type(time_series).__name__} '{time_series.name}' data orientation appears to be incorrect. "

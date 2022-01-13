@@ -45,9 +45,6 @@ def inspect_nwb(
     skip: list, optional
         Names of functions to skip.
     """
-    if skip is None:
-        skip = []
-
     check_results = defaultdict(list)
     for severity, severity_checks in checks.items():
         if severity < severity_threshold:
@@ -56,7 +53,7 @@ def inspect_nwb(
             for obj in nwbfile.objects.values():
                 if issubclass(type(obj), check_object_type):
                     for check_function in check_functions:
-                        if check_function.__name__ in skip:
+                        if skip is not None and check_function.__name__ in skip:
                             continue
                         output = check_function(obj)
                         if output is None:
