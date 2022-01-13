@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pynwb
 
-from nwbinspector.check_time_series import (
+from nwbinspector import (
     check_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
@@ -121,19 +121,6 @@ class PostWriteIntegrationTestTimeSeriesChecks(TestCase):
                 ),
                 second=true_message,
             )
-
-    def test_check_dataset_compression(self):
-        time_series = pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_unit",
-            data=np.zeros(shape=int(3e6 / np.dtype("float").itemsize)),
-            rate=1.0,
-        )
-        self.nwbfile.add_acquisition(time_series)
-        self.assertPostWriteCheck(
-            check_function=check_dataset_compression,
-            true_message="Consider enabling compression when writing a large dataset.",
-        )
 
     def test_check_regular_timestamps(self):
         time_series = pynwb.TimeSeries(

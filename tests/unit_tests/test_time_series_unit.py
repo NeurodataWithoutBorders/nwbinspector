@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import pynwb
 
-from nwbinspector.check_time_series import (
+from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,

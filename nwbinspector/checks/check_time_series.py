@@ -2,24 +2,8 @@
 import numpy as np
 
 import pynwb
-import h5py
 
-from .utils import add_to_default_checks, check_regular_series
-
-
-@add_to_default_checks(severity=1, neurodata_type=pynwb.TimeSeries)
-def check_dataset_compression(time_series: pynwb.TimeSeries, bytes_threshold=2e6):
-    """
-    If the data in the TimeSeries object is a h5py.Dataset, check if it has compression enabled.
-
-    Will only run if the size of the h5py.Dataset is larger than bytes_threshold.
-    """
-    if isinstance(time_series.data, h5py.Dataset):
-        if (
-            time_series.data.size * time_series.data.dtype.itemsize > bytes_threshold
-            and time_series.data.compression is None
-        ):
-            return "Consider enabling compression when writing a large dataset."
+from ..utils import add_to_default_checks, check_regular_series
 
 
 @add_to_default_checks(severity=2, neurodata_type=pynwb.TimeSeries)

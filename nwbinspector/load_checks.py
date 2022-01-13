@@ -1,9 +1,10 @@
 """Authors: Cody Baker and Ben Dichter."""
 from .utils import default_checks
-from .check_time_series import (
+from . import (
     check_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
+    check_timestamps_match_first_dimension,
 )
 
 
