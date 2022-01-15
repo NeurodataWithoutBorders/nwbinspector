@@ -6,12 +6,12 @@ import pynwb
 
 from .load_checks import load_checks
 
-# available_checks = load_checks()
+available_checks = load_checks()
 
 
 def inspect_nwb(
     nwbfile: pynwb.NWBFile,
-    checks=default_checks,
+    checks=available_checks,
     severity_threshold: int = 0,
     skip: Optional[list] = None,
 ):
@@ -29,8 +29,9 @@ def inspect_nwb(
         The value of each object type is a list of test functions to run.
 
         # TODO change the below import
-        This can be modified or extended by calling `from nwbinspector.refactor_inspector import default_checks`,
-        then updating or appending `default_checks` as desired, then passing into this function call.
+        This can be modified or extended by calling `from nwbinspector.refactor_inspector import available_checks`,
+        then updating or appending `available_checks` as desired, then passing into this function call.
+        By default, all availaable checks are run.
     severity_threshold : integer, optional
         Ignores tests with an assigned severity below this threshold.
         Severity has three levels:
@@ -61,7 +62,7 @@ def inspect_nwb(
                         check_results[severity].append(
                             dict(
                                 check_function_name=check_function.name,
-                                object_type=check_function.neurodata_type,
+                                object_type=type(obj).__name__,
                                 object_name=obj.name,
                                 output=output,
                             )

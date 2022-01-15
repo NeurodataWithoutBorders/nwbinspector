@@ -8,7 +8,7 @@ from nwbinspector.utils import nwbinspector_check, check_regular_series
 
 class TestUtils(TestCase):
     def test_decorator_severities(self):
-        from nwbinspector.utils import default_checks
+        from nwbinspector.utils import available_checks
 
         severities = [1, 2, 3]
         neurodata_type = hdmf.common.DynamicTable
@@ -20,11 +20,11 @@ class TestUtils(TestCase):
 
             self.assertIn(
                 member=good_check_function,
-                container=default_checks[severity][neurodata_type],
+                container=available_checks[severity][neurodata_type],
             )
 
     def test_decorator_multiple_data_objects_same_type(self):
-        from nwbinspector.utils import default_checks
+        from nwbinspector.utils import available_checks
 
         severity = 2
         neurodata_type = hdmf.common.DynamicTable
@@ -35,7 +35,7 @@ class TestUtils(TestCase):
 
         self.assertIn(
             member=good_check_function_1,
-            container=default_checks[severity][neurodata_type],
+            container=available_checks[severity][neurodata_type],
         )
 
         @nwbinspector_check(severity=severity, neurodata_type=neurodata_type)
@@ -44,11 +44,11 @@ class TestUtils(TestCase):
 
         self.assertIn(
             member=good_check_function_2,
-            container=default_checks[severity][neurodata_type],
+            container=available_checks[severity][neurodata_type],
         )
 
     def test_decorator_multiple_data_objects_different_type(self):
-        from nwbinspector.utils import default_checks
+        from nwbinspector.utils import available_checks
 
         severity = 2
         neurodata_type_1 = hdmf.common.DynamicTable
@@ -60,7 +60,7 @@ class TestUtils(TestCase):
 
         self.assertIn(
             member=good_check_function_1,
-            container=default_checks[severity][neurodata_type_1],
+            container=available_checks[severity][neurodata_type_1],
         )
 
         @nwbinspector_check(severity=severity, neurodata_type=neurodata_type_2)
@@ -69,7 +69,7 @@ class TestUtils(TestCase):
 
         self.assertIn(
             member=good_check_function_2,
-            container=default_checks[severity][neurodata_type_2],
+            container=available_checks[severity][neurodata_type_2],
         )
 
     def test_decorator_severity_error(self):

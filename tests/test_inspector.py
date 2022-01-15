@@ -170,6 +170,8 @@ class TestInspector(TestCase):
                         ):
                             matched_dictionary = index
                     self.assertIsNotNone(obj=matched_dictionary)
+                    print(check_results[severity][matched_dictionary])
+                    print(result)
                     self.assertDictEqual(
                         d1=check_results[severity][matched_dictionary], d2=result
                     )
