@@ -4,9 +4,7 @@ from typing import Optional
 
 import pynwb
 
-from .load_checks import load_checks
-
-available_checks = load_checks()
+from . import available_checks
 
 
 def inspect_nwb(
