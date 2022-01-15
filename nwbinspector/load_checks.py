@@ -1,5 +1,5 @@
 """Authors: Cody Baker and Ben Dichter."""
-from .utils import default_checks
+from .utils import available_checks
 from . import (
     check_dataset_compression,
     check_regular_timestamps,
@@ -8,5 +8,5 @@ from . import (
 )
 
 
-def load_checks(checks=default_checks):
-    return default_checks
+def load_checks(checks=available_checks):
+    return available_checks

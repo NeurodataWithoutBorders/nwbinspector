@@ -6,7 +6,7 @@ import pynwb
 
 from .load_checks import load_checks
 
-default_checks = load_checks()
+# available_checks = load_checks()
 
 
 def inspect_nwb(
@@ -60,8 +60,8 @@ def inspect_nwb(
                             continue
                         check_results[severity].append(
                             dict(
-                                check_function_name=check_function.__name__,
-                                object_type=type(obj).__name__,
+                                check_function_name=check_function.name,
+                                object_type=check_function.neurodata_type,
                                 object_name=obj.name,
                                 output=output,
                             )
