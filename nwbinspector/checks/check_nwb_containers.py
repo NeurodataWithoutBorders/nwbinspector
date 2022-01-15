@@ -12,11 +12,10 @@ def check_dataset_compression(nwb_container: pynwb.NWBContainer, bytes_threshold
 
     Will only run if the size of the h5py.Dataset is larger than bytes_threshold.
     """
-    if (
-        "data" in nwb_container.__dict__["_AbstractContainer__field_values"]
-        and isinstance(nwb_container.data, h5py.Dataset)
-        and nwb_container.data.size * nwb_container.data.dtype.itemsize
-        > bytes_threshold
-        and nwb_container.data.compression is None
-    ):
-        return "Consider enabling compression when writing a large dataset."
+    for field in getattr(nwb_container, "fields", dict()).values():
+        if (
+            isinstance(field, h5py.Dataset)
+            and field.size * field.dtype.itemsize > bytes_threshold
+            and field.compression is None
+        ):
+            return "Consider enabling compression when writing a large dataset."
