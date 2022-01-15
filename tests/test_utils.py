@@ -8,7 +8,7 @@ from nwbinspector.utils import nwbinspector_check, check_regular_series
 
 class TestUtils(TestCase):
     def test_decorator_severities(self):
-        from nwbinspector.utils import available_checks
+        from nwbinspector import available_checks
 
         severities = [1, 2, 3]
         neurodata_type = hdmf.common.DynamicTable
@@ -24,7 +24,7 @@ class TestUtils(TestCase):
             )
 
     def test_decorator_multiple_data_objects_same_type(self):
-        from nwbinspector.utils import available_checks
+        from nwbinspector import available_checks
 
         severity = 2
         neurodata_type = hdmf.common.DynamicTable
@@ -48,7 +48,7 @@ class TestUtils(TestCase):
         )
 
     def test_decorator_multiple_data_objects_different_type(self):
-        from nwbinspector.utils import available_checks
+        from nwbinspector import available_checks
 
         severity = 2
         neurodata_type_1 = hdmf.common.DynamicTable
