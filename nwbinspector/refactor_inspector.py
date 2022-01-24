@@ -59,7 +59,7 @@ def inspect_nwb(
                             continue
                         check_results[severity].append(
                             dict(
-                                check_function_name=check_function.name,
+                                check_function_name=check_function.__name__,
                                 object_type=type(obj).__name__,
                                 object_name=obj.name,
                                 output=output,
