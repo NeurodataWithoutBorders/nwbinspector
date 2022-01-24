@@ -14,7 +14,6 @@ def nwbinspector_check(severity: int, neurodata_type):
             raise ValueError(
                 f"Indicated severity ({severity}) of custom check ({check_function.__name__}) is not in range of 1-3."
             )
-        check_function.name = check_function.__name__
         check_function.severity = severity
         check_function.neurodata_type = neurodata_type
 
