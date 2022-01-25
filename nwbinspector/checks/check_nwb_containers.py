@@ -1,12 +1,12 @@
 """Authors: Cody Baker and Ben Dichter."""
-import pynwb
 import h5py
+from pynwb import NWBContainer
 
 from ..utils import nwbinspector_check
 
 
-@nwbinspector_check(severity=1, neurodata_type=pynwb.NWBContainer)
-def check_dataset_compression(nwb_container: pynwb.NWBContainer, bytes_threshold=2e6):
+@nwbinspector_check(severity=1, neurodata_type=NWBContainer)
+def check_dataset_compression(nwb_container: NWBContainer, bytes_threshold=2e6):
     """
     If the data in the TimeSeries object is a h5py.Dataset, check if it has compression enabled.
 
