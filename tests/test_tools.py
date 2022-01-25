@@ -15,7 +15,7 @@ def test_all_of_type():
         session_start_time=datetime.now().astimezone(),
     )
     true_time_series = [
-        pynwb.TimeSeries(name=f"time_series_{x}", data=np.zeros(shape=(100, 10)), rate=1.0) for x in range(4)
+        pynwb.TimeSeries(name=f"time_series_{x}", data=np.zeros(shape=(100, 10)), rate=1.0, unit="") for x in range(4)
     ]
     for x in range(2):
         nwbfile.add_acquisition(true_time_series[x])
