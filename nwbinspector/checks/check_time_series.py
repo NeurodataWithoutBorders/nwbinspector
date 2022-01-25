@@ -70,23 +70,3 @@ def check_timeseries(nwbfile):
         if not ts.unit:
             error_code = "A101"
             print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
-
-        # check for correct data orientation
-        if ts.data is not None and len(ts.data.shape) > 1:
-            if ts.timestamps is not None:
-                if not (len(ts.data) == len(ts.timestamps)):
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data orientation appears to be incorrect. \n    The length of the first "
-                        "dimension of data does not match the length of timestamps."
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
-            else:
-                if max(ts.data.shape[1:]) > ts.data.shape[0]:
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data orientation appears to be incorrect. \n    Time should be in the first "
-                        "dimension, and is usually the longest dimension. Here, another dimension is longer. This is "
-                        "possibly correct, but usually indicates that the data is in the wrong orientation."
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
