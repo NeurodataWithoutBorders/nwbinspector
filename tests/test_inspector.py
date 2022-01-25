@@ -10,8 +10,9 @@ from pathlib import Path
 from typing import Optional
 
 import pynwb
+import pytest
 
-from nwbinspector.refactor_inspector import inspect_nwb
+from nwbinspector.nwbinspector import inspect_nwb
 
 
 class TestInspector(TestCase):
@@ -39,13 +40,9 @@ class TestInspector(TestCase):
                     ):
                         matched_dictionary = index
                 self.assertIsNotNone(obj=matched_dictionary)
-                self.assertDictEqual(
-                    d1=test_result[severity][matched_dictionary], d2=result
-                )
+                self.assertDictEqual(d1=test_result[severity][matched_dictionary], d2=result)
 
-    def assertPostWriteResultsEquivalent(
-        self, true_results: dict, inspect_nwb_kwargs: Optional[dict] = None
-    ):
+    def assertPostWriteResultsEquivalent(self, true_results: dict, inspect_nwb_kwargs: Optional[dict] = None):
         if inspect_nwb_kwargs is None:
             inspect_nwb_kwargs = dict()
 
@@ -78,9 +75,7 @@ class TestInspector(TestCase):
                 filtering="",
                 group=electrode_group,
             )
-        self.electrode_table_region = self.nwbfile.create_electrode_table_region(
-            electrode_ids, description=""
-        )
+        self.electrode_table_region = self.nwbfile.create_electrode_table_region(electrode_ids, description="")
 
         n_frames = int(3e6 / (self.num_electrodes * np.dtype("float").itemsize))
         ephys_data = np.zeros(shape=(n_frames, self.num_electrodes))
@@ -126,10 +121,7 @@ class TestInspector(TestCase):
         self.add_non_matching_timestamps_dimension()
 
         regular_timestamp_series = self.nwbfile.acquisition["test_ecephys_2"]
-        regular_timestamp_rate = (
-            regular_timestamp_series.timestamps[1]
-            - regular_timestamp_series.timestamps[0]
-        )
+        regular_timestamp_rate = regular_timestamp_series.timestamps[1] - regular_timestamp_series.timestamps[0]
         true_results = defaultdict(
             list,
             {
@@ -204,9 +196,7 @@ class TestInspector(TestCase):
                 ],
             },
         )
-        self.assertPostWriteResultsEquivalent(
-            true_results=true_results, inspect_nwb_kwargs=dict(severity_threshold=2)
-        )
+        self.assertPostWriteResultsEquivalent(true_results=true_results, inspect_nwb_kwargs=dict(severity_threshold=2))
 
     def test_inspect_nwb_skip(self):
         self.add_big_dataset_no_compression()
@@ -215,10 +205,7 @@ class TestInspector(TestCase):
         self.add_non_matching_timestamps_dimension()
 
         regular_timestamp_series = self.nwbfile.acquisition["test_ecephys_2"]
-        regular_timestamp_rate = (
-            regular_timestamp_series.timestamps[1]
-            - regular_timestamp_series.timestamps[0]
-        )
+        regular_timestamp_rate = regular_timestamp_series.timestamps[1] - regular_timestamp_series.timestamps[0]
         true_results = defaultdict(
             list,
             {
@@ -256,3 +243,7 @@ class TestInspector(TestCase):
             true_results=true_results,
             inspect_nwb_kwargs=dict(skip=["check_data_orientation"]),
         )
+
+    @pytest.mark.skip(msg="TODO")
+    def test_cmd_line(self):
+        pass

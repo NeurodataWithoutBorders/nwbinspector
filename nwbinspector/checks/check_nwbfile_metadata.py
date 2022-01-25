@@ -1,4 +1,4 @@
-"""Authors: Cody Baker and Ben Dichter."""
+"""Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
 from pynwb import NWBFile
 
 from ..utils import nwbinspector_check
@@ -38,9 +38,7 @@ def check_doi_publications(nwbfile: NWBFile):
     valid_starts = ["doi:", "http://dx.doi.org/", "https://doi.org/"]
     if nwbfile.related_publications:
         for publication in nwbfile.related_publications:
-            if any(
-                [publication.startswith(valid_start) for valid_start in valid_starts]
-            ):
+            if any([publication.startswith(valid_start) for valid_start in valid_starts]):
                 return f"Metadata /general/related_publications '{publication}' does not include 'doi'!"
 
 

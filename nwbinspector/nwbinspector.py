@@ -1,17 +1,21 @@
 """Cody Baker, Ben Dichter, and Ryan Ly."""
 import argparse
-import hdmf
 import importlib
-import numpy as np
 import pathlib
+from collections import defaultdict
+from typing import Optional
+
 import pynwb
 
-import hdmf.backends.hdf5.h5_utils
-
-from .inspect_nwb import inspect_nwb
+from . import available_checks
 
 
 def main():
+    """
+    Primary command line function for checking an NWBFile for format improvements.
+
+    Usage: python nwbinspector.py dir_name
+    """
     parser = argparse.ArgumentParser("python test.py [options]")
     parser.add_argument(
         "-m",
@@ -20,9 +24,7 @@ def main():
         dest="modules",
         help="modules to import prior to reading the file(s)",
     )
-    parser.add_argument(
-        "path", help="path to an NWB file or directory containing NWB files"
-    )
+    parser.add_argument("path", help="path to an NWB file or directory containing NWB files")
     parser.set_defaults(modules=[])
     args = parser.parse_args()
 
@@ -66,240 +68,66 @@ def main():
         print("%d/%d files had errors." % (num_exceptions, num_exceptions))
 
 
-def check_timeseries(nwbfile):
-    """Check dataset values in TimeSeries objects"""
-    for ts in all_of_type(nwbfile, pynwb.TimeSeries):
-        if ts.data is None:
-            # exception to the rule: ImageSeries objects are allowed to have no data
-            if not isinstance(ts, pynwb.image.ImageSeries):
-                error_code = "A101"
-                print(
-                    "- %s: '%s' %s data is None"
-                    % (error_code, ts.name, type(ts).__name__)
-                )
-            else:
-                if ts.external_file is None:
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data is None and external_file is None"
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
+def inspect_nwb(
+    nwbfile: pynwb.NWBFile,
+    checks=available_checks,
+    severity_threshold: int = 0,
+    skip: Optional[list] = None,
+):
+    """
+    Inspect a NWBFile object and return suggestions for improvements according to best practices.
+
+    Parameters
+    ----------
+    nwbfile : pynwb.NWBFile
+        The open NWBFile object to test.
+    checks : dictionary, optional
+        A nested dictionary specifying which quality checks to run.
+        Outer key is severity (between 1 to 3 inclusive, 3 being most severe).
+        Each severity is mapped to a dictionary whose keys are NWBFile object types.
+        The value of each object type is a list of test functions to run.
+
+        # TODO change the below import
+        This can be modified or extended by calling `from nwbinspector.refactor_inspector import available_checks`,
+        then updating or appending `available_checks` as desired, then passing into this function call.
+        By default, all availaable checks are run.
+    severity_threshold : integer, optional
+        Ignores tests with an assigned severity below this threshold.
+        Severity has three levels:
+            3: most severe
+                - probably incorrect data
+            2: medium severity
+                - possibly incorrect data
+                - very suboptimal data representation
+            1: low severity
+                - improvable data representation
+        The default is 0.
+    skip: list, optional
+        Names of functions to skip.
+    """
+    check_results = defaultdict(list)
+    for severity, severity_checks in checks.items():
+        if severity < severity_threshold:
             continue
-
-        if check_dataset_size(ts, "data"):
-            check_data_uniqueness(ts)
-
-        if check_dataset_size(ts, "timestamps"):
-            check_regular_timestamps(ts)
-
-        if (
-            not (np.isnan(ts.resolution) or ts.resolution == -1.0)
-            and ts.resolution <= 0
-        ):
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
-                % (error_code, ts.name, type(ts).__name__, ts.resolution)
-            )
-
-        if not ts.unit:
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s data is missing text for attribute 'unit'"
-                % (error_code, ts.name, type(ts).__name__)
-            )
-
-        # check for correct data orientation
-        if ts.data is not None and len(ts.data.shape) > 1:
-            if ts.timestamps is not None:
-                if not (len(ts.data) == len(ts.timestamps)):
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data orientation appears to be incorrect. \n    The length of the first "
-                        "dimension of data does not match the length of timestamps."
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
-            else:
-                if max(ts.data.shape[1:]) > ts.data.shape[0]:
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data orientation appears to be incorrect. \n    Time should be in the first "
-                        "dimension, and is usually the longest dimension. Here, another dimension is longer. This is "
-                        "possibly correct, but usually indicates that the data is in the wrong orientation."
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
-
-
-def check_data_uniqueness(ts):
-    """Check whether data of a timeseries has few unique values and can be stored in a better way."""
-    uniq = np.unique(ts.data)
-    if len(uniq) == 1:
-        error_code = "A101"
-        print(
-            "- %s: '%s' %s data has all values = %s"
-            % (error_code, ts.name, type(ts).__name__, uniq[0])
-        )
-    elif np.array_equal(uniq, [0.0, 1.0]):
-        if ts.data.dtype != bool and type(ts) is pynwb.TimeSeries:
-            # if a base TimeSeries object has 0/1 data but is not using booleans
-            # note that this tests only base TimeSeries objects. TimeSeries subclasses may require numeric/int/etc.
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s data only contains values 0 and 1. Consider changing to type boolean instead of %s"
-                % (error_code, ts.name, type(ts).__name__, ts.data.dtype)
-            )
-    elif len(uniq) == 2:
-        print(
-            "- NOTE: '%s' %s data has only 2 unique values: %s. Consider storing the data as boolean."
-            % (ts.name, type(ts).__name__, uniq)
-        )
-    elif len(uniq) <= 4:
-        print(
-            "- NOTE: '%s' %s data has only unique values %s"
-            % (ts.name, type(ts).__name__, uniq)
-        )
-
-
-def check_regular_timestamps(ts):
-    """Check whether rate should be used instead of timestamps."""
-    time_tol_decimals = 9
-    uniq_diff_ts = np.unique(np.diff(ts.timestamps).round(decimals=time_tol_decimals))
-    if len(uniq_diff_ts) == 1:
-        error_code = "A101"
-        print(
-            "- %s: '%s' %s has a constant sampling rate. Consider using starting_time %f and rate %f instead "
-            "of using the timestamps array."
-            % (
-                error_code,
-                ts.name,
-                type(ts).__name__,
-                ts.timestamps[0],
-                uniq_diff_ts[0],
-            )
-        )
-
-
-def check_tables(nwbfile):
-    """Check column values in DynamicTable objects"""
-    for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
-        if len(tab.id) == 0:
-            print("NOTE: '%s' %s has no rows" % (tab.name, type(tab).__name__))
-            continue
-        if len(tab.id) == 1:
-            print("NOTE: '%s' %s has one row" % (tab.name, type(tab).__name__))
-            continue
-
-        for col in tab.columns:
-            if isinstance(col, hdmf.common.table.DynamicTableRegion):
-                continue
-
-            if col.data is None:
-                error_code = "A101"
-                print(
-                    "- %s: '%s' %s column '%s' data is None"
-                    % (error_code, tab.name, type(tab).__name__, col.name)
-                )
-                continue
-
-            if col.name.endswith("index"):  # skip index columns
-                continue
-
-            if isinstance(
-                col.data, hdmf.backends.hdf5.h5_utils.DatasetOfReferences
-            ):  # TODO find a better way?
-                continue
-
-            uniq = np.unique(col.data)
-            # TODO only do this for optional columns
-            if len(uniq) == 1:
-                error_code = "A101"
-                print(
-                    "- %s: '%s' %s column '%s' data has all values = %s"
-                    % (error_code, tab.name, type(tab).__name__, col.name, uniq[0])
-                )
-            elif np.array_equal(uniq, [0.0, 1.0]):
-                if col.data.dtype.type != np.bool_:
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s column '%s' data should be type boolean instead of %s"
-                        % (
-                            error_code,
-                            tab.name,
-                            type(tab).__name__,
-                            col.name,
-                            col.data.dtype,
+        for check_object_type, check_functions in severity_checks.items():
+            for obj in nwbfile.objects.values():
+                if issubclass(type(obj), check_object_type):
+                    for check_function in check_functions:
+                        if skip is not None and check_function.__name__ in skip:
+                            continue
+                        output = check_function(obj)
+                        if output is None:
+                            continue
+                        check_results[severity].append(
+                            dict(
+                                check_function_name=check_function.__name__,
+                                object_type=type(obj).__name__,
+                                object_name=obj.name,
+                                output=output,
+                            )
                         )
-                    )
-            elif len(uniq) == 2:
-                error_code = "A101"
-                print(
-                    (
-                        "- %s: '%s' %s column '%s' data has only unique values %s. Consider storing the data "
-                        "as boolean."
-                    )
-                    % (error_code, tab.name, type(tab).__name__, col.name, uniq)
-                )
-
-
-def check_icephys(nwbfile):
-    for elec in all_of_type(nwbfile, pynwb.icephys.IntracellularElectrode):
-        if not elec.description:
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s is missing text for attribute 'description'"
-                % (error_code, elec.name, type(elec).__name__)
-            )
-        if not elec.filtering:
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s is missing text for attribute 'filtering'"
-                % (error_code, elec.name, type(elec).__name__)
-            )
-        if not elec.location:
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s is missing text for attribute 'location'"
-                % (error_code, elec.name, type(elec).__name__)
-            )
-
-
-def check_opto(nwbfile):
-    opto_sites = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticStimulusSite))
-    opto_series = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticSeries))
-    for site in opto_sites:
-        if not site.description:
-            error_code = "A101"
-            print(
-                "%s: '%s' %s is missing text for attribute 'description'"
-                % (error_code, site.name, type(site).__name__)
-            )
-        if not site.location:
-            error_code = "A101"
-            print(
-                "%s: '%s' %s is missing text for attribute 'location'"
-                % (error_code, site.name, type(site).__name__)
-            )
-    if opto_sites and not opto_series:
-        error_code = "A101"
-        print(
-            "%s: OptogeneticStimulusSite object(s) exists without an OptogeneticSeries"
-            % error_code
-        )
-
-
-def check_ecephys(nwbfile):
-    # unit spike times should not be negative
-    pass
-
-
-def all_of_type(nwbfile, type):
-    for obj in nwbfile.objects.values():
-        if isinstance(obj, type):
-            yield obj
+    return check_results
 
 
 if __name__ == "__main__":
-    """
-    Usage: python nwbinspector.py dir_name
-    """
     main()
