@@ -3,35 +3,46 @@ import numpy as np
 
 import pynwb
 
-from ..tools import all_of_type
-from ..utils import nwbinspector_check, check_regular_series
+# from ..tools import all_of_type
+from ..utils import register_check, check_regular_series
 
 
-@nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
-def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9):
+@register_check(importance="Best Practice Violation", neurodata_type=pynwb.TimeSeries)
+def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9, gb_severity_threshold=1.0):
     """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
     if time_series.timestamps is not None and check_regular_series(
         series=time_series.timestamps, tolerance_decimals=time_tol_decimals
     ):
-        return (
-            "TimeSeries appears to have a constant sampling rate. "
-            f"Consider specifying starting_time={time_series.timestamps[0]} "
-            f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+        timestamps = np.array(time_series.timestamps)
+        if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
+            severity = "high"
+        else:
+            severity = "low"
+        return dict(
+            severity=severity,
+            message=(
+                "TimeSeries appears to have a constant sampling rate. "
+                f"Consider specifying starting_time={time_series.timestamps[0]} "
+                f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+            ),
         )
 
 
-@nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
+@register_check(importance="Critical", neurodata_type=pynwb.TimeSeries)
 def check_data_orientation(time_series: pynwb.TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
     if time_series.data is not None and any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
-        return (
-            "Data orientation may be in the wrong orientation. "
-            "Time should be in the first dimension, and is usually the longest dimension. "
-            "Here, another dimension is longer. "
+        return dict(
+            severity="high",
+            message=(
+                "Data may be in the wrong orientation. "
+                "Time should be in the first dimension, and is usually the longest dimension. "
+                "Here, another dimension is longer. "
+            ),
         )
 
 
-@nwbinspector_check(severity=3, neurodata_type=pynwb.TimeSeries)
+@register_check(importance="Critical", neurodata_type=pynwb.TimeSeries)
 def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if (
@@ -39,7 +50,10 @@ def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
         and time_series.timestamps is not None
         and time_series.data.shape[0] != len(time_series.timestamps)
     ):
-        return "The length of the first dimension of data does not match the length of timestamps."
+        return dict(
+            severity="high",
+            message="The length of the first dimension of data does not match the length of timestamps.",
+        )
 
 
 # TODO: break up logic of extra stuff into separate checks
