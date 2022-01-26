@@ -21,8 +21,7 @@ class TestNWBContainers(TestCase):
 
     def add_dataset_to_nwb_container(self, file: h5py.File, gb_size: float):
         dataset = file.create_dataset(
-            name="test_dataset",
-            data=np.zeros(shape=int(gb_size * 1e9 / np.dtype("float").itemsize)),
+            name="test_dataset", data=np.zeros(shape=int(gb_size * 1e9 / np.dtype("float").itemsize))
         )
         nwb_container = NWBContainer(name="test_container")
         nwb_container.fields.update(dataset=dataset)
