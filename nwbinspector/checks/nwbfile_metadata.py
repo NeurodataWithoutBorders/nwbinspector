@@ -1,7 +1,7 @@
-"""Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-from pynwb import NWBFile
+# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
+# from pynwb import NWBFile
 
-from ..utils import nwbinspector_check
+# from ..utils import nwbinspector_check
 
 
 # @nwbinspector_check(severity=2, neurodata_type=NWBFile)
