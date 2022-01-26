@@ -43,30 +43,30 @@ def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
 
 
 # TODO: break up logic of extra stuff into separate checks
-def check_timeseries(nwbfile):
-    """Check dataset values in TimeSeries objects"""
-    for ts in all_of_type(nwbfile, pynwb.TimeSeries):
-        if ts.data is None:
-            # exception to the rule: ImageSeries objects are allowed to have no data
-            if not isinstance(ts, pynwb.image.ImageSeries):
-                error_code = "A101"
-                print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
-            else:
-                if ts.external_file is None:
-                    error_code = "A101"
-                    print(
-                        "- %s: '%s' %s data is None and external_file is None"
-                        % (error_code, ts.name, type(ts).__name__)
-                    )
-            continue
+# def check_timeseries(nwbfile):
+#     """Check dataset values in TimeSeries objects"""
+#     for ts in all_of_type(nwbfile, pynwb.TimeSeries):
+#         if ts.data is None:
+#             # exception to the rule: ImageSeries objects are allowed to have no data
+#             if not isinstance(ts, pynwb.image.ImageSeries):
+#                 error_code = "A101"
+#                 print("- %s: '%s' %s data is None" % (error_code, ts.name, type(ts).__name__))
+#             else:
+#                 if ts.external_file is None:
+#                     error_code = "A101"
+#                     print(
+#                         "- %s: '%s' %s data is None and external_file is None"
+#                         % (error_code, ts.name, type(ts).__name__)
+#                     )
+#             continue
 
-        if not (np.isnan(ts.resolution) or ts.resolution == -1.0) and ts.resolution <= 0:
-            error_code = "A101"
-            print(
-                "- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
-                % (error_code, ts.name, type(ts).__name__, ts.resolution)
-            )
+#         if not (np.isnan(ts.resolution) or ts.resolution == -1.0) and ts.resolution <= 0:
+#             error_code = "A101"
+#             print(
+#                 "- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
+#                 % (error_code, ts.name, type(ts).__name__, ts.resolution)
+#             )
 
-        if not ts.unit:
-            error_code = "A101"
-            print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
+#         if not ts.unit:
+#             error_code = "A101"
+#             print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
