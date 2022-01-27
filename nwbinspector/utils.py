@@ -1,6 +1,7 @@
 """Authors: Cody Baker and Ben Dichter."""
 import numpy as np
 from collections import defaultdict, OrderedDict
+from functools import wraps
 
 global available_checks, importance_levels
 available_checks = OrderedDict(
@@ -15,37 +16,31 @@ importance_levels = list(available_checks.keys())
 def register_check(importance: int, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
-    def add_check_to_global_dict(check_function):
+    def register_check_and_auto_parse(check_function):
         if importance not in importance_levels:
             raise ValueError(
                 f"Indicated importance ({importance}) of custom check ({check_function.__name__}) is not a valid "
                 f"importance level! Please choose from {importance_levels}."
             )
         check_function.importance = importance
-        check_function.neurodata_type = neurodata_type
 
         available_checks[importance][neurodata_type].append(check_function)
-        return check_function
 
-    return add_check_to_global_dict
+        @wraps(check_function)
+        def auto_parse_some_output(*args, **kwargs):
+            auto_parsed_result = check_function(*args, **kwargs)
+            obj = args[0]
+            auto_parsed_result.update(
+                importance=check_function.importance,
+                check_function_name=check_function.__name__,
+                object_type=type(obj).__name__,
+                object_name=obj.name,
+            )
+            return auto_parsed_result
 
+        return auto_parse_some_output
 
-# def parse_output(check_function):
-#     """Wrap a check function to automatically add NWBFile level details to the output."""
-
-#     def add_object_info(*args, **kwargs):
-#         if "neurodata_type" not in kwargs:
-#             raise ValueError("Expected keyword 'neurodata_type' in check function.")
-#         neurodata_type = kwargs.pop("neurodata_type")
-#         check_result = check_function(*args, neurodata_type=neurodata_type, **kwargs)
-#         check_result.update(
-#             check_function_name=check_function.__name__,
-#             object_type=type(obj).__name__,
-#             object_name=obj.name
-#         )
-#         return check_result
-
-#     return add_object_info
+    return register_check_and_auto_parse
 
 
 def check_regular_series(series: np.ndarray, tolerance_decimals=9):

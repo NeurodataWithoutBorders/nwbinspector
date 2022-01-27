@@ -122,12 +122,6 @@ def inspect_nwb(
                             output = check_function(obj)
                             if output is None:
                                 continue
-                            output.update(
-                                importance=check_function.importance,
-                                check_function_name=check_function.__name__,
-                                object_type=type(obj).__name__,
-                                object_name=obj.name,
-                            )
                             check_results.append(output)
     sorted_check_results = sort_check_results(check_results)
     return sorted_check_results
