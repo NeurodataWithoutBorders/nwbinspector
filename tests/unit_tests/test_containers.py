@@ -34,7 +34,7 @@ class TestNWBContainers(TestCase):
             true_output = dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
@@ -47,7 +47,7 @@ class TestNWBContainers(TestCase):
             true_output = dict(
                 severity="high",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
@@ -60,7 +60,7 @@ class TestNWBContainers(TestCase):
             true_output = dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
@@ -75,7 +75,7 @@ class TestNWBContainers(TestCase):
             true_output = dict(
                 severity="high",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",

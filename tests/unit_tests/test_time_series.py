@@ -24,7 +24,7 @@ def test_check_regular_timestamps():
             "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
             "instead of timestamps."
         ),
-        importance="Best Practice Violation",
+        importance="BEST_PRACTICE_VIOLATION",
         check_function_name="check_regular_timestamps",
         object_type="TimeSeries",
         object_name="test_time_series",
@@ -46,7 +46,7 @@ def test_check_data_orientation():
             "Time should be in the first dimension, and is usually the longest dimension. "
             "Here, another dimension is longer. "
         ),
-        importance="Critical",
+        importance="CRITICAL_IMPORTANCE",
         check_function_name="check_data_orientation",
         object_type="TimeSeries",
         object_name="test_time_series",
@@ -64,7 +64,7 @@ def test_check_timestamps():
     ) == dict(
         severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
-        importance="Critical",
+        importance="CRITICAL_IMPORTANCE",
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
@@ -77,7 +77,7 @@ def test_check_timestamps_empty_data():
     ) == dict(
         severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
-        importance="Critical",
+        importance="CRITICAL_IMPORTANCE",
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
@@ -90,7 +90,7 @@ def test_check_timestamps_empty_timestamps():
     ) == dict(
         severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
-        importance="Critical",
+        importance="CRITICAL_IMPORTANCE",
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",

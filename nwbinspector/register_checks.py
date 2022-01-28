@@ -2,26 +2,30 @@
 from collections import defaultdict, OrderedDict
 from functools import wraps
 
-global available_checks, importance_levels
-available_checks = OrderedDict(
-    {
-        importance_level: defaultdict(list)
-        for importance_level in ["Best Practice Suggestion", "Best Practice Violation", "DANDI Requirement", "Critical"]
-    }
+global available_checks
+CRITICAL_IMPORTANCE = 2
+BEST_PRACTICE_VIOLATION = 1
+BEST_PRACTICE_SUGGESTION = 0
+importance_levels = dict(
+    CRITICAL_IMPORTANCE=CRITICAL_IMPORTANCE,
+    BEST_PRACTICE_VIOLATION=BEST_PRACTICE_VIOLATION,
+    BEST_PRACTICE_SUGGESTION=BEST_PRACTICE_SUGGESTION,
 )
-importance_levels = list(available_checks.keys())
+levels_to_importance = {v: k for k, v in importance_levels.items()}
+available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
 
 
 def register_check(importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def register_check_and_auto_parse(check_function):
-        if importance not in importance_levels:
+        if importance not in importance_levels.values():
             raise ValueError(
                 f"Indicated importance ({importance}) of custom check ({check_function.__name__}) is not a valid "
-                f"importance level! Please choose from {importance_levels}."
+                "importance level! Please choose from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, "
+                "BEST_PRACTICE_SUGGESTION]."
             )
-        check_function.importance = importance
+        check_function.importance = levels_to_importance[importance]
         check_function.neurodata_type = neurodata_type
 
         @wraps(check_function)
@@ -41,7 +45,7 @@ def register_check(importance, neurodata_type):
                 )
             return auto_parsed_result
 
-        available_checks[importance][neurodata_type].append(auto_parse_some_output)
+        available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)
 
         return auto_parse_some_output
 

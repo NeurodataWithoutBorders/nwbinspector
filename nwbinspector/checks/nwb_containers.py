@@ -2,10 +2,10 @@
 import h5py
 from pynwb import NWBContainer
 
-from ..register_checks import register_check
+from ..register_checks import register_check, BEST_PRACTICE_VIOLATION
 
 
-@register_check(importance="Best Practice Violation", neurodata_type=NWBContainer)
+@register_check(importance=BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
 def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold=1.0):
     """
     If the data in the TimeSeries object is a h5py.Dataset, check if it has compression enabled.

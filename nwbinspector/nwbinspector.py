@@ -77,7 +77,7 @@ def sort_check_results(check_results: list):
 def inspect_nwb(
     nwbfile: pynwb.NWBFile,
     checks: list = available_checks,
-    importance_threshold: str = "Best Practice Suggestion",
+    importance_threshold: str = "BEST_PRACTICE_SUGGESTION",
     skip: Optional[list] = None,
 ):
     """
@@ -95,24 +95,26 @@ def inspect_nwb(
         By default, all available checks are run.
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
-        Importance has four levels:
-            Critical
+        Importance has three levels:
+            CRITICAL_IMPORTANCE
                 - potentially incorrect data
-            DANDI Requirement
-                - possibly incorrect data
+            BEST_PRACTICE_VIOLATION
                 - very suboptimal data representation
-            Best Practice Violation
-                - very suboptimal data representation
-            Best Practice Suggestion
+            BEST_PRACTICE_SUGGESTION
                 - improvable data representation
-        The default is the lowest level, 'Best Practice Suggestions'.
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     skip: list, optional
         Names of functions to skip.
     """
+    if importance_threshold not in importance_levels:
+        raise ValueError(
+            f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
+            "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
+        )
+
     check_results = list()
-    ordinal_importance_levels = {importance_level: j for j, importance_level in enumerate(importance_levels)}
     for importance, checks_per_object_type in checks.items():
-        if ordinal_importance_levels[importance] >= ordinal_importance_levels[importance_threshold]:
+        if importance_levels[importance] >= importance_levels[importance_threshold]:
             for check_object_type, check_functions in checks_per_object_type.items():
                 for obj in nwbfile.objects.values():
                     if issubclass(type(obj), check_object_type):

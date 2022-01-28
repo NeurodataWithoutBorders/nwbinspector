@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 import pytest
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -67,6 +68,12 @@ class TestInspector(TestCase):
             test_results = inspect_nwb(nwbfile=written_nwbfile, **inspect_nwb_kwargs)
         return test_results
 
+    def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
+        for dictionary in test_list:
+            self.assertIn(member=dictionary, container=true_list)
+        for dictionary in true_list:
+            self.assertIn(member=dictionary, container=test_list)
+
     def test_inspect_nwb(self):
         self.add_big_dataset_no_compression()
         self.add_regular_timestamps()
@@ -78,7 +85,7 @@ class TestInspector(TestCase):
             dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
@@ -86,7 +93,7 @@ class TestInspector(TestCase):
             dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
@@ -94,7 +101,7 @@ class TestInspector(TestCase):
             dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
@@ -102,7 +109,7 @@ class TestInspector(TestCase):
             dict(
                 severity="low",
                 message="Consider enabling compression when writing a large dataset.",
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
@@ -113,7 +120,7 @@ class TestInspector(TestCase):
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
                     "rate=1.0 instead of timestamps."
                 ),
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
@@ -124,7 +131,7 @@ class TestInspector(TestCase):
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
@@ -135,7 +142,7 @@ class TestInspector(TestCase):
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                importance="Critical",
+                importance="CRITICAL_IMPORTANCE",
                 check_function_name="check_data_orientation",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
@@ -143,13 +150,13 @@ class TestInspector(TestCase):
             dict(
                 severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="Critical",
+                importance="CRITICAL_IMPORTANCE",
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
         self.add_big_dataset_no_compression()
@@ -157,7 +164,7 @@ class TestInspector(TestCase):
         self.add_flipped_data_orientation()
         self.add_non_matching_timestamps_dimension()
 
-        test_results = self.run_inspect_nwb(importance_threshold="Critical")
+        test_results = self.run_inspect_nwb(importance_threshold="CRITICAL_IMPORTANCE")
         true_results = [
             dict(
                 severity=None,
@@ -165,7 +172,7 @@ class TestInspector(TestCase):
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                importance="Critical",
+                importance="CRITICAL_IMPORTANCE",
                 check_function_name="check_data_orientation",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
@@ -173,13 +180,13 @@ class TestInspector(TestCase):
             dict(
                 severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="Critical",
+                importance="CRITICAL_IMPORTANCE",
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_skip(self):
         self.add_big_dataset_no_compression()
@@ -195,7 +202,7 @@ class TestInspector(TestCase):
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
                     "rate=1.0 instead of timestamps."
                 ),
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
@@ -206,7 +213,7 @@ class TestInspector(TestCase):
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                importance="Best Practice Violation",
+                importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
@@ -214,13 +221,13 @@ class TestInspector(TestCase):
             dict(
                 severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="Critical",
+                importance="CRITICAL_IMPORTANCE",
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_4",
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     @pytest.mark.skip(msg="TODO")
     def test_cmd_line(self):
