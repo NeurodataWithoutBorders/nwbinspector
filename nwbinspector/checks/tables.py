@@ -1,14 +1,12 @@
 """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-import numpy as np
-
 import pynwb
 import hdmf
 
 from ..tools import all_of_type
-from ..utils import nwbinspector_check
+from ..utils import register_check
 
 
-@nwbinspector_check(severity=3, neurodata_type=pynwb.core.DynamicTable)
+@register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
 def check_empty_tables(nwbfile):
     """Check if DynamicTable is empty."""
     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
@@ -20,7 +18,7 @@ def check_empty_tables(nwbfile):
             continue
 
 
-@nwbinspector_check(severity=1, neurodata_type=pynwb.core.DynamicTable)
+@register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
 def check_single_tables(nwbfile):
     """Check if DynamicTable has only a single row; may be better represented by another data type."""
     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
@@ -29,7 +27,7 @@ def check_single_tables(nwbfile):
             continue
 
 
-@nwbinspector_check(severity=1, neurodata_type=pynwb.core.DynamicTable)
+@register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
 def check_column_data_is_not_none(nwbfile):
     """Check column values in DynamicTable to enssure they are not None."""
     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):

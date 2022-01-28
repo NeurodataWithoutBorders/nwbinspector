@@ -4,7 +4,8 @@ import numpy as np
 import pynwb
 
 # from ..tools import all_of_type
-from ..utils import register_check, check_regular_series
+from ..register_checks import register_check
+from ..utils import check_regular_series
 
 
 @register_check(importance="Best Practice Violation", neurodata_type=pynwb.TimeSeries)
@@ -48,7 +49,7 @@ def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     if (
         time_series.data is not None
         and time_series.timestamps is not None
-        and time_series.data.shape[0] != len(time_series.timestamps)
+        and np.array(time_series.data).shape[:1] != np.array(time_series.timestamps).shape
     ):
         return dict(
             severity="high",

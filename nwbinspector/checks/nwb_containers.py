@@ -2,7 +2,7 @@
 import h5py
 from pynwb import NWBContainer
 
-from ..utils import register_check
+from ..register_checks import register_check
 
 
 @register_check(importance="Best Practice Violation", neurodata_type=NWBContainer)

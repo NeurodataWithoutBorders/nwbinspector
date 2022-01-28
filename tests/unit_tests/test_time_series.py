@@ -11,19 +11,23 @@ from nwbinspector import (
 
 
 def test_check_regular_timestamps():
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=3),
-        timestamps=[1.2, 3.2, 5.2],
-    )
-    assert check_regular_timestamps(time_series=time_series) == dict(
+    assert check_regular_timestamps(
+        time_series=pynwb.TimeSeries(
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=3),
+            timestamps=[1.2, 3.2, 5.2],
+        )
+    ) == dict(
         severity="low",
         message=(
-            "TimeSeries appears to have a constant sampling rate. "
-            f"Consider specifying starting_time={time_series.timestamps[0]} "
-            f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
+            "instead of timestamps."
         ),
+        importance="Best Practice Violation",
+        check_function_name="check_regular_timestamps",
+        object_type="TimeSeries",
+        object_name="test_time_series",
     )
 
 
@@ -42,10 +46,14 @@ def test_check_data_orientation():
             "Time should be in the first dimension, and is usually the longest dimension. "
             "Here, another dimension is longer. "
         ),
+        importance="Critical",
+        check_function_name="check_data_orientation",
+        object_type="TimeSeries",
+        object_name="test_time_series",
     )
 
 
-def test_check_timestamps_match_first_dimension_1d():
+def test_check_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(
             name="test_time_series",
@@ -54,18 +62,36 @@ def test_check_timestamps_match_first_dimension_1d():
             timestamps=[1.0, 2.0, 3.0],
         )
     ) == dict(
-        severity="high", message="The length of the first dimension of data does not match the length of timestamps."
+        severity="high",
+        message="The length of the first dimension of data does not match the length of timestamps.",
+        importance="Critical",
+        check_function_name="check_timestamps_match_first_dimension",
+        object_type="TimeSeries",
+        object_name="test_time_series",
     )
 
 
-def test_check_timestamps_match_first_dimension_2d():
+def test_check_timestamps_empty_data():
     assert check_timestamps_match_first_dimension(
-        time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=(2, 3)),
-            timestamps=[1.0, 2.0, 3.0],
-        )
+        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[], timestamps=[1.0, 2.0, 3.0])
     ) == dict(
-        severity="high", message="The length of the first dimension of data does not match the length of timestamps."
+        severity="high",
+        message="The length of the first dimension of data does not match the length of timestamps.",
+        importance="Critical",
+        check_function_name="check_timestamps_match_first_dimension",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+    )
+
+
+def test_check_timestamps_empty_timestamps():
+    assert check_timestamps_match_first_dimension(
+        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[])
+    ) == dict(
+        severity="high",
+        message="The length of the first dimension of data does not match the length of timestamps.",
+        importance="Critical",
+        check_function_name="check_timestamps_match_first_dimension",
+        object_type="TimeSeries",
+        object_name="test_time_series",
     )

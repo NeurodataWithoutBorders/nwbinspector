@@ -31,31 +31,55 @@ class TestNWBContainers(TestCase):
     def test_check_dataset_compression_below_default_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.5)
-            self.assertDictEqual(
-                d1=check_dataset_compression(nwb_container=nwb_container),
-                d2=dict(severity="low", message="Consider enabling compression when writing a large dataset."),
+            true_output = dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="NWBContainer",
+                object_name="test_container",
             )
+            self.assertDictEqual(d1=check_dataset_compression(nwb_container=nwb_container), d2=true_output)
 
     def test_check_dataset_compression_above_default_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=2.0)
-            self.assertDictEqual(
-                d1=check_dataset_compression(nwb_container=nwb_container),
-                d2=dict(severity="high", message="Consider enabling compression when writing a large dataset."),
+            true_output = dict(
+                severity="high",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="NWBContainer",
+                object_name="test_container",
             )
+            self.assertDictEqual(d1=check_dataset_compression(nwb_container=nwb_container), d2=true_output)
 
     def test_check_dataset_compression_below_manual_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.25)
+            true_output = dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="NWBContainer",
+                object_name="test_container",
+            )
             self.assertDictEqual(
-                d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.5),
-                d2=dict(severity="low", message="Consider enabling compression when writing a large dataset."),
+                d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.5), d2=true_output
             )
 
     def test_check_dataset_compression_above_manual_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.75)
+            true_output = dict(
+                severity="high",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="NWBContainer",
+                object_name="test_container",
+            )
             self.assertDictEqual(
-                d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.5),
-                d2=dict(severity="high", message="Consider enabling compression when writing a large dataset."),
+                d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.5), d2=true_output
             )

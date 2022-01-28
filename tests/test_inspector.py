@@ -75,79 +75,79 @@ class TestInspector(TestCase):
 
         test_results = self.run_inspect_nwb()
         true_results = [
-            {
-                "severity": "low",
-                "message": "Consider enabling compression when writing a large dataset.",
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_dataset_compression",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
-            {
-                "severity": "low",
-                "message": "Consider enabling compression when writing a large dataset.",
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_dataset_compression",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_3",
-            },
-            {
-                "severity": "low",
-                "message": "Consider enabling compression when writing a large dataset.",
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_dataset_compression",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_2",
-            },
-            {
-                "severity": "low",
-                "message": "Consider enabling compression when writing a large dataset.",
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_dataset_compression",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_1",
-            },
-            {
-                "severity": "low",
-                "message": (
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying "
-                    "starting_time=1.0 and rate=1.0 instead of timestamps."
+            dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
+            dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+            ),
+            dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+            ),
+            dict(
+                severity="low",
+                message="Consider enabling compression when writing a large dataset.",
+                importance="Best Practice Violation",
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+            ),
+            dict(
+                severity="low",
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
+                    "rate=1.0 instead of timestamps."
                 ),
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_regular_timestamps",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
-            {
-                "severity": "low",
-                "message": (
+                importance="Best Practice Violation",
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
+            dict(
+                severity="low",
+                message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_regular_timestamps",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_2",
-            },
-            {
-                "severity": "high",
-                "message": (
+                importance="Best Practice Violation",
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+            ),
+            dict(
+                severity="high",
+                message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                "importance": "Critical",
-                "check_function_name": "check_data_orientation",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
-            {
-                "severity": "high",
-                "message": "The length of the first dimension of data does not match the length of timestamps.",
-                "importance": "Critical",
-                "check_function_name": "check_timestamps_match_first_dimension",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
+                importance="Critical",
+                check_function_name="check_data_orientation",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
+            dict(
+                severity="high",
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance="Critical",
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
 
@@ -159,25 +159,25 @@ class TestInspector(TestCase):
 
         test_results = self.run_inspect_nwb(importance_threshold="Critical")
         true_results = [
-            {
-                "severity": "high",
-                "message": (
+            dict(
+                severity="high",
+                message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                "importance": "Critical",
-                "check_function_name": "check_data_orientation",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
-            {
-                "severity": "high",
-                "message": "The length of the first dimension of data does not match the length of timestamps.",
-                "importance": "Critical",
-                "check_function_name": "check_timestamps_match_first_dimension",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
+                importance="Critical",
+                check_function_name="check_data_orientation",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
+            dict(
+                severity="high",
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance="Critical",
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
 
@@ -189,36 +189,36 @@ class TestInspector(TestCase):
 
         test_results = self.run_inspect_nwb(skip=["check_data_orientation", "check_dataset_compression"])
         true_results = [
-            {
-                "severity": "low",
-                "message": (
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying "
-                    "starting_time=1.0 and rate=1.0 instead of timestamps."
+            dict(
+                severity="low",
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
+                    "rate=1.0 instead of timestamps."
                 ),
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_regular_timestamps",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
-            {
-                "severity": "low",
-                "message": (
+                importance="Best Practice Violation",
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
+            dict(
+                severity="low",
+                message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                "importance": "Best Practice Violation",
-                "check_function_name": "check_regular_timestamps",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_2",
-            },
-            {
-                "severity": "high",
-                "message": "The length of the first dimension of data does not match the length of timestamps.",
-                "importance": "Critical",
-                "check_function_name": "check_timestamps_match_first_dimension",
-                "object_type": "TimeSeries",
-                "object_name": "test_time_series_4",
-            },
+                importance="Best Practice Violation",
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+            ),
+            dict(
+                severity="high",
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance="Critical",
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_4",
+            ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
 

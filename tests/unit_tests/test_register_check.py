@@ -3,11 +3,15 @@ import pynwb
 import hdmf
 from hdmf.testing import TestCase
 
-from nwbinspector.utils import register_check, check_regular_series
+from nwbinspector.register_checks import register_check
 
 
 class TestUtils(TestCase):
-    def test_decorator_severities(self):
+    def assertFunctionInChecks(self, check_function, available_checks):
+        function_names = [x.__name__ for x in available_checks]
+        self.assertIn(member=check_function.__name__, container=function_names)
+
+    def test_decorator_importance(self):
         from nwbinspector import available_checks, importance_levels
 
         neurodata_type = hdmf.common.DynamicTable
@@ -17,7 +21,9 @@ class TestUtils(TestCase):
             def good_check_function():
                 pass
 
-            self.assertIn(member=good_check_function, container=available_checks[importance][neurodata_type])
+            self.assertFunctionInChecks(
+                check_function=good_check_function, available_checks=available_checks[importance][neurodata_type]
+            )
 
     def test_decorator_multiple_data_objects_same_type(self):
         from nwbinspector import available_checks
@@ -29,13 +35,17 @@ class TestUtils(TestCase):
         def good_check_function_1():
             pass
 
-        self.assertIn(member=good_check_function_1, container=available_checks[importance][neurodata_type])
+            self.assertFunctionInChecks(
+                check_function=good_check_function_1, available_checks=available_checks[importance][neurodata_type]
+            )
 
         @register_check(importance=importance, neurodata_type=neurodata_type)
         def good_check_function_2():
             pass
 
-        self.assertIn(member=good_check_function_2, container=available_checks[importance][neurodata_type])
+        self.assertFunctionInChecks(
+            check_function=good_check_function_2, available_checks=available_checks[importance][neurodata_type]
+        )
 
     def test_decorator_multiple_data_objects_different_type(self):
         from nwbinspector import available_checks
@@ -48,15 +58,19 @@ class TestUtils(TestCase):
         def good_check_function_1():
             pass
 
-        self.assertIn(member=good_check_function_1, container=available_checks[importance][neurodata_type_1])
+        self.assertFunctionInChecks(
+            check_function=good_check_function_1, available_checks=available_checks[importance][neurodata_type_1]
+        )
 
         @register_check(importance=importance, neurodata_type=neurodata_type_2)
         def good_check_function_2():
             pass
 
-        self.assertIn(member=good_check_function_2, container=available_checks[importance][neurodata_type_2])
+        self.assertFunctionInChecks(
+            check_function=good_check_function_2, available_checks=available_checks[importance][neurodata_type_2]
+        )
 
-    def test_decorator_severity_error(self):
+    def test_decorator_importance_error(self):
         from nwbinspector import importance_levels
 
         bad_importance = "test_bad_importance"
@@ -71,7 +85,3 @@ class TestUtils(TestCase):
             @register_check(importance=bad_importance, neurodata_type=None)
             def bad_severity_function():
                 pass
-
-    def test_check_regular_series(self):
-        self.assertTrue(check_regular_series(series=[1, 2, 3]))
-        self.assertFalse(check_regular_series(series=[1, 2, 4]))
