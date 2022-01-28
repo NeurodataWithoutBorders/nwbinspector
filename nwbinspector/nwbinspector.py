@@ -1,7 +1,10 @@
 """Cody Baker, Ben Dichter, and Ryan Ly."""
+import os
+import sys
 import argparse
 import importlib
 import traceback
+import colorama
 import numpy as np
 from collections import OrderedDict
 from typing import Optional, Union, Dict
@@ -11,6 +14,9 @@ import pynwb
 
 from . import available_checks, importance_levels
 from .register_checks import severity_levels  # For strictly internal use only
+
+
+FilePathType = Union[Path, str]
 
 
 def main():
@@ -56,8 +62,6 @@ def main():
                     for e in errors:
                         print("Validator Error:", e)
                     num_invalid_files += 1
-                else:
-                    print("Validation OK!")
 
                 nwbfile = io.read()
                 # TODO, pass optional arguments like skip and threshold from cmd line to inspect_nwb
@@ -68,7 +72,8 @@ def main():
                     log_file_path=log_file_path, organized_results=organized_results, overwrite=args.overwrite
                 )
                 # TODO: perhaps with click, if log file exists, ask user for confirmation to flip overwrite flag
-                print(f"Log file saved at {str(log_file_path)}!")
+                print_to_console(log_file_path=log_file_path)
+                print(f"{os.linesep*2}Log file saved at {str(log_file_path)}!")
         except Exception as ex:
             num_exceptions += 1
             print("ERROR:", ex)
@@ -100,7 +105,7 @@ def organize_inspect_results(check_results: list):
     return organized_results
 
 
-def write_results(log_file_path: Union[Path, str], organized_results: Dict[str, list], overwrite=False):
+def write_results(log_file_path: FilePathType, organized_results: Dict[str, list], overwrite=False):
     """Write the list of organized check results to a nicely formatted text file."""
     log_file_path = Path(log_file_path)
 
@@ -125,6 +130,41 @@ def write_results(log_file_path: Union[Path, str], organized_results: Dict[str, 
                     f"        {check_result['check_function_name']}: {check_result['message']}\n"
                 )
                 check_index += 1
+
+
+def print_to_console(log_file_path: FilePathType):
+    """Print log file contents to console."""
+    color_map = dict(
+        CRITICAL_IMPORTANCE=colorama.Fore.RED,
+        BEST_PRACTICE_VIOLATION=colorama.Fore.YELLOW,
+        BEST_PRACTICE_SUGGESTION=None,
+    )
+    colorama.init()
+
+    with open(file=log_file_path, mode="r") as file:
+        log_output = file.readlines()
+
+    color_shift_points = dict()
+    for line_index, line in enumerate(log_output):
+        for color_trigger in color_map:
+            if color_trigger in line:
+                color_shift_points.update(
+                    {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
+                )
+    sys.stdout.write(str(color_shift_points))
+
+    current_color = None
+    for line_index, line in enumerate(log_output):
+        transition_point = line_index in color_shift_points
+        if transition_point:
+            current_color = color_shift_points[line_index]
+            log_output[line_index] = f"{current_color}{line}{colorama.Style.RESET_ALL}"
+        if current_color is not None and not transition_point:
+            log_output[line_index] = f"{current_color}{line[:6]}{colorama.Style.RESET_ALL}{line[6:]}"
+
+    sys.stdout.write(os.linesep * 2)
+    for line in log_output:
+        sys.stdout.write(line)
 
 
 def inspect_nwb(

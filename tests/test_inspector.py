@@ -7,13 +7,11 @@ from tempfile import mkdtemp
 from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
-from typing import Union, List
+from typing import List
 
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 
-from nwbinspector.nwbinspector import inspect_nwb
-
-FilePathType = Union[Path, str]
+from nwbinspector.nwbinspector import inspect_nwb, FilePathType
 
 
 class TestInspector(TestCase):
