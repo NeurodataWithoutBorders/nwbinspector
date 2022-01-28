@@ -4,7 +4,6 @@ import sys
 import argparse
 import importlib
 import traceback
-import colorama
 import numpy as np
 from collections import OrderedDict
 from typing import Optional, Union, Dict
@@ -136,11 +135,11 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, list
 def print_to_console(log_file_path: FilePathType):
     """Print log file contents to console."""
     color_map = {
-        "CRITICAL IMPORTANCE": colorama.Fore.RED,
-        "BEST PRACTICE VIOLATION": colorama.Fore.YELLOW,
+        "CRITICAL IMPORTANCE": "\x1b[31m",
+        "BEST PRACTICE VIOLATION": "\x1b[33m",
         "BEST PRACTICE SUGGESTION": None,
     }
-    colorama.init()
+    reset_color = "\x1b[0m"
 
     with open(file=log_file_path, mode="r") as file:
         log_output = file.readlines()
@@ -158,9 +157,9 @@ def print_to_console(log_file_path: FilePathType):
         transition_point = line_index in color_shift_points
         if transition_point:
             current_color = color_shift_points[line_index]
-            log_output[line_index] = f"{current_color}{line}{colorama.Style.RESET_ALL}"
+            log_output[line_index] = f"{current_color}{line}{reset_color}"
         if current_color is not None and not transition_point:
-            log_output[line_index] = f"{current_color}{line[:6]}{colorama.Style.RESET_ALL}{line[6:]}"
+            log_output[line_index] = f"{current_color}{line[:6]}{reset_color}{line[6:]}"
 
     sys.stdout.write(os.linesep * 2)
     for line in log_output:
