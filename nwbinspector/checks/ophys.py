@@ -1,8 +1,8 @@
-"""Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-import pynwb
+# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
+# import pynwb
 
-from ..tools import all_of_type
-from ..register_checks import nwbinspector_check
+# from ..tools import all_of_type
+# from ..register_checks import nwbinspector_check
 
 
 # @nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)

@@ -34,6 +34,7 @@ def register_check(importance, neurodata_type):
             if auto_parsed_result is not None:
                 auto_parsed_result.update(
                     importance=check_function.importance,
+                    severity=auto_parsed_result.get("severity"),
                     check_function_name=check_function.__name__,
                     object_type=type(obj).__name__,
                     object_name=obj.name,

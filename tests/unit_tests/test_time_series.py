@@ -40,7 +40,7 @@ def test_check_data_orientation():
             rate=1.0,
         )
     ) == dict(
-        severity="high",
+        severity=None,
         message=(
             "Data may be in the wrong orientation. "
             "Time should be in the first dimension, and is usually the longest dimension. "
@@ -62,7 +62,7 @@ def test_check_timestamps():
             timestamps=[1.0, 2.0, 3.0],
         )
     ) == dict(
-        severity="high",
+        severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance="Critical",
         check_function_name="check_timestamps_match_first_dimension",
@@ -75,7 +75,7 @@ def test_check_timestamps_empty_data():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[], timestamps=[1.0, 2.0, 3.0])
     ) == dict(
-        severity="high",
+        severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance="Critical",
         check_function_name="check_timestamps_match_first_dimension",
@@ -88,7 +88,7 @@ def test_check_timestamps_empty_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[])
     ) == dict(
-        severity="high",
+        severity=None,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance="Critical",
         check_function_name="check_timestamps_match_first_dimension",

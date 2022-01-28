@@ -130,7 +130,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_2",
             ),
             dict(
-                severity="high",
+                severity=None,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
@@ -141,7 +141,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_4",
             ),
             dict(
-                severity="high",
+                severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
                 importance="Critical",
                 check_function_name="check_timestamps_match_first_dimension",
@@ -160,7 +160,7 @@ class TestInspector(TestCase):
         test_results = self.run_inspect_nwb(importance_threshold="Critical")
         true_results = [
             dict(
-                severity="high",
+                severity=None,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
@@ -171,7 +171,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_4",
             ),
             dict(
-                severity="high",
+                severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
                 importance="Critical",
                 check_function_name="check_timestamps_match_first_dimension",
@@ -212,7 +212,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_2",
             ),
             dict(
-                severity="high",
+                severity=None,
                 message="The length of the first dimension of data does not match the length of timestamps.",
                 importance="Critical",
                 check_function_name="check_timestamps_match_first_dimension",

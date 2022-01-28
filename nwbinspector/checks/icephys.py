@@ -1,4 +1,4 @@
-"""Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
+# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
 # import pynwb
 
 # from ..tools import all_of_type

@@ -34,7 +34,6 @@ def check_data_orientation(time_series: pynwb.TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
     if time_series.data is not None and any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
         return dict(
-            severity="high",
             message=(
                 "Data may be in the wrong orientation. "
                 "Time should be in the first dimension, and is usually the longest dimension. "
@@ -52,7 +51,6 @@ def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
         and np.array(time_series.data).shape[:1] != np.array(time_series.timestamps).shape
     ):
         return dict(
-            severity="high",
             message="The length of the first dimension of data does not match the length of timestamps.",
         )
 
