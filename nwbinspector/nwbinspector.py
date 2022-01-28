@@ -119,7 +119,8 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, list
         file.write("=" * len(nwbfile_name_string) + "\n")
 
         for importance_index, (importance_level, check_results) in enumerate(organized_results.items()):
-            file.write(f"\n{importance_level}\n")
+            importance_string = importance_level.replace("_", " ")
+            file.write(f"\n{importance_string}\n")
             file.write("-" * len(importance_level) + "\n")
 
             check_index = 1
@@ -134,11 +135,11 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, list
 
 def print_to_console(log_file_path: FilePathType):
     """Print log file contents to console."""
-    color_map = dict(
-        CRITICAL_IMPORTANCE=colorama.Fore.RED,
-        BEST_PRACTICE_VIOLATION=colorama.Fore.YELLOW,
-        BEST_PRACTICE_SUGGESTION=None,
-    )
+    color_map = {
+        "CRITICAL IMPORTANCE": colorama.Fore.RED,
+        "BEST PRACTICE VIOLATION": colorama.Fore.YELLOW,
+        "BEST PRACTICE SUGGESTION": None,
+    }
     colorama.init()
 
     with open(file=log_file_path, mode="r") as file:
@@ -206,6 +207,7 @@ def inspect_nwb(
         )
 
     check_results = list()
+    print(nwbfile.objects)
     for importance, checks_per_object_type in checks.items():
         if importance_levels[importance] >= importance_levels[importance_threshold]:
             for check_object_type, check_functions in checks_per_object_type.items():
