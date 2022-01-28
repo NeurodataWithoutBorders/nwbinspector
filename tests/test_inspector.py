@@ -1,4 +1,5 @@
 """Authors: Cody Baker and Ben Dichter."""
+import os
 import numpy as np
 from unittest import TestCase
 from shutil import rmtree
@@ -8,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
-import pytest
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 
 from nwbinspector.nwbinspector import inspect_nwb
@@ -22,9 +22,17 @@ class TestInspector(TestCase):
             identifier=str(uuid4()),
             session_start_time=datetime.now().astimezone(),
         )
+        self.add_big_dataset_no_compression()
+        self.add_regular_timestamps()
+        self.add_flipped_data_orientation()
+        self.add_non_matching_timestamps_dimension()
+
+        self.nwbfile_path = str(self.tempdir / "testing.nwb")
+        with NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
+            io.write(self.nwbfile)
 
     def tearDown(self):
-        rmtree(self.tempdir)
+    rmtree(self.tempdir)
 
     def add_big_dataset_no_compression(self):
         time_series = TimeSeries(
@@ -58,16 +66,6 @@ class TestInspector(TestCase):
         )
         self.nwbfile.add_acquisition(time_series)
 
-    def run_inspect_nwb(self, **inspect_nwb_kwargs):
-        nwbfile_path = str(self.tempdir / "testing.nwb")
-        with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
-            io.write(self.nwbfile)
-
-        with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
-            written_nwbfile = io.read()
-            test_results = inspect_nwb(nwbfile=written_nwbfile, **inspect_nwb_kwargs)
-        return test_results
-
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
             self.assertIn(member=dictionary, container=true_list)
@@ -75,12 +73,9 @@ class TestInspector(TestCase):
             self.assertIn(member=dictionary, container=test_list)
 
     def test_inspect_nwb(self):
-        self.add_big_dataset_no_compression()
-        self.add_regular_timestamps()
-        self.add_flipped_data_orientation()
-        self.add_non_matching_timestamps_dimension()
-
-        test_results = self.run_inspect_nwb()
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            written_nwbfile = io.read()
+            test_results = inspect_nwb(nwbfile=written_nwbfile)
         true_results = [
             dict(
                 severity="LOW_SEVERITY",
@@ -159,12 +154,9 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        self.add_big_dataset_no_compression()
-        self.add_regular_timestamps()
-        self.add_flipped_data_orientation()
-        self.add_non_matching_timestamps_dimension()
-
-        test_results = self.run_inspect_nwb(importance_threshold="CRITICAL_IMPORTANCE")
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            written_nwbfile = io.read()
+            test_results = inspect_nwb(nwbfile=written_nwbfile, importance_threshold="CRITICAL_IMPORTANCE")
         true_results = [
             dict(
                 severity=None,
@@ -189,12 +181,11 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_skip(self):
-        self.add_big_dataset_no_compression()
-        self.add_regular_timestamps()
-        self.add_flipped_data_orientation()
-        self.add_non_matching_timestamps_dimension()
-
-        test_results = self.run_inspect_nwb(skip=["check_data_orientation", "check_dataset_compression"])
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            written_nwbfile = io.read()
+            test_results = inspect_nwb(
+                nwbfile=written_nwbfile, skip=["check_data_orientation", "check_dataset_compression"]
+            )
         true_results = [
             dict(
                 severity="LOW_SEVERITY",
@@ -229,6 +220,8 @@ class TestInspector(TestCase):
         ]
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
-    @pytest.mark.skip(msg="TODO")
-    def test_cmd_line(self):
-        pass
+    def test_command_line(self):
+        import pytest
+
+        print(os.system(f"python nwbinspector.py {str(self.nwbfile_path)}"))
+        pytest.fail()

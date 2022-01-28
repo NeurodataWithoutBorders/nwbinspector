@@ -7,7 +7,7 @@ CRITICAL_IMPORTANCE = 2
 BEST_PRACTICE_VIOLATION = 1
 BEST_PRACTICE_SUGGESTION = 0
 
-importance_levels = dict(
+importance_levels = OrderedDict(
     CRITICAL_IMPORTANCE=CRITICAL_IMPORTANCE,
     BEST_PRACTICE_VIOLATION=BEST_PRACTICE_VIOLATION,
     BEST_PRACTICE_SUGGESTION=BEST_PRACTICE_SUGGESTION,
@@ -16,7 +16,7 @@ levels_to_importance = {v: k for k, v in importance_levels.items()}
 
 HIGH_SEVERITY = 5
 LOW_SEVERITY = 4
-severity_levels = dict({"HIGH_SEVERITY": HIGH_SEVERITY, "LOW_SEVERITY": LOW_SEVERITY, None: 3})
+severity_levels = OrderedDict({"HIGH_SEVERITY": HIGH_SEVERITY, "LOW_SEVERITY": LOW_SEVERITY, None: 3})
 levels_to_severity = {v: k for k, v in severity_levels.items()}
 
 available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
