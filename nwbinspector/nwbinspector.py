@@ -152,7 +152,6 @@ def print_to_console(log_file_path: FilePathType):
                 color_shift_points.update(
                     {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
                 )
-    sys.stdout.write(str(color_shift_points))
 
     current_color = None
     for line_index, line in enumerate(log_output):
@@ -207,7 +206,6 @@ def inspect_nwb(
         )
 
     check_results = list()
-    print(nwbfile.objects)
     for importance, checks_per_object_type in checks.items():
         if importance_levels[importance] >= importance_levels[importance_threshold]:
             for check_object_type, check_functions in checks_per_object_type.items():

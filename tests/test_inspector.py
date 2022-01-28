@@ -14,57 +14,63 @@ from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from nwbinspector.nwbinspector import inspect_nwb, FilePathType
 
 
+def add_big_dataset_no_compression(nwbfile):
+    time_series = TimeSeries(
+        name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
+    )
+    nwbfile.add_acquisition(time_series)
+
+
+def add_regular_timestamps(nwbfile):
+    regular_timestamps = np.arange(1.2, 11.2, 2)
+    timestamps_length = len(regular_timestamps)
+    time_series = TimeSeries(
+        name="test_time_series_2",
+        data=np.zeros(shape=(timestamps_length, timestamps_length - 1)),
+        timestamps=regular_timestamps,
+        unit="",
+    )
+    nwbfile.add_acquisition(time_series)
+
+
+def add_flipped_data_orientation(nwbfile):
+    time_series = TimeSeries(name="test_time_series_3", data=np.zeros(shape=(5, 3)), rate=1.0, unit="")
+    nwbfile.add_acquisition(time_series)
+
+
+def add_non_matching_timestamps_dimension(nwbfile):
+    timestamps = [1.0, 2.0, 3.0]
+    timestamps_length = len(timestamps)
+    time_series = TimeSeries(
+        name="test_time_series_4",
+        data=np.zeros(shape=(timestamps_length - 1, timestamps_length)),
+        timestamps=timestamps,
+        unit="",
+    )
+    nwbfile.add_acquisition(time_series)
+
+
 class TestInspector(TestCase):
-    def setUp(self):
-        self.tempdir = Path(mkdtemp())
-        self.nwbfile = NWBFile(
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        nwbfile = NWBFile(
             session_description="Testing inspector.",
             identifier=str(uuid4()),
             session_start_time=datetime.now().astimezone(),
         )
-        self.add_big_dataset_no_compression()
-        self.add_regular_timestamps()
-        self.add_flipped_data_orientation()
-        self.add_non_matching_timestamps_dimension()
+        add_big_dataset_no_compression(nwbfile)
+        add_regular_timestamps(nwbfile)
+        add_flipped_data_orientation(nwbfile)
+        add_non_matching_timestamps_dimension(nwbfile)
 
-        self.nwbfile_path = self.tempdir / "testing.nwb"
-        with NWBHDF5IO(path=str(self.nwbfile_path), mode="w") as io:
-            io.write(self.nwbfile)
+        cls.nwbfile_path = cls.tempdir / "testing.nwb"
+        with NWBHDF5IO(path=str(TestInspector.nwbfile_path), mode="w") as io:
+            io.write(nwbfile)
 
-    def tearDown(self):
-        rmtree(self.tempdir)
-
-    def add_big_dataset_no_compression(self):
-        time_series = TimeSeries(
-            name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
-        )
-        self.nwbfile.add_acquisition(time_series)
-
-    def add_regular_timestamps(self):
-        regular_timestamps = np.arange(1.2, 11.2, 2)
-        timestamps_length = len(regular_timestamps)
-        time_series = TimeSeries(
-            name="test_time_series_2",
-            data=np.zeros(shape=(timestamps_length, timestamps_length - 1)),
-            timestamps=regular_timestamps,
-            unit="",
-        )
-        self.nwbfile.add_acquisition(time_series)
-
-    def add_flipped_data_orientation(self):
-        time_series = TimeSeries(name="test_time_series_3", data=np.zeros(shape=(5, 3)), rate=1.0, unit="")
-        self.nwbfile.add_acquisition(time_series)
-
-    def add_non_matching_timestamps_dimension(self):
-        timestamps = [1.0, 2.0, 3.0]
-        timestamps_length = len(timestamps)
-        time_series = TimeSeries(
-            name="test_time_series_4",
-            data=np.zeros(shape=(timestamps_length - 1, timestamps_length)),
-            timestamps=timestamps,
-            unit="",
-        )
-        self.nwbfile.add_acquisition(time_series)
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -81,7 +87,7 @@ class TestInspector(TestCase):
                 assert test_file.readlines() == true_file.readlines()
 
     def test_inspect_nwb(self):
-        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile)
         true_results = [
@@ -162,7 +168,7 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile, importance_threshold="CRITICAL_IMPORTANCE")
         true_results = [
@@ -189,7 +195,8 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_skip(self):
-        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+        print(TestInspector.nwbfile_path)
+        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(
                 nwbfile=written_nwbfile, skip=["check_data_orientation", "check_dataset_compression"]
@@ -230,11 +237,13 @@ class TestInspector(TestCase):
 
     def test_command_line_runs(self):
         os.system(f"nwbinspector {str(self.nwbfile_path)}")
-        self.assertFileExists(path=self.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt")
+        self.assertFileExists(
+            path=TestInspector.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt"
+        )
 
     def test_command_line_matches_file(self):
         os.system(f"nwbinspector {str(self.nwbfile_path)}")
         self.assertFileContentsEqual(
-            test_file_path=self.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
+            test_file_path=TestInspector.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
             true_file_path=Path(__file__).parent / f"true_nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
         )
