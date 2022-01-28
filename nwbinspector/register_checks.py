@@ -13,13 +13,13 @@ importance_levels = OrderedDict(
     BEST_PRACTICE_SUGGESTION=BEST_PRACTICE_SUGGESTION,
 )
 levels_to_importance = {v: k for k, v in importance_levels.items()}
+available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
 
+# For strictly internal use only
 HIGH_SEVERITY = 5
 LOW_SEVERITY = 4
 severity_levels = OrderedDict({"HIGH_SEVERITY": HIGH_SEVERITY, "LOW_SEVERITY": LOW_SEVERITY, None: 3})
 levels_to_severity = {v: k for k, v in severity_levels.items()}
-
-available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
 
 
 def register_check(importance, neurodata_type):

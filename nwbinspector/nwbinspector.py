@@ -3,13 +3,14 @@ import argparse
 import importlib
 import traceback
 import numpy as np
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 from typing import Optional, Union, Dict
 from pathlib import Path
 
 import pynwb
 
 from . import available_checks, importance_levels
+from .register_checks import severity_levels  # For strictly internal use only
 
 
 def main():
@@ -59,11 +60,10 @@ def main():
                     print("Validation OK!")
 
                 nwbfile = io.read()
-                # TODO, pass optional arguments from cmd line to inspect_nwb
+                # TODO, pass optional arguments like skip and threshold from cmd line to inspect_nwb
                 check_results = inspect_nwb(nwbfile=nwbfile)
                 organized_results = organize_inspect_results(check_results=check_results)
-                # log_file_path = in_path / "nwbinspector_log_file_{Path(filename).stem}.txt"
-                log_file_path = "C:/Users/Raven/Downloads/auto_test.txt"
+                log_file_path = filename.parent / f"nwbinspector_log_file_{filename.stem}.txt"
                 write_results(
                     log_file_path=log_file_path, organized_results=organized_results, overwrite=args.overwrite
                 )
@@ -82,14 +82,14 @@ def main():
 
 def sort_by_descending_severity(check_results: list):
     """Order the dictionaries in the check_list by severity."""
-    severities = [check_result["severity"] for check_result in check_results]
+    severities = [severity_levels[check_result["severity"]] for check_result in check_results]
     descending_indices = np.argsort(severities)[::-1]
     return [check_results[j] for j in descending_indices]
 
 
 def organize_inspect_results(check_results: list):
     """Format the list of returned results from checks."""
-    organized_results = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
+    organized_results = OrderedDict({importance_level: list() for importance_level in importance_levels})
     for check_result in check_results:
         organized_results[check_result["importance"]].append(check_result)
     for importance_level, check_results in organized_results.items():
@@ -105,24 +105,24 @@ def write_results(log_file_path: Union[Path, str], organized_results: Dict[str, 
     log_file_path = Path(log_file_path)
 
     if log_file_path.exists() and not overwrite:
-        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-w' flag.")
+        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-w True' flag.")
 
     nwbfile_index = 1  # TODO
-    check_index = 1
     with open(file=log_file_path, mode="w", newline="\n") as file:
         nwbfile_name_string = "NWBFile: xxxxxx.nwb"  # TODO
         file.write(nwbfile_name_string + "\n")
-        file.write("" * len(nwbfile_name_string) + "\n")
+        file.write("=" * len(nwbfile_name_string) + "\n")
 
         for importance_index, (importance_level, check_results) in enumerate(organized_results.items()):
             file.write(f"\n{importance_level}\n")
             file.write("-" * len(importance_level) + "\n")
 
+            check_index = 1
             for check_result in check_results:
                 file.write(
                     f"{nwbfile_index}.{importance_index}.{check_index}   {check_result['object_type']} "
-                    "'{check_result['object_name']}' located in 'TODO'\n"  # TODO
-                    "        {check_result['check_function_name']}: {check_result['message']}"
+                    f"'{check_result['object_name']}' located in 'TODO'\n"  # TODO
+                    f"        {check_result['check_function_name']}: {check_result['message']}\n"
                 )
                 check_index += 1
 

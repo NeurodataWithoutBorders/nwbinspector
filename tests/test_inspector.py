@@ -7,11 +7,13 @@ from tempfile import mkdtemp
 from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Union, List
 
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 
 from nwbinspector.nwbinspector import inspect_nwb
+
+FilePathType = Union[Path, str]
 
 
 class TestInspector(TestCase):
@@ -27,16 +29,16 @@ class TestInspector(TestCase):
         self.add_flipped_data_orientation()
         self.add_non_matching_timestamps_dimension()
 
-        self.nwbfile_path = str(self.tempdir / "testing.nwb")
-        with NWBHDF5IO(path=self.nwbfile_path, mode="w") as io:
+        self.nwbfile_path = self.tempdir / "testing.nwb"
+        with NWBHDF5IO(path=str(self.nwbfile_path), mode="w") as io:
             io.write(self.nwbfile)
 
     def tearDown(self):
-    rmtree(self.tempdir)
+        rmtree(self.tempdir)
 
     def add_big_dataset_no_compression(self):
         time_series = TimeSeries(
-            name="test_time_series_1", data=np.zeros(shape=int(3e6 / np.dtype("float").itemsize)), rate=1.0, unit=""
+            name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
         )
         self.nwbfile.add_acquisition(time_series)
 
@@ -72,6 +74,14 @@ class TestInspector(TestCase):
         for dictionary in true_list:
             self.assertIn(member=dictionary, container=test_list)
 
+    def assertFileExists(self, path: FilePathType):
+        assert path.exists()
+
+    def assertFileContentsEqual(self, test_file_path: FilePathType, true_file_path: FilePathType):
+        with open(file=test_file_path, mode="r") as test_file:
+            with open(file=true_file_path, mode="r") as true_file:
+                assert test_file.readlines() == true_file.readlines()
+
     def test_inspect_nwb(self):
         with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
             written_nwbfile = io.read()
@@ -102,7 +112,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_2",
             ),
             dict(
-                severity="LOW_SEVERITY",
+                severity="HIGH_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -220,8 +230,13 @@ class TestInspector(TestCase):
         ]
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
-    def test_command_line(self):
-        import pytest
+    def test_command_line_runs(self):
+        os.system(f"nwbinspector {str(self.nwbfile_path)}")
+        self.assertFileExists(path=self.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt")
 
-        print(os.system(f"python nwbinspector.py {str(self.nwbfile_path)}"))
-        pytest.fail()
+    def test_command_line_matches_file(self):
+        os.system(f"nwbinspector {str(self.nwbfile_path)}")
+        self.assertFileContentsEqual(
+            test_file_path=self.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
+            true_file_path=Path(__file__).parent / f"true_nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
+        )
