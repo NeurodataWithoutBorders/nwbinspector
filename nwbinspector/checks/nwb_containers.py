@@ -2,7 +2,7 @@
 import h5py
 from pynwb import NWBContainer
 
-from ..register_checks import register_check, BEST_PRACTICE_VIOLATION
+from ..register_checks import register_check, BEST_PRACTICE_VIOLATION, HIGH_SEVERITY, LOW_SEVERITY
 
 
 @register_check(importance=BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
@@ -15,9 +15,9 @@ def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold
     for field in getattr(nwb_container, "fields", dict()).values():
         if isinstance(field, h5py.Dataset) and field.compression is None:
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
-                severity = "high"
+                severity = HIGH_SEVERITY
             else:
-                severity = "low"
+                severity = LOW_SEVERITY
             return dict(severity=severity, message="Consider enabling compression when writing a large dataset.")
 
 

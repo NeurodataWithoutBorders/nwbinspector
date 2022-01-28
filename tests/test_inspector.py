@@ -83,7 +83,7 @@ class TestInspector(TestCase):
         test_results = self.run_inspect_nwb()
         true_results = [
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -91,7 +91,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_4",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -99,7 +99,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_3",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -107,7 +107,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_2",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -115,7 +115,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_1",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
                     "rate=1.0 instead of timestamps."
@@ -126,7 +126,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_4",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
@@ -197,7 +197,7 @@ class TestInspector(TestCase):
         test_results = self.run_inspect_nwb(skip=["check_data_orientation", "check_dataset_compression"])
         true_results = [
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
                     "rate=1.0 instead of timestamps."
@@ -208,7 +208,7 @@ class TestInspector(TestCase):
                 object_name="test_time_series_4",
             ),
             dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."

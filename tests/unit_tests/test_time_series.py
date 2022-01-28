@@ -19,7 +19,7 @@ def test_check_regular_timestamps():
             timestamps=[1.2, 3.2, 5.2],
         )
     ) == dict(
-        severity="low",
+        severity="LOW_SEVERITY",
         message=(
             "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
             "instead of timestamps."

@@ -6,12 +6,19 @@ global available_checks
 CRITICAL_IMPORTANCE = 2
 BEST_PRACTICE_VIOLATION = 1
 BEST_PRACTICE_SUGGESTION = 0
+
 importance_levels = dict(
     CRITICAL_IMPORTANCE=CRITICAL_IMPORTANCE,
     BEST_PRACTICE_VIOLATION=BEST_PRACTICE_VIOLATION,
     BEST_PRACTICE_SUGGESTION=BEST_PRACTICE_SUGGESTION,
 )
 levels_to_importance = {v: k for k, v in importance_levels.items()}
+
+HIGH_SEVERITY = 5
+LOW_SEVERITY = 4
+severity_levels = dict({"HIGH_SEVERITY": HIGH_SEVERITY, "LOW_SEVERITY": LOW_SEVERITY, None: 3})
+levels_to_severity = {v: k for k, v in severity_levels.items()}
+
 available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
 
 
@@ -38,7 +45,7 @@ def register_check(importance, neurodata_type):
             if auto_parsed_result is not None:
                 auto_parsed_result.update(
                     importance=check_function.importance,
-                    severity=auto_parsed_result.get("severity"),
+                    severity=levels_to_severity[auto_parsed_result.get("severity", severity_levels[None])],
                     check_function_name=check_function.__name__,
                     object_type=type(obj).__name__,
                     object_name=obj.name,

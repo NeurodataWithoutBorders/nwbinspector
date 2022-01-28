@@ -32,7 +32,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.5)
             true_output = dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -45,7 +45,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=2.0)
             true_output = dict(
-                severity="high",
+                severity="HIGH_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -58,7 +58,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.25)
             true_output = dict(
-                severity="low",
+                severity="LOW_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -73,7 +73,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.75)
             true_output = dict(
-                severity="high",
+                severity="HIGH_SEVERITY",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",

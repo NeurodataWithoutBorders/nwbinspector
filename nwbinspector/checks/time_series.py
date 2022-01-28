@@ -4,7 +4,7 @@ import numpy as np
 import pynwb
 
 # from ..tools import all_of_type
-from ..register_checks import register_check, CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION
+from ..register_checks import register_check, CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, HIGH_SEVERITY, LOW_SEVERITY
 from ..utils import check_regular_series
 
 
@@ -16,9 +16,9 @@ def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9,
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
-            severity = "high"
+            severity = HIGH_SEVERITY
         else:
-            severity = "low"
+            severity = LOW_SEVERITY
         return dict(
             severity=severity,
             message=(
