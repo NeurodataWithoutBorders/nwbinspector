@@ -28,6 +28,7 @@ def test_check_regular_timestamps():
         check_function_name="check_regular_timestamps",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/nwbfile/",
     )
 
 
@@ -50,6 +51,7 @@ def test_check_data_orientation():
         check_function_name="check_data_orientation",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/nwbfile/",
     )
 
 
@@ -68,6 +70,7 @@ def test_check_timestamps():
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/nwbfile/",
     )
 
 
@@ -81,6 +84,7 @@ def test_check_timestamps_empty_data():
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/nwbfile/",
     )
 
 
@@ -94,4 +98,5 @@ def test_check_timestamps_empty_timestamps():
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/nwbfile/",
     )

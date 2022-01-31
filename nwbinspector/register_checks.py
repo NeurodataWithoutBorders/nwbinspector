@@ -49,6 +49,7 @@ def register_check(importance, neurodata_type):
                     check_function_name=check_function.__name__,
                     object_type=type(obj).__name__,
                     object_name=obj.name,
+                    location=parse_location(nwbfile_object=obj),
                 )
             return auto_parsed_result
 
@@ -57,3 +58,30 @@ def register_check(importance, neurodata_type):
         return auto_parse_some_output
 
     return register_check_and_auto_parse
+
+
+def parse_location(nwbfile_object):
+    """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
+    level = nwbfile_object
+    level_names = []
+    if level.parent is None:
+        return "/nwbfile/"
+
+    # General case for nested modules
+    while level.parent.name != "root":
+        level_names.append(level.parent.name)
+        level = level.parent
+
+    # Determine which field of the NWBFile contains the previous recent level
+    invalid_field_names = ["timestamps_reference_time", "session_start_time"]
+    possible_fields = level.parent.fields
+    for field_name in invalid_field_names:
+        if field_name in possible_fields:
+            possible_fields.pop(field_name)
+    for field_name, field in possible_fields.items():
+        if level.name in field:
+            level_names.append(field_name)
+
+    level_names.append("nwbfile")
+    parsed_location = "/".join(level_names[::-1])
+    return "/" + parsed_location + "/"
