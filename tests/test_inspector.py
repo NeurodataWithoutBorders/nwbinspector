@@ -59,19 +59,31 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
-        nwbfile = NWBFile(
-            session_description="Testing inspector.",
-            identifier=str(uuid4()),
-            session_start_time=datetime.now().astimezone(),
-        )
-        add_big_dataset_no_compression(nwbfile)
-        add_regular_timestamps(nwbfile)
-        add_flipped_data_orientation_to_processing(nwbfile)
-        add_non_matching_timestamps_dimension(nwbfile)
 
-        cls.nwbfile_path = cls.tempdir / "testing.nwb"
-        with NWBHDF5IO(path=str(TestInspector.nwbfile_path), mode="w") as io:
-            io.write(nwbfile)
+        num_nwbfiles = 4
+        nwbfiles = list()
+        for j in range(num_nwbfiles):
+            nwbfiles.append(
+                NWBFile(
+                    session_description="Testing inspector.",
+                    identifier=str(uuid4()),
+                    session_start_time=datetime.now().astimezone(),
+                )
+            )
+        add_big_dataset_no_compression(nwbfiles[0])
+        add_regular_timestamps(nwbfiles[0])
+        add_flipped_data_orientation_to_processing(nwbfiles[0])
+        add_non_matching_timestamps_dimension(nwbfiles[0])
+        add_big_dataset_no_compression(nwbfiles[1])
+        add_regular_timestamps(nwbfiles[1])
+        add_flipped_data_orientation_to_processing(nwbfiles[2])
+        add_non_matching_timestamps_dimension(nwbfiles[2])
+        # Last file to be left without violations
+
+        cls.nwbfile_paths = [cls.tempdir / f"testing{j}.nwb" for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
+            with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
+                io.write(nwbfile)
 
     @classmethod
     def tearDownClass(cls):
@@ -86,13 +98,20 @@ class TestInspector(TestCase):
     def assertFileExists(self, path: FilePathType):
         assert path.exists()
 
-    def assertFileContentsEqual(self, test_file_path: FilePathType, true_file_path: FilePathType):
+    def assertLogFileContentsEqual(self, test_file_path: FilePathType, true_file_path: FilePathType):
         with open(file=test_file_path, mode="r") as test_file:
             with open(file=true_file_path, mode="r") as true_file:
-                assert test_file.readlines() == true_file.readlines()
+                test_file_lines = test_file.readlines()
+                true_file_lines = true_file.readlines()
+                for line_number, test_line in enumerate(test_file_lines):
+                    if "NWBFile: " in test_line:
+                        # Transform temporary testing path and formatted to hardcoded fake path
+                        test_file_lines[line_number] = f"NWBFile: /home/fake_path/{test_line[-13:]}"
+                        test_file_lines[line_number + 1] = "=" * (len(test_file_lines[line_number]) - 1) + "\n"
+                self.assertEqual(first=test_file_lines, second=true_file_lines)
 
     def test_inspect_nwb(self):
-        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
+        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile)
         true_results = [
@@ -169,7 +188,7 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
+        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile, importance_threshold="CRITICAL_IMPORTANCE")
         true_results = [
@@ -198,8 +217,8 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_skip(self):
-        print(TestInspector.nwbfile_path)
-        with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
+        print(self.nwbfile_paths[0])
+        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(
                 nwbfile=written_nwbfile, skip=["check_data_orientation", "check_dataset_compression"]
@@ -230,14 +249,12 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_command_line_runs(self):
-        os.system(f"nwbinspector {str(self.nwbfile_path)}")
-        self.assertFileExists(
-            path=TestInspector.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt"
-        )
+        os.system(f"nwbinspector {str(self.nwbfile_paths[0])}")
+        self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
 
-    def test_command_line_matches_file(self):
-        os.system(f"nwbinspector {str(self.nwbfile_path)}")
-        self.assertFileContentsEqual(
-            test_file_path=TestInspector.nwbfile_path.parent / f"nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
-            true_file_path=Path(__file__).parent / f"true_nwbinspector_log_file_{self.nwbfile_path.stem}.txt",
+    def test_command_line_on_directory_matches_file(self):
+        os.system(f"nwbinspector {str(self.tempdir)}")
+        self.assertLogFileContentsEqual(
+            test_file_path=self.tempdir / "nwbinspector_log_file.txt",
+            true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
         )

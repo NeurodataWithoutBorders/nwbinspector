@@ -21,53 +21,58 @@ def sort_by_descending_severity(check_results: list):
 
 def organize_inspect_results(check_results: list):
     """Format the list of returned results from checks."""
-    organized_results = OrderedDict({importance_level: list() for importance_level in importance_levels})
+    initial_results = OrderedDict({importance_level: list() for importance_level in importance_levels})
     for check_result in check_results:
-        organized_results[check_result["importance"]].append(check_result)
-    for importance_level, check_results in organized_results.items():
-        if len(check_results) == 0:
-            organized_results.pop(importance_level)
-        else:
-            organized_results[importance_level] = sort_by_descending_severity(check_results=check_results)
+        initial_results[check_result["importance"]].append(check_result)
+
+    organized_results = OrderedDict()
+    for importance_level, check_results in initial_results.items():
+        if any(check_results):
+            organized_results.update({importance_level: sort_by_descending_severity(check_results=check_results)})
     return organized_results
 
 
-def write_results(log_file_path: FilePathType, organized_results: Dict[str, list], overwrite=False):
+def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict[str, list]], overwrite=False):
     """Write the list of organized check results to a nicely formatted text file."""
     log_file_path = Path(log_file_path)
-
     if log_file_path.exists() and not overwrite:
         raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-w True' flag.")
 
-    nwbfile_index = 1  # TODO
+    num_nwbfiles = len(organized_results)
     with open(file=log_file_path, mode="w", newline="\n") as file:
-        nwbfile_name_string = "NWBFile: xxxxxx.nwb"  # TODO
-        file.write(nwbfile_name_string + "\n")
-        file.write("=" * len(nwbfile_name_string) + "\n")
+        for nwbfile_index, (nwbfile_name, organized_results_per_nwbfile) in enumerate(
+            organized_results.items(), start=1
+        ):
+            nwbfile_name_string = f"NWBFile: {nwbfile_name}"
+            file.write(nwbfile_name_string + "\n")
+            file.write("=" * len(nwbfile_name_string) + "\n")
 
-        for importance_index, (importance_level, check_results) in enumerate(organized_results.items()):
-            importance_string = importance_level.replace("_", " ")
-            file.write(f"\n{importance_string}\n")
-            file.write("-" * len(importance_level) + "\n")
+            for importance_index, (importance_level, check_results) in enumerate(
+                organized_results_per_nwbfile.items(), start=1
+            ):
+                importance_string = importance_level.replace("_", " ")
+                file.write(f"\n{importance_string}\n")
+                file.write("-" * len(importance_level) + "\n")
 
-            check_index = 1
-            for check_result in check_results:
-                file.write(
-                    f"{nwbfile_index}.{importance_index}.{check_index}   {check_result['object_type']} "
-                    f"'{check_result['object_name']}' located in '{check_result['location']}'\n"
-                    f"        {check_result['check_function_name']}: {check_result['message']}\n"
-                )
-                check_index += 1
+                for check_index, check_result in enumerate(check_results, start=1):
+                    file.write(
+                        f"{nwbfile_index}.{importance_index}.{check_index}   {check_result['object_type']} "
+                        f"'{check_result['object_name']}' located in '{check_result['location']}'\n"
+                        f"        {check_result['check_function_name']}: {check_result['message']}\n"
+                    )
+            if nwbfile_index != num_nwbfiles:
+                file.write("\n\n\n")
 
 
 def print_to_console(log_file_path: FilePathType):
     """Print log file contents to console."""
+    reset_color = "\x1b[0m"
     color_map = {
         "CRITICAL IMPORTANCE": "\x1b[31m",
         "BEST PRACTICE VIOLATION": "\x1b[33m",
-        "BEST PRACTICE SUGGESTION": None,
+        "BEST PRACTICE SUGGESTION": reset_color,
+        "NWBFile": reset_color,
     }
-    reset_color = "\x1b[0m"
 
     with open(file=log_file_path, mode="r") as file:
         log_output = file.readlines()

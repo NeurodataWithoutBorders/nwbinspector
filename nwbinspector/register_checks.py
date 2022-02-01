@@ -94,4 +94,4 @@ def parse_location(nwbfile_object):
                 level_names.append(field_name)
         return "/" + "/".join(level_names[::-1]) + "/"
     except Exception:
-        return "unknown"
+        return ""
