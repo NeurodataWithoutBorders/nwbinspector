@@ -44,11 +44,11 @@ def add_flipped_data_orientation_to_processing(nwbfile):
 
 
 def add_non_matching_timestamps_dimension(nwbfile):
-    timestamps = [1.0, 2.0, 3.0]
+    timestamps = [1.0, 2.1, 3.0]
     timestamps_length = len(timestamps)
     time_series = TimeSeries(
         name="test_time_series_3",
-        data=np.zeros(shape=(timestamps_length - 1, timestamps_length)),
+        data=np.zeros(shape=(timestamps_length + 1, timestamps_length)),
         timestamps=timestamps,
         unit="",
     )
@@ -103,7 +103,7 @@ class TestInspector(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
             dict(
                 severity="LOW_SEVERITY",
@@ -112,7 +112,7 @@ class TestInspector(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/nwbfile/processing/behavior/Position",
+                location="/processing/behavior/Position/",
             ),
             dict(
                 severity="LOW_SEVERITY",
@@ -121,7 +121,7 @@ class TestInspector(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
             dict(
                 severity="HIGH_SEVERITY",
@@ -130,19 +130,7 @@ class TestInspector(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
-                location="/nwbfile/acquisition/",
-            ),
-            dict(
-                severity="LOW_SEVERITY",
-                message=(
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
-                    "rate=1.0 instead of timestamps."
-                ),
-                importance="BEST_PRACTICE_VIOLATION",
-                check_function_name="check_regular_timestamps",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
             dict(
                 severity="LOW_SEVERITY",
@@ -154,7 +142,7 @@ class TestInspector(TestCase):
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
             dict(
                 severity=None,
@@ -166,7 +154,7 @@ class TestInspector(TestCase):
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/nwbfile/processing/behavior/Position/",
+                location="/processing/behavior/Position/",
             ),
             dict(
                 severity=None,
@@ -175,10 +163,10 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
         ]
-        # self.assertListofDictEqual(test_list=test_results, true_list=true_results)
+        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
         with NWBHDF5IO(path=TestInspector.nwbfile_path, mode="r") as io:
@@ -195,19 +183,7 @@ class TestInspector(TestCase):
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/nwbfile/processing/behavior/Position/",
-            ),
-            dict(
-                severity=None,
-                message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer. "
-                ),
-                importance="CRITICAL_IMPORTANCE",
-                check_function_name="check_data_orientation",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/processing/behavior/Position/",
             ),
             dict(
                 severity=None,
@@ -216,7 +192,7 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
         ]
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
@@ -232,18 +208,6 @@ class TestInspector(TestCase):
             dict(
                 severity="LOW_SEVERITY",
                 message=(
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.0 and "
-                    "rate=1.0 instead of timestamps."
-                ),
-                importance="BEST_PRACTICE_VIOLATION",
-                check_function_name="check_regular_timestamps",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
-            ),
-            dict(
-                severity="LOW_SEVERITY",
-                message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
@@ -251,7 +215,7 @@ class TestInspector(TestCase):
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
             dict(
                 severity=None,
@@ -260,7 +224,7 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/nwbfile/acquisition/",
+                location="/acquisition/",
             ),
         ]
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)

@@ -2,6 +2,8 @@
 from collections import defaultdict, OrderedDict
 from functools import wraps
 
+import h5py
+
 global available_checks
 CRITICAL_IMPORTANCE = 2
 BEST_PRACTICE_VIOLATION = 1
@@ -62,26 +64,34 @@ def register_check(importance, neurodata_type):
 
 def parse_location(nwbfile_object):
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
-    level = nwbfile_object
-    level_names = []
-    if level.parent is None:
-        return "/nwbfile/"
+    if nwbfile_object.parent is None:
+        return "/"
 
-    # General case for nested modules
-    while level.parent.name != "root":
-        level_names.append(level.parent.name)
-        level = level.parent
+    # Best solution: object is or has a HDF5 Dataset
+    if isinstance(nwbfile_object, h5py.Dataset):
+        return "/".join(nwbfile_object.parent.name.split("/")[:-1]) + "/"
+    else:
+        for field in nwbfile_object.fields.values():
+            if isinstance(field, h5py.Dataset):
+                return "/".join(field.parent.name.split("/")[:-1]) + "/"
 
-    # Determine which field of the NWBFile contains the previous recent level
-    invalid_field_names = ["timestamps_reference_time", "session_start_time"]
-    possible_fields = level.parent.fields
-    for field_name in invalid_field_names:
-        if field_name in possible_fields:
-            possible_fields.pop(field_name)
-    for field_name, field in possible_fields.items():
-        if level.name in field:
-            level_names.append(field_name)
+    try:
+        # General case for nested modules not containing Datasets
+        level = nwbfile_object
+        level_names = []
+        while level.parent.name != "root":
+            level_names.append(level.parent.name)
+            level = level.parent
 
-    level_names.append("nwbfile")
-    parsed_location = "/".join(level_names[::-1])
-    return "/" + parsed_location + "/"
+        # Determine which field of the NWBFile contains the previous recent level
+        invalid_field_names = ["timestamps_reference_time", "session_start_time"]
+        possible_fields = level.parent.fields
+        for field_name in invalid_field_names:
+            if field_name in possible_fields:
+                possible_fields.pop(field_name)
+        for field_name, field in possible_fields.items():
+            if level.name in field:
+                level_names.append(field_name)
+        return "/" + "/".join(level_names[::-1]) + "/"
+    except Exception:
+        return "unknown"

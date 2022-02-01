@@ -38,7 +38,7 @@ class TestNWBContainers(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
-                location="/nwbfile/",
+                location="/",
             )
             self.assertDictEqual(d1=check_dataset_compression(nwb_container=nwb_container), d2=true_output)
 
@@ -52,7 +52,7 @@ class TestNWBContainers(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
-                location="/nwbfile/",
+                location="/",
             )
             self.assertDictEqual(d1=check_dataset_compression(nwb_container=nwb_container), d2=true_output)
 
@@ -66,7 +66,7 @@ class TestNWBContainers(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
-                location="/nwbfile/",
+                location="/",
             )
             self.assertDictEqual(
                 d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15), d2=true_output
@@ -82,7 +82,7 @@ class TestNWBContainers(TestCase):
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
-                location="/nwbfile/",
+                location="/",
             )
             self.assertDictEqual(
                 d1=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15), d2=true_output
