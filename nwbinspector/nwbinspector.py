@@ -7,6 +7,7 @@ from typing import Optional
 from pathlib import Path
 
 import pynwb
+from natsort import natsorted
 
 from . import available_checks, importance_levels
 from .inspector_tools import organize_inspect_results, write_results, print_to_console
@@ -59,6 +60,7 @@ def main():
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
+    nwbfiles = natsorted(nwbfiles)
     num_nwbfiles = len(nwbfiles)
 
     for module in args.modules:
