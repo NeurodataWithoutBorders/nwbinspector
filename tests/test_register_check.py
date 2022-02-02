@@ -25,25 +25,25 @@ class TestRegisterClass(TestCase):
         if version.parse(python_version()) >= version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=TypeError,
-                exc_msg=f"unsupported operand type(s) for 'in': '{type({bad_importance})}' and 'EnumMeta'",
+                exc_msg="unsupported operand type(s) for 'in': 'str' and 'EnumMeta'",
             ):
 
                 @register_check(importance=bad_importance, neurodata_type=None)
-                def bad_severity_function():
+                def bad_importance_function():
                     pass
 
         else:
             with self.assertRaisesWith(
                 exc_type=ValueError,
                 exc_msg=(
-                    f"Indicated importance ({bad_importance}) of custom check (bad_severity_function) is not a valid "
+                    f"Indicated importance ({bad_importance}) of custom check (bad_importance_function) is not a valid "
                     "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
                     "or Importance.BEST_PRACTICE_SUGGESTION."
                 ),
             ):
 
                 @register_check(importance=bad_importance, neurodata_type=None)
-                def bad_severity_function():
+                def bad_importance_function():
                     pass
 
     def test_register_importance_error_enum_type(self):
@@ -71,7 +71,7 @@ class TestRegisterClass(TestCase):
         if version.parse(python_version()) >= version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=TypeError,
-                exc_msg=f"unsupported operand type(s) for 'in': '{type({bad_severity})}' and 'EnumMeta'",
+                exc_msg="unsupported operand type(s) for 'in': 'str' and 'EnumMeta'",
             ):
 
                 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
