@@ -25,7 +25,7 @@ class TestRegisterClass(TestCase):
         if version.parse(python_version()) >= version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=TypeError,
-                exc_msg=f" unsupported operand type(s) for 'in': '{type({bad_importance})}' and 'EnumMeta'",
+                exc_msg=f"unsupported operand type(s) for 'in': '{type({bad_importance})}' and 'EnumMeta'",
             ):
 
                 @register_check(importance=bad_importance, neurodata_type=None)
@@ -71,7 +71,7 @@ class TestRegisterClass(TestCase):
         if version.parse(python_version()) >= version.parse("3.8"):
             with self.assertRaisesWith(
                 exc_type=TypeError,
-                exc_msg=f" unsupported operand type(s) for 'in': '{type({bad_severity})}' and 'EnumMeta'",
+                exc_msg=f"unsupported operand type(s) for 'in': '{type({bad_severity})}' and 'EnumMeta'",
             ):
 
                 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
