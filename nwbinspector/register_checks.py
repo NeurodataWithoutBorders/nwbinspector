@@ -2,6 +2,7 @@
 from collections import defaultdict, OrderedDict
 from functools import wraps
 from enum import Enum
+from dataclasses import dataclass
 
 import h5py
 
@@ -30,6 +31,34 @@ global available_checks
 available_checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
 
 
+@dataclass
+class InspectorMessage:
+    """
+    The primary output to be returned by every check function.
+
+    Parameters
+    ----------
+    message : str
+        A message that informs the user of the violation.
+    severity : Severity, optional
+        If a check of non-CRITICAL importance has some basis of comparison, such as magitude of affected data, then
+        the developer of the check may set the severity as Severity.HIGH or Severity.LOW by calling
+        `from nwbinspector.register_checks import Severity`. A good example is comparing if h5py.Dataset compression
+        has been enabled on smaller vs. larger objects (see nwbinspect/checks/nwb_containers.py for details).
+
+        The user will never directly see this severity, but it will prioritize the order in which check results are
+        presented by the NWBInspector.
+    """
+
+    message: str
+    severity: Severity = None
+    importance: Importance = Importance.BEST_PRACTICE_SUGGESTION
+    check_function_name: str = ""
+    object_type: str = ""
+    object_name: str = ""
+    location: str = ""
+
+
 def register_check(importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
@@ -52,24 +81,20 @@ def register_check(importance, neurodata_type):
 
             auto_parsed_result = check_function(*args, **kwargs)
             if auto_parsed_result is not None:
-                if "severity" in auto_parsed_result:
-                    if auto_parsed_result["severity"] is None:  # For perfect consistency with not specifying
-                        auto_parsed_result["severity"] = Severity.NO_SEVERITY
-                    if auto_parsed_result["severity"] not in Severity:
-                        raise ValueError(
-                            f"Indicated severity ({auto_parsed_result['severity']}) of custom check "
-                            f"({check_function.__name__}) is not a valid severity level! Please choose one of "
-                            "Severity.HIGH, Severity.LOW, or do not specify any severity."
-                        )
+                if auto_parsed_result.severity is None:  # For perfect consistency with not specifying
+                    auto_parsed_result.severity = Severity.NO_SEVERITY
+                if auto_parsed_result.severity not in Severity:
+                    raise ValueError(
+                        f"Indicated severity ({auto_parsed_result.severity}) of custom check "
+                        f"({check_function.__name__}) is not a valid severity level! Please choose one of "
+                        "Severity.HIGH, Severity.LOW, or do not specify any severity."
+                    )
 
-                auto_parsed_result.update(
-                    importance=check_function.importance.name,
-                    severity=auto_parsed_result.get("severity", Severity.NO_SEVERITY).name,
-                    check_function_name=check_function.__name__,
-                    object_type=type(obj).__name__,
-                    object_name=obj.name,
-                    location=parse_location(nwbfile_object=obj),
-                )
+                auto_parsed_result.importance = check_function.importance
+                auto_parsed_result.check_function_name = check_function.__name__
+                auto_parsed_result.object_type = type(obj).__name__
+                auto_parsed_result.object_name = obj.name
+                auto_parsed_result.location = parse_location(nwbfile_object=obj)
             return auto_parsed_result
 
         available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)

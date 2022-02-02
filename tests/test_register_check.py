@@ -7,7 +7,7 @@ from hdmf.common import DynamicTable
 from pynwb import TimeSeries
 from hdmf.testing import TestCase
 
-from nwbinspector.register_checks import register_check, Importance, Severity
+from nwbinspector.register_checks import register_check, Importance, Severity, InspectorMessage
 
 
 class TestRegisterClass(TestCase):
@@ -76,7 +76,7 @@ class TestRegisterClass(TestCase):
 
                 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
                 def bad_severity_function(time_series: TimeSeries):
-                    return dict(severity=bad_severity)
+                    return InspectorMessage(severity=bad_severity, message="")
 
                 bad_severity_function(time_series=self.default_time_series)
 
@@ -92,7 +92,7 @@ class TestRegisterClass(TestCase):
 
                 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
                 def bad_severity_function(time_series: TimeSeries):
-                    return dict(severity=bad_severity)
+                    return InspectorMessage(severity=bad_severity, message="")
 
                 bad_severity_function(time_series=self.default_time_series)
 
@@ -113,7 +113,7 @@ class TestRegisterClass(TestCase):
 
             @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
             def bad_severity_function(time_series: TimeSeries):
-                return dict(severity=bad_severity)
+                return InspectorMessage(severity=bad_severity, message="")
 
             bad_severity_function(time_series=self.default_time_series)
 
@@ -123,13 +123,14 @@ class TestRegisterClass(TestCase):
 
             @register_check(importance=importance, neurodata_type=TimeSeries)
             def good_check_function(time_series: TimeSeries):
-                return dict(severity=severity)
+                return InspectorMessage(severity=severity, message="")
 
             self.assertEqual(
                 first=good_check_function(time_series=self.default_time_series),
-                second=dict(
-                    severity=severity.name,
-                    importance=importance.name,
+                second=InspectorMessage(
+                    severity=severity,
+                    message="",
+                    importance=importance,
                     check_function_name="good_check_function",
                     object_type="TimeSeries",
                     object_name="temp",
@@ -142,13 +143,14 @@ class TestRegisterClass(TestCase):
 
         @register_check(importance=importance, neurodata_type=TimeSeries)
         def good_check_function(time_series: TimeSeries):
-            return dict(severity=None)
+            return InspectorMessage(severity=None, message="")
 
         self.assertEqual(
             first=good_check_function(time_series=self.default_time_series),
-            second=dict(
-                severity=Severity.NO_SEVERITY.name,
-                importance=importance.name,
+            second=InspectorMessage(
+                severity=Severity.NO_SEVERITY,
+                message="",
+                importance=importance,
                 check_function_name="good_check_function",
                 object_type="TimeSeries",
                 object_name="temp",
@@ -161,13 +163,14 @@ class TestRegisterClass(TestCase):
 
         @register_check(importance=importance, neurodata_type=TimeSeries)
         def good_check_function(time_series: TimeSeries):
-            return dict()
+            return InspectorMessage(message="")
 
         self.assertEqual(
             first=good_check_function(time_series=self.default_time_series),
-            second=dict(
-                severity=Severity.NO_SEVERITY.name,
-                importance=importance.name,
+            second=InspectorMessage(
+                severity=Severity.NO_SEVERITY,
+                message="",
+                importance=importance,
                 check_function_name="good_check_function",
                 object_type="TimeSeries",
                 object_name="temp",

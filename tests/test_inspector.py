@@ -13,6 +13,7 @@ from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.behavior import SpatialSeries, Position
 
 from nwbinspector.nwbinspector import inspect_nwb, Importance
+from nwbinspector.register_checks import Severity, InspectorMessage
 from nwbinspector.utils import FilePathType
 
 
@@ -115,70 +116,70 @@ class TestInspector(TestCase):
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile)
         true_results = [
-            dict(
-                severity="LOW",
+            InspectorMessage(
+                severity=Severity.LOW,
                 message="Consider enabling compression when writing a large dataset.",
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
             ),
-            dict(
-                severity="LOW",
+            InspectorMessage(
+                severity=Severity.LOW,
                 message="Consider enabling compression when writing a large dataset.",
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_dataset_compression",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
             ),
-            dict(
-                severity="LOW",
+            InspectorMessage(
+                severity=Severity.LOW,
                 message="Consider enabling compression when writing a large dataset.",
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
             ),
-            dict(
-                severity="HIGH",
+            InspectorMessage(
+                severity=Severity.HIGH,
                 message="Consider enabling compression when writing a large dataset.",
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
                 location="/acquisition/",
             ),
-            dict(
-                severity="LOW",
+            InspectorMessage(
+                severity=Severity.LOW,
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
             ),
-            dict(
-                severity="NO_SEVERITY",
+            InspectorMessage(
+                severity=Severity.NO_SEVERITY,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                importance="CRITICAL",
+                importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
             ),
-            dict(
-                severity="NO_SEVERITY",
+            InspectorMessage(
+                severity=Severity.NO_SEVERITY,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="CRITICAL",
+                importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
@@ -192,22 +193,22 @@ class TestInspector(TestCase):
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile, importance_threshold=Importance.CRITICAL)
         true_results = [
-            dict(
-                severity="NO_SEVERITY",
+            InspectorMessage(
+                severity=Severity.NO_SEVERITY,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer. "
                 ),
-                importance="CRITICAL",
+                importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
             ),
-            dict(
-                severity="NO_SEVERITY",
+            InspectorMessage(
+                severity=Severity.NO_SEVERITY,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="CRITICAL",
+                importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
@@ -217,29 +218,28 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_skip(self):
-        print(self.nwbfile_paths[0])
         with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(
                 nwbfile=written_nwbfile, skip=["check_data_orientation", "check_dataset_compression"]
             )
         true_results = [
-            dict(
-                severity="LOW",
+            InspectorMessage(
+                severity=Severity.LOW,
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying "
                     "starting_time=1.2 and rate=2.0 instead of timestamps."
                 ),
-                importance="BEST_PRACTICE_VIOLATION",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
             ),
-            dict(
-                severity="NO_SEVERITY",
+            InspectorMessage(
+                severity=Severity.NO_SEVERITY,
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                importance="CRITICAL",
+                importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
