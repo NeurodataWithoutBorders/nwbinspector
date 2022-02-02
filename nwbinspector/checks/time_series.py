@@ -4,11 +4,11 @@ import numpy as np
 import pynwb
 
 # from ..tools import all_of_type
-from ..register_checks import register_check, CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, HIGH_SEVERITY, LOW_SEVERITY
+from ..register_checks import register_check, Importance, Severity
 from ..utils import check_regular_series
 
 
-@register_check(importance=BEST_PRACTICE_VIOLATION, neurodata_type=pynwb.TimeSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=pynwb.TimeSeries)
 def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9, gb_severity_threshold=1.0):
     """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
     if time_series.timestamps is not None and check_regular_series(
@@ -16,9 +16,9 @@ def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9,
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
-            severity = HIGH_SEVERITY
+            severity = Severity.HIGH
         else:
-            severity = LOW_SEVERITY
+            severity = Severity.LOW
         return dict(
             severity=severity,
             message=(
@@ -29,7 +29,7 @@ def check_regular_timestamps(time_series: pynwb.TimeSeries, time_tol_decimals=9,
         )
 
 
-@register_check(importance=CRITICAL_IMPORTANCE, neurodata_type=pynwb.TimeSeries)
+@register_check(importance=Importance.CRITICAL, neurodata_type=pynwb.TimeSeries)
 def check_data_orientation(time_series: pynwb.TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
     if time_series.data is not None and any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
@@ -42,7 +42,7 @@ def check_data_orientation(time_series: pynwb.TimeSeries):
         )
 
 
-@register_check(importance=CRITICAL_IMPORTANCE, neurodata_type=pynwb.TimeSeries)
+@register_check(importance=Importance.CRITICAL, neurodata_type=pynwb.TimeSeries)
 def check_timestamps_match_first_dimension(time_series: pynwb.TimeSeries):
     """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
     if (

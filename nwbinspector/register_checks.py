@@ -1,40 +1,46 @@
 """Authors: Cody Baker and Ben Dichter."""
 from collections import defaultdict, OrderedDict
 from functools import wraps
+from enum import Enum
 
 import h5py
 
+
+class Importance(Enum):
+    """A definition of the valid importance levels for a given check function."""
+
+    CRITICAL = 2
+    BEST_PRACTICE_VIOLATION = 1
+    BEST_PRACTICE_SUGGESTION = 0
+
+
+class Severity(Enum):
+    """
+    A definition of the valid severity levels for the output from a given check function.
+
+    Strictly for internal development that improves report organization; users should never directly see these values.
+    """
+
+    HIGH = 2
+    LOW = 1
+    NO_SEVERITY = 0
+
+
 global available_checks
-CRITICAL_IMPORTANCE = 2
-BEST_PRACTICE_VIOLATION = 1
-BEST_PRACTICE_SUGGESTION = 0
-
-importance_levels = OrderedDict(
-    CRITICAL_IMPORTANCE=CRITICAL_IMPORTANCE,
-    BEST_PRACTICE_VIOLATION=BEST_PRACTICE_VIOLATION,
-    BEST_PRACTICE_SUGGESTION=BEST_PRACTICE_SUGGESTION,
-)
-levels_to_importance = {v: k for k, v in importance_levels.items()}
-available_checks = OrderedDict({importance_level: defaultdict(list) for importance_level in importance_levels})
-
-# For strictly internal use only
-HIGH_SEVERITY = 5
-LOW_SEVERITY = 4
-severity_levels = OrderedDict({"HIGH_SEVERITY": HIGH_SEVERITY, "LOW_SEVERITY": LOW_SEVERITY, None: 3})
-levels_to_severity = {v: k for k, v in severity_levels.items()}
+available_checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
 
 
 def register_check(importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def register_check_and_auto_parse(check_function):
-        if importance not in importance_levels.values():
+        if importance not in Importance:
             raise ValueError(
                 f"Indicated importance ({importance}) of custom check ({check_function.__name__}) is not a valid "
-                "importance level! Please choose from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, "
-                "BEST_PRACTICE_SUGGESTION]."
+                "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
+                "or Importance.BEST_PRACTICE_SUGGESTION."
             )
-        check_function.importance = levels_to_importance[importance]
+        check_function.importance = importance
         check_function.neurodata_type = neurodata_type
 
         @wraps(check_function)
@@ -43,11 +49,22 @@ def register_check(importance, neurodata_type):
                 obj = args[0]
             else:
                 obj = kwargs[list(kwargs)[0]]
+
             auto_parsed_result = check_function(*args, **kwargs)
             if auto_parsed_result is not None:
+                if "severity" in auto_parsed_result:
+                    if auto_parsed_result["severity"] is None:  # For perfect consistency with not specifying
+                        auto_parsed_result["severity"] = Severity.NO_SEVERITY
+                    if auto_parsed_result["severity"] not in Severity:
+                        raise ValueError(
+                            f"Indicated severity ({auto_parsed_result['severity']}) of custom check "
+                            f"({check_function.__name__}) is not a valid severity level! Please choose one of "
+                            "Severity.HIGH, Severity.LOW, or do not specify any severity."
+                        )
+
                 auto_parsed_result.update(
-                    importance=check_function.importance,
-                    severity=levels_to_severity[auto_parsed_result.get("severity", severity_levels[None])],
+                    importance=check_function.importance.name,
+                    severity=auto_parsed_result.get("severity", Severity.NO_SEVERITY).name,
                     check_function_name=check_function.__name__,
                     object_type=type(obj).__name__,
                     object_name=obj.name,

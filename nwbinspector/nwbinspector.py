@@ -9,7 +9,7 @@ from pathlib import Path
 import pynwb
 from natsort import natsorted
 
-from . import available_checks, importance_levels
+from . import available_checks, Importance
 from .inspector_tools import organize_inspect_results, write_results, print_to_console
 
 
@@ -47,7 +47,7 @@ def main():
         default="BEST_PRACTICE_SUGGESTION",
         help=(
             " Ignores tests with an assigned importance below this threshold. Importance has three levels: "
-            "CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION."
+            "CRITICAL, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION."
         ),
     )
     parser.set_defaults(modules=[])
@@ -84,7 +84,7 @@ def main():
 
                 nwbfile = io.read()
                 check_results = inspect_nwb(
-                    nwbfile=nwbfile, skip=args.skip, importance_threshold=args.importance_threshold
+                    nwbfile=nwbfile, skip=args.skip, importance_threshold=Importance[args.importance_threshold]
                 )
                 if any(check_results):
                     organized_results.update({str(nwbfile_path): organize_inspect_results(check_results=check_results)})
@@ -106,7 +106,7 @@ def main():
 def inspect_nwb(
     nwbfile: pynwb.NWBFile,
     checks: list = available_checks,
-    importance_threshold: str = "BEST_PRACTICE_SUGGESTION",
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     skip: Optional[list] = None,
 ):
     """
@@ -125,7 +125,7 @@ def inspect_nwb(
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
-            CRITICAL_IMPORTANCE
+            CRITICAL
                 - potentially incorrect data
             BEST_PRACTICE_VIOLATION
                 - very suboptimal data representation
@@ -135,7 +135,7 @@ def inspect_nwb(
     skip: list, optional
         Names of functions to skip.
     """
-    if importance_threshold not in importance_levels:
+    if importance_threshold not in Importance:
         raise ValueError(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
@@ -143,7 +143,7 @@ def inspect_nwb(
 
     check_results = list()
     for importance, checks_per_object_type in checks.items():
-        if importance_levels[importance] >= importance_levels[importance_threshold]:
+        if importance.value >= importance_threshold.value:
             for check_object_type, check_functions in checks_per_object_type.items():
                 for nwbfile_object in nwbfile.objects.values():
                     if issubclass(type(nwbfile_object), check_object_type):

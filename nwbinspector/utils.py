@@ -1,5 +1,9 @@
 """Authors: Cody Baker and Ben Dichter."""
 import numpy as np
+from typing import Union
+from pathlib import Path
+
+FilePathType = Union[Path, str]
 
 
 def check_regular_series(series: np.ndarray, tolerance_decimals=9):

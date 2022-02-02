@@ -32,7 +32,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
             true_output = dict(
-                severity="LOW_SEVERITY",
+                severity="LOW",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -46,7 +46,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=1.1)
             true_output = dict(
-                severity="HIGH_SEVERITY",
+                severity="HIGH",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -60,7 +60,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
             true_output = dict(
-                severity="LOW_SEVERITY",
+                severity="LOW",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",
@@ -76,7 +76,7 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.2)
             true_output = dict(
-                severity="HIGH_SEVERITY",
+                severity="HIGH",
                 message="Consider enabling compression when writing a large dataset.",
                 importance="BEST_PRACTICE_VIOLATION",
                 check_function_name="check_dataset_compression",

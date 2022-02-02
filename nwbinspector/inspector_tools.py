@@ -3,25 +3,24 @@ import sys
 import os
 import numpy as np
 from collections import OrderedDict
-from typing import Union, Dict
+from typing import Dict
 from pathlib import Path
 
-from . import importance_levels
-from .register_checks import severity_levels  # For strictly internal use only
-
-FilePathType = Union[Path, str]
+from . import Importance
+from .utils import FilePathType
+from .register_checks import Severity  # For strictly internal use only
 
 
 def sort_by_descending_severity(check_results: list):
     """Order the dictionaries in the check_list by severity."""
-    severities = [severity_levels[check_result["severity"]] for check_result in check_results]
+    severities = [Severity[check_result["severity"]].value for check_result in check_results]
     descending_indices = np.argsort(severities)[::-1]
     return [check_results[j] for j in descending_indices]
 
 
 def organize_inspect_results(check_results: list):
     """Format the list of returned results from checks."""
-    initial_results = OrderedDict({importance_level: list() for importance_level in importance_levels})
+    initial_results = OrderedDict({importance_level.name: list() for importance_level in Importance})
     for check_result in check_results:
         initial_results[check_result["importance"]].append(check_result)
 
