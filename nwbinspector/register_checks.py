@@ -33,7 +33,22 @@ available_checks = OrderedDict({importance: defaultdict(list) for importance in 
 
 @dataclass
 class InspectorMessage:
-    """The primary result returned by every check."""
+    """
+    The primary output to be returned by every check function.
+
+    Parameters
+    ----------
+    message : str
+        A message that informs the user of the violation.
+    severity : Severity, optional
+        If a check of non-CRITICAL importance has some basis of comparison, such as magitude of affected data, then
+        the developer of the check may set the severity as Severity.HIGH or Severity.LOW by calling
+        `from nwbinspector.register_checks import Severity`. A good example is comparing if h5py.Dataset compression
+        has been enabled on smaller vs. larger objects (see nwbinspect/checks/nwb_containers.py for details).
+
+        The user will never directly see this severity, but it will prioritize the order in which check results are
+        presented by the NWBInspector.
+    """
 
     message: str
     severity: Severity = None
