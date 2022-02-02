@@ -75,8 +75,10 @@ class TestRegisterClass(TestCase):
             ):
 
                 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
-                def bad_severity_function():
+                def bad_severity_function(time_series: TimeSeries):
                     return dict(severity=bad_severity)
+
+                bad_severity_function(time_series=self.default_time_series)
 
         else:
             with self.assertRaisesWith(
