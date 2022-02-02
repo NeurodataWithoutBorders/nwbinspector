@@ -8,27 +8,26 @@ from pathlib import Path
 
 from . import Importance
 from .utils import FilePathType
-from .register_checks import Severity  # For strictly internal use only
 
 
 def sort_by_descending_severity(check_results: list):
     """Order the dictionaries in the check_list by severity."""
-    severities = [Severity[check_result["severity"]].value for check_result in check_results]
+    severities = [check_result.severity.value for check_result in check_results]
     descending_indices = np.argsort(severities)[::-1]
     return [check_results[j] for j in descending_indices]
 
 
-def organize_inspect_results(check_results: list):
+def organize_check_results(check_results: list):
     """Format the list of returned results from checks."""
-    initial_results = OrderedDict({importance_level.name: list() for importance_level in Importance})
+    initial_results = OrderedDict({importance.name: list() for importance in Importance})
     for check_result in check_results:
-        initial_results[check_result["importance"]].append(check_result)
+        initial_results[check_result.importance.name].append(check_result)
 
-    organized_results = OrderedDict()
+    organized_check_results = OrderedDict()
     for importance_level, check_results in initial_results.items():
         if any(check_results):
-            organized_results.update({importance_level: sort_by_descending_severity(check_results=check_results)})
-    return organized_results
+            organized_check_results.update({importance_level: sort_by_descending_severity(check_results=check_results)})
+    return organized_check_results
 
 
 def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict[str, list]], overwrite=False):
@@ -39,15 +38,13 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
 
     num_nwbfiles = len(organized_results)
     with open(file=log_file_path, mode="w", newline="\n") as file:
-        for nwbfile_index, (nwbfile_name, organized_results_per_nwbfile) in enumerate(
-            organized_results.items(), start=1
-        ):
+        for nwbfile_index, (nwbfile_name, organized_check_results) in enumerate(organized_results.items(), start=1):
             nwbfile_name_string = f"NWBFile: {nwbfile_name}"
             file.write(nwbfile_name_string + "\n")
             file.write("=" * len(nwbfile_name_string) + "\n")
 
             for importance_index, (importance_level, check_results) in enumerate(
-                organized_results_per_nwbfile.items(), start=1
+                organized_check_results.items(), start=1
             ):
                 importance_string = importance_level.replace("_", " ")
                 file.write(f"\n{importance_string}\n")
@@ -55,9 +52,9 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
 
                 for check_index, check_result in enumerate(check_results, start=1):
                     file.write(
-                        f"{nwbfile_index}.{importance_index}.{check_index}   {check_result['object_type']} "
-                        f"'{check_result['object_name']}' located in '{check_result['location']}'\n"
-                        f"        {check_result['check_function_name']}: {check_result['message']}\n"
+                        f"{nwbfile_index}.{importance_index}.{check_index}   {check_result.object_type} "
+                        f"'{check_result.object_name}' located in '{check_result.location}'\n"
+                        f"        {check_result.check_function_name}: {check_result.message}\n"
                     )
             if nwbfile_index != num_nwbfiles:
                 file.write("\n\n\n")

@@ -10,7 +10,7 @@ import pynwb
 from natsort import natsorted
 
 from . import available_checks, Importance
-from .inspector_tools import organize_inspect_results, write_results, print_to_console
+from .inspector_tools import organize_check_results, write_results, print_to_console
 
 
 def main():
@@ -87,7 +87,7 @@ def main():
                     nwbfile=nwbfile, skip=args.skip, importance_threshold=Importance[args.importance_threshold]
                 )
                 if any(check_results):
-                    organized_results.update({str(nwbfile_path): organize_inspect_results(check_results=check_results)})
+                    organized_results.update({str(nwbfile_path): organize_check_results(check_results=check_results)})
         except Exception as ex:
             num_exceptions += 1
             print("ERROR: ", ex)

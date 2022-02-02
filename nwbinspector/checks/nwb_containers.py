@@ -2,7 +2,7 @@
 import h5py
 from pynwb import NWBContainer
 
-from ..register_checks import register_check, Importance, Severity
+from ..register_checks import register_check, Importance, Severity, InspectorMessage
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
@@ -18,7 +18,9 @@ def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold
                 severity = Severity.HIGH
             else:
                 severity = Severity.LOW
-            return dict(severity=severity, message="Consider enabling compression when writing a large dataset.")
+            return InspectorMessage(
+                severity=severity, message="Consider enabling compression when writing a large dataset."
+            )
 
 
 # TODO: break up extra logic
