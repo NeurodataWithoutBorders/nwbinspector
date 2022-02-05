@@ -1,26 +1,20 @@
 from setuptools import setup, find_packages
 
 # Get the long description from the README file
-with open('README.md', 'r') as f:
+with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name='nwbinspector',
-    version='0.2.2',
-    description='tool to inspect NWB files for best practices compliance',
+    name="nwbinspector",
+    version="0.2.2",
+    description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='Ryan Ly, Ben Dichter',
-    author_email='rly@lbl.gov, ben.dichter@gmail.com',
+    long_description_content_type="text/markdown",
+    author="Ryan Ly, Ben Dichter, and Cody Baker.",
+    author_email="rly@lbl.gov, ben.dichter@gmail.com, cody.baker@catalystneuro.com",
     packages=find_packages(),
     include_package_data=True,
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
-    install_requires=[
-        'pynwb'
-    ],
-    entry_points={
-        'console_scripts': [
-            'nwbinspector=nwbinspector.nwbinspector:main'
-        ]
-    }
+    install_requires=["pynwb", "natsort"],
+    entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:main"]},
 )
