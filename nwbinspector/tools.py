@@ -1,4 +1,4 @@
-"""Authors: Cody Baker and Ben Dichter."""
+"""Helper functions for internal use that rely on external dependencies (i.e., pynwb)."""
 from pynwb import NWBFile
 
 

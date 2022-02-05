@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 import pytest
 
 

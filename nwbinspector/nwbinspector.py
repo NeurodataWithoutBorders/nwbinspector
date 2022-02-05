@@ -1,4 +1,4 @@
-"""Cody Baker, Ben Dichter, and Ryan Ly."""
+"""Primary functions for inspecting NWBFiles."""
 import os
 import argparse
 import importlib

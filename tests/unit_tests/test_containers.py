@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 import numpy as np
 from pathlib import Path
 from tempfile import mkdtemp

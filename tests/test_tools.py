@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 import numpy as np
 from uuid import uuid4
 from datetime import datetime

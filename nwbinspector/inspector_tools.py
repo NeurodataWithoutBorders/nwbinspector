@@ -1,4 +1,4 @@
-"""Cody Baker, Ben Dichter."""
+"""Internally used tools specifically for rendering more human-readable output from collected check results."""
 import sys
 import os
 import numpy as np

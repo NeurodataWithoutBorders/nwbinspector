@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 from nwbinspector.utils import check_regular_series
 
 

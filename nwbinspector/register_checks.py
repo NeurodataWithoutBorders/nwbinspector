@@ -1,4 +1,4 @@
-"""Authors: Cody Baker and Ben Dichter."""
+"""Primary decorator used on a check function to add it to the registry and automatically parse its output."""
 from collections import defaultdict, OrderedDict
 from functools import wraps
 from enum import Enum
@@ -48,6 +48,20 @@ class InspectorMessage:
 
         The user will never directly see this severity, but it will prioritize the order in which check results are
         presented by the NWBInspector.
+
+
+    Returns
+    -------
+    importance : Importance
+        The Importance level specified by the decorator of the check function.
+    check_function_name : str
+        The name of the check function the decorator was applied to.
+    object_type : str
+        The specific class of the instantiated object being inspected.
+    object_name : str
+        The name of the instantiated object being inspected.
+    location : str
+        The location relative to the root of the NWBFile where the inspected object may be found.
     """
 
     message: str
@@ -59,10 +73,12 @@ class InspectorMessage:
     location: str = ""
 
 
-def register_check(importance, neurodata_type):
+# TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
+# objects. We can wait and see how well that holds up before adding it in officially.
+def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
-    def register_check_and_auto_parse(check_function):
+    def register_check_and_auto_parse(check_function) -> InspectorMessage:
         if importance not in Importance:
             raise ValueError(
                 f"Indicated importance ({importance}) of custom check ({check_function.__name__}) is not a valid "
@@ -73,7 +89,7 @@ def register_check(importance, neurodata_type):
         check_function.neurodata_type = neurodata_type
 
         @wraps(check_function)
-        def auto_parse_some_output(*args, **kwargs):
+        def auto_parse_some_output(*args, **kwargs) -> InspectorMessage:
             if args:
                 obj = args[0]
             else:
@@ -94,7 +110,7 @@ def register_check(importance, neurodata_type):
                 auto_parsed_result.check_function_name = check_function.__name__
                 auto_parsed_result.object_type = type(obj).__name__
                 auto_parsed_result.object_name = obj.name
-                auto_parsed_result.location = parse_location(nwbfile_object=obj)
+                auto_parsed_result.location = parse_location(neurodata_object=obj)
             return auto_parsed_result
 
         available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)
@@ -104,22 +120,22 @@ def register_check(importance, neurodata_type):
     return register_check_and_auto_parse
 
 
-def parse_location(nwbfile_object):
+def parse_location(neurodata_object) -> str:
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
-    if nwbfile_object.parent is None:
+    if neurodata_object.parent is None:
         return "/"
 
     # Best solution: object is or has a HDF5 Dataset
-    if isinstance(nwbfile_object, h5py.Dataset):
-        return "/".join(nwbfile_object.parent.name.split("/")[:-1]) + "/"
+    if isinstance(neurodata_object, h5py.Dataset):
+        return "/".join(neurodata_object.parent.name.split("/")[:-1]) + "/"
     else:
-        for field in nwbfile_object.fields.values():
+        for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
                 return "/".join(field.parent.name.split("/")[:-1]) + "/"
 
     try:
         # General case for nested modules not containing Datasets
-        level = nwbfile_object
+        level = neurodata_object
         level_names = []
         while level.parent.name != "root":
             level_names.append(level.parent.name)

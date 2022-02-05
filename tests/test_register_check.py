@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 from platform import python_version
 from packaging import version
 from enum import Enum

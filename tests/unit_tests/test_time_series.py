@@ -1,4 +1,3 @@
-"""Authors: Cody Baker and Ben Dichter."""
 import numpy as np
 
 import pynwb
