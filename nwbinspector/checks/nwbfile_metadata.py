@@ -1,4 +1,4 @@
-"""Check functions that examines general NWBFile metadata."""
+"""Check functions that examine general NWBFile metadata."""
 from pynwb import NWBFile
 
 from ..register_checks import register_check, InspectorMessage, Importance
