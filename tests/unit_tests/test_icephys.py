@@ -1,6 +1,6 @@
 import pytest
 
 
-@pytest.mark.skip(msg="TODO")
+@pytest.skip
 def test_check_icephys():
     pass
