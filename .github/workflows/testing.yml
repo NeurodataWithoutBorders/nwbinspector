@@ -25,10 +25,9 @@ jobs:
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./nwbinspector/nwbinspector/coverage.xml
           flags: unittests
-          name: codecov-umbrella 
-          yml: ./nwbinspector/nwbinspector/coverage.yml
+          name: codecov-umbrella
