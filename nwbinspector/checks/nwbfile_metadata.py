@@ -8,7 +8,7 @@ from ..register_checks import register_check, InspectorMessage, Importance
 def check_experimenter(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
-        return InspectorMessage(message="Experimenter metadata is missing!")
+        return InspectorMessage(message="Experimenter is missing.")
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
