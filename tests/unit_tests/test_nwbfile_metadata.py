@@ -13,7 +13,7 @@ def test_check_experimenter():
         nwbfile=NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
     ) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
-        message="Experimenter metadata is missing!",
+        message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_experimenter",
         object_type="NWBFile",
