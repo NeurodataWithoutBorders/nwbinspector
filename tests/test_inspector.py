@@ -7,11 +7,19 @@ from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 from typing import List
+from collections import OrderedDict, defaultdict
 
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.behavior import SpatialSeries, Position
 
-from nwbinspector.nwbinspector import inspect_nwb, Importance
+from nwbinspector import (
+    Importance,
+    check_dataset_compression,
+    check_regular_timestamps,
+    check_data_orientation,
+    check_timestamps_match_first_dimension,
+)
+from nwbinspector.nwbinspector import inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage
 from nwbinspector.utils import FilePathType
 
@@ -59,6 +67,15 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
+        check_list = [
+            check_dataset_compression,
+            check_regular_timestamps,
+            check_data_orientation,
+            check_timestamps_match_first_dimension,
+        ]
+        cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
+        for check in check_list:
+            cls.checks[check.importance][check.neurodata_type].append(check)
 
         num_nwbfiles = 4
         nwbfiles = list()
@@ -113,7 +130,7 @@ class TestInspector(TestCase):
     def test_inspect_nwb(self):
         with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
-            test_results = inspect_nwb(nwbfile=written_nwbfile)
+            test_results = inspect_nwb(nwbfile=written_nwbfile, checks=self.checks)
         true_results = [
             InspectorMessage(
                 severity=Severity.LOW,
@@ -190,7 +207,9 @@ class TestInspector(TestCase):
     def test_inspect_nwb_importance_threshold(self):
         with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
-            test_results = inspect_nwb(nwbfile=written_nwbfile, importance_threshold=Importance.CRITICAL)
+            test_results = inspect_nwb(
+                nwbfile=written_nwbfile, checks=self.checks, importance_threshold=Importance.CRITICAL
+            )
         true_results = [
             InspectorMessage(
                 severity=Severity.NO_SEVERITY,
@@ -220,7 +239,9 @@ class TestInspector(TestCase):
         with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
             written_nwbfile = io.read()
             test_results = inspect_nwb(
-                nwbfile=written_nwbfile, skip=["check_data_orientation", "check_dataset_compression"]
+                nwbfile=written_nwbfile,
+                checks=self.checks,
+                skip=["check_data_orientation", "check_dataset_compression"],
             )
         true_results = [
             InspectorMessage(
@@ -252,7 +273,7 @@ class TestInspector(TestCase):
         self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
-        os.system(f"nwbinspector {str(self.tempdir)}")
+        os.system(f"nwbinspector {str(self.tempdir)} -s [check_experimenter]")
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
