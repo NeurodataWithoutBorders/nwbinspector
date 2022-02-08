@@ -1,21 +1,14 @@
-# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-# import pynwb
-# import hdmf
+"""Check functions that can apply to any descendant of DynamicTable."""
+from hdmf.common import DynamicTable
 
-# from ..tools import all_of_type
-# from ..utils import register_check
+from ..register_checks import register_check, InspectorMessage, Importance
 
 
-# @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
-# def check_empty_tables(nwbfile):
-#     """Check if DynamicTable is empty."""
-#     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
-#         if len(tab.id) == 0:
-#             print("NOTE: '%s' %s has no rows" % (tab.name, type(tab).__name__))
-#             continue
-#         if len(tab.id) == 1:
-#             print("NOTE: '%s' %s has one row" % (tab.name, type(tab).__name__))
-#             continue
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def check_empty_table(table: DynamicTable):
+    """Check if a DynamicTable is empty."""
+    if len(table.id) == 0:
+        return InspectorMessage(message="This table has no data added to it.")
 
 
 # @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
