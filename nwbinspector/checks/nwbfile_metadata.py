@@ -1,14 +1,14 @@
-# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-# from pynwb import NWBFile
+"""Check functions that examine general NWBFile metadata."""
+from pynwb import NWBFile
 
-# from ..utils import nwbinspector_check
+from ..register_checks import register_check, InspectorMessage, Importance
 
 
-# @nwbinspector_check(severity=2, neurodata_type=NWBFile)
-# def check_experimenter(nwbfile: NWBFile):
-#     """Check if an experimenter has been added for the session."""
-#     if not nwbfile.experimenter:
-#         return "Metadata /general/experimenter is missing!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter(nwbfile: NWBFile):
+    """Check if an experimenter has been added for the session."""
+    if not nwbfile.experimenter:
+        return InspectorMessage(message="Experimenter is missing.")
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
