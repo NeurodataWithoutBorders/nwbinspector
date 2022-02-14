@@ -1,21 +1,20 @@
 
-name: flake8
+name: black
 
 on: push
 
 jobs:
   flake8:
     runs-on: ubuntu-latest
-    name: flake8
+    name: black
     steps:
       - name: Check out source
         uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
-      - name: flake8
-        uses: py-actions/flake8@v2
+          python-version: 3.9
+      - name: black
+        uses: psf/black@stable
         with:
-          max-line-length: 120
-          exclude: "nwbinspector/__init__.py"
+          args: ". --check"
