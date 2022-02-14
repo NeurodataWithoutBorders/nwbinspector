@@ -1,0 +1,21 @@
+name: flake8
+
+on: [push, pull_request]
+  paths:
+    - '*.py'
+
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+    name: flake8
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: flake8
+        uses: py-actions/flake8@v2
+        with:
+          max-line-length: 120
