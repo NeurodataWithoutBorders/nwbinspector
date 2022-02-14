@@ -18,3 +18,4 @@ jobs:
         uses: py-actions/flake8@v2
         with:
           max-line-length: 120
+          exclude: "nwbinspector/__init__.py"

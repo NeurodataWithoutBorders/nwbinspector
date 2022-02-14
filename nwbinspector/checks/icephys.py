@@ -17,7 +17,8 @@
 #         if not elec.filtering:
 #             error_code = "A101"
 #             print(
-#                 "- %s: '%s' %s is missing text for attribute 'filtering'" % (error_code, elec.name, type(elec).__name__)
+#                 "- %s: '%s' %s is missing text for attribute 'filtering'"
+# % (error_code, elec.name, type(elec).__name__)
 #             )
 #         if not elec.location:
 #             error_code = "A101"
