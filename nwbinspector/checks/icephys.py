@@ -23,5 +23,6 @@
 #         if not elec.location:
 #             error_code = "A101"
 #             print(
-#                 "- %s: '%s' %s is missing text for attribute 'location'" % (error_code, elec.name, type(elec).__name__)
+#                 "- %s: '%s' %s is missing text for attribute 'location'"
+# % (error_code, elec.name, type(elec).__name__)
 #             )
