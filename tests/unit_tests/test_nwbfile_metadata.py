@@ -4,14 +4,18 @@ from datetime import datetime
 from pynwb import NWBFile
 import pytest
 
-from nwbinspector import check_experimenter, check_experiment_description, InspectorMessage, Importance
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks.nwbfile_metadata import check_experimenter, check_experiment_description, check_institution
 from nwbinspector.register_checks import Severity
 
 
+minimal_nwbfile = NWBFile(
+    session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+)
+
+
 def test_check_experimenter():
-    assert check_experimenter(
-        nwbfile=NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-    ) == InspectorMessage(
+    assert check_experimenter(minimal_nwbfile) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -23,9 +27,7 @@ def test_check_experimenter():
 
 
 def test_check_experiment_description():
-    assert check_experiment_description(
-        nwbfile=NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-    ) == InspectorMessage(
+    assert check_experiment_description(minimal_nwbfile) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Experiment description is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -36,9 +38,16 @@ def test_check_experiment_description():
     )
 
 
-@pytest.mark.skip(reason="TODO")
 def test_check_institution():
-    pass
+    assert check_institution(minimal_nwbfile) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Metadata /general/institution is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_institution",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
 @pytest.mark.skip(reason="TODO")
