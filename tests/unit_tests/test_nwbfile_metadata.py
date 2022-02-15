@@ -22,7 +22,6 @@ def test_check_experimenter():
     )
 
 
-@pytest.mark.skip(reason="TODO")
 def test_check_experiment_description():
     assert check_experiment_description(
         nwbfile=NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
