@@ -18,3 +18,8 @@ extend-exclude = '''
   | dist
 )/
 '''
+force-exclude = '''
+/(
+   ignored                     # files in this dir are ignored
+)\
+'''
