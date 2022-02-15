@@ -39,7 +39,7 @@ def check_data_orientation(time_series: TimeSeries):
             message=(
                 "Data may be in the wrong orientation. "
                 "Time should be in the first dimension, and is usually the longest dimension. "
-                "Here, another dimension is longer. "
+                "Here, another dimension is longer."
             ),
         )
 
