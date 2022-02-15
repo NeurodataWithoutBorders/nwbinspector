@@ -98,9 +98,9 @@ class TestInspector(TestCase):
             with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
                 io.write(nwbfile)
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     rmtree(cls.tempdir)
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -131,7 +131,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
-                    "the longest dimension. Here, another dimension is longer. "
+                    "the longest dimension. Here, another dimension is longer."
                 ),
                 severity=Severity.NO_SEVERITY,
                 importance=Importance.CRITICAL,
