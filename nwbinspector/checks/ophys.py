@@ -13,11 +13,13 @@
 #         if not site.description:
 #             error_code = "A101"
 #             print(
-#                 "%s: '%s' %s is missing text for attribute 'description'" % (error_code, site.name, type(site).__name__)
+#                 "%s: '%s' %s is missing text for attribute 'description'"
+# % (error_code, site.name, type(site).__name__)
 #             )
 #         if not site.location:
 #             error_code = "A101"
-#             print("%s: '%s' %s is missing text for attribute 'location'" % (error_code, site.name, type(site).__name__))
+#             print("%s: '%s' %s is missing text for attribute 'location'"
+# % (error_code, site.name, type(site).__name__))
 #     if opto_sites and not opto_series:
 #         error_code = "A101"
 #         print("%s: OptogeneticStimulusSite object(s) exists without an OptogeneticSeries" % error_code)
