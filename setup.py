@@ -16,5 +16,5 @@ setup(
     include_package_data=True,
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
     install_requires=["pynwb", "natsort"],
-    entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:main"]},
+    entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
 )

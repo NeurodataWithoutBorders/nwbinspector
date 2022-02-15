@@ -6,6 +6,8 @@ import traceback
 from typing import Optional
 from pathlib import Path
 
+import click
+
 import pynwb
 from natsort import natsorted
 
@@ -13,47 +15,47 @@ from . import available_checks, Importance
 from .inspector_tools import organize_check_results, write_results, print_to_console
 
 
-def main():
-    """
-    Primary command line function for checking an NWBFile for format improvements.
+@click.command()
+@click.argument("path")  # , help="Path to an NWB file or directory containing NWBFiles.")
+@click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
+@click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
+@click.option("-n", "--log-file-name", default="nwbinspector_log_file.txt", help="Name of the log file to be saved.")
+@click.option("-s", "--skip", help="Names of functions to skip.")
+@click.option(
+    "-t",
+    "--threshold",
+    default="BEST_PRACTICE_SUGGESTION",
+    help="Ignores tests with an assigned importance below this threshold. Importance has three levels: CRITICAL, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION.",
+)
+def inspect_all_cli(
+    path,
+    modules=None,
+    overwrite=False,
+    log_file_name="nwbinspector_log_file.txt",
+    skip=None,
+    threshold="BEST_PRACTICE_SUGGESTION",
+):
+    inspect_all(
+        path,
+        modules=modules,
+        log_file_name=log_file_name,
+        skip=skip if skip is None else skip.split(","),
+        importance_threshold=Importance[threshold],
+        overwrite=overwrite,
+    )
 
-    Usage: python nwbinspector.py nwbfile_name.nwb
-           python nwbinspector.py directory_path
-    """
-    parser = argparse.ArgumentParser("python test.py [options]")
-    parser.add_argument(
-        "-m",
-        "--modules",
-        nargs="*",
-        dest="modules",
-        help="Modules to import prior to reading the file(s).",
-    )
-    parser.add_argument("path", help="Path to an NWB file or directory containing NWBFiles.")
-    parser.add_argument(
-        "-w", "--overwrite", dest="overwrite", default=True, help="Overwrite an existing log file at the location."
-    )
-    parser.add_argument(
-        "-n",
-        "--logname",
-        dest="log_file_name",
-        default="nwbinspector_log_file",
-        help="Name of the log file to be saved.",
-    )
-    parser.add_argument("-s", "--skip", nargs="*", dest="skip", default=None, help="Names of functions to skip.")
-    parser.add_argument(
-        "-t",
-        "--threshold",
-        dest="importance_threshold",
-        default="BEST_PRACTICE_SUGGESTION",
-        help=(
-            " Ignores tests with an assigned importance below this threshold. Importance has three levels: "
-            "CRITICAL, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION."
-        ),
-    )
-    parser.set_defaults(modules=[])
-    args = parser.parse_args()
 
-    in_path = Path(args.path)
+def inspect_all(
+    path,
+    modules=None,
+    log_file_name="nwbinspector_log_file.txt",
+    skip=None,
+    importance_threshold=Importance.BEST_PRACTICE_SUGGESTION,
+    overwrite=False,
+):
+    modules = modules or []
+
+    in_path = Path(path)
     if in_path.is_dir():
         nwbfiles = list(in_path.glob("*.nwb"))
     elif in_path.is_file():
@@ -63,14 +65,14 @@ def main():
     nwbfiles = natsorted(nwbfiles)
     num_nwbfiles = len(nwbfiles)
 
-    for module in args.modules:
+    for module in modules:
         importlib.import_module(module)
 
     num_invalid_files = 0
     num_exceptions = 0
     organized_results = dict()
     # TODO: perhaps with click, if log file exists, ask user for confirmation to flip overwrite flag
-    log_file_path = nwbfiles[0].parent / (args.log_file_name + ".txt")
+    log_file_path = log_file_name
     for file_index, nwbfile_path in enumerate(nwbfiles):
         print(f"{file_index}/{num_nwbfiles}: {nwbfile_path}")
 
@@ -83,9 +85,7 @@ def main():
                     num_invalid_files += 1
 
                 nwbfile = io.read()
-                check_results = inspect_nwb(
-                    nwbfile=nwbfile, skip=args.skip, importance_threshold=Importance[args.importance_threshold]
-                )
+                check_results = inspect_nwb(nwbfile=nwbfile, skip=skip, importance_threshold=importance_threshold)
                 if any(check_results):
                     organized_results.update({str(nwbfile_path): organize_check_results(check_results=check_results)})
         except Exception as ex:
@@ -94,7 +94,7 @@ def main():
             traceback.print_exc()
 
     if len(organized_results):
-        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=args.overwrite)
+        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
         print_to_console(log_file_path=log_file_path)
         print(f"{os.linesep*2}Log file saved at {str(log_file_path)}!")
     if num_invalid_files:
@@ -158,4 +158,4 @@ def inspect_nwb(
 
 
 if __name__ == "__main__":
-    main()
+    inspect_all_cli()
