@@ -94,7 +94,6 @@ def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
                 obj = args[0]
             else:
                 obj = kwargs[list(kwargs)[0]]
-
             auto_parsed_result = check_function(*args, **kwargs)
             if auto_parsed_result is not None:
                 if auto_parsed_result.severity is None:  # For perfect consistency with not specifying
@@ -105,7 +104,6 @@ def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
                         f"({check_function.__name__}) is not a valid severity level! Please choose one of "
                         "Severity.HIGH, Severity.LOW, or do not specify any severity."
                     )
-
                 auto_parsed_result.importance = check_function.importance
                 auto_parsed_result.check_function_name = check_function.__name__
                 auto_parsed_result.object_type = type(obj).__name__
@@ -124,7 +122,6 @@ def parse_location(neurodata_object) -> str:
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
-
     # Best solution: object is or has a HDF5 Dataset
     if isinstance(neurodata_object, h5py.Dataset):
         return "/".join(neurodata_object.parent.name.split("/")[:-1]) + "/"
@@ -132,7 +129,6 @@ def parse_location(neurodata_object) -> str:
         for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
                 return "/".join(field.parent.name.split("/")[:-1]) + "/"
-
     try:
         # General case for nested modules not containing Datasets
         level = neurodata_object
@@ -140,7 +136,6 @@ def parse_location(neurodata_object) -> str:
         while level.parent.name != "root":
             level_names.append(level.parent.name)
             level = level.parent
-
         # Determine which field of the NWBFile contains the previous recent level
         invalid_field_names = ["timestamps_reference_time", "session_start_time"]
         possible_fields = level.parent.fields
