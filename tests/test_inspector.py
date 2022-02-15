@@ -67,6 +67,7 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
+        # cls.tempdir = Path("E:/test_inspector/test")
         check_list = [
             check_dataset_compression,
             check_regular_timestamps,
@@ -76,7 +77,6 @@ class TestInspector(TestCase):
         cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
         for check in check_list:
             cls.checks[check.importance][check.neurodata_type].append(check)
-
         num_nwbfiles = 4
         nwbfiles = list()
         for j in range(num_nwbfiles):
@@ -98,9 +98,9 @@ class TestInspector(TestCase):
             with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
                 io.write(nwbfile)
 
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
+    # @classmethod
+    # def tearDownClass(cls):
+    #     rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -129,59 +129,11 @@ class TestInspector(TestCase):
             test_results = inspect_nwb(nwbfile=written_nwbfile, checks=self.checks)
         true_results = [
             InspectorMessage(
-                severity=Severity.LOW,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
-                severity=Severity.LOW,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="SpatialSeries",
-                object_name="my_spatial_series",
-                location="/processing/behavior/Position/",
-            ),
-            InspectorMessage(
-                severity=Severity.LOW,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_2",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
-                severity=Severity.HIGH,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_1",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
-                severity=Severity.LOW,
                 message=(
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying "
-                    "starting_time=1.2 and rate=2.0 instead of timestamps."
+                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
+                    "the longest dimension. Here, another dimension is longer. "
                 ),
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_regular_timestamps",
-                object_type="TimeSeries",
-                object_name="test_time_series_2",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
                 severity=Severity.NO_SEVERITY,
-                message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer. "
-                ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
@@ -189,12 +141,51 @@ class TestInspector(TestCase):
                 location="/processing/behavior/Position/",
             ),
             InspectorMessage(
-                severity=Severity.NO_SEVERITY,
                 message="The length of the first dimension of data does not match the length of timestamps.",
+                severity=Severity.NO_SEVERITY,
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
+                location="/acquisition/",
+            ),
+            InspectorMessage(
+                message="Consider enabling compression when writing a large dataset.",
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_dataset_compression",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/",
+            ),
+            InspectorMessage(
+                message="Consider enabling compression when writing a large dataset.",
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/",
+            ),
+            InspectorMessage(
+                message="Consider enabling compression when writing a large dataset.",
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+                location="/acquisition/",
+            ),
+            InspectorMessage(
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
+                    "and rate=2.0 instead of timestamps."
+                ),
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
                 location="/acquisition/",
             ),
         ]
@@ -236,7 +227,10 @@ class TestInspector(TestCase):
         self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
-        os.system(f"nwbinspector {str(self.tempdir)} -s check_timestamps_match_first_dimension check_data_orientation check_regular_timestamps check_dataset_compression")
+        os.system(
+            f"nwbinspector {str(self.tempdir)} -s check_timestamps_match_first_dimension check_data_orientation "
+            "check_regular_timestamps check_dataset_compression"
+        )
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
