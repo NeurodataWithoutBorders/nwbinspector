@@ -6,7 +6,7 @@ CRITICAL
 1.1.1   TimeSeries 'test_time_series_3' located in '/acquisition/'
         check_timestamps_match_first_dimension: The length of the first dimension of data does not match the length of timestamps.
 1.1.2   SpatialSeries 'my_spatial_series' located in '/processing/behavior/Position/'
-        check_data_orientation: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer. 
+        check_data_orientation: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
 
 BEST PRACTICE VIOLATION
 -----------------------
@@ -45,7 +45,7 @@ CRITICAL
 3.1.1   TimeSeries 'test_time_series_3' located in '/acquisition/'
         check_timestamps_match_first_dimension: The length of the first dimension of data does not match the length of timestamps.
 3.1.2   SpatialSeries 'my_spatial_series' located in '/processing/behavior/Position/'
-        check_data_orientation: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer. 
+        check_data_orientation: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
 
 BEST PRACTICE VIOLATION
 -----------------------
