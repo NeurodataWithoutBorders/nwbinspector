@@ -20,6 +20,6 @@ extend-exclude = '''
 '''
 force-exclude = '''
 /(
-   ignored                     # files in this dir are ignored
+   /*.txt
 )\
 '''
