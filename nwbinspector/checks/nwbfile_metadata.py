@@ -11,11 +11,11 @@ def check_experimenter(nwbfile: NWBFile):
         return InspectorMessage(message="Experimenter is missing.")
 
 
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_experiment_description(nwbfile: NWBFile):
-#     """Check if a description has been added for the session."""
-#     if not nwbfile.experiment_description:
-#         return "Metadata /general/experiment_description is missing!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experiment_description(nwbfile: NWBFile):
+    """Check if a description has been added for the session."""
+    if not nwbfile.experiment_description:
+        return InspectorMessage(message="Experiment description is missing.")
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
