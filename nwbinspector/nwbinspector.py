@@ -39,7 +39,7 @@ def main():
         default="nwbinspector_log_file",
         help="Name of the log file to be saved.",
     )
-    parser.add_argument("-s", "--skip", dest="skip", default=None, help="Names of functions to skip.")
+    parser.add_argument("-s", "--skip", nargs="*", dest="skip", default=None, help="Names of functions to skip.")
     parser.add_argument(
         "-t",
         "--threshold",
