@@ -184,7 +184,7 @@ class TestInspector(TestCase):
                 severity=Severity.NO_SEVERITY,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer. "
+                    "usually the longest dimension. Here, another dimension is longer."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -215,7 +215,7 @@ class TestInspector(TestCase):
                 severity=Severity.NO_SEVERITY,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer. "
+                    "usually the longest dimension. Here, another dimension is longer."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",

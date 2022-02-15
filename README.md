@@ -11,7 +11,7 @@ pip install nwbinspector
 
 ```bash
 # supply a path to an NWB file
-nwbinspector path/to/my/data.nwb  
+nwbinspector path/to/my/data.nwb
 
 # supply a path to a directory containing NWB files
 nwbinspector path/to/my/data/dir/

@@ -39,7 +39,7 @@ def check_data_orientation(time_series: TimeSeries):
             message=(
                 "Data may be in the wrong orientation. "
                 "Time should be in the first dimension, and is usually the longest dimension. "
-                "Here, another dimension is longer. "
+                "Here, another dimension is longer."
             ),
         )
 
@@ -84,4 +84,5 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
 
 #         if not ts.unit:
 #             error_code = "A101"
-#             print("- %s: '%s' %s data is missing text for attribute 'unit'" % (error_code, ts.name, type(ts).__name__))
+#             print("- %s: '%s' %s data is missing text for attribute 'unit'"
+# % (error_code, ts.name, type(ts).__name__))
