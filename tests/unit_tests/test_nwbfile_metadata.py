@@ -5,11 +5,14 @@ from pynwb import NWBFile
 import pytest
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.nwbfile_metadata import check_experimenter, check_experiment_description,  check_institution
+from nwbinspector.checks.nwbfile_metadata import check_experimenter, check_experiment_description, check_institution
 from nwbinspector.register_checks import Severity
 
 
-minimal_nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+minimal_nwbfile = NWBFile(
+    session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+)
+
 
 def test_check_experimenter():
     assert check_experimenter(minimal_nwbfile) == InspectorMessage(
