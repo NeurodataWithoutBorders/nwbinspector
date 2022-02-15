@@ -39,7 +39,8 @@ def main():
         default="nwbinspector_log_file",
         help="Name of the log file to be saved.",
     )
-    parser.add_argument("-s", "--skip", dest="skip", default=None, help="Names of functions to skip.")
+    parser.add_argument("-i", "--ignore", dest="ignore", default=None, help="Names of functions to skip.")
+    parser.add_argument("-s", "--select", dest="select", default=None, help="Name of checks to run.")
     parser.add_argument(
         "-t",
         "--threshold",
@@ -84,7 +85,8 @@ def main():
 
                 nwbfile = io.read()
                 check_results = inspect_nwb(
-                    nwbfile=nwbfile, skip=args.skip, importance_threshold=Importance[args.importance_threshold]
+                    nwbfile=nwbfile, ignore=args.ignore, select=args.select, importance_threshold=Importance[
+                        args.importance_threshold]
                 )
                 if any(check_results):
                     organized_results.update({str(nwbfile_path): organize_check_results(check_results=check_results)})
@@ -105,9 +107,10 @@ def main():
 
 def inspect_nwb(
     nwbfile: pynwb.NWBFile,
-    checks: list = available_checks,
+    checks: dict = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    skip: Optional[list] = None,
+    ignore: Optional[list] = None,
+    select: Optional[list] = None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -132,9 +135,13 @@ def inspect_nwb(
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    skip: list, optional
+    ignore: list, optional
         Names of functions to skip.
+    select: list, optional
     """
+    if ignore is not None and select is not None:
+        raise ValueError("ignore and select cannot both be used.")
+
     if importance_threshold not in Importance:
         raise ValueError(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
@@ -148,7 +155,9 @@ def inspect_nwb(
                 for nwbfile_object in nwbfile.objects.values():
                     if issubclass(type(nwbfile_object), check_object_type):
                         for check_function in check_functions:
-                            if skip is not None and check_function.__name__ in skip:
+                            if ignore is not None and check_function.__name__ in ignore:
+                                continue
+                            if select is not None and check_function.__name__ not in select:
                                 continue
                             output = check_function(nwbfile_object)
                             if output is None:

@@ -87,14 +87,10 @@ class TestInspector(TestCase):
                     session_start_time=datetime.now().astimezone(),
                 )
             )
-        add_big_dataset_no_compression(nwbfiles[0])
         add_regular_timestamps(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
-        add_big_dataset_no_compression(nwbfiles[1])
         add_regular_timestamps(nwbfiles[1])
-        add_flipped_data_orientation_to_processing(nwbfiles[2])
-        add_non_matching_timestamps_dimension(nwbfiles[2])
         # Last file to be left without violations
 
         cls.nwbfile_paths = [cls.tempdir / f"testing{j}.nwb" for j in range(num_nwbfiles)]
@@ -235,45 +231,12 @@ class TestInspector(TestCase):
         ]
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
-    def test_inspect_nwb_skip(self):
-        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
-            written_nwbfile = io.read()
-            test_results = inspect_nwb(
-                nwbfile=written_nwbfile,
-                checks=self.checks,
-                skip=["check_data_orientation", "check_dataset_compression"],
-            )
-        true_results = [
-            InspectorMessage(
-                severity=Severity.LOW,
-                message=(
-                    "TimeSeries appears to have a constant sampling rate. Consider specifying "
-                    "starting_time=1.2 and rate=2.0 instead of timestamps."
-                ),
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_regular_timestamps",
-                object_type="TimeSeries",
-                object_name="test_time_series_2",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
-                severity=Severity.NO_SEVERITY,
-                message="The length of the first dimension of data does not match the length of timestamps.",
-                importance=Importance.CRITICAL,
-                check_function_name="check_timestamps_match_first_dimension",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/acquisition/",
-            ),
-        ]
-        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
-
     def test_command_line_runs(self):
         os.system(f"nwbinspector {str(self.nwbfile_paths[0])}")
         self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
-        os.system(f"nwbinspector {str(self.tempdir)} -s [check_experimenter]")
+        os.system(f"nwbinspector {str(self.tempdir)} -i [check_experimenter]")
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
