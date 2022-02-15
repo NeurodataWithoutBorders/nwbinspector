@@ -273,7 +273,7 @@ class TestInspector(TestCase):
         self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
-        os.system(f"nwbinspector {str(self.tempdir)} -s check_experimenter check_experiment_description")
+        os.system(f"nwbinspector {str(self.tempdir)} -s check_experimenter check_experiment_description check_institution")
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
