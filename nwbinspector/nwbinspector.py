@@ -19,7 +19,13 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
-@click.option("-n", "--log-file-name", default="nwbinspector_log_file.txt", help="Name of the log file to be saved.")
+@click.option(
+    "-n",
+    "--log-file-name",
+    default="nwbinspector_log_file.txt",
+    help="Name of the log file to be saved.",
+    type=click.Path(writable=True),
+)
 @click.option("-i", "--ignore", help="Names of checks to skip.")
 @click.option("-s", "--select", help="Names of checks to run")
 @click.option(
