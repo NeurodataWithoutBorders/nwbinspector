@@ -42,7 +42,8 @@ def test_check_negative_spike_times_some_negative():
 
 
 class TestCheckElectricalSeries(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
 
         nwbfile = NWBFile(
             session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
