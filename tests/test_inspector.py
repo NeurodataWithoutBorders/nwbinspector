@@ -24,7 +24,7 @@ from nwbinspector import (
 from nwbinspector.nwbinspector import inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
-from .utils import make_minimal_nwbfile
+from nwbinspector.tools import make_minimal_nwbfile
 
 
 def add_big_dataset_no_compression(nwbfile):
@@ -272,5 +272,4 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
         ]
-
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)

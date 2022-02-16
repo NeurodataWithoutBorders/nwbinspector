@@ -95,12 +95,14 @@ def register_check(importance: Importance, neurodata_type):
                 obj = args[0]
             else:
                 obj = kwargs[list(kwargs)[0]]
-            results = check_function(*args, **kwargs)
-            if isinstance(results, Iterable):
-                for result in results:
-                    yield auto_parse(check_function=check_function, obj=obj, result=result)
+            output = check_function(*args, **kwargs)
+            if isinstance(output, Iterable):
+                auto_parsed_result = list()
+                for result in output:
+                    auto_parsed_result.append(auto_parse(check_function=check_function, obj=obj, result=result))
             else:
-                return auto_parse(check_function=check_function, obj=obj, result=results)
+                auto_parsed_result = auto_parse(check_function=check_function, obj=obj, result=output)
+            return auto_parsed_result
 
         available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)
 

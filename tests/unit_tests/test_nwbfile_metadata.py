@@ -13,8 +13,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_sex,
 )
 from nwbinspector.register_checks import Severity
-
-from ..utils import make_minimal_nwbfile
+from nwbinspector.tools import make_minimal_nwbfile
 
 
 minimal_nwbfile = make_minimal_nwbfile()
