@@ -1,9 +1,10 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
 import numpy as np
-from typing import Union
+from typing import TypeVar
 from pathlib import Path
 
-FilePathType = Union[Path, str]
+PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
+FilePathType = TypeVar("FilePathType", str, Path)
 
 
 def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
