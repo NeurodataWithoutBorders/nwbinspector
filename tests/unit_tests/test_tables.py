@@ -26,44 +26,38 @@ def test_check_empty_table_without_data():
 
 
 def test_check_time_interval_time_columns():
-    time_intervals = TimeIntervals(
-        name="test_table", description="desc"
-    )
-    time_intervals.add_row(start_time=2., stop_time=3.)
-    time_intervals.add_row(start_time=1., stop_time=2.)
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=2.0, stop_time=3.0)
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
 
     assert check_time_interval_time_columns(time_intervals) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
-            message="['start_time', 'stop_time'] are time columns but the values are not in ascending order."
-                    ". All times should be in seconds with respect to the session start time.",
-            importance=Importance.BEST_PRACTICE_VIOLATION,
-            check_function_name="check_time_interval_time_columns",
-            object_type="TimeIntervals",
-            object_name="test_table",
-            location="/",
-        )
+        severity=Severity.NO_SEVERITY,
+        message="['start_time', 'stop_time'] are time columns but the values are not in ascending order."
+        ". All times should be in seconds with respect to the session start time.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_time_interval_time_columns",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
 
 
 def test_pass_check_time_interval_time_columns():
-    time_intervals = TimeIntervals(
-        name="test_table", description="desc"
-    )
-    time_intervals.add_row(start_time=1., stop_time=2.)
-    time_intervals.add_row(start_time=2., stop_time=3.)
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
+    time_intervals.add_row(start_time=2.0, stop_time=3.0)
 
     assert check_time_interval_time_columns(time_intervals) is None
 
 
 def test_check_time_intervals_stop_after_start():
-    time_intervals = TimeIntervals(
-        name="test_table", description="desc"
-    )
-    time_intervals.add_row(start_time=2., stop_time=1.5)
-    time_intervals.add_row(start_time=3., stop_time=1.5)
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=2.0, stop_time=1.5)
+    time_intervals.add_row(start_time=3.0, stop_time=1.5)
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="stop_times should be greater than start_times. Make sure the stop times are with respect to the "
-                "session start time.",
+        "session start time.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_intervals_stop_after_start",
         object_type="TimeIntervals",
@@ -74,8 +68,8 @@ def test_check_time_intervals_stop_after_start():
 
 def test_pass_check_time_intervals_stop_after_start():
     time_intervals = TimeIntervals(name="test_table", description="desc")
-    time_intervals.add_row(start_time=2., stop_time=2.5)
-    time_intervals.add_row(start_time=3., stop_time=3.5)
+    time_intervals.add_row(start_time=2.0, stop_time=2.5)
+    time_intervals.add_row(start_time=3.0, stop_time=3.5)
     assert check_time_intervals_stop_after_start(time_intervals) is None
 
 
