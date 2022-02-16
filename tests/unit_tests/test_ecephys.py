@@ -42,8 +42,8 @@ def test_check_negative_spike_times_some_negative():
 
 
 class TestCheckElectricalSeries(TestCase):
-    @classmethod
-    def setUpClass(cls):
+
+    def setUp(self):
 
         nwbfile = NWBFile(
             session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
@@ -65,7 +65,7 @@ class TestCheckElectricalSeries(TestCase):
                 group=group,
             )
 
-        cls.nwbfile = nwbfile
+        self.nwbfile = nwbfile
 
     def test_check_electrical_series_wrong_dims(self):
 
@@ -114,3 +114,19 @@ class TestCheckElectricalSeries(TestCase):
             object_name="elec_series",
             location="/acquisition/",
         )
+
+    def test_pass(self):
+
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 5)),
+            electrodes=electrodes,
+            rate=30.0,
+        )
+
+        self.nwbfile.add_acquisition(electrical_series)
+
+        assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) is None
