@@ -55,7 +55,13 @@ class TestCheckElectricalSeries(TestCase):
 
         for _ in range(5):
             nwbfile.add_electrode(
-                x=3.0, y=3.0, z=3.0, imp=-1.0, location="unknown", filtering="unknown", group=group,
+                x=3.0,
+                y=3.0,
+                z=3.0,
+                imp=-1.0,
+                location="unknown",
+                filtering="unknown",
+                group=group,
             )
 
         self.nwbfile = nwbfile
@@ -65,7 +71,11 @@ class TestCheckElectricalSeries(TestCase):
         electrodes = self.nwbfile.create_electrode_table_region(region=[1, 2, 3], description="three elecs")
 
         electrical_series = ElectricalSeries(
-            name="elec_series", description="desc", data=np.zeros((100, 10)), electrodes=electrodes, rate=30.0,
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 10)),
+            electrodes=electrodes,
+            rate=30.0,
         )
 
         self.nwbfile.add_acquisition(electrical_series)
@@ -85,7 +95,11 @@ class TestCheckElectricalSeries(TestCase):
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
 
         electrical_series = ElectricalSeries(
-            name="elec_series", description="desc", data=np.zeros((5, 100)), electrodes=electrodes, rate=30.0,
+            name="elec_series",
+            description="desc",
+            data=np.zeros((5, 100)),
+            electrodes=electrodes,
+            rate=30.0,
         )
 
         self.nwbfile.add_acquisition(electrical_series)
