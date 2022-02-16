@@ -33,7 +33,7 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
     """Write the list of organized check results to a nicely formatted text file."""
     log_file_path = Path(log_file_path)
     if log_file_path.exists() and not overwrite:
-        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-o True' flag.")
+        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-o' flag.")
     num_nwbfiles = len(organized_results)
     with open(file=log_file_path, mode="w", newline="\n") as file:
         for nwbfile_index, (nwbfile_name, organized_check_results) in enumerate(organized_results.items(), start=1):
