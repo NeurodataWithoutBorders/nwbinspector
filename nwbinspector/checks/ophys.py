@@ -17,12 +17,12 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
         if data_shape[0] == len(rois.data):
             return InspectorMessage(
                 message="The second dimension of data does not match the length of rois, "
-                        "but instead the first does. Data is oriented incorrectly and should be transposed."
+                "but instead the first does. Data is oriented incorrectly and should be transposed."
             )
         return InspectorMessage(
-            message="The second dimension of data does not match the length of rois. Your "
-                    "data may be transposed."
+            message="The second dimension of data does not match the length of rois. Your " "data may be transposed."
         )
+
 
 # @nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
 # def check_ophys(nwbfile):

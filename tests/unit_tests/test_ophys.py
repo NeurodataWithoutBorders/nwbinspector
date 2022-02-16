@@ -18,28 +18,22 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         device = nwbfile.create_device(
-            name="Microscope",
-            description="My two-photon microscope",
-            manufacturer="The best microscope manufacturer"
+            name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
         )
-        optical_channel = OpticalChannel(
-            name="OpticalChannel",
-            description="an optical channel",
-            emission_lambda=500.
-        )
+        optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
         imaging_plane = nwbfile.create_imaging_plane(
             name="ImagingPlane",
             optical_channel=optical_channel,
-            imaging_rate=30.,
+            imaging_rate=30.0,
             description="a very interesting part of the brain",
             device=device,
-            excitation_lambda=600.,
+            excitation_lambda=600.0,
             indicator="GFP",
             location="V1",
-            grid_spacing=[.01, .01],
+            grid_spacing=[0.01, 0.01],
             grid_spacing_unit="meters",
-            origin_coords=[1., 2., 3.],
-            origin_coords_unit="meters"
+            origin_coords=[1.0, 2.0, 3.0],
+            origin_coords_unit="meters",
         )
 
         img_seg = ImageSegmentation()
@@ -71,11 +65,11 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         roi_resp_series = RoiResponseSeries(
-            name='RoiResponseSeries',
+            name="RoiResponseSeries",
             data=np.ones((5, 40)),  # 50 samples, 2 ROIs
             rois=rt_region,
             unit="n.a.",
-            rate=30.,
+            rate=30.0,
         )
 
         self.ophys_module.add(roi_resp_series)
@@ -83,7 +77,7 @@ class TestCheckRoiResponseSeries(TestCase):
         assert check_roi_response_series_dims(roi_resp_series) == InspectorMessage(
             severity=Severity.NO_SEVERITY,
             message="The second dimension of data does not match the length of rois, "
-                    "but instead the first does. Data is oriented incorrectly and should be transposed.",
+            "but instead the first does. Data is oriented incorrectly and should be transposed.",
             importance=Importance.CRITICAL,
             check_function_name="check_roi_response_series_dims",
             object_type="RoiResponseSeries",
@@ -99,19 +93,18 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         roi_resp_series = RoiResponseSeries(
-            name='RoiResponseSeries',
+            name="RoiResponseSeries",
             data=np.ones((10, 40)),  # 50 samples, 2 ROIs
             rois=rt_region,
             unit="n.a.",
-            rate=30.,
+            rate=30.0,
         )
 
         self.ophys_module.add(roi_resp_series)
 
         assert check_roi_response_series_dims(roi_resp_series) == InspectorMessage(
             severity=Severity.NO_SEVERITY,
-            message="The second dimension of data does not match the length of rois. Your "
-                    "data may be transposed.",
+            message="The second dimension of data does not match the length of rois. Your " "data may be transposed.",
             importance=Importance.CRITICAL,
             check_function_name="check_roi_response_series_dims",
             object_type="RoiResponseSeries",
@@ -126,11 +119,11 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         roi_resp_series = RoiResponseSeries(
-            name='RoiResponseSeries',
+            name="RoiResponseSeries",
             data=np.ones((40, 5)),  # 50 samples, 2 ROIs
             rois=rt_region,
             unit="n.a.",
-            rate=30.,
+            rate=30.0,
         )
 
         assert check_roi_response_series_dims(roi_resp_series) is None
