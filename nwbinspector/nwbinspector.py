@@ -2,7 +2,6 @@
 import os
 import importlib
 import traceback
-from typing import Optional, List
 from pathlib import Path
 from collections import OrderedDict
 
@@ -13,7 +12,7 @@ from natsort import natsorted
 
 from . import available_checks, Importance
 from .inspector_tools import organize_check_results, write_results, print_to_console
-from .utils import FilePathType, PathType
+from .utils import FilePathType, PathType, OptionalListOfStrings
 
 
 @click.command()
@@ -34,11 +33,11 @@ from .utils import FilePathType, PathType
 )
 def inspect_all_cli(
     path: PathType,
-    modules: List[str] = None,
+    modules: OptionalListOfStrings = None,
     log_file_name: FilePathType = "nwbinspector_log_file.txt",
     overwrite: bool = False,
-    ignore: List[str] = None,
-    select: List[str] = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
 ):
     """Primary CLI usage."""
@@ -55,11 +54,11 @@ def inspect_all_cli(
 
 def inspect_all(
     path: PathType,
-    modules: List[str] = None,
+    modules: OptionalListOfStrings = None,
     log_file_name: FilePathType = "nwbinspector_log_file.txt",
     overwrite=False,
-    ignore: List[str] = None,
-    select: List[str] = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
 ):
     """Inspect all NWBFiles at the specified path."""
@@ -117,8 +116,8 @@ def inspect_nwb(
     nwbfile: pynwb.NWBFile,
     checks: OrderedDict = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    ignore: Optional[list] = None,
-    select: Optional[list] = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
