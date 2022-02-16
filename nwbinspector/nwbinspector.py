@@ -168,15 +168,13 @@ def inspect_nwb(
                                 continue
                             if select is not None and check_function.__name__ not in select:
                                 continue
-                            if isinstance(check_function, Iterable):
-                                for output in check_function:
-                                    if output is None:
+                            output = check_function(nwbfile_object)
+                            if isinstance(output, Iterable):
+                                for result in output:
+                                    if result is None:
                                         continue
-                                    check_results.append(output)
+                                    check_results.append(result)
                             else:
-                                output = check_function(nwbfile_object)
-                                if output is None:
-                                    continue
                                 check_results.append(output)
     return check_results
 

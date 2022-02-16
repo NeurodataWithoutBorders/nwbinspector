@@ -10,6 +10,7 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
+from pynwb.file import TimeIntervals
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
 
@@ -23,6 +24,7 @@ from nwbinspector import (
 from nwbinspector.nwbinspector import inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
+from .utils import make_minimal_nwbfile
 
 
 def add_big_dataset_no_compression(nwbfile):
@@ -68,7 +70,6 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
-        # cls.tempdir = Path("E:/test_inspector/test")
         check_list = [
             check_dataset_compression,
             check_regular_timestamps,
@@ -239,13 +240,37 @@ class TestInspector(TestCase):
         )
 
     def test_iterable_check_function(self):
+        nwbfile = make_minimal_nwbfile()
+        time_intervals = TimeIntervals(name="test_table", description="desc")
+        time_intervals.add_row(start_time=2.0, stop_time=3.0)
+        time_intervals.add_row(start_time=1.0, stop_time=2.0)
+        nwbfile.add_acquisition(time_intervals)
+
         @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
         def iterable_check_function(table: DynamicTable):
-            for col in table:
-                yield InspectorMessage(message=f"Column: {col.__name__}")
+            for col in table.columns:
+                yield InspectorMessage(message=f"Column: {col.name}")
 
-        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
-            written_nwbfile = io.read()
-            test_results = inspect_nwb(nwbfile=written_nwbfile, select=["iterable_check_function"])
-        true_results = []  # ?
+        test_results = inspect_nwb(nwbfile=nwbfile, select=["iterable_check_function"])
+        true_results = [
+            InspectorMessage(
+                message="Column: start_time",
+                severity=Severity.NO_SEVERITY,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="iterable_check_function",
+                object_type="TimeIntervals",
+                object_name="test_table",
+                location="/acquisition/",
+            ),
+            InspectorMessage(
+                message="Column: stop_time",
+                severity=Severity.NO_SEVERITY,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="iterable_check_function",
+                object_type="TimeIntervals",
+                object_name="test_table",
+                location="/acquisition/",
+            ),
+        ]
+
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)

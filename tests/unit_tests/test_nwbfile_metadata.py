@@ -14,10 +14,10 @@ from nwbinspector.checks.nwbfile_metadata import (
 )
 from nwbinspector.register_checks import Severity
 
+from ..utils import make_minimal_nwbfile
 
-minimal_nwbfile = NWBFile(
-    session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
-)
+
+minimal_nwbfile = make_minimal_nwbfile()
 
 
 def test_check_experimenter():
