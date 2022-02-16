@@ -1,61 +1,74 @@
 """Primary functions for inspecting NWBFiles."""
 import os
-import argparse
 import importlib
 import traceback
-from typing import Optional
 from pathlib import Path
 from collections import OrderedDict
+
+import click
 
 import pynwb
 from natsort import natsorted
 
 from . import available_checks, Importance
 from .inspector_tools import organize_check_results, write_results, print_to_console
+from .utils import FilePathType, PathType, OptionalListOfStrings
 
 
-def main():
-    """
-    Primary command line function for checking an NWBFile for format improvements.
+@click.command()
+@click.argument("path")
+@click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
+@click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
+@click.option(
+    "-n",
+    "--log-file-name",
+    default="nwbinspector_log_file.txt",
+    help="Name of the log file to be saved.",
+    type=click.Path(writable=True),
+)
+@click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
+@click.option("-s", "--select", help="Comma-separated names of checks to run")
+@click.option(
+    "-t",
+    "--threshold",
+    default="BEST_PRACTICE_SUGGESTION",
+    type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
+    help="Ignores tests with an assigned importance below this threshold.",
+)
+def inspect_all_cli(
+    path: PathType,
+    modules: OptionalListOfStrings = None,
+    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    overwrite: bool = False,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
+    threshold: str = "BEST_PRACTICE_SUGGESTION",
+):
+    """Primary CLI usage."""
+    inspect_all(
+        path,
+        modules=modules,
+        log_file_name=log_file_name,
+        ignore=ignore if ignore is None else ignore.split(","),
+        select=select if select is None else select.split(","),
+        importance_threshold=Importance[threshold],
+        overwrite=overwrite,
+    )
 
-    Usage: python nwbinspector.py nwbfile_name.nwb
-           python nwbinspector.py directory_path
-    """
-    parser = argparse.ArgumentParser("python test.py [options]")
-    parser.add_argument(
-        "-m",
-        "--modules",
-        nargs="*",
-        dest="modules",
-        help="Modules to import prior to reading the file(s).",
-    )
-    parser.add_argument("path", help="Path to an NWB file or directory containing NWBFiles.")
-    parser.add_argument(
-        "-w", "--overwrite", dest="overwrite", default=True, help="Overwrite an existing log file at the location."
-    )
-    parser.add_argument(
-        "-n",
-        "--logname",
-        dest="log_file_name",
-        default="nwbinspector_log_file",
-        help="Name of the log file to be saved.",
-    )
-    parser.add_argument("-i", "--ignore", nargs="*", dest="ignore", default=None, help="Names of functions to skip.")
-    parser.add_argument("-s", "--select", nargs="*", dest="select", default=None, help="Name of checks to run.")
-    parser.add_argument(
-        "-t",
-        "--threshold",
-        dest="importance_threshold",
-        default="BEST_PRACTICE_SUGGESTION",
-        help=(
-            " Ignores tests with an assigned importance below this threshold. Importance has three levels: "
-            "CRITICAL, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION."
-        ),
-    )
-    parser.set_defaults(modules=[])
-    args = parser.parse_args()
 
-    in_path = Path(args.path)
+def inspect_all(
+    path: PathType,
+    modules: OptionalListOfStrings = None,
+    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    overwrite=False,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+):
+    """Inspect all NWBFiles at the specified path."""
+    modules = modules or []
+
+    in_path = Path(path)
     if in_path.is_dir():
         nwbfiles = list(in_path.glob("*.nwb"))
     elif in_path.is_file():
@@ -65,13 +78,11 @@ def main():
     nwbfiles = natsorted(nwbfiles)
     num_nwbfiles = len(nwbfiles)
 
-    for module in args.modules:
+    for module in modules:
         importlib.import_module(module)
     num_invalid_files = 0
     num_exceptions = 0
     organized_results = dict()
-    # TODO: perhaps with click, if log file exists, ask user for confirmation to flip overwrite flag
-    log_file_path = nwbfiles[0].parent / (args.log_file_name + ".txt")
     for file_index, nwbfile_path in enumerate(nwbfiles):
         print(f"{file_index}/{num_nwbfiles}: {nwbfile_path}")
 
@@ -85,9 +96,9 @@ def main():
                 nwbfile = io.read()
                 check_results = inspect_nwb(
                     nwbfile=nwbfile,
-                    ignore=args.ignore,
-                    select=args.select,
-                    importance_threshold=Importance[args.importance_threshold],
+                    ignore=ignore,
+                    select=select,
+                    importance_threshold=importance_threshold,
                 )
                 if any(check_results):
                     organized_results.update({str(nwbfile_path): organize_check_results(check_results=check_results)})
@@ -96,9 +107,9 @@ def main():
             print("ERROR: ", ex)
             traceback.print_exc()
     if len(organized_results):
-        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=args.overwrite)
-        print_to_console(log_file_path=log_file_path)
-        print(f"{os.linesep*2}Log file saved at {str(log_file_path)}!")
+        write_results(log_file_path=log_file_name, organized_results=organized_results, overwrite=overwrite)
+        print_to_console(log_file_path=log_file_name)
+        print(f"{os.linesep*2}Log file saved at {str(log_file_name)}!")
     if num_invalid_files:
         print(f"{num_exceptions}/{num_nwbfiles} files are invalid.")
     if num_exceptions:
@@ -109,8 +120,8 @@ def inspect_nwb(
     nwbfile: pynwb.NWBFile,
     checks: OrderedDict = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    ignore: Optional[list] = None,
-    select: Optional[list] = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -140,7 +151,7 @@ def inspect_nwb(
     select: list, optional
     """
     if ignore is not None and select is not None:
-        raise ValueError("ignore and select cannot both be used.")
+        raise ValueError("Options 'ignore' and 'select' cannot both be used.")
     if importance_threshold not in Importance:
         raise ValueError(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
@@ -165,4 +176,4 @@ def inspect_nwb(
 
 
 if __name__ == "__main__":
-    main()
+    inspect_all_cli()
