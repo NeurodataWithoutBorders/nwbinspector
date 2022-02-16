@@ -65,7 +65,7 @@ class TestCheckElectricalSeries(TestCase):
                 group=group,
             )
 
-        self.nwbfile = nwbfile
+        cls.nwbfile = nwbfile
 
     def test_check_electrical_series_wrong_dims(self):
 
