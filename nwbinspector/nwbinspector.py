@@ -26,16 +26,14 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
     help="Name of the log file to be saved.",
     type=click.Path(writable=True),
 )
-@click.option("-i", "--ignore", help="Names of checks to skip.")
-@click.option("-s", "--select", help="Names of checks to run")
+@click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
+@click.option("-s", "--select", help="Comma-separated names of checks to run")
 @click.option(
     "-t",
     "--threshold",
     default="BEST_PRACTICE_SUGGESTION",
-    help=(
-        "Ignores tests with an assigned importance below this threshold. Importance has three levels: CRITICAL, "
-        "BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION."
-    ),
+    type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
+    help="Ignores tests with an assigned importance below this threshold.",
 )
 def inspect_all_cli(
     path: PathType,
