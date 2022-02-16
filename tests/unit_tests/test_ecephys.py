@@ -42,7 +42,6 @@ def test_check_negative_spike_times_some_negative():
 
 
 class TestCheckElectricalSeries(TestCase):
-
     def setUp(self):
 
         nwbfile = NWBFile(
