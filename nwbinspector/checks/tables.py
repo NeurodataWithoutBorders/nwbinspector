@@ -1,5 +1,7 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 from hdmf.common import DynamicTable
+import numpy as np
+from pynwb.file import TimeIntervals
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
@@ -9,6 +11,31 @@ def check_empty_table(table: DynamicTable):
     """Check if a DynamicTable is empty."""
     if len(table.id) == 0:
         return InspectorMessage(message="This table has no data added to it.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
+def check_time_interval_time_columns(time_intervals: TimeIntervals):
+    unsorted_cols = []
+    for column in time_intervals.columns:
+        if column.name[-5:] == "_time":
+            if np.any(np.diff(column[:]) < 0):
+                unsorted_cols.append(column.name)
+    if unsorted_cols:
+        return InspectorMessage(
+            message=f"{unsorted_cols} are time columns but the values are not in ascending order."
+                    ". All times should be in seconds with respect to the session start time."
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
+def check_time_intervals_stop_after_start(time_intervals: TimeIntervals):
+    if np.any(
+            np.asarray(time_intervals["stop_time"][:]) - np.asarray(time_intervals["start_time"][:]) < 0
+    ):
+        return InspectorMessage(
+            message="stop_times should be greater than start_times. Make sure the stop times are with respect to the "
+                    "session start time."
+        )
 
 
 # @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
