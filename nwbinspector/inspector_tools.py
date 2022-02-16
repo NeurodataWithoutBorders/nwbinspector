@@ -22,7 +22,6 @@ def organize_check_results(check_results: list):
     initial_results = OrderedDict({importance.name: list() for importance in Importance})
     for check_result in check_results:
         initial_results[check_result.importance.name].append(check_result)
-
     organized_check_results = OrderedDict()
     for importance_level, check_results in initial_results.items():
         if any(check_results):
@@ -34,8 +33,7 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
     """Write the list of organized check results to a nicely formatted text file."""
     log_file_path = Path(log_file_path)
     if log_file_path.exists() and not overwrite:
-        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-w True' flag.")
-
+        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-o' flag.")
     num_nwbfiles = len(organized_results)
     with open(file=log_file_path, mode="w", newline="\n") as file:
         for nwbfile_index, (nwbfile_name, organized_check_results) in enumerate(organized_results.items(), start=1):
@@ -72,7 +70,6 @@ def print_to_console(log_file_path: FilePathType):
 
     with open(file=log_file_path, mode="r") as file:
         log_output = file.readlines()
-
     color_shift_points = dict()
     for line_index, line in enumerate(log_output):
         for color_trigger in color_map:
@@ -80,7 +77,6 @@ def print_to_console(log_file_path: FilePathType):
                 color_shift_points.update(
                     {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
                 )
-
     current_color = None
     for line_index, line in enumerate(log_output):
         transition_point = line_index in color_shift_points
@@ -89,7 +85,6 @@ def print_to_console(log_file_path: FilePathType):
             log_output[line_index] = f"{current_color}{line}{reset_color}"
         if current_color is not None and not transition_point:
             log_output[line_index] = f"{current_color}{line[:6]}{reset_color}{line[6:]}"
-
     sys.stdout.write(os.linesep * 2)
     for line in log_output:
         sys.stdout.write(line)

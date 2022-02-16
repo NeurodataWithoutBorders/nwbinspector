@@ -109,6 +109,7 @@ class TestInspector(TestCase):
             self.assertIn(member=dictionary, container=test_list)
 
     def assertFileExists(self, path: FilePathType):
+        path = Path(path)
         assert path.exists()
 
     def assertLogFileContentsEqual(self, test_file_path: FilePathType, true_file_path: FilePathType):
@@ -224,14 +225,14 @@ class TestInspector(TestCase):
 
     def test_command_line_runs(self):
         os.system(f"nwbinspector {str(self.nwbfile_paths[0])}")
-        self.assertFileExists(path=self.nwbfile_paths[0].parent / "nwbinspector_log_file.txt")
+        self.assertFileExists(path="nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
         os.system(
-            f"nwbinspector {str(self.tempdir)} -s check_timestamps_match_first_dimension check_data_orientation "
-            "check_regular_timestamps check_dataset_compression"
+            f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
+            f"check_regular_timestamps,check_dataset_compression"
         )
         self.assertLogFileContentsEqual(
-            test_file_path=self.tempdir / "nwbinspector_log_file.txt",
+            test_file_path="nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
         )
