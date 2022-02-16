@@ -1,12 +1,11 @@
-from unittest import TestCase
-
-from uuid import uuid4
 from datetime import datetime
+from unittest import TestCase
+from uuid import uuid4
 
 import numpy as np
 from pynwb import NWBFile
-from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
+from pynwb.misc import Units
 
 from nwbinspector.checks.ecephys import check_negative_spike_times, check_electrical_series_dims
 from nwbinspector.register_checks import InspectorMessage, Importance, Severity
