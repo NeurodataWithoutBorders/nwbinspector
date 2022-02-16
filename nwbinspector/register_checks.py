@@ -75,7 +75,7 @@ class InspectorMessage:
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
 # objects. We can wait and see how well that holds up before adding it in officially.
-def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
+def register_check(importance: Importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def register_check_and_auto_parse(check_function) -> InspectorMessage:
