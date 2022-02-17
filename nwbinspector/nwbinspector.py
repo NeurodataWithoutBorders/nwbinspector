@@ -19,6 +19,7 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
+@click.option("-c", "--disable-color", help="Enable coloration for console display of output.", is_flag=True)
 @click.option(
     "-n",
     "--log-file-name",
@@ -43,6 +44,7 @@ def inspect_all_cli(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    disable_color: bool = False,
 ):
     """Primary CLI usage."""
     inspect_all(
@@ -53,6 +55,7 @@ def inspect_all_cli(
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
         overwrite=overwrite,
+        disable_color=disable_color,
     )
 
 
@@ -64,6 +67,7 @@ def inspect_all(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    disable_color: bool = False,
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
@@ -108,7 +112,7 @@ def inspect_all(
             traceback.print_exc()
     if len(organized_results):
         write_results(log_file_path=log_file_name, organized_results=organized_results, overwrite=overwrite)
-        print_to_console(log_file_path=log_file_name)
+        print_to_console(log_file_path=log_file_name, disable_color=disable_color)
         print(f"{os.linesep*2}Log file saved at {str(log_file_name)}!")
     if num_invalid_files:
         print(f"{num_exceptions}/{num_nwbfiles} files are invalid.")

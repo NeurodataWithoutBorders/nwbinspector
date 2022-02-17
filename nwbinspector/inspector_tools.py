@@ -58,8 +58,23 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
                 file.write("\n\n\n")
 
 
-def print_to_console(log_file_path: FilePathType):
+def supports_color():
+    """
+    Return True if the running system's terminal supports color, and False otherwise.
+
+    From https://github.com/django/django/blob/main/django/core/management/color.py
+    """
+    plat = sys.platform
+    supported_platform = plat != "Pocket PC" and (plat != "win32" or "ANSICON" in os.environ)
+    # isatty is not always implemented, #6223.
+    is_a_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+    return supported_platform and is_a_tty
+
+
+def print_to_console(log_file_path: FilePathType, disable_color: bool = False):
     """Print log file contents to console."""
+    if not supports_color():
+        disable_color = True
     reset_color = "\x1b[0m"
     color_map = {
         "CRITICAL IMPORTANCE": "\x1b[31m",
@@ -70,21 +85,22 @@ def print_to_console(log_file_path: FilePathType):
 
     with open(file=log_file_path, mode="r") as file:
         log_output = file.readlines()
-    color_shift_points = dict()
-    for line_index, line in enumerate(log_output):
-        for color_trigger in color_map:
-            if color_trigger in line:
-                color_shift_points.update(
-                    {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
-                )
-    current_color = None
-    for line_index, line in enumerate(log_output):
-        transition_point = line_index in color_shift_points
-        if transition_point:
-            current_color = color_shift_points[line_index]
-            log_output[line_index] = f"{current_color}{line}{reset_color}"
-        if current_color is not None and not transition_point:
-            log_output[line_index] = f"{current_color}{line[:6]}{reset_color}{line[6:]}"
+    if not disable_color:
+        color_shift_points = dict()
+        for line_index, line in enumerate(log_output):
+            for color_trigger in color_map:
+                if color_trigger in line:
+                    color_shift_points.update(
+                        {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
+                    )
+        current_color = None
+        for line_index, line in enumerate(log_output):
+            transition_point = line_index in color_shift_points
+            if transition_point:
+                current_color = color_shift_points[line_index]
+                log_output[line_index] = f"{current_color}{line}{reset_color}"
+            if current_color is not None and not transition_point:
+                log_output[line_index] = f"{current_color}{line[:6]}{reset_color}{line[6:]}"
     sys.stdout.write(os.linesep * 2)
     for line in log_output:
         sys.stdout.write(line)
