@@ -218,7 +218,7 @@ class TestInspector(TestCase):
         os.system(
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
             f"check_regular_timestamps,check_small_dataset_compression"
-            f"--log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
+            f" --log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
         )
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
