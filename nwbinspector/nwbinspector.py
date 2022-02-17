@@ -21,9 +21,9 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
 @click.option(
     "-n",
-    "--log-file-name",
+    "--log-file-path",
     default="nwbinspector_log_file.txt",
-    help="Name of the log file to be saved.",
+    help="Save path for the log file. Defaults to the current directory.",
     type=click.Path(writable=True),
 )
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
@@ -36,9 +36,9 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
     help="Ignores tests with an assigned importance below this threshold.",
 )
 def inspect_all_cli(
-    path: PathType,
+    path: str,
     modules: OptionalListOfStrings = None,
-    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    log_file_path: str = "nwbinspector_log_file.txt",
     overwrite: bool = False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -48,7 +48,7 @@ def inspect_all_cli(
     inspect_all(
         path,
         modules=modules,
-        log_file_name=log_file_name,
+        log_file_path=log_file_path,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
@@ -59,7 +59,7 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    log_file_path: FilePathType = "nwbinspector_log_file.txt",
     overwrite=False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -67,6 +67,8 @@ def inspect_all(
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
+    path = Path(path)
+    log_file_path = Path(log_file_path)
 
     in_path = Path(path)
     if in_path.is_dir():
@@ -107,7 +109,6 @@ def inspect_all(
             print("ERROR: ", ex)
             traceback.print_exc()
     if len(organized_results):
-        log_file_path = nwbfiles[0].parent / log_file_name
         write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
         print_to_console(log_file_path=log_file_path)
         print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!")
