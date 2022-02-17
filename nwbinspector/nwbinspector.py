@@ -20,7 +20,6 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
 @click.option(
-    "-n",
     "--log-file-path",
     default="nwbinspector_log_file.txt",
     help="Save path for the log file. Defaults to the current directory.",
