@@ -4,6 +4,7 @@ import numpy as np
 from pynwb.file import TimeIntervals
 
 from ..register_checks import register_check, InspectorMessage, Importance
+from ..utils import is_ascending_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
@@ -16,7 +17,8 @@ def check_empty_table(table: DynamicTable):
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int = 200):
     """
-    Check that time columns are in ascending order
+    Check that time columns are in ascending order.
+
     Parameters
     ----------
     time_intervals: TimeIntervals
@@ -24,15 +26,11 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
-
-    Returns
-    -------
-
     """
     unsorted_cols = []
     for column in time_intervals.columns:
         if column.name[-5:] == "_time":
-            if np.any(np.diff(column[:nelems]) < 0):
+            if not is_ascending_series(column, nelems):
                 unsorted_cols.append(column.name)
     if unsorted_cols:
         return InspectorMessage(
