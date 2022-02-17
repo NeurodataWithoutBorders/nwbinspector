@@ -19,6 +19,7 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
+@click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
     "--log-file-path",
     default="nwbinspector_log_file.txt",
@@ -42,6 +43,7 @@ def inspect_all_cli(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    no_color: bool = False,
 ):
     """Primary CLI usage."""
     inspect_all(
@@ -52,6 +54,7 @@ def inspect_all_cli(
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
         overwrite=overwrite,
+        no_color=no_color,
     )
 
 
@@ -63,6 +66,7 @@ def inspect_all(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    no_color: bool = False,
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
