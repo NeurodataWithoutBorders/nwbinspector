@@ -71,10 +71,10 @@ def supports_color():
     return supported_platform and is_a_tty
 
 
-def print_to_console(log_file_path: FilePathType, disable_color: bool = False):
+def print_to_console(log_file_path: FilePathType, no_color: bool = False):
     """Print log file contents to console."""
     if not supports_color():
-        disable_color = True
+        no_color = True
     reset_color = "\x1b[0m"
     color_map = {
         "CRITICAL IMPORTANCE": "\x1b[31m",
@@ -85,7 +85,7 @@ def print_to_console(log_file_path: FilePathType, disable_color: bool = False):
 
     with open(file=log_file_path, mode="r") as file:
         log_output = file.readlines()
-    if not disable_color:
+    if not no_color:
         color_shift_points = dict()
         for line_index, line in enumerate(log_output):
             for color_trigger in color_map:
