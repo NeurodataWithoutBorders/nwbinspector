@@ -67,7 +67,7 @@ def write_results(log_file_path: FilePathType, organized_results: Dict[str, Dict
                 file.write("\n\n\n")
 
 
-def supports_color():
+def supports_color():  # pragma: no cover
     """
     Return True if the running system's terminal supports color, and False otherwise.
 
