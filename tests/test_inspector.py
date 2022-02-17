@@ -79,7 +79,7 @@ class TestInspector(TestCase):
         cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
         for check in check_list:
             cls.checks[check.importance][check.neurodata_type].append(check)
-        num_nwbfiles = 4
+        num_nwbfiles = 2
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(
@@ -90,6 +90,7 @@ class TestInspector(TestCase):
                 )
             )
         add_regular_timestamps(nwbfiles[0])
+        add_big_dataset_no_compression(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])

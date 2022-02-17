@@ -28,8 +28,8 @@ def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold
             return InspectorMessage(
                 severity=severity,
                 message=(
-                    f"{os.path.split(field.name)[1]} is large and not compressed. Consider enabling compression "
-                    "when writing a large dataset."
+                    f"{os.path.split(field.name)[1]} is not compressed. Consider enabling compression when writing a "
+                    "dataset."
                 ),
             )
 
