@@ -107,10 +107,9 @@ def inspect_all(
             print("ERROR: ", ex)
             traceback.print_exc()
     if len(organized_results):
-        write_results(
-            log_file_path=nwbfiles[0].parent / log_file_name, organized_results=organized_results, overwrite=overwrite
-        )
-        print_to_console(log_file_path=log_file_name)
+        log_file_path = nwbfiles[0].parent / log_file_name
+        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
+        print_to_console(log_file_path=log_file_path)
         print(f"{os.linesep*2}Log file saved at {str(log_file_name)}!")
     if num_invalid_files:
         print(f"{num_exceptions}/{num_nwbfiles} files are invalid.")

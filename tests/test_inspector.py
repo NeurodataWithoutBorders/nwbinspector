@@ -227,7 +227,7 @@ class TestInspector(TestCase):
 
     def test_command_line_runs(self):
         os.system(f"nwbinspector {str(self.nwbfile_paths[0])}")
-        self.assertFileExists(path="nwbinspector_log_file.txt")
+        self.assertFileExists(path=self.tempdir / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
         os.system(
@@ -235,7 +235,7 @@ class TestInspector(TestCase):
             f"check_regular_timestamps,check_dataset_compression"
         )
         self.assertLogFileContentsEqual(
-            test_file_path="nwbinspector_log_file.txt",
+            test_file_path=self.tempdir / "nwbinspector_log_file.txt",
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
         )
 
