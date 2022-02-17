@@ -3,20 +3,11 @@ import sys
 import os
 import numpy as np
 from collections import OrderedDict
-from typing import Dict
+from typing import Dict, List
 from pathlib import Path
 
 from . import Importance
 from .utils import FilePathType
-
-try:
-    import colorama
-
-    colorama.init()
-except (ImportError, OSError):
-    HAS_COLORAMA = False
-else:
-    HAS_COLORAMA = True
 
 
 def sort_by_descending_severity(check_results: list):
@@ -95,7 +86,6 @@ def supports_color():  # pragma: no cover
 
     return is_a_tty and (
         sys.platform != "win32"
-        or HAS_COLORAMA
         or "ANSICON" in os.environ
         or
         # Windows Terminal supports VT codes.
@@ -107,21 +97,19 @@ def supports_color():  # pragma: no cover
     )
 
 
-def print_to_console(log_file_path: FilePathType, no_color: bool = False):
-    """Print log file contents to console."""
+def wrap_color(log_output: List[str], no_color: bool = False):  # pragma: no cover
+    """Wrap the file output with colors for console output."""
     if not supports_color():
         no_color = True
-    reset_color = "\x1b[0m"
-    color_map = {
-        "CRITICAL IMPORTANCE": "\x1b[31m",
-        "BEST PRACTICE VIOLATION": "\x1b[33m",
-        "BEST PRACTICE SUGGESTION": reset_color,
-        "NWBFile": reset_color,
-    }
-
-    with open(file=log_file_path, mode="r") as file:
-        log_output = file.readlines()
     if not no_color:
+        reset_color = "\x1b[0m"
+        color_map = {
+            "CRITICAL IMPORTANCE": "\x1b[31m",
+            "BEST PRACTICE VIOLATION": "\x1b[33m",
+            "BEST PRACTICE SUGGESTION": reset_color,
+            "NWBFile": reset_color,
+        }
+
         color_shift_points = dict()
         for line_index, line in enumerate(log_output):
             for color_trigger in color_map:
@@ -137,6 +125,13 @@ def print_to_console(log_file_path: FilePathType, no_color: bool = False):
                 log_output[line_index] = f"{current_color}{line}{reset_color}"
             if current_color is not None and not transition_point:
                 log_output[line_index] = f"{current_color}{line[:6]}{reset_color}{line[6:]}"
+
+
+def print_to_console(log_file_path: FilePathType, no_color: bool = False):
+    """Print log file contents to console."""
+    with open(file=log_file_path, mode="r") as file:
+        log_output = file.readlines()
+    wrap_color(log_output=log_output, no_color=no_color)
     sys.stdout.write(os.linesep * 2)
     for line in log_output:
         sys.stdout.write(line)
