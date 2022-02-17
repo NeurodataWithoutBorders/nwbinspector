@@ -1,13 +1,24 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 import sys
 import os
-import numpy as np
+from enum import Enum
 from collections import OrderedDict
 from typing import Dict, List
 from pathlib import Path
 
-from . import Importance
+import numpy as np
+
 from .utils import FilePathType
+
+
+class ReportCollectorImportance(Enum):
+    """Additional importance levels applied to violations outside of NWBInspector."""
+
+    ERROR = 4
+    PYNWB_VALIDATION = 3
+    CRITICAL = 2
+    BEST_PRACTICE_VIOLATION = 1
+    BEST_PRACTICE_SUGGESTION = 0
 
 
 def sort_by_descending_severity(check_results: list):
@@ -19,7 +30,7 @@ def sort_by_descending_severity(check_results: list):
 
 def organize_check_results(check_results: list):
     """Format the list of returned results from checks."""
-    initial_results = OrderedDict({importance.name: list() for importance in Importance})
+    initial_results = OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
     for check_result in check_results:
         initial_results[check_result.importance.name].append(check_result)
     organized_check_results = OrderedDict()
