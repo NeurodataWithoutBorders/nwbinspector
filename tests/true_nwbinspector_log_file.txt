@@ -1,5 +1,5 @@
-NWBFile: E:\test_inspector\testing0.nwb
-=======================================
+/home/fake_path/testing0.nwb
+============================
 
 CRITICAL
 --------
@@ -17,8 +17,8 @@ BEST PRACTICE VIOLATION
 
 
 
-NWBFile: E:\test_inspector\testing1.nwb
-=======================================
+/home/fake_path/testing1.nwb
+============================
 
 BEST PRACTICE VIOLATION
 -----------------------
