@@ -19,7 +19,7 @@ def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold
         if (
             isinstance(field, h5py.Dataset)
             and field.compression is None
-            and field.size * field.dtype.itemsize > 10 * 1e6  # 10 MB lower bound
+            and field.size * field.dtype.itemsize > 50 * 1e6  # 50 MB lower bound
         ):
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
                 severity = Severity.HIGH
