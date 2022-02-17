@@ -22,11 +22,12 @@ def check_large_dataset_compression(nwb_container: NWBContainer):
             and field.size * field.dtype.itemsize > 20 * 1e9  # 20 GB lower bound
         ):
             return InspectorMessage(
+                severity=Severity.HIGH,
                 message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
             )
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_small_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold: float = 10.0):
     """
     If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
