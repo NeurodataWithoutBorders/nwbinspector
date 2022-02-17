@@ -11,7 +11,7 @@ CRITICAL
 BEST PRACTICE VIOLATION
 -----------------------
 1.2.1   TimeSeries 'test_time_series_1' located in '/acquisition/'
-        check_dataset_compression: data is not compressed. Consider enabling compression when writing a dataset.
+        check_small_dataset_compression: data is not compressed. Consider enabling compression when writing a dataset.
 1.2.2   TimeSeries 'test_time_series_2' located in '/acquisition/'
         check_regular_timestamps: TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps.
 

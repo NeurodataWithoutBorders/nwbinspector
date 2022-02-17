@@ -9,17 +9,37 @@ from ..register_checks import register_check, Importance, InspectorMessage, Seve
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
-def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold: float = 1.0):
+def check_large_dataset_compression(nwb_container: NWBContainer):
+    """
+    If the data in the Container object is a 'large' h5py.Dataset, check if it has compression enabled.
+
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than 20 GB.
+    """
+    for field in getattr(nwb_container, "fields", dict()).values():
+        if (
+            isinstance(field, h5py.Dataset)
+            and field.compression is None
+            and field.size * field.dtype.itemsize > 20 * 1e9  # 20 GB lower bound
+        ):
+            return InspectorMessage(
+                message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
+            )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
+def check_small_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold: float = 10.0):
     """
     If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
 
     Will only return an inspector warning if the size of the h5py.Dataset is larger than bytes_threshold.
     """
     for field in getattr(nwb_container, "fields", dict()).values():
+        nbytes = field.size * field.dtype.itemsize
         if (
             isinstance(field, h5py.Dataset)
             and field.compression is None
-            and field.size * field.dtype.itemsize > 50 * 1e6  # 50 MB lower bound
+            and nbytes > 50 * 1e6  # 50 MB lower bound
+            and nbytes < 20 * 1e9  # 20 GB upper bound to prevent double-raise with check_large_dataset_compression
         ):
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
                 severity = Severity.HIGH
