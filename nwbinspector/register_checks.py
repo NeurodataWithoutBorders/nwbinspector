@@ -1,8 +1,9 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Iterable
 from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
+from typing import Optional
 
 import h5py
 
@@ -75,7 +76,7 @@ class InspectorMessage:
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
 # objects. We can wait and see how well that holds up before adding it in officially.
-def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
+def register_check(importance: Importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def register_check_and_auto_parse(check_function) -> InspectorMessage:
@@ -94,23 +95,13 @@ def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
                 obj = args[0]
             else:
                 obj = kwargs[list(kwargs)[0]]
-
-            auto_parsed_result = check_function(*args, **kwargs)
-            if auto_parsed_result is not None:
-                if auto_parsed_result.severity is None:  # For perfect consistency with not specifying
-                    auto_parsed_result.severity = Severity.NO_SEVERITY
-                if auto_parsed_result.severity not in Severity:
-                    raise ValueError(
-                        f"Indicated severity ({auto_parsed_result.severity}) of custom check "
-                        f"({check_function.__name__}) is not a valid severity level! Please choose one of "
-                        "Severity.HIGH, Severity.LOW, or do not specify any severity."
-                    )
-
-                auto_parsed_result.importance = check_function.importance
-                auto_parsed_result.check_function_name = check_function.__name__
-                auto_parsed_result.object_type = type(obj).__name__
-                auto_parsed_result.object_name = obj.name
-                auto_parsed_result.location = parse_location(neurodata_object=obj)
+            output = check_function(*args, **kwargs)
+            if isinstance(output, Iterable):
+                auto_parsed_result = list()
+                for result in output:
+                    auto_parsed_result.append(auto_parse(check_function=check_function, obj=obj, result=result))
+            else:
+                auto_parsed_result = auto_parse(check_function=check_function, obj=obj, result=output)
             return auto_parsed_result
 
         available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)
@@ -120,11 +111,30 @@ def register_check(importance: Importance, neurodata_type) -> InspectorMessage:
     return register_check_and_auto_parse
 
 
+def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
+    """Automatically fill values in the InspectorMessage from the check function."""
+    if result is not None:
+        auto_parsed_result = result
+        if auto_parsed_result.severity is None:  # For perfect consistency with not specifying
+            auto_parsed_result.severity = Severity.NO_SEVERITY
+        if auto_parsed_result.severity not in Severity:
+            raise ValueError(
+                f"Indicated severity ({auto_parsed_result.severity}) of custom check "
+                f"({check_function.__name__}) is not a valid severity level! Please choose one of "
+                "Severity.HIGH, Severity.LOW, or do not specify any severity."
+            )
+        auto_parsed_result.importance = check_function.importance
+        auto_parsed_result.check_function_name = check_function.__name__
+        auto_parsed_result.object_type = type(obj).__name__
+        auto_parsed_result.object_name = obj.name
+        auto_parsed_result.location = parse_location(neurodata_object=obj)
+        return auto_parsed_result
+
+
 def parse_location(neurodata_object) -> str:
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
-
     # Best solution: object is or has a HDF5 Dataset
     if isinstance(neurodata_object, h5py.Dataset):
         return "/".join(neurodata_object.parent.name.split("/")[:-1]) + "/"
@@ -132,7 +142,6 @@ def parse_location(neurodata_object) -> str:
         for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
                 return "/".join(field.parent.name.split("/")[:-1]) + "/"
-
     try:
         # General case for nested modules not containing Datasets
         level = neurodata_object
@@ -140,7 +149,6 @@ def parse_location(neurodata_object) -> str:
         while level.parent.name != "root":
             level_names.append(level.parent.name)
             level = level.parent
-
         # Determine which field of the NWBFile contains the previous recent level
         invalid_field_names = ["timestamps_reference_time", "session_start_time"]
         possible_fields = level.parent.fields

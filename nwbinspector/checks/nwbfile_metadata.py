@@ -1,5 +1,6 @@
 """Check functions that examine general NWBFile metadata."""
 from pynwb import NWBFile
+from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
@@ -11,18 +12,18 @@ def check_experimenter(nwbfile: NWBFile):
         return InspectorMessage(message="Experimenter is missing.")
 
 
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_experiment_description(nwbfile: NWBFile):
-#     """Check if a description has been added for the session."""
-#     if not nwbfile.experiment_description:
-#         return "Metadata /general/experiment_description is missing!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experiment_description(nwbfile: NWBFile):
+    """Check if a description has been added for the session."""
+    if not nwbfile.experiment_description:
+        return InspectorMessage(message="Experiment description is missing.")
 
 
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_institution(nwbfile: NWBFile):
-#     """Check if a description has been added for the session."""
-#     if not nwbfile.institution:
-#         return "Metadata /general/institution is missing!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_institution(nwbfile: NWBFile):
+    """Check if a description has been added for the session."""
+    if not nwbfile.institution:
+        return InspectorMessage(message="Metadata /general/institution is missing.")
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
@@ -42,11 +43,15 @@ def check_experimenter(nwbfile: NWBFile):
 #                 return f"Metadata /general/related_publications '{publication}' does not include 'doi'!"
 
 
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_subject_sex(nwbfile: NWBFile):
-#     """Check if the subject sex has been specified, if one exists."""
-#     if nwbfile.subject and not nwbfile.subject.sex:
-#         return "Metadata /general/subject/sex is missing!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_sex(subject: Subject):
+    """Check if the subject sex has been specified, if one exists."""
+    if subject and not subject.sex:
+        return InspectorMessage(message="Subject.sex is missing.")
+    elif subject.sex not in ("M", "F", "O", "U"):
+        return InspectorMessage(
+            message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
+        )
 
 
 # @nwbinspector_check(severity=2, neurodata_type=NWBFile)
