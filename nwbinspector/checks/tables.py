@@ -16,6 +16,17 @@ def check_empty_table(table: DynamicTable):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems=200):
+    """
+    Check that time columns are in ascending order.
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+    nelems: int
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+    """
     unsorted_cols = []
     for column in time_intervals.columns:
         if column.name[-5:] == "_time":
