@@ -29,8 +29,22 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems=200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
-def check_time_intervals_stop_after_start(time_intervals: TimeIntervals):
-    if np.any(np.asarray(time_intervals["stop_time"][:]) - np.asarray(time_intervals["start_time"][:]) < 0):
+def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems: int = 200):
+    """
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+    nelems: int
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+
+    Returns
+    -------
+
+    """
+    if np.any(np.asarray(time_intervals["stop_time"][:nelems]) - np.asarray(time_intervals["start_time"][:nelems]) < 0):
         return InspectorMessage(
             message="stop_times should be greater than start_times. Make sure the stop times are with respect to the "
             "session start time."
