@@ -16,7 +16,7 @@ from hdmf.common import DynamicTable
 
 from nwbinspector import (
     Importance,
-    check_dataset_compression,
+    check_small_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
@@ -70,8 +70,9 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
+        cls.tempdir = Path("E:/test_inspector")
         check_list = [
-            check_dataset_compression,
+            check_small_dataset_compression,
             check_regular_timestamps,
             check_data_orientation,
             check_timestamps_match_first_dimension,
@@ -101,9 +102,9 @@ class TestInspector(TestCase):
             with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
                 io.write(nwbfile)
 
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
+    # @classmethod
+    # def tearDownClass(cls):
+    #     rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -134,8 +135,8 @@ class TestInspector(TestCase):
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
-                severity=Severity.HIGH,
-                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_small_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",

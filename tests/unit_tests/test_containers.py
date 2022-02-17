@@ -35,22 +35,8 @@ class TestNWBContainers(TestCase):
             true_output = InspectorMessage(
                 severity=Severity.LOW,
                 message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="NWBContainer",
-                object_name="test_container",
-                location="/",
-            )
-            self.assertEqual(first=check_small_dataset_compression(nwb_container=nwb_container), second=true_output)
-
-    def test_check_small_dataset_compression_above_default_threshold(self):
-        with h5py.File(name=self.file_path, mode="w") as file:
-            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=1.1)
-            true_output = InspectorMessage(
-                severity=Severity.HIGH,
-                message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
                 location="/",
@@ -68,8 +54,8 @@ class TestNWBContainers(TestCase):
             true_output = InspectorMessage(
                 severity=Severity.LOW,
                 message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
                 location="/",
@@ -85,8 +71,8 @@ class TestNWBContainers(TestCase):
             true_output = InspectorMessage(
                 severity=Severity.HIGH,
                 message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
                 location="/",
