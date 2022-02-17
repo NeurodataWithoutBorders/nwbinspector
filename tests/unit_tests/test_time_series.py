@@ -103,6 +103,7 @@ def test_check_timestamps_empty_timestamps():
         location="/",
     )
 
+
 def test_check_timestamps_ascending():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1,2,3], timestamps=[1,3,2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
@@ -114,3 +115,8 @@ def test_check_timestamps_ascending():
         object_name="test_time_series",
         location="/",
     )
+
+
+def test_pass_check_timestamps_ascending():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_ascending(time_series) is None
