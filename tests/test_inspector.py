@@ -226,13 +226,13 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(test_list=test_results, true_list=true_results)
 
     def test_command_line_runs(self):
-        os.system(f"nwbinspector {str(self.nwbfile_paths[0])}")
+        os.system(f"nwbinspector {str(self.nwbfile_paths[0])} -f {self.tempdir / 'nwbinspector_log_file.txt'}")
         self.assertFileExists(path=self.tempdir / "nwbinspector_log_file.txt")
 
     def test_command_line_on_directory_matches_file(self):
         os.system(
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
-            f"check_regular_timestamps,check_dataset_compression"
+            f"check_regular_timestamps,check_dataset_compression -f {self.tempdir / 'nwbinspector_log_file.txt'}"
         )
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "nwbinspector_log_file.txt",
