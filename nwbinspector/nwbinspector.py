@@ -3,7 +3,7 @@ import os
 import importlib
 import traceback
 from pathlib import Path
-from collections import OrderedDict
+from collections import OrderedDict, Iterable
 
 import click
 
@@ -19,11 +19,11 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
+@click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "-n",
-    "--log-file-name",
+    "--log-file-path",
     default="nwbinspector_log_file.txt",
-    help="Name of the log file to be saved.",
+    help="Save path for the log file. Defaults to the current directory.",
     type=click.Path(writable=True),
 )
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
@@ -36,37 +36,42 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
     help="Ignores tests with an assigned importance below this threshold.",
 )
 def inspect_all_cli(
-    path: PathType,
+    path: str,
     modules: OptionalListOfStrings = None,
-    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    log_file_path: str = "nwbinspector_log_file.txt",
     overwrite: bool = False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    no_color: bool = False,
 ):
     """Primary CLI usage."""
     inspect_all(
         path,
         modules=modules,
-        log_file_name=log_file_name,
+        log_file_path=log_file_path,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
         overwrite=overwrite,
+        no_color=no_color,
     )
 
 
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    log_file_name: FilePathType = "nwbinspector_log_file.txt",
+    log_file_path: FilePathType = "nwbinspector_log_file.txt",
     overwrite=False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    no_color: bool = False,
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
+    path = Path(path)
+    log_file_path = Path(log_file_path)
 
     in_path = Path(path)
     if in_path.is_dir():
@@ -107,11 +112,11 @@ def inspect_all(
             print("ERROR: ", ex)
             traceback.print_exc()
     if len(organized_results):
-        write_results(log_file_path=log_file_name, organized_results=organized_results, overwrite=overwrite)
-        print_to_console(log_file_path=log_file_name)
-        print(f"{os.linesep*2}Log file saved at {str(log_file_name)}!")
+        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
+        print_to_console(log_file_path=log_file_path)
+        print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!")
     if num_invalid_files:
-        print(f"{num_exceptions}/{num_nwbfiles} files are invalid.")
+        print(f"{num_invalid_files}/{num_nwbfiles} files are invalid.")
     if num_exceptions:
         print(f"{num_exceptions}/{num_nwbfiles} files had errors.")
 
@@ -169,9 +174,11 @@ def inspect_nwb(
                             if select is not None and check_function.__name__ not in select:
                                 continue
                             output = check_function(nwbfile_object)
-                            if output is None:
-                                continue
-                            check_results.append(output)
+                            if output is not None:
+                                if isinstance(output, Iterable):
+                                    check_results.extend(output)
+                                else:
+                                    check_results.append(output)
     return check_results
 
 
