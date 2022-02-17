@@ -1,25 +1,29 @@
 """Check functions that can apply to any object inside an NWBContainer."""
+import os
+
 import h5py
 from pynwb import NWBContainer
 
-from ..register_checks import register_check, Importance, Severity, InspectorMessage
+
+from ..register_checks import register_check, Importance, InspectorMessage
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_dataset_compression(nwb_container: NWBContainer, gb_severity_threshold: float = 1.0):
     """
-    If the data in the TimeSeries object is a h5py.Dataset, check if it has compression enabled.
+    If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
 
-    Will only run if the size of the h5py.Dataset is larger than bytes_threshold.
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than bytes_threshold.
     """
     for field in getattr(nwb_container, "fields", dict()).values():
-        if isinstance(field, h5py.Dataset) and field.compression is None:
-            if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
-                severity = Severity.HIGH
-            else:
-                severity = Severity.LOW
+        if (
+            isinstance(field, h5py.Dataset)
+            and field.compression is None
+            and field.nbytes > (gb_severity_threshold * 1e9)
+        ):
             return InspectorMessage(
-                severity=severity, message="Consider enabling compression when writing a large dataset."
+                message=f"{os.path.split(field.name)[1]} is large and not compressed. Consider enabling compression "
+                f"when writing a large dataset."
             )
 
 

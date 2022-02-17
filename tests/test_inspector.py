@@ -151,33 +151,6 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
             InspectorMessage(
-                message="Consider enabling compression when writing a large dataset.",
-                severity=Severity.LOW,
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="SpatialSeries",
-                object_name="my_spatial_series",
-                location="/processing/behavior/Position/",
-            ),
-            InspectorMessage(
-                message="Consider enabling compression when writing a large dataset.",
-                severity=Severity.LOW,
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
-                message="Consider enabling compression when writing a large dataset.",
-                severity=Severity.LOW,
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_2",
-                location="/acquisition/",
-            ),
-            InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
                     "and rate=2.0 instead of timestamps."

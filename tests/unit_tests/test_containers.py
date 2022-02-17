@@ -19,7 +19,8 @@ class TestNWBContainers(TestCase):
     def tearDown(self):
         rmtree(self.test_folder)
 
-    def add_dataset_to_nwb_container(self, file: h5py.File, gb_size: float):
+    @staticmethod
+    def add_dataset_to_nwb_container(file: h5py.File, gb_size: float):
         dataset = file.create_dataset(
             name="test_dataset",
             data=np.zeros(shape=int(gb_size * 1e9 / np.dtype("float").itemsize)),
@@ -31,24 +32,16 @@ class TestNWBContainers(TestCase):
     def test_check_dataset_compression_below_default_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
-            true_output = InspectorMessage(
-                severity=Severity.LOW,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="NWBContainer",
-                object_name="test_container",
-                location="/",
-            )
-            self.assertEqual(first=check_dataset_compression(nwb_container=nwb_container), second=true_output)
+            assert check_dataset_compression(nwb_container=nwb_container) is None
 
     def test_check_dataset_compression_above_default_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=1.1)
             true_output = InspectorMessage(
-                severity=Severity.HIGH,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.NO_SEVERITY,
+                message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
+                        "dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
@@ -59,27 +52,16 @@ class TestNWBContainers(TestCase):
     def test_check_dataset_compression_below_manual_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
-            true_output = InspectorMessage(
-                severity=Severity.LOW,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="check_dataset_compression",
-                object_type="NWBContainer",
-                object_name="test_container",
-                location="/",
-            )
-            self.assertEqual(
-                first=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15),
-                second=true_output,
-            )
+            assert check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15) is None
 
     def test_check_dataset_compression_above_manual_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.2)
             true_output = InspectorMessage(
-                severity=Severity.HIGH,
-                message="Consider enabling compression when writing a large dataset.",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.NO_SEVERITY,
+                message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
+                        "dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
