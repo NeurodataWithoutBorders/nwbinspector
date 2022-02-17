@@ -3,7 +3,7 @@ import os
 import importlib
 import traceback
 from pathlib import Path
-from collections import OrderedDict
+from collections import OrderedDict, Iterable
 
 import click
 
@@ -169,9 +169,11 @@ def inspect_nwb(
                             if select is not None and check_function.__name__ not in select:
                                 continue
                             output = check_function(nwbfile_object)
-                            if output is None:
-                                continue
-                            check_results.append(output)
+                            if output is not None:
+                                if isinstance(output, Iterable):
+                                    check_results.extend(output)
+                                else:
+                                    check_results.append(output)
     return check_results
 
 
