@@ -133,6 +133,15 @@ class TestInspector(TestCase):
             test_results = inspect_nwb(nwbfile=written_nwbfile, checks=self.checks)
         true_results = [
             InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                severity=Severity.HIGH,
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+                location="/acquisition/",
+            ),
+            InspectorMessage(
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
                     "the longest dimension. Here, another dimension is longer."

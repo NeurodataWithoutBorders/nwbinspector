@@ -1,0 +1,26 @@
+NWBFile: C:\Users\Raven\AppData\Local\Temp\tmpek5s1w3v\testing0.nwb
+===================================================================
+
+CRITICAL
+--------
+1.1.1   TimeSeries 'test_time_series_3' located in '/acquisition/'
+        check_timestamps_match_first_dimension: The length of the first dimension of data does not match the length of timestamps.
+1.1.2   SpatialSeries 'my_spatial_series' located in '/processing/behavior/Position/'
+        check_data_orientation: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
+
+BEST PRACTICE VIOLATION
+-----------------------
+1.2.1   TimeSeries 'test_time_series_1' located in '/acquisition/'
+        check_dataset_compression: data is not compressed. Consider enabling compression when writing a dataset.
+1.2.2   TimeSeries 'test_time_series_2' located in '/acquisition/'
+        check_regular_timestamps: TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps.
+
+
+
+NWBFile: C:\Users\Raven\AppData\Local\Temp\tmpek5s1w3v\testing1.nwb
+===================================================================
+
+BEST PRACTICE VIOLATION
+-----------------------
+2.1.1   TimeSeries 'test_time_series_2' located in '/acquisition/'
+        check_regular_timestamps: TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps.
