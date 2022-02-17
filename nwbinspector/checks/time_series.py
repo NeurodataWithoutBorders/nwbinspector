@@ -5,7 +5,7 @@ from pynwb import TimeSeries
 
 # from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
-from ..utils import check_regular_series
+from ..utils import check_regular_series, is_ascending_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -55,6 +55,12 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
         return InspectorMessage(
             message="The length of the first dimension of data does not match the length of timestamps.",
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
+    if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
+        return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
 
 # TODO: break up logic of extra stuff into separate checks
