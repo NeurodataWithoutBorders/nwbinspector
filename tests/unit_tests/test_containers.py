@@ -1,13 +1,13 @@
-import numpy as np
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
 from unittest import TestCase
 
 import h5py
+import numpy as np
 from pynwb import NWBContainer
 
-from nwbinspector import check_dataset_compression, Importance
+from nwbinspector import Importance, check_small_dataset_compression, check_large_dataset_compression
 from nwbinspector.register_checks import Severity, InspectorMessage
 
 
@@ -29,45 +29,60 @@ class TestNWBContainers(TestCase):
         nwb_container.fields.update(dataset=dataset)
         return nwb_container
 
-    def test_check_dataset_compression_below_default_threshold(self):
+    def test_check_small_dataset_compression_below_default_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
-            assert check_dataset_compression(nwb_container=nwb_container) is None
-
-    def test_check_dataset_compression_above_default_threshold(self):
-        with h5py.File(name=self.file_path, mode="w") as file:
-            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=1.1)
             true_output = InspectorMessage(
-                severity=Severity.NO_SEVERITY,
-                message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
-                "dataset.",
+                severity=Severity.LOW,
+                message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
-                check_function_name="check_dataset_compression",
+                check_function_name="check_small_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
                 location="/",
             )
-            self.assertEqual(first=check_dataset_compression(nwb_container=nwb_container), second=true_output)
+            self.assertEqual(first=check_small_dataset_compression(nwb_container=nwb_container), second=true_output)
 
-    def test_check_dataset_compression_below_manual_threshold(self):
+    def test_check_small_dataset_compression_below_50MB(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.001)
+            self.assertIsNone(obj=check_large_dataset_compression(nwb_container=nwb_container))
+
+    def test_check_small_dataset_compression_below_manual_threshold(self):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
-            assert check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15) is None
-
-    def test_check_dataset_compression_above_manual_threshold(self):
-        with h5py.File(name=self.file_path, mode="w") as file:
-            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.2)
             true_output = InspectorMessage(
-                severity=Severity.NO_SEVERITY,
-                message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
-                "dataset.",
+                severity=Severity.LOW,
+                message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
-                check_function_name="check_dataset_compression",
+                check_function_name="check_small_dataset_compression",
                 object_type="NWBContainer",
                 object_name="test_container",
                 location="/",
             )
             self.assertEqual(
-                first=check_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15),
+                first=check_small_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15),
                 second=true_output,
             )
+
+    def test_check_small_dataset_compression_above_manual_threshold(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.2)
+            true_output = InspectorMessage(
+                severity=Severity.HIGH,
+                message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
+                object_type="NWBContainer",
+                object_name="test_container",
+                location="/",
+            )
+            self.assertEqual(
+                first=check_small_dataset_compression(nwb_container=nwb_container, gb_severity_threshold=0.15),
+                second=true_output,
+            )
+
+    def test_check_large_dataset_compression_below_20GB(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.001)
+            self.assertIsNone(obj=check_large_dataset_compression(nwb_container=nwb_container))

@@ -16,7 +16,7 @@ from hdmf.common import DynamicTable
 
 from nwbinspector import (
     Importance,
-    check_dataset_compression,
+    check_small_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
@@ -71,7 +71,7 @@ class TestInspector(TestCase):
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
         check_list = [
-            check_dataset_compression,
+            check_small_dataset_compression,
             check_regular_timestamps,
             check_data_orientation,
             check_timestamps_match_first_dimension,
@@ -79,7 +79,7 @@ class TestInspector(TestCase):
         cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
         for check in check_list:
             cls.checks[check.importance][check.neurodata_type].append(check)
-        num_nwbfiles = 4
+        num_nwbfiles = 2
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(
@@ -90,6 +90,7 @@ class TestInspector(TestCase):
                 )
             )
         add_regular_timestamps(nwbfiles[0])
+        add_big_dataset_no_compression(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
@@ -131,6 +132,15 @@ class TestInspector(TestCase):
             written_nwbfile = io.read()
             test_results = inspect_nwb(nwbfile=written_nwbfile, checks=self.checks)
         true_results = [
+            InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+                location="/acquisition/",
+            ),
             InspectorMessage(
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
@@ -205,7 +215,7 @@ class TestInspector(TestCase):
     def test_command_line_on_directory_matches_file(self):
         os.system(
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
-            f"check_regular_timestamps,check_dataset_compression"
+            f"check_regular_timestamps,check_small_dataset_compression"
         )
         self.assertLogFileContentsEqual(
             test_file_path="nwbinspector_log_file.txt",
