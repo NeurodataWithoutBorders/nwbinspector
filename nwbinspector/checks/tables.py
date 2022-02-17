@@ -15,7 +15,7 @@ def check_empty_table(table: DynamicTable):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
-def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems=200):
+def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int = 200):
     """
     Check that time columns are in ascending order.
 
