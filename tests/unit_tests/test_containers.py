@@ -40,7 +40,7 @@ class TestNWBContainers(TestCase):
             true_output = InspectorMessage(
                 severity=Severity.NO_SEVERITY,
                 message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
-                        "dataset.",
+                "dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
@@ -60,7 +60,7 @@ class TestNWBContainers(TestCase):
             true_output = InspectorMessage(
                 severity=Severity.NO_SEVERITY,
                 message="test_dataset is large and not compressed. Consider enabling compression when writing a large "
-                        "dataset.",
+                "dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_dataset_compression",
                 object_type="NWBContainer",
