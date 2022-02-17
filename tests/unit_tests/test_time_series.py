@@ -103,8 +103,9 @@ def test_check_timestamps_empty_timestamps():
         location="/",
     )
 
+
 def test_check_timestamps_ascending():
-    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1,2,3], timestamps=[1,3,2])
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="test_time_series timestamps are not ascending.",
