@@ -81,7 +81,6 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-    nwbfiles.append("")
     nwbfiles = natsorted(nwbfiles)
     num_nwbfiles = len(nwbfiles)
 
