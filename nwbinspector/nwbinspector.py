@@ -81,6 +81,7 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
+    nwbfiles.append("")
     nwbfiles = natsorted(nwbfiles)
     num_nwbfiles = len(nwbfiles)
 
@@ -150,6 +151,7 @@ def inspect_nwb(
             if any(validation_errors):
                 for validation_error in validation_errors:
                     message = InspectorMessage(message=validation_error.reason)
+                    message.importance = ReportCollectorImportance.PYNWB_VALIDATION
                     message.check_function_name = validation_error.name
                     message.location = validation_error.location
                     organized_result[nwbfile_path]["PYNWB_VALIDATION"].append(message)
@@ -173,9 +175,11 @@ def inspect_nwb(
                                             check_results.append(output)
             if any(check_results):
                 organized_result[nwbfile_path].update(organize_check_results(check_results=check_results))
-    except Exception:
-        print(organized_result)
-        organized_result[nwbfile_path]["ERROR"].append(traceback.format_exc())
+    except Exception as ex:
+        message = InspectorMessage(message=traceback.format_exc())
+        message.importance = ReportCollectorImportance.ERROR
+        message.check_function_name = ex
+        organized_result[nwbfile_path]["ERROR"].append(message)
     return organized_result
 
 
