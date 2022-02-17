@@ -45,7 +45,7 @@ class TestCheckDynamicTableRegion(TestCase):
         )
 
     def test_pass_check_dynamic_table_region_data(self):
-        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 0, 2], table=self.table)
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1, 2], table=self.table)
         assert check_dynamic_table_region_data_validity(dynamic_table_region) is None
 
 
