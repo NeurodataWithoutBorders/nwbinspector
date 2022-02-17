@@ -14,7 +14,6 @@ from nwbinspector.register_checks import InspectorMessage, Importance, Severity
 
 
 class TestCheckDynamicTableRegion(TestCase):
-
     def setUp(self):
         self.table = DynamicTable(name="test_table", description="")
         self.table.add_column(name="test_column", description="")
