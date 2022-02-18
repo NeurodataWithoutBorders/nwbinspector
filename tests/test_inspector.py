@@ -2,8 +2,6 @@ import os
 from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
-from uuid import uuid4
-from datetime import datetime
 from pathlib import Path
 from typing import List
 from collections import OrderedDict, defaultdict
@@ -27,14 +25,14 @@ from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
 
 
-def add_big_dataset_no_compression(nwbfile):
+def add_big_dataset_no_compression(nwbfile: NWBFile):
     time_series = TimeSeries(
         name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
     )
     nwbfile.add_acquisition(time_series)
 
 
-def add_regular_timestamps(nwbfile):
+def add_regular_timestamps(nwbfile: NWBFile):
     regular_timestamps = np.arange(1.2, 11.2, 2)
     timestamps_length = len(regular_timestamps)
     time_series = TimeSeries(
@@ -46,7 +44,7 @@ def add_regular_timestamps(nwbfile):
     nwbfile.add_acquisition(time_series)
 
 
-def add_flipped_data_orientation_to_processing(nwbfile):
+def add_flipped_data_orientation_to_processing(nwbfile: NWBFile):
     spatial_series = SpatialSeries(
         name="my_spatial_series", data=np.zeros(shape=(2, 3)), reference_frame="unknown", rate=1.0
     )
@@ -54,7 +52,7 @@ def add_flipped_data_orientation_to_processing(nwbfile):
     module.add(Position(spatial_series=spatial_series))
 
 
-def add_non_matching_timestamps_dimension(nwbfile):
+def add_non_matching_timestamps_dimension(nwbfile: NWBFile):
     timestamps = [1.0, 2.1, 3.0]
     timestamps_length = len(timestamps)
     time_series = TimeSeries(
@@ -66,7 +64,7 @@ def add_non_matching_timestamps_dimension(nwbfile):
     nwbfile.add_acquisition(time_series)
 
 
-def add_simple_table(nwbfile):
+def add_simple_table(nwbfile: NWBFile):
     time_intervals = TimeIntervals(name="test_table", description="desc")
     time_intervals.add_row(start_time=2.0, stop_time=3.0)
     time_intervals.add_row(start_time=1.0, stop_time=2.0)
