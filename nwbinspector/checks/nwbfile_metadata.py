@@ -72,7 +72,7 @@ def check_subject_sex(subject: Subject):
         )
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_species(subject: Subject):
     """Check if the subject species has been specified and follows latin binomial form."""
     if not subject.species:
