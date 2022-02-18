@@ -11,6 +11,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experiment_description,
     check_institution,
     check_subject_sex,
+    check_subject_species,
     check_subject_exists,
     check_subject_id_exists,
 )
@@ -98,6 +99,34 @@ def test_check_subject_sex_other_value():
     )
 
 
+def test_check_subject_species():
+    subject = Subject(subject_id="001")
+
+    assert check_subject_species(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_species",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_check_subject_species_not_iso8601():
+    subject = Subject(subject_id="001", species="Human")
+
+    assert check_subject_species(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_species",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
 def test_check_subject_exists():
     assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
@@ -127,6 +156,11 @@ def test_check_subject_id_exists():
         object_name="subject",
         location="/",
     )
+
+
+def test_pass_check_subject_species():
+    subject = Subject(subject_id="001", species="Homo sapiens")
+    assert check_subject_species(subject) is None
 
 
 def test_pass_check_subject_id_exist():
