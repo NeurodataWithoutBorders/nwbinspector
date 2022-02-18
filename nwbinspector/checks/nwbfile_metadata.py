@@ -58,6 +58,20 @@ def check_subject_age(subject: Subject):
 #                 return f"Metadata /general/related_publications '{publication}' does not include 'doi'!"
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_subject_exists(nwbfile: NWBFile):
+    """Check if subject exists."""
+    if nwbfile.subject is None:
+        return InspectorMessage(message="Subject is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_id_exists(subject: Subject):
+    """Check if subject_id is defined."""
+    if subject.subject_id is None:
+        return InspectorMessage(message="subject_id is missing.")
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
     """Check if the subject sex has been specified, if one exists."""
@@ -67,17 +81,6 @@ def check_subject_sex(subject: Subject):
         return InspectorMessage(
             message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
         )
-
-
-# @nwbinspector_check(severity=2, neurodata_type=NWBFile)
-# def check_subject_id(nwbfile: NWBFile):
-#     """
-#     Check if the subject ID has been specified, if one exists.
-
-#     This is a metadata requirement for upload to the DANDI archive.
-#     """
-#     if nwbfile.subject and not nwbfile.subject.subject_id:
-#         return "Metadata /general/subject/subject_id is missing!"
 
 
 # @nwbinspector_check(severity=2, neurodata_type=NWBFile)
