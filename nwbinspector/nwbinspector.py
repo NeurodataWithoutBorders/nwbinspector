@@ -141,9 +141,7 @@ def inspect_nwb(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-    organized_result = {
-        nwbfile_path: OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
-    }
+    unorganized_results = OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
     try:
         with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True) as io:
             validation_errors = pynwb.validate(io=io)
@@ -153,7 +151,7 @@ def inspect_nwb(
                     message.importance = ReportCollectorImportance.PYNWB_VALIDATION
                     message.check_function_name = validation_error.name
                     message.location = validation_error.location
-                    organized_result[nwbfile_path]["PYNWB_VALIDATION"].append(message)
+                    unorganized_results["PYNWB_VALIDATION"].append(message)
             nwbfile = io.read()
             check_results = list()
             for importance, checks_per_object_type in checks.items():
@@ -173,12 +171,17 @@ def inspect_nwb(
                                         else:
                                             check_results.append(output)
             if any(check_results):
-                organized_result[nwbfile_path].update(organize_check_results(check_results=check_results))
+                unorganized_results.update(organize_check_results(check_results=check_results))
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = ReportCollectorImportance.ERROR
         message.check_function_name = ex
-        organized_result[nwbfile_path]["ERROR"].append(message)
+        unorganized_results["ERROR"].append(message)
+    organized_result = OrderedDict()
+    for importance_level, results in unorganized_results.items():
+        if any(results):
+            organized_result.update({importance_level: results})
+    organized_result = {nwbfile_path: organized_result}
     return organized_result
 
 
