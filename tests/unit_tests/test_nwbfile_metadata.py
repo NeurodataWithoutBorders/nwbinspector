@@ -114,7 +114,7 @@ def test_check_subject_age_iso8601():
     assert check_subject_age(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
-                "weeks.",
+        "weeks.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_age",
         object_type="Subject",
