@@ -30,7 +30,7 @@ def check_institution(nwbfile: NWBFile):
         return InspectorMessage(message="Metadata /general/institution is missing.")
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     if subject.age is None:
         return InspectorMessage(message="Subject is missing age.")
