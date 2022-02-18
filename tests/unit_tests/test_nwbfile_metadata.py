@@ -121,6 +121,7 @@ def test_check_subject_species_not_iso8601():
         message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species",
+        )
 
 
 def test_check_subject_exists():
