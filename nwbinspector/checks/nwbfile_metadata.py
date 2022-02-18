@@ -6,6 +6,7 @@ from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
+duration_regex = r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?S)?)?$"
 species_regex = r"[A-Z][a-z]* [a-z]+"
 
 
@@ -28,6 +29,17 @@ def check_institution(nwbfile: NWBFile):
     """Check if a description has been added for the session."""
     if not nwbfile.institution:
         return InspectorMessage(message="Metadata /general/institution is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_age(subject: Subject):
+    if subject.age is None:
+        return InspectorMessage(message="Subject is missing age.")
+    if not re.fullmatch(duration_regex, subject.age):
+        return InspectorMessage(
+            message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
+            "weeks."
+        )
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
