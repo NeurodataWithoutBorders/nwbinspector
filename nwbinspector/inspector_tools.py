@@ -8,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 
-from . import Importance
 from .utils import FilePathType
 
 
