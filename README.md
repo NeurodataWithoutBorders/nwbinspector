@@ -1,6 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/nwbinspector.svg)](https://badge.fury.io/py/nwbinspector)
 ![Tests](https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/testing.yml/badge.svg)
-[![codecov](https://codecov.io/github/NeurodataWithoutBorders/nwbinspector/coverage.svg?branch=main)](https://codecov.io/github/NeurodataWithoutBorders/nwbinspector?branch=master)
+[![codecov](https://codecov.io/gh/NeurodataWithoutBorders/nwbinspector/branch/dev/graphs/badge.svg?branch=dev)](https://codecov.io/github/NeurodataWithoutBorders/nwbinspector?branch=dev)
 [![documentation](https://readthedocs.org/projects/nwbinspector/badge/?version=master)](https://nwbinspector.readthedocs.io/en/master/)
 [![License](https://img.shields.io/pypi/l/pynwb.svg)](https://github.com/NeurodataWithoutBorders/nwbinspector/license.txt)
 

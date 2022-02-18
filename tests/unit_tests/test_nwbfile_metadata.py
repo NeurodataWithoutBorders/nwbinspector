@@ -11,6 +11,10 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experiment_description,
     check_institution,
     check_subject_sex,
+    check_subject_age,
+    check_subject_species,
+    check_subject_exists,
+    check_subject_id_exists,
 )
 from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
@@ -82,18 +86,117 @@ def test_check_subject_sex():
 
 
 def test_check_subject_sex_other_value():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-    nwbfile.subject = Subject(subject_id="001", sex="Male")
+    subject = Subject(subject_id="001", sex="Male")
 
-    assert check_subject_sex(nwbfile.subject) == InspectorMessage(
+    assert check_subject_sex(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
-        location="",
+        location="/",
     )
+
+
+def test_check_subject_age_missing():
+    subject = Subject(subject_id="001", sex="Male")
+    assert check_subject_age(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject is missing age.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_check_subject_species():
+    subject = Subject(subject_id="001")
+    assert check_subject_species(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_species",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_check_subject_age_iso8601():
+    subject = Subject(subject_id="001", sex="Male", age="9 months")
+    assert check_subject_age(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
+        "weeks.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_check_subject_species_not_iso8601():
+    subject = Subject(subject_id="001", species="Human")
+
+    assert check_subject_species(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_species",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_pass_check_subject_age():
+    subject = Subject(subject_id="001", sex="Male", age="P9M")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_exists():
+    assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_exists",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_pass_check_subject_exists():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+    nwbfile.subject = Subject(subject_id="001", sex="Male")
+    assert check_subject_exists(nwbfile) is None
+
+
+def test_check_subject_id_exists():
+    subject = Subject(sex="Male")
+    assert check_subject_id_exists(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="subject_id is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_id_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_pass_check_subject_species():
+    subject = Subject(subject_id="001", species="Homo sapiens")
+    assert check_subject_species(subject) is None
+
+
+def test_pass_check_subject_id_exist():
+    subject = Subject(subject_id="001", sex="Male")
+    assert check_subject_id_exists(subject) is None
 
 
 @pytest.mark.skip(reason="TODO")
