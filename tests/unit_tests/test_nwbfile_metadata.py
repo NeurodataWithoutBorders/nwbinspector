@@ -96,7 +96,7 @@ def test_check_subject_sex_other_value():
     )
 
 
-def test_check_subject_age():
+def test_check_subject_age_missing():
     subject = Subject(subject_id="001", sex="Male")
     assert check_subject_age(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
@@ -107,6 +107,25 @@ def test_check_subject_age():
         object_name="subject",
         location="/",
     )
+
+
+def test_check_subject_age_iso8601():
+    subject = Subject(subject_id="001", sex="Male", age="9 months")
+    assert check_subject_age(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
+                "weeks.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
+    )
+
+
+def test_pass_check_subject_age():
+    subject = Subject(subject_id="001", sex="Male", age="P9M")
+    assert check_subject_age(subject) is None
 
 
 @pytest.mark.skip(reason="TODO")
