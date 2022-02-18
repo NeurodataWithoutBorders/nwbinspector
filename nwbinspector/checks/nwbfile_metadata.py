@@ -69,17 +69,6 @@ def check_subject_sex(subject: Subject):
 
 
 # @nwbinspector_check(severity=2, neurodata_type=NWBFile)
-# def check_subject_id(nwbfile: NWBFile):
-#     """
-#     Check if the subject ID has been specified, if one exists.
-
-#     This is a metadata requirement for upload to the DANDI archive.
-#     """
-#     if nwbfile.subject and not nwbfile.subject.subject_id:
-#         return "Metadata /general/subject/subject_id is missing!"
-
-
-# @nwbinspector_check(severity=2, neurodata_type=NWBFile)
 # def check_subject_species(nwbfile: NWBFile):
 #     """Check if the subject species has been specified, if one exists."""
 #     if nwbfile.subject and not nwbfile.subject.species:
