@@ -1,8 +1,12 @@
 """Check functions that examine general NWBFile metadata."""
+import re
+
 from pynwb import NWBFile
 from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
+
+species_regex = r"[A-Z][a-z]* [a-z]+"
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
@@ -51,6 +55,17 @@ def check_subject_sex(subject: Subject):
     elif subject.sex not in ("M", "F", "O", "U"):
         return InspectorMessage(
             message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
+def check_subject_species(subject: Subject):
+    """Check if the subject species has been specified and follows latin binomial form."""
+    if not subject.species:
+        return InspectorMessage(message="Subject species is missing.")
+    if not re.fullmatch(species_regex, subject.species):
+        return InspectorMessage(
+            message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         )
 
 
