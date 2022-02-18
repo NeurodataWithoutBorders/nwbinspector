@@ -106,6 +106,7 @@ def inspect_nwb(
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
+    driver: str = None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -143,7 +144,7 @@ def inspect_nwb(
         )
     unorganized_results = OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
     try:
-        with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True) as io:
+        with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
             validation_errors = pynwb.validate(io=io)
             if any(validation_errors):
                 for validation_error in validation_errors:
