@@ -105,7 +105,7 @@ def test_check_subject_species():
     assert check_subject_species(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_species",
         object_type="Subject",
         object_name="subject",
