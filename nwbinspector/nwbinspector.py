@@ -11,7 +11,8 @@ import pynwb
 from natsort import natsorted
 
 from . import available_checks, Importance
-from .inspector_tools import organize_check_results, write_results, print_to_console
+from .inspector_tools import ReportCollectorImportance, organize_check_results, write_results, print_to_console
+from .register_checks import InspectorMessage
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
 
@@ -85,56 +86,35 @@ def inspect_all(
 
     for module in modules:
         importlib.import_module(module)
-    num_invalid_files = 0
-    num_exceptions = 0
     organized_results = dict()
     for file_index, nwbfile_path in enumerate(nwbfiles):
         print(f"{file_index}/{num_nwbfiles}: {nwbfile_path}")
-
-        try:
-            with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True) as io:
-                errors = pynwb.validate(io)
-                if errors:
-                    for e in errors:
-                        print("Validator Error: ", e)
-                    num_invalid_files += 1
-                nwbfile = io.read()
-                check_results = inspect_nwb(
-                    nwbfile=nwbfile,
-                    ignore=ignore,
-                    select=select,
-                    importance_threshold=importance_threshold,
-                )
-                if any(check_results):
-                    organized_results.update({str(nwbfile_path): organize_check_results(check_results=check_results)})
-        except Exception as ex:
-            num_exceptions += 1
-            print("ERROR: ", ex)
-            traceback.print_exc()
+        organized_results.update(
+            inspect_nwb(
+                nwbfile_path=nwbfile_path, importance_threshold=importance_threshold, ignore=ignore, select=select
+            )
+        )
     if len(organized_results):
         write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
         print_to_console(log_file_path=log_file_path)
-        print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!")
-    if num_invalid_files:
-        print(f"{num_invalid_files}/{num_nwbfiles} files are invalid.")
-    if num_exceptions:
-        print(f"{num_exceptions}/{num_nwbfiles} files had errors.")
+        print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!{os.linesep}")
 
 
 def inspect_nwb(
-    nwbfile: pynwb.NWBFile,
+    nwbfile_path: FilePathType,
     checks: OrderedDict = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
+    driver: str = None,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
 
     Parameters
     ----------
-    nwbfile : pynwb.NWBFile
-        The NWBFile object to check.
+    nwbfile_path : FilePathType
+        Path to the NWBFile.
     checks : dictionary, optional
         A nested dictionary specifying which quality checks to run.
         Outer key is importance, inner key is NWB object type, and values are lists of test functions to run.
@@ -162,24 +142,48 @@ def inspect_nwb(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-    check_results = list()
-    for importance, checks_per_object_type in checks.items():
-        if importance.value >= importance_threshold.value:
-            for check_object_type, check_functions in checks_per_object_type.items():
-                for nwbfile_object in nwbfile.objects.values():
-                    if issubclass(type(nwbfile_object), check_object_type):
-                        for check_function in check_functions:
-                            if ignore is not None and check_function.__name__ in ignore:
-                                continue
-                            if select is not None and check_function.__name__ not in select:
-                                continue
-                            output = check_function(nwbfile_object)
-                            if output is not None:
-                                if isinstance(output, Iterable):
-                                    check_results.extend(output)
-                                else:
-                                    check_results.append(output)
-    return check_results
+    unorganized_results = OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
+    try:
+        with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
+            validation_errors = pynwb.validate(io=io)
+            if any(validation_errors):
+                for validation_error in validation_errors:
+                    message = InspectorMessage(message=validation_error.reason)
+                    message.importance = ReportCollectorImportance.PYNWB_VALIDATION
+                    message.check_function_name = validation_error.name
+                    message.location = validation_error.location
+                    unorganized_results["PYNWB_VALIDATION"].append(message)
+            nwbfile = io.read()
+            check_results = list()
+            for importance, checks_per_object_type in checks.items():
+                if importance.value >= importance_threshold.value:
+                    for check_object_type, check_functions in checks_per_object_type.items():
+                        for nwbfile_object in nwbfile.objects.values():
+                            if issubclass(type(nwbfile_object), check_object_type):
+                                for check_function in check_functions:
+                                    if ignore is not None and check_function.__name__ in ignore:
+                                        continue
+                                    if select is not None and check_function.__name__ not in select:
+                                        continue
+                                    output = check_function(nwbfile_object)
+                                    if output is not None:
+                                        if isinstance(output, Iterable):
+                                            check_results.extend(output)
+                                        else:
+                                            check_results.append(output)
+            if any(check_results):
+                unorganized_results.update(organize_check_results(check_results=check_results))
+    except Exception as ex:
+        message = InspectorMessage(message=traceback.format_exc())
+        message.importance = ReportCollectorImportance.ERROR
+        message.check_function_name = ex
+        unorganized_results["ERROR"].append(message)
+    organized_result = OrderedDict()
+    for importance_level, results in unorganized_results.items():
+        if any(results):
+            organized_result.update({importance_level: results})
+    organized_result = {nwbfile_path: organized_result}
+    return organized_result
 
 
 if __name__ == "__main__":

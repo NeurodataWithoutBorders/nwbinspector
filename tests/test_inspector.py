@@ -2,8 +2,6 @@ import os
 from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
-from uuid import uuid4
-from datetime import datetime
 from pathlib import Path
 from typing import List
 from collections import OrderedDict, defaultdict
@@ -27,14 +25,14 @@ from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
 
 
-def add_big_dataset_no_compression(nwbfile):
+def add_big_dataset_no_compression(nwbfile: NWBFile):
     time_series = TimeSeries(
         name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
     )
     nwbfile.add_acquisition(time_series)
 
 
-def add_regular_timestamps(nwbfile):
+def add_regular_timestamps(nwbfile: NWBFile):
     regular_timestamps = np.arange(1.2, 11.2, 2)
     timestamps_length = len(regular_timestamps)
     time_series = TimeSeries(
@@ -46,7 +44,7 @@ def add_regular_timestamps(nwbfile):
     nwbfile.add_acquisition(time_series)
 
 
-def add_flipped_data_orientation_to_processing(nwbfile):
+def add_flipped_data_orientation_to_processing(nwbfile: NWBFile):
     spatial_series = SpatialSeries(
         name="my_spatial_series", data=np.zeros(shape=(2, 3)), reference_frame="unknown", rate=1.0
     )
@@ -54,7 +52,7 @@ def add_flipped_data_orientation_to_processing(nwbfile):
     module.add(Position(spatial_series=spatial_series))
 
 
-def add_non_matching_timestamps_dimension(nwbfile):
+def add_non_matching_timestamps_dimension(nwbfile: NWBFile):
     timestamps = [1.0, 2.1, 3.0]
     timestamps_length = len(timestamps)
     time_series = TimeSeries(
@@ -64,6 +62,13 @@ def add_non_matching_timestamps_dimension(nwbfile):
         unit="",
     )
     nwbfile.add_acquisition(time_series)
+
+
+def add_simple_table(nwbfile: NWBFile):
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=2.0, stop_time=3.0)
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
+    nwbfile.add_acquisition(time_intervals)
 
 
 class TestInspector(TestCase):
@@ -82,17 +87,12 @@ class TestInspector(TestCase):
         num_nwbfiles = 2
         nwbfiles = list()
         for j in range(num_nwbfiles):
-            nwbfiles.append(
-                NWBFile(
-                    session_description="Testing inspector.",
-                    identifier=str(uuid4()),
-                    session_start_time=datetime.now().astimezone(),
-                )
-            )
-        add_regular_timestamps(nwbfiles[0])
+            nwbfiles.append(make_minimal_nwbfile())
         add_big_dataset_no_compression(nwbfiles[0])
+        add_regular_timestamps(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
+        add_simple_table(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
         # Last file to be left without violations
 
@@ -128,19 +128,8 @@ class TestInspector(TestCase):
                 self.assertEqual(first=test_file_lines, second=true_file_lines)
 
     def test_inspect_nwb(self):
-        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
-            written_nwbfile = io.read()
-            test_results = inspect_nwb(nwbfile=written_nwbfile, checks=self.checks)
-        true_results = [
-            InspectorMessage(
-                message="data is not compressed. Consider enabling compression when writing a dataset.",
-                severity=Severity.LOW,
-                importance=Importance.BEST_PRACTICE_SUGGESTION,
-                check_function_name="check_small_dataset_compression",
-                object_type="TimeSeries",
-                object_name="test_time_series_1",
-                location="/acquisition/",
-            ),
+        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        true_critical_results = [
             InspectorMessage(
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
@@ -162,6 +151,8 @@ class TestInspector(TestCase):
                 object_name="test_time_series_3",
                 location="/acquisition/",
             ),
+        ]
+        true_violation_results = [
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
@@ -175,14 +166,31 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
         ]
-        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
+        true_suggestion_results = [
+            InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                severity=Severity.LOW,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+                location="/acquisition/",
+            ),
+        ]
+        self.assertListofDictEqual(
+            test_list=test_results[self.nwbfile_paths[0]]["CRITICAL"], true_list=true_critical_results
+        )
+        self.assertListofDictEqual(
+            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"], true_list=true_violation_results
+        )
+        self.assertListofDictEqual(
+            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_SUGGESTION"], true_list=true_suggestion_results
+        )
 
     def test_inspect_nwb_importance_threshold(self):
-        with NWBHDF5IO(path=self.nwbfile_paths[0], mode="r") as io:
-            written_nwbfile = io.read()
-            test_results = inspect_nwb(
-                nwbfile=written_nwbfile, checks=self.checks, importance_threshold=Importance.CRITICAL
-            )
+        test_results = inspect_nwb(
+            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+        )
         true_results = [
             InspectorMessage(
                 severity=Severity.NO_SEVERITY,
@@ -206,7 +214,7 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
         ]
-        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
+        self.assertListofDictEqual(test_list=test_results[self.nwbfile_paths[0]]["CRITICAL"], true_list=true_results)
 
     def test_command_line_runs(self):
         os.system(
@@ -226,18 +234,12 @@ class TestInspector(TestCase):
         )
 
     def test_iterable_check_function(self):
-        nwbfile = make_minimal_nwbfile()
-        time_intervals = TimeIntervals(name="test_table", description="desc")
-        time_intervals.add_row(start_time=2.0, stop_time=3.0)
-        time_intervals.add_row(start_time=1.0, stop_time=2.0)
-        nwbfile.add_acquisition(time_intervals)
-
         @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
         def iterable_check_function(table: DynamicTable):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = inspect_nwb(nwbfile=nwbfile, select=["iterable_check_function"])
+        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -258,4 +260,6 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
         ]
-        self.assertListofDictEqual(test_list=test_results, true_list=true_results)
+        self.assertListofDictEqual(
+            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"], true_list=true_results
+        )
