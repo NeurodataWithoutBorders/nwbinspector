@@ -119,7 +119,7 @@ def test_check_subject_species_not_iso8601():
     assert check_subject_species(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_species",
         object_type="Subject",
         object_name="subject",
