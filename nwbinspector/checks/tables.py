@@ -7,7 +7,7 @@ from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import is_ascending_series
 
 
-@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
 def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems=200):
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
         return InspectorMessage(
