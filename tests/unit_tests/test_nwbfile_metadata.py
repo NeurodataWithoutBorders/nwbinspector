@@ -11,6 +11,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experiment_description,
     check_institution,
     check_subject_sex,
+    check_subject_exists,
 )
 from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
@@ -95,6 +96,23 @@ def test_check_subject_sex_other_value():
         location="",
     )
 
+
+def test_check_subject_exists():
+    assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_exists",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_pass_check_subject_exists():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+    nwbfile.subject = Subject(subject_id="001", sex="Male")
+    assert check_subject_exists(nwbfile) is None
 
 @pytest.mark.skip(reason="TODO")
 def test_check_subject_id():

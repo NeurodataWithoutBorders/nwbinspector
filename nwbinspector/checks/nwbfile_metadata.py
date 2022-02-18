@@ -43,6 +43,14 @@ def check_institution(nwbfile: NWBFile):
 #                 return f"Metadata /general/related_publications '{publication}' does not include 'doi'!"
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_subject_exists(nwbfile: NWBFile):
+    """Check if subject exists."""
+    if nwbfile.subject is None:
+        return InspectorMessage(message="Subject is missing.")
+
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
     """Check if the subject sex has been specified, if one exists."""
