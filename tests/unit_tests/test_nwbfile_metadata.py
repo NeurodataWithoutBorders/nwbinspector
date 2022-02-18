@@ -103,7 +103,7 @@ def test_check_subject_age_missing():
     assert check_subject_age(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Subject is missing age.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
