@@ -50,6 +50,12 @@ def check_subject_exists(nwbfile: NWBFile):
         return InspectorMessage(message="Subject is missing.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_id_exists(subject: Subject):
+    """Check if subject_id is defined."""
+    if subject.subject_id is None:
+        return InspectorMessage(message="subject_id is missing.")
+
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
