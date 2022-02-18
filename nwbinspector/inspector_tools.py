@@ -32,7 +32,6 @@ def organize_check_results(check_results: list):
     """Format the list of returned results from checks."""
     initial_results = OrderedDict({importance.name: list() for importance in ReportCollectorImportance})
     for check_result in check_results:
-        print(check_result)
         initial_results[check_result.importance.name].append(check_result)
     organized_check_results = OrderedDict()
     for importance_level, check_results in initial_results.items():
