@@ -138,7 +138,7 @@ def test_check_subject_age_iso8601():
         location="/",
     )
 
-    
+
 def test_check_subject_species_not_iso8601():
     subject = Subject(subject_id="001", species="Human")
 
@@ -157,7 +157,7 @@ def test_pass_check_subject_age():
     subject = Subject(subject_id="001", sex="Male", age="P9M")
     assert check_subject_age(subject) is None
 
-    
+
 def test_check_subject_exists():
     assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
