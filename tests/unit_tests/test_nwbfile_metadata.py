@@ -11,6 +11,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experiment_description,
     check_institution,
     check_subject_sex,
+    check_subject_age,
 )
 from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
@@ -82,17 +83,29 @@ def test_check_subject_sex():
 
 
 def test_check_subject_sex_other_value():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-    nwbfile.subject = Subject(subject_id="001", sex="Male")
+    subject = Subject(subject_id="001", sex="Male")
 
-    assert check_subject_sex(nwbfile.subject) == InspectorMessage(
+    assert check_subject_sex(subject) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
-        location="",
+        location="/",
+    )
+
+
+def test_check_subject_age():
+    subject = Subject(subject_id="001", sex="Male")
+    assert check_subject_age(subject) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="Subject is missing age.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/",
     )
 
 
