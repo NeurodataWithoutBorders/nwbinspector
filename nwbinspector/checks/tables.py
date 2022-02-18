@@ -1,10 +1,22 @@
 """Check functions that can apply to any descendant of DynamicTable."""
-from hdmf.common import DynamicTable
+from hdmf.common import DynamicTable, DynamicTableRegion
 import numpy as np
 from pynwb.file import TimeIntervals
 
 from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import is_ascending_series
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems=200):
+    if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
+        return InspectorMessage(
+            message=f"Some elements of {dynamic_table_region.name} are out of range because they are greater than the length of the target table. Note that data should contain indices, not ids."
+        )
+    if np.any(np.asarray(dynamic_table_region.data[:nelems]) < 0):
+        return InspectorMessage(
+            message=f"Some elements of {dynamic_table_region.name} are out of range because they are less than 0."
+        )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
