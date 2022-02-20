@@ -36,11 +36,6 @@ body:
         - "No"
     validations:
       required: true
-  - type: textarea
-    id: addinfo
-    attributes:
-      label: Additional information / screenshots
-      description: Add any additional information or context about the feature request here.
   - type: checkboxes
     id: terms
     attributes:
