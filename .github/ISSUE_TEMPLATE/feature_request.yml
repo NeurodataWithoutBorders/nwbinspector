@@ -31,9 +31,9 @@ body:
 
         For information on how to contribute, please refer to our [contributing guidelines]() (TODO).
       options:
-        - "Yes"
-        - Yes, but I would need guidance
-        - "No"
+        - Yes.
+        - Yes, but I would need guidance.
+        - No.
     validations:
       required: true
   - type: checkboxes
