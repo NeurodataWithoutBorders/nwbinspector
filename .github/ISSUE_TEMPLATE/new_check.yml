@@ -26,9 +26,9 @@ body:
   - type: textarea
     id: check-logic
     attributes:
-      label: Logic or Pseudocode of the Check
+      label: Pseudocode or other logic of the check
       description: |
-        What would the general approach be to apply this check to the contents of an NWBFile?
+        If you have an idea for how this Best Practice issue might be detected, what would the general approach be to apply this check to the contents of an NWBFile?
 
         This section will be automatically formatted into code, so no need for backticks.
       render: shell
