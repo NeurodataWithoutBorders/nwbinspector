@@ -17,7 +17,7 @@ body:
       description: |
         What are you trying to achieve with the **NWBInspector**?
         
-        If you are requested a new check function, is it already a part of the [NWB Best Practices](https://www.nwb.org/best-practices/), or should we consider adding it there as well?
+        If you are requesting a new check function, is it already a part of the [NWB Best Practices](https://www.nwb.org/best-practices/), or should we consider adding it there as well?
         
         Is this a more convenient way to do something that is already possible, or is a workaround (via `ignore` and `select`) currently unfeasible?
     validations:
