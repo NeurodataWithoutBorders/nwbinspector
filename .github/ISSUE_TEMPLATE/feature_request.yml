@@ -8,6 +8,7 @@ body:
         ## Thank you for your suggestion!
 
         We welcome any ideas about how to make the *NWBInspector* better for the community.
+
         Please keep in mind that features may not get implemented immediately.
   - type: textarea
     id: summary
