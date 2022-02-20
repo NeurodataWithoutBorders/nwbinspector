@@ -23,6 +23,15 @@ body:
         Is this logic already a part of the [NWB Best Practices](https://www.nwb.org/best-practices/), or should we consider adding it there as well?
     validations:
       required: true
+  - type: textarea
+    id: check-logic
+    attributes:
+      label: Logic or Pseudocode of the Check
+      description: |
+        What would the general approach be to apply this check to the contents of an NWBFile?
+
+        This section will be automatically formatted into code, so no need for backticks.
+      render: shell
   - type: dropdown
     id: interest
     attributes:
