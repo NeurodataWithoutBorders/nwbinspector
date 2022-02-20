@@ -6,6 +6,7 @@ from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
+    check_timestamps_ascending,
     Importance,
 )
 from nwbinspector import Severity, InspectorMessage
@@ -101,3 +102,21 @@ def test_check_timestamps_empty_timestamps():
         object_name="test_time_series",
         location="/",
     )
+
+
+def test_check_timestamps_ascending():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
+    assert check_timestamps_ascending(time_series) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message="test_time_series timestamps are not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_ascending",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_pass_check_timestamps_ascending():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_ascending(time_series) is None
