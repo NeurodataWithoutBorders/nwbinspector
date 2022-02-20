@@ -30,9 +30,9 @@ body:
 
         For information on how to contribute, please refer to our [contributing guidelines]() (TODO).
       options:
-        - Yes
+        - "Yes"
         - Yes, but I would need guidance
-        - No
+        - "No"
     validations:
       required: true
   - type: textarea
