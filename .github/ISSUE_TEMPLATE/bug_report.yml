@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         # Thanks for taking the time to fill out this bug report!
-        ### The following information will help us in getting your issue resolved.
+        ### The following information will help us resolve your issue.
   - type: textarea
     id: what-happened
     attributes:
@@ -46,7 +46,7 @@ body:
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
-        - label: Have you ensured the feature or change was not already [reported](https://github.com/neurodatawithoutborders/nwbinspector/issues)?
+        - label: Have you ensured this bug was not already [reported](https://github.com/neurodatawithoutborders/nwbinspector/issues)?
           required: true
-        - label: To the best of your ability, have you ensured this is a bug within the code that checks the NWBFile, rather than a bug in the NWBFile reader (e.g., pynwb)?
+        - label: To the best of your ability, have you ensured this is a bug within the code that checks the NWBFile, rather than a bug in the NWBFile reader (e.g., [PyNWB](https://github.com/NeurodataWithoutBorders/pynwb) or [MatNWB](https://github.com/NeurodataWithoutBorders/matnwb))?
           required: true
