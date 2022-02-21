@@ -4,7 +4,7 @@ from nwbinspector.utils import format_byte_size, check_regular_series
 
 
 def test_format_byte_size():
-    assert format_byte_size(byte_size=12345) == "12.34KB"
+    assert format_byte_size(byte_size=12345) == "12.35KB"
 
 
 def test_format_byte_size_in_binary():
