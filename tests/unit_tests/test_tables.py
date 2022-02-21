@@ -9,6 +9,7 @@ from nwbinspector import (
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
     check_dynamic_table_region_data_validity,
+    check_column_binary_capability,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance, Severity
 
@@ -36,7 +37,10 @@ class TestCheckDynamicTableRegion(TestCase):
         dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 20], table=self.table)
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             severity=Severity.NO_SEVERITY,
-            message="Some elements of dyn_tab are out of range because they are greater than the length of the target table. Note that data should contain indices, not ids.",
+            message=(
+                "Some elements of dyn_tab are out of range because they are greater than the length of the target "
+                "table. Note that data should contain indices, not ids."
+            ),
             importance=Importance.CRITICAL,
             check_function_name="check_dynamic_table_region_data_validity",
             object_type="DynamicTableRegion",
@@ -114,6 +118,14 @@ def test_pass_check_time_intervals_stop_after_start():
     time_intervals.add_row(start_time=2.0, stop_time=2.5)
     time_intervals.add_row(start_time=3.0, stop_time=3.5)
     assert check_time_intervals_stop_after_start(time_intervals) is None
+
+
+def test_pass_check_column_binary_capability():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_col", description="")
+    for x in [1.0, 2.0, 1.0, 2.0, 1.0]:
+        table.add_row(test_col=x)
+    assert check_column_binary_capability(table=table)
 
 
 @pytest.mark.skip(reason="TODO")
