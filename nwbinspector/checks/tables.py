@@ -94,10 +94,15 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             unique_values = np.unique(column_data[:nelems])
             column_dtype = column_data.dtype
             saved_bytes = (column_dtype.itemsize - 1) * column_data.size
-            if len(column_data.shape) == 1 and saved_bytes != 0 and len(unique_values) == 2:
+            if (
+                column_data.dtype != np.dtype("object")  # jagged shaped lists
+                and len(column_data.shape) == 1
+                and saved_bytes != 0
+                and len(unique_values) == 2
+            ):
                 yield InspectorMessage(
                     message=(
-                        f"{column.data.name} is {column_dtype} but has binary values {unique_values}. Consider making "
+                        f"{column.name} is {column_dtype} but has binary values {unique_values}. Consider making "
                         f"it boolean instead; doing so will save {saved_bytes} total bytes."
                     )
                 )

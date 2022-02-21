@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import pytest
+import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from pynwb.file import TimeIntervals
 
@@ -123,9 +124,62 @@ def test_pass_check_time_intervals_stop_after_start():
 def test_pass_check_column_binary_capability():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_col", description="")
+    for x in [1.0, 2.0, 3.0]:
+        table.add_row(test_col=x)
+    assert check_column_binary_capability(table=table) is None
+
+
+def test_pass_array_check_column_binary_capability():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_col", description="")
+    for x in [
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [1.0, 2.0],
+    ]:  # Technically there are only two unique 'elements' in the list; but check will not inspect array contents
+        table.add_row(test_col=x)
+    assert check_column_binary_capability(table=table) is None
+
+
+def test_pass_jagged_array_check_column_binary_capability():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_col", description="")
+    for x in [
+        [1.0, 2.0],
+        [1.0, 2.0, 3.0],
+        [1.0, 2.0],
+    ]:  # Technically there are only two unique 'elements' in the list
+        table.add_row(test_col=x)
+    assert check_column_binary_capability(table=table) is None
+
+
+def test_pass_no_saved_bytes_check_column_binary_capability():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_col", description="")
+    for x in np.array([1, 2, 1, 2], dtype="uint8"):
+        table.add_row(test_col=x)
+    assert check_column_binary_capability(table=table) is None
+
+
+def test_fail_check_column_binary_capability():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_col", description="")
     for x in [1.0, 2.0, 1.0, 2.0, 1.0]:
         table.add_row(test_col=x)
-    assert check_column_binary_capability(table=table)
+    assert check_column_binary_capability(table=table) == [
+        InspectorMessage(
+            message=(
+                "test_col is float64 but has binary values [1. 2.]. Consider making it boolean instead; doing so will "
+                "save 35 total bytes."
+            ),
+            severity=Severity.NO_SEVERITY,
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_column_binary_capability",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        )
+    ]
 
 
 @pytest.mark.skip(reason="TODO")
