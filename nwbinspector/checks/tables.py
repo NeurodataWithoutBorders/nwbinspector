@@ -1,11 +1,11 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion
+from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
 from pynwb.file import TimeIntervals
 
 from ..register_checks import register_check, InspectorMessage, Importance
-from ..utils import is_ascending_series
+from ..utils import format_byte_size, is_ascending_series
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -89,21 +89,16 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
         load the entire arrays.
     """
     for column in table.columns:
-        if hasattr(column, "data"):
-            column_data = column.data if hasattr(column.data, "dtype") else np.array(column.data)
-            unique_values = np.unique(column_data[:nelems])
-            column_dtype = column_data.dtype
-            saved_bytes = (column_dtype.itemsize - 1) * column_data.size
-            if (
-                column_data.dtype != np.dtype("object")  # jagged shaped lists
-                and len(column_data.shape) == 1
-                and saved_bytes != 0
-                and len(unique_values) == 2
-            ):
+        if hasattr(column, "data") and not isinstance(column, VectorIndex):
+            unique_values = np.unique(column.data[:nelems])
+            saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
+                get_data_shape(data=column.data, strict_no_data_load=True)
+            )
+            if saved_bytes != 0 and len(unique_values) == 2:
                 yield InspectorMessage(
                     message=(
-                        f"{column.name} is {column_dtype} but has binary values {unique_values}. Consider making "
-                        f"it boolean instead; doing so will save {saved_bytes} total bytes."
+                        f"{column.name} is {unique_values.dtype} but has binary values {unique_values}. Consider "
+                        f"making it boolean instead; doing so will save {format_byte_size(byte_size=saved_bytes)}."
                     )
                 )
 

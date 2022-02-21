@@ -132,23 +132,15 @@ def test_pass_check_column_binary_capability():
 def test_pass_array_check_column_binary_capability():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_col", description="")
-    for x in [
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [1.0, 2.0],
-    ]:  # Technically there are only two unique 'elements' in the list; but check will not inspect array contents
+    for x in [[1.0, 2.0], [2.0, 3.0], [1.0, 2.0]]:
         table.add_row(test_col=x)
     assert check_column_binary_capability(table=table) is None
 
 
 def test_pass_jagged_array_check_column_binary_capability():
     table = DynamicTable(name="test_table", description="")
-    table.add_column(name="test_col", description="")
-    for x in [
-        [1.0, 2.0],
-        [1.0, 2.0, 3.0],
-        [1.0, 2.0],
-    ]:  # Technically there are only two unique 'elements' in the list
+    table.add_column(name="test_col", description="", index=True)
+    for x in [[1.0, 2.0], [1.0, 2.0, 3.0], [1.0, 2.0]]:
         table.add_row(test_col=x)
     assert check_column_binary_capability(table=table) is None
 
@@ -170,7 +162,7 @@ def test_fail_check_column_binary_capability():
         InspectorMessage(
             message=(
                 "test_col is float64 but has binary values [1. 2.]. Consider making it boolean instead; doing so will "
-                "save 35 total bytes."
+                "save 35.00B."
             ),
             severity=Severity.NO_SEVERITY,
             importance=Importance.BEST_PRACTICE_SUGGESTION,
