@@ -2,7 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from pynwb import NWBFile
-from pynwb.file import Subject
+from pynwb.file import Subject, ProcessingModule
 import pytest
 
 from nwbinspector import InspectorMessage, Importance
@@ -15,6 +15,8 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_species,
     check_subject_exists,
     check_subject_id_exists,
+    check_processing_module_name,
+    PROCESSING_MODULE_CONFIG,
 )
 from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
@@ -199,9 +201,25 @@ def test_pass_check_subject_id_exist():
     assert check_subject_id_exists(subject) is None
 
 
-@pytest.mark.skip(reason="TODO")
-def test_check_subject_id():
-    pass
+def test_check_processing_module_name():
+    processing_module = ProcessingModule("test", "desc")
+    assert check_processing_module_name(processing_module) == InspectorMessage(
+        severity=Severity.NO_SEVERITY,
+        message=f"Processing module is named test. It is recommended to use the schema "
+                f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_processing_module_name",
+        object_type="ProcessingModule",
+        object_name="test",
+        location="/",
+    )
+
+
+def test_pass_check_processing_module_name():
+    processing_module = ProcessingModule("ecephys", "desc")
+    assert check_processing_module_name(processing_module) is None
+
+
 
 
 @pytest.mark.skip(reason="TODO")

@@ -89,7 +89,7 @@ def check_subject_species(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
-def check_processing_module_names(processing_module: ProcessingModule):
+def check_processing_module_name(processing_module: ProcessingModule):
     if processing_module.name not in PROCESSING_MODULE_CONFIG:
         return InspectorMessage(f"Processing module is named {processing_module.name}. It is recommended to use the "
                                 f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}")
