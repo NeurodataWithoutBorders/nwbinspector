@@ -9,15 +9,7 @@ from ..register_checks import register_check, InspectorMessage, Importance
 duration_regex = r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?S)?)?$"
 species_regex = r"[A-Z][a-z]* [a-z]+"
 
-PROCESSING_MODULE_CONFIG = [
-    "ophys",
-    "ecephys",
-    "icephys",
-    "behavior",
-    "misc",
-    "ogen",
-    "retinotopy"
-]
+PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
@@ -91,8 +83,10 @@ def check_subject_species(subject: Subject):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
 def check_processing_module_name(processing_module: ProcessingModule):
     if processing_module.name not in PROCESSING_MODULE_CONFIG:
-        return InspectorMessage(f"Processing module is named {processing_module.name}. It is recommended to use the "
-                                f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}")
+        return InspectorMessage(
+            f"Processing module is named {processing_module.name}. It is recommended to use the "
+            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+        )
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
