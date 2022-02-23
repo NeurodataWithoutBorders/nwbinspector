@@ -91,7 +91,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if hasattr(column, "data") and not isinstance(column, VectorIndex):
             if np.asarray(column.data[0]).itemsize == 1:
-                return  # already boolean, int8, or uint8
+                continue # already boolean, int8, or uint8
             unique_values = np.unique(column.data[:nelems])
             saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
                 get_data_shape(data=column.data, strict_no_data_load=True)
