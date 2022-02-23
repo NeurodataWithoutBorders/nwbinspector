@@ -82,7 +82,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
     Parameters
     ----------
-    time_intervals: TimeIntervals
+    time_intervals: DynamicTable
     nelems: int
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
@@ -90,11 +90,13 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
     """
     for column in table.columns:
         if hasattr(column, "data") and not isinstance(column, VectorIndex):
+            if np.asarray(column.data[0]).itemsize == 1:
+                return  # already boolean, int8, or uint8
             unique_values = np.unique(column.data[:nelems])
             saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
                 get_data_shape(data=column.data, strict_no_data_load=True)
             )
-            if saved_bytes != 0 and len(unique_values) == 2:
+            if len(unique_values) == 2:
                 yield InspectorMessage(
                     message=(
                         f"{column.name} is {unique_values.dtype} but has binary values {unique_values}. Consider "
