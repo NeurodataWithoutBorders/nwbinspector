@@ -206,7 +206,7 @@ def test_check_processing_module_name():
     assert check_processing_module_name(processing_module) == InspectorMessage(
         severity=Severity.NO_SEVERITY,
         message=f"Processing module is named test. It is recommended to use the schema "
-                f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
+        f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_processing_module_name",
         object_type="ProcessingModule",
@@ -218,8 +218,6 @@ def test_check_processing_module_name():
 def test_pass_check_processing_module_name():
     processing_module = ProcessingModule("ecephys", "desc")
     assert check_processing_module_name(processing_module) is None
-
-
 
 
 @pytest.mark.skip(reason="TODO")
