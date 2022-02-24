@@ -116,12 +116,18 @@ class TestInspector(TestCase):
         assert path.exists()
 
     def assertLogFileContentsEqual(
-        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_n_lines: int = 0
+        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
     ):
         with open(file=test_file_path, mode="r") as test_file:
             with open(file=true_file_path, mode="r") as true_file:
                 test_file_lines = test_file.readlines()
-                print(test_file_lines)
+                if skip_first_newlines:
+                    for line_number, test_line in enumerate(test_file_lines):
+                        if "NWBFile: " in test_line:
+                            skip_first_n_lines = line_number + 1
+                            break
+                else:
+                    skip_first_n_lines = 0
                 true_file_lines = true_file.readlines()
                 for line_number, test_line in enumerate(test_file_lines):
                     if "NWBFile: " in test_line:
@@ -229,7 +235,7 @@ class TestInspector(TestCase):
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file,
             true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
-            skip_first_n_lines=4,
+            skip_first_newlines=True,
         )
 
     def test_command_line_runs_saves_report(self):
