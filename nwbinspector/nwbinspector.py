@@ -4,14 +4,20 @@ import importlib
 import traceback
 from pathlib import Path
 from collections import OrderedDict, Iterable
+from typing import Optional
 
 import click
-
 import pynwb
 from natsort import natsorted
 
 from . import available_checks, Importance
-from .inspector_tools import ReportCollectorImportance, organize_check_results, write_results, print_to_console
+from .inspector_tools import (
+    ReportCollectorImportance,
+    organize_check_results,
+    format_organized_results_output,
+    print_to_console,
+    write_results,
+)
 from .register_checks import InspectorMessage
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
@@ -23,7 +29,7 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
     "--log-file-path",
-    default="nwbinspector_log_file.txt",
+    default=None,
     help="Save path for the log file. Defaults to the current directory.",
     type=click.Path(writable=True),
 )
@@ -39,7 +45,7 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 def inspect_all_cli(
     path: str,
     modules: OptionalListOfStrings = None,
-    log_file_path: str = "nwbinspector_log_file.txt",
+    log_file_path: str = None,
     overwrite: bool = False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -62,7 +68,7 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    log_file_path: FilePathType = "nwbinspector_log_file.txt",
+    log_file_path: Optional[FilePathType] = None,
     overwrite=False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -72,7 +78,6 @@ def inspect_all(
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
     path = Path(path)
-    log_file_path = Path(log_file_path)
 
     in_path = Path(path)
     if in_path.is_dir():
@@ -82,22 +87,22 @@ def inspect_all(
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
     nwbfiles = natsorted(nwbfiles)
-    num_nwbfiles = len(nwbfiles)
 
     for module in modules:
         importlib.import_module(module)
     organized_results = dict()
     for file_index, nwbfile_path in enumerate(nwbfiles):
-        print(f"{file_index}/{num_nwbfiles}: {nwbfile_path}")
         organized_results.update(
             inspect_nwb(
                 nwbfile_path=nwbfile_path, importance_threshold=importance_threshold, ignore=ignore, select=select
             )
         )
     if len(organized_results):
-        write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
-        print_to_console(log_file_path=log_file_path)
-        print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!{os.linesep}")
+        formatted_results = format_organized_results_output(organized_results=organized_results)
+        print_to_console(formatted_results=formatted_results, no_color=no_color)
+        if log_file_path is not None:
+            write_results(log_file_path=log_file_path, formatted_results=formatted_results, overwrite=overwrite)
+            print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!{os.linesep}")
 
 
 def inspect_nwb(
