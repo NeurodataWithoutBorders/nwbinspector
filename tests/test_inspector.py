@@ -234,25 +234,25 @@ class TestInspector(TestCase):
         )
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file,
-            true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
             skip_first_newlines=True,
         )
 
     def test_command_line_runs_saves_report(self):
         os.system(
-            f"nwbinspector {str(self.nwbfile_paths[0])} --log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
+            f"nwbinspector {str(self.nwbfile_paths[0])} --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
         )
-        self.assertFileExists(path=self.tempdir / "nwbinspector_log_file.txt")
+        self.assertFileExists(path=self.tempdir / "nwbinspector_report.txt")
 
     def test_command_line_on_directory_matches_file(self):
         os.system(
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
             f"check_regular_timestamps,check_small_dataset_compression"
-            f" --log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
+            f" --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
         )
         self.assertLogFileContentsEqual(
-            test_file_path=self.tempdir / "nwbinspector_log_file.txt",
-            true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
+            test_file_path=self.tempdir / "nwbinspector_report.txt",
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
         )
 
     def test_iterable_check_function(self):

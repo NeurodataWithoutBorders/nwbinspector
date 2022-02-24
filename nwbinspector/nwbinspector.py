@@ -16,7 +16,7 @@ from .inspector_tools import (
     organize_check_results,
     format_organized_results_output,
     print_to_console,
-    write_results,
+    save_report,
 )
 from .register_checks import InspectorMessage
 from .utils import FilePathType, PathType, OptionalListOfStrings
@@ -25,14 +25,14 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 @click.command()
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
-@click.option("-o", "--overwrite", help="Overwrite an existing log file at the location.", is_flag=True)
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "--log-file-path",
+    "--report-file-path",
     default=None,
-    help="Save path for the log file. Defaults to the current directory.",
+    help="Save path for the report file.",
     type=click.Path(writable=True),
 )
+@click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
 @click.option("-s", "--select", help="Comma-separated names of checks to run")
 @click.option(
@@ -45,18 +45,18 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 def inspect_all_cli(
     path: str,
     modules: OptionalListOfStrings = None,
-    log_file_path: str = None,
+    no_color: bool = False,
+    report_file_path: str = None,
     overwrite: bool = False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
-    no_color: bool = False,
 ):
     """Primary CLI usage."""
     inspect_all(
         path,
         modules=modules,
-        log_file_path=log_file_path,
+        report_file_path=report_file_path,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
@@ -68,12 +68,12 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    log_file_path: Optional[FilePathType] = None,
+    no_color: bool = False,
+    report_file_path: Optional[FilePathType] = None,
     overwrite=False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    no_color: bool = False,
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
@@ -100,9 +100,9 @@ def inspect_all(
     if len(organized_results):
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
-        if log_file_path is not None:
-            write_results(log_file_path=log_file_path, formatted_results=formatted_results, overwrite=overwrite)
-            print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!{os.linesep}")
+        if report_file_path is not None:
+            save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
+            print(f"{os.linesep*2}Log file saved at {str(report_file_path.absolute())}!{os.linesep}")
 
 
 def inspect_nwb(

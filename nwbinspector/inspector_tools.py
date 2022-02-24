@@ -145,11 +145,11 @@ def print_to_console(formatted_results: List[str], no_color: bool = False):
         sys.stdout.write(line)
 
 
-def write_results(log_file_path: FilePathType, formatted_results: List[str], overwrite=False):
+def save_report(report_file_path: FilePathType, formatted_results: List[str], overwrite=False):
     """Write the list of organized check results to a nicely formatted text file."""
-    log_file_path = Path(log_file_path)
-    if log_file_path.exists() and not overwrite:
-        raise FileExistsError(f"The file {log_file_path} already exists! Set 'overwrite=True' or pass '-o' flag.")
-    with open(file=log_file_path, mode="w", newline="\n") as file:
+    report_file_path = Path(report_file_path)
+    if report_file_path.exists() and not overwrite:
+        raise FileExistsError(f"The file {report_file_path} already exists! Set 'overwrite=True' or pass '-o' flag.")
+    with open(file=report_file_path, mode="w", newline="\n") as file:
         for line in formatted_results:
             file.write(line)
