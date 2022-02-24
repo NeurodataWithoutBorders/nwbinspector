@@ -124,7 +124,7 @@ class TestInspector(TestCase):
                 if skip_first_newlines:
                     for line_number, test_line in enumerate(test_file_lines):
                         if "NWBFile: " in test_line:
-                            skip_first_n_lines = line_number + 1
+                            skip_first_n_lines = line_number
                             break
                 else:
                     skip_first_n_lines = 0
