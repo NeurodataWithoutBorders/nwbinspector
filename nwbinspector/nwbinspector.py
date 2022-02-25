@@ -4,6 +4,9 @@ import importlib
 import traceback
 from pathlib import Path
 from collections import OrderedDict, Iterable
+import json
+from enum import Enum
+from typing import Optional
 
 import click
 
@@ -14,6 +17,16 @@ from . import available_checks, Importance
 from .inspector_tools import ReportCollectorImportance, organize_check_results, write_results, print_to_console
 from .register_checks import InspectorMessage
 from .utils import FilePathType, PathType, OptionalListOfStrings
+
+
+class InspectorOutputJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, InspectorMessage):
+            return o.__dict__
+        if isinstance(o, Enum):
+            return o.name
+        else:
+            return super().default(o)
 
 
 @click.command()
@@ -38,16 +51,17 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 )
 def inspect_all_cli(
     path: str,
-    modules: OptionalListOfStrings = None,
+    modules: Optional[str] = None,
     log_file_path: str = "nwbinspector_log_file.txt",
     overwrite: bool = False,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[str] = None,
+    select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    json_path: str = None,
     no_color: bool = False,
 ):
     """Primary CLI usage."""
-    inspect_all(
+    organized_results = inspect_all(
         path,
         modules=modules,
         log_file_path=log_file_path,
@@ -57,6 +71,9 @@ def inspect_all_cli(
         overwrite=overwrite,
         no_color=no_color,
     )
+    if json_path is not None:
+        with open(json_path, "w") as fp:
+            json.dump(organized_results, fp, cls=InspectorOutputJSONEncoder)
 
 
 def inspect_all(
@@ -98,6 +115,7 @@ def inspect_all(
         write_results(log_file_path=log_file_path, organized_results=organized_results, overwrite=overwrite)
         print_to_console(log_file_path=log_file_path)
         print(f"{os.linesep*2}Log file saved at {str(log_file_path.absolute())}!{os.linesep}")
+    return organized_results
 
 
 def inspect_nwb(
@@ -182,7 +200,7 @@ def inspect_nwb(
     for importance_level, results in unorganized_results.items():
         if any(results):
             organized_result.update({importance_level: results})
-    organized_result = {nwbfile_path: organized_result}
+    organized_result = {str(nwbfile_path): organized_result}
     return organized_result
 
 

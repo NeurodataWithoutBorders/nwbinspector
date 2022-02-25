@@ -4,8 +4,11 @@ from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
-
+import json
 import h5py
+
+
+JSON_ENCODER = json.JSONEncoder()
 
 
 class Importance(Enum):
