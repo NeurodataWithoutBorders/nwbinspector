@@ -54,6 +54,7 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
+@click.option("-j", "--json-file-path", help="Write json output to this location.")
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -63,21 +64,21 @@ def inspect_all_cli(
     ignore: Optional[str] = None,
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
-    json_path: str = None,
+    json_file_path: str = None,
 ):
     """Primary CLI usage."""
     organized_results = inspect_all(
         path,
         modules=modules,
+        no_color=no_color,
         report_file_path=report_file_path,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
         overwrite=overwrite,
-        no_color=no_color,
     )
-    if json_path is not None:
-        with open(json_path, "w") as fp:
+    if json_file_path is not None:
+        with open(json_file_path, "w") as fp:
             json.dump(organized_results, fp, cls=InspectorOutputJSONEncoder)
 
 
