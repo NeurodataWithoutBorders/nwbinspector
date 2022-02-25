@@ -115,17 +115,26 @@ class TestInspector(TestCase):
         path = Path(path)
         assert path.exists()
 
-    def assertLogFileContentsEqual(self, test_file_path: FilePathType, true_file_path: FilePathType):
+    def assertLogFileContentsEqual(
+        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
+    ):
         with open(file=test_file_path, mode="r") as test_file:
             with open(file=true_file_path, mode="r") as true_file:
                 test_file_lines = test_file.readlines()
+                if skip_first_newlines:
+                    for line_number, test_line in enumerate(test_file_lines):
+                        if "NWBFile: " in test_line:
+                            skip_first_n_lines = line_number
+                            break
+                else:
+                    skip_first_n_lines = 0
                 true_file_lines = true_file.readlines()
                 for line_number, test_line in enumerate(test_file_lines):
                     if "NWBFile: " in test_line:
                         # Transform temporary testing path and formatted to hardcoded fake path
                         test_file_lines[line_number] = f"NWBFile: /home/fake_path/{test_line[-13:]}"
                         test_file_lines[line_number + 1] = "=" * (len(test_file_lines[line_number]) - 1) + "\n"
-                self.assertEqual(first=test_file_lines, second=true_file_lines)
+                self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
 
     def test_inspect_nwb(self):
         test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
@@ -216,21 +225,34 @@ class TestInspector(TestCase):
         ]
         self.assertListofDictEqual(test_list=test_results[self.nwbfile_paths[0]]["CRITICAL"], true_list=true_results)
 
-    def test_command_line_runs(self):
+    def test_command_line_runs_cli_only(self):
+        console_output_file = self.tempdir / "test_console_output.txt"
         os.system(
-            f"nwbinspector {str(self.nwbfile_paths[0])} --log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
+            f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,"
+            f"check_data_orientation,check_regular_timestamps,check_small_dataset_compression --no-color "
+            f"> {console_output_file}"
         )
-        self.assertFileExists(path=self.tempdir / "nwbinspector_log_file.txt")
+        self.assertLogFileContentsEqual(
+            test_file_path=console_output_file,
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
+            skip_first_newlines=True,
+        )
+
+    def test_command_line_runs_saves_report(self):
+        os.system(
+            f"nwbinspector {str(self.nwbfile_paths[0])} --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
+        )
+        self.assertFileExists(path=self.tempdir / "nwbinspector_report.txt")
 
     def test_command_line_on_directory_matches_file(self):
         os.system(
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,check_data_orientation,"
             f"check_regular_timestamps,check_small_dataset_compression"
-            f" --log-file-path {self.tempdir / 'nwbinspector_log_file.txt'}"
+            f" --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
         )
         self.assertLogFileContentsEqual(
-            test_file_path=self.tempdir / "nwbinspector_log_file.txt",
-            true_file_path=Path(__file__).parent / "true_nwbinspector_log_file.txt",
+            test_file_path=self.tempdir / "nwbinspector_report.txt",
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
         )
 
     def test_iterable_check_function(self):
