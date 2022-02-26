@@ -58,8 +58,8 @@ class TestRegisterClass(TestCase):
             with self.assertRaisesWith(
                 exc_type=ValueError,
                 exc_msg=(
-                    f"Indicated importance ({forbidden_importance}) of custom check (bad_severity_function) is not a "
-                    "valid importance level! Please choose one of Importance.CRITICAL, "
+                    f"Indicated importance ({forbidden_importance}) of custom check (forbidden_importance_function) is "
+                    "not a valid importance level! Please choose one of Importance.CRITICAL, "
                     "Importance.BEST_PRACTICE_VIOLATION, or Importance.BEST_PRACTICE_SUGGESTION."
                 ),
             ):
