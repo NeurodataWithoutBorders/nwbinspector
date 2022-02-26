@@ -48,29 +48,30 @@ def inspect_all_cli(
     no_color: bool = False,
     report_file_path: str = None,
     overwrite: bool = False,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[str] = None,
+    select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
 ):
     """Primary CLI usage."""
-    inspect_all(
+    organized_results = inspect_all(
         path,
         modules=modules,
-        report_file_path=report_file_path,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
-        overwrite=overwrite,
-        no_color=no_color,
     )
+
+    if len(organized_results):
+        formatted_results = format_organized_results_output(organized_results=organized_results)
+        print_to_console(formatted_results=formatted_results, no_color=no_color)
+        if report_file_path is not None:
+            save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
+            print(f"{os.linesep*2}Log file saved at {str(report_file_path.absolute())}!{os.linesep}")
 
 
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    no_color: bool = False,
-    report_file_path: Optional[FilePathType] = None,
-    overwrite=False,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
@@ -97,12 +98,7 @@ def inspect_all(
                 nwbfile_path=nwbfile_path, importance_threshold=importance_threshold, ignore=ignore, select=select
             )
         )
-    if len(organized_results):
-        formatted_results = format_organized_results_output(organized_results=organized_results)
-        print_to_console(formatted_results=formatted_results, no_color=no_color)
-        if report_file_path is not None:
-            save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
-            print(f"{os.linesep*2}Log file saved at {str(report_file_path.absolute())}!{os.linesep}")
+    return organized_results
 
 
 def inspect_nwb(
