@@ -78,7 +78,6 @@ class TestRegisterClass(TestCase):
                     return InspectorMessage(severity=bad_severity, message="")
 
                 bad_severity_function(time_series=self.default_time_series)
-
         else:
             with self.assertRaisesWith(
                 exc_type=ValueError,
@@ -181,7 +180,11 @@ class TestRegisterClass(TestCase):
         from nwbinspector import available_checks
 
         neurodata_type = DynamicTable
-        for importance in Importance:
+        for importance in [
+            Importance.CRITICAL,
+            Importance.BEST_PRACTICE_VIOLATION,
+            Importance.BEST_PRACTICE_SUGGESTION,
+        ]:
 
             @register_check(importance=importance, neurodata_type=neurodata_type)
             def good_check_function():
