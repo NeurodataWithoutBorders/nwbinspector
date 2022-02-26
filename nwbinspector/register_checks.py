@@ -11,6 +11,8 @@ import h5py
 class Importance(Enum):
     """A definition of the valid importance levels for a given check function."""
 
+    ERROR = 4
+    PYNWB_VALIDATION = 3
     CRITICAL = 2
     BEST_PRACTICE_VIOLATION = 1
     BEST_PRACTICE_SUGGESTION = 0
@@ -80,7 +82,11 @@ def register_check(importance: Importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
     def register_check_and_auto_parse(check_function) -> InspectorMessage:
-        if importance not in Importance:
+        if importance not in [
+            Importance.CRITICAL,
+            Importance.BEST_PRACTICE_VIOLATION,
+            Importance.BEST_PRACTICE_SUGGESTION,
+        ]:
             raise ValueError(
                 f"Indicated importance ({importance}) of custom check ({check_function.__name__}) is not a valid "
                 "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
