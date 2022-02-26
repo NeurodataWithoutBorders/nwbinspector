@@ -48,8 +48,8 @@ def inspect_all_cli(
     no_color: bool = False,
     report_file_path: str = None,
     overwrite: bool = False,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[str] = None,
+    select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
 ):
     """Primary CLI usage."""
