@@ -4,6 +4,8 @@ import importlib
 import traceback
 from pathlib import Path
 from collections import OrderedDict, Iterable
+import json
+from enum import Enum
 from typing import Optional
 
 import click
@@ -19,6 +21,16 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .utils import FilePathType, PathType, OptionalListOfStrings
+
+
+class InspectorOutputJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, InspectorMessage):
+            return o.__dict__
+        if isinstance(o, Enum):
+            return o.name
+        else:
+            return super().default(o)
 
 
 @click.command()
@@ -41,15 +53,17 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
+@click.option("-j", "--json-file-path", help="Write json output to this location.")
 def inspect_all_cli(
     path: str,
-    modules: OptionalListOfStrings = None,
+    modules: Optional[str] = None,
     no_color: bool = False,
     report_file_path: str = None,
     overwrite: bool = False,
     ignore: Optional[str] = None,
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    json_file_path: str = None,
 ):
     """Primary CLI usage."""
     organized_results = inspect_all(
@@ -59,6 +73,9 @@ def inspect_all_cli(
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
     )
+    if json_file_path is not None:
+        with open(json_file_path, "w") as fp:
+            json.dump(organized_results, fp, cls=InspectorOutputJSONEncoder)
 
     if len(organized_results):
         formatted_results = format_organized_results_output(organized_results=organized_results)
@@ -182,7 +199,7 @@ def inspect_nwb(
     for importance_level, results in unorganized_results.items():
         if any(results):
             organized_result.update({importance_level: results})
-    organized_result = {nwbfile_path: organized_result}
+    organized_result = {str(nwbfile_path): organized_result}
     return organized_result
 
 

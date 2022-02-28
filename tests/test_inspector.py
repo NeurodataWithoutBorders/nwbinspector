@@ -96,7 +96,7 @@ class TestInspector(TestCase):
         add_regular_timestamps(nwbfiles[1])
         # Last file to be left without violations
 
-        cls.nwbfile_paths = [cls.tempdir / f"testing{j}.nwb" for j in range(num_nwbfiles)]
+        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
                 io.write(nwbfile)
@@ -243,6 +243,11 @@ class TestInspector(TestCase):
             f"nwbinspector {str(self.nwbfile_paths[0])} --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
         )
         self.assertFileExists(path=self.tempdir / "nwbinspector_report.txt")
+
+    def test_command_line_runs_saves_json(self):
+        json_fpath = self.tempdir / "nwbinspector_results.json"
+        os.system(f"nwbinspector {str(self.nwbfile_paths[0])} --json-file-path {json_fpath}")
+        self.assertFileExists(path=json_fpath)
 
     def test_command_line_on_directory_matches_file(self):
         os.system(

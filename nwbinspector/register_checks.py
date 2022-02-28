@@ -4,7 +4,6 @@ from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
-
 import h5py
 
 
