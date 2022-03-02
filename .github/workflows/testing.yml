@@ -1,5 +1,5 @@
 name: Testing
-on: [pull_request, push]
+on: pull_request
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
