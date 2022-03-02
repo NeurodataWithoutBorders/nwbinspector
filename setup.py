@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="nwbinspector",
-    version="0.2.2",
+    version="0.2.3",
     description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
     long_description_content_type="text/markdown",
