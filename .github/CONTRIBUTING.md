@@ -8,11 +8,11 @@ When approved, follow these steps:
 
 1) Use the `register_check` decorator to wrap your new check function. The decorator takes two keyword arguments, the `importance` level and `neurodata_type`.
     Importance level may be one of...
-    
+
     `Importance.CRITICAL`: Something about the object (usually its `data`) has a high likelihood of being incorrect, but in a way that can't be detected via PyNWB validation.
 
     `Importance.BEST_PRACTICE_VIOLATION`: The object contains a major violation of something from the [Best Practices](https://www.nwb.org/best-practices/) list.
-    
+
     `Importance.BEST_PRACTICE_SUGGESTION`: The object contains a minor violation of something from the [Best Practices](https://www.nwb.org/best-practices/) list. Typically used in cases where an informative metadata field is missing.
 
     The `neurodata_type` is the most general type of object in PyNWB that meets the criteria imposed by the check logic.
