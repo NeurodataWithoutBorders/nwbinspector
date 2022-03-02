@@ -22,7 +22,7 @@ When approved, follow these steps to add the new check function to the core regi
 4) Use the simplest possible logic for detecting the issue. If the applied logic is general to arbitrary Python data types (_e.g._, any numpy array), consider including it in the `utils`.
 5) `if` the issue is detected, `return` an `InspectorMessage` object with an informative `message` detailing what was expected.
 
-A good example reference is
+A good example for reference is
 
 ```python
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
