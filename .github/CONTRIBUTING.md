@@ -1,0 +1,33 @@
+## Adding a New Check
+
+We welcome all new check function contributions to this project! We've done our best to make this as easy as possible for developers.
+
+Begin by raising a ['New Check' issue](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/new/choose) to discuss it with the rest of the team.
+
+When approved, follow these steps:
+
+1) Use the `register_check` decorator to wrap your new check function. The decorator takes two keyword arguments, the `importance` level and `neurodata_type`.
+    Importance level may be one of...
+    
+    `Importance.CRITICAL`: Something about the object (usually its `data`) has a high likelihood of being incorrect, but in a way that can't be detected via PyNWB validation.
+
+    `Importance.BEST_PRACTICE_VIOLATION`: The object contains a major violation of something from the [Best Practices](https://www.nwb.org/best-practices/) list.
+    
+    `Importance.BEST_PRACTICE_SUGGESTION`: The object contains a minor violation of something from the [Best Practices](https://www.nwb.org/best-practices/) list. Typically used in cases where an informative metadata field is missing.
+
+    The `neurodata_type` is the most general type of object in PyNWB that meets the criteria imposed by the check logic.
+
+2) Begin your function name with `check_`.
+3) Write a one-line docstring briefly describing the check and its intention.
+4) Use the simplest possible logic for detecting the issue.
+5) `if` the issue is detected, `return` an `InspectorMessage` object with an informative `message` detailing what was expected.
+
+A good example reference is
+
+```python
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter(nwbfile: NWBFile):
+    """Check if an experimenter has been added for the session."""
+    if not nwbfile.experimenter:
+        return InspectorMessage(message="Experimenter is missing.")
+```
