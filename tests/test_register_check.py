@@ -196,7 +196,6 @@ class TestRegisterClass(TestCase):
 
             assert good_check_function in available_checks[importance]
 
-
     def test_register_available_checks_same_importance_level_different_neurodata_types(self):
         from nwbinspector import available_checks
 
@@ -218,7 +217,6 @@ class TestRegisterClass(TestCase):
             pass
 
         assert good_check_function_2 in available_checks[importance]
-
 
     def test_register_available_checks_different_importance_levels_different_neurodata_types(self):
         from nwbinspector import available_checks
