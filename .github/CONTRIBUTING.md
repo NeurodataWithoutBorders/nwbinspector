@@ -4,7 +4,7 @@ We welcome all new check function contributions to this project! We've done our 
 
 Begin by raising a ['New Check' issue](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/new/choose) to discuss it with the rest of the team.
 
-When approved, follow these steps:
+When approved, follow these steps to add the new check function to the core registry. We ask that you keep Pull Requests as small as possible to facilitate review; if suggesting the addition of multiple checks, please make a separate Pull Request for each individual check.
 
 1) Use the `register_check` decorator to wrap your new check function. The decorator takes two keyword arguments, the `importance` level and `neurodata_type`.
     Importance level may be one of...
@@ -19,7 +19,7 @@ When approved, follow these steps:
 
 2) Begin your function name with `check_`.
 3) Write a one-line docstring briefly describing the check and its intention.
-4) Use the simplest possible logic for detecting the issue.
+4) Use the simplest possible logic for detecting the issue. If the applied logic is general to arbitrary Python data types (_e.g._, any numpy array), consider including it in the `utils`.
 5) `if` the issue is detected, `return` an `InspectorMessage` object with an informative `message` detailing what was expected.
 
 A good example reference is
