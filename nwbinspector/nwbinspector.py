@@ -1,4 +1,5 @@
 """Primary functions for inspecting NWBFiles."""
+import itertools
 import os
 import importlib
 import traceback
@@ -7,12 +8,13 @@ from collections import OrderedDict, Iterable
 import json
 from enum import Enum
 from typing import Optional
+import copy
 
 import click
 import pynwb
 from natsort import natsorted
 
-from . import available_checks, Importance
+from . import available_checks
 from .inspector_tools import (
     organize_check_results,
     format_organized_results_output,
@@ -90,6 +92,7 @@ def inspect_all(
     modules: OptionalListOfStrings = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
+    config: dict = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
 ):
     """Inspect all NWBFiles at the specified path."""
@@ -105,6 +108,10 @@ def inspect_all(
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
     nwbfiles = natsorted(nwbfiles)
 
+    if config is not None:
+
+        custom_check_config = configure_checks(config, available_checks)
+
     for module in modules:
         importlib.import_module(module)
     organized_results = dict()
@@ -115,6 +122,24 @@ def inspect_all(
             )
         )
     return organized_results
+
+
+def configure_checks(config, available_checks):
+    output_checks = copy.copy(available_checks)
+    for importance_name, func_names in config.items():
+        for func_name in func_names:
+            for importance, functions in output_checks.items():
+                if importance.name == importance_name:
+                    continue
+                i = 0
+                while i < len(functions):
+                    if functions[i].__name__ == func_name:
+
+                        output_checks[Importance._member_map_[importance_name]].append(functions.pop(i))
+                    else:
+                        i += 1
+
+    return output_checks
 
 
 def inspect_nwb(
@@ -172,22 +197,21 @@ def inspect_nwb(
                     unorganized_results["PYNWB_VALIDATION"].append(message)
             nwbfile = io.read()
             check_results = list()
-            for importance, checks_per_object_type in checks.items():
+            for importance, check_functions in checks.items():
                 if importance.value >= importance_threshold.value:
-                    for check_object_type, check_functions in checks_per_object_type.items():
-                        for nwbfile_object in nwbfile.objects.values():
-                            if issubclass(type(nwbfile_object), check_object_type):
-                                for check_function in check_functions:
-                                    if ignore is not None and check_function.__name__ in ignore:
-                                        continue
-                                    if select is not None and check_function.__name__ not in select:
-                                        continue
-                                    output = check_function(nwbfile_object)
-                                    if output is not None:
-                                        if isinstance(output, Iterable):
-                                            check_results.extend(output)
-                                        else:
-                                            check_results.append(output)
+                    for nwbfile_object in nwbfile.objects.values():
+                        for check_function in check_functions:
+                            if issubclass(type(nwbfile_object), check_function.neurodata_type):
+                                if ignore is not None and check_function.__name__ in ignore:
+                                    continue
+                                if select is not None and check_function.__name__ not in select:
+                                    continue
+                                output = check_function(nwbfile_object)
+                                if output is not None:
+                                    if isinstance(output, Iterable):
+                                        check_results.extend(output)
+                                    else:
+                                        check_results.append(output)
             if any(check_results):
                 unorganized_results.update(organize_check_results(check_results=check_results))
     except Exception as ex:

@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "CRITICAL": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "BEST_PRACTICE_VIOLATIONS": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "BEST_PRACTICE_SUGGESTIONS": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

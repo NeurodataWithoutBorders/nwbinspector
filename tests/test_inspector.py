@@ -4,7 +4,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from typing import List
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -19,7 +19,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb
+from nwbinspector.nwbinspector import inspect_nwb, configure_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -81,9 +81,9 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
+        cls.checks = OrderedDict({importance: list() for importance in Importance})
         for check in check_list:
-            cls.checks[check.importance][check.neurodata_type].append(check)
+            cls.checks[check.importance].append(check)
         num_nwbfiles = 2
         nwbfiles = list()
         for j in range(num_nwbfiles):
@@ -290,3 +290,30 @@ class TestInspector(TestCase):
         self.assertListofDictEqual(
             test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"], true_list=true_results
         )
+
+
+def test_configure_checks():
+
+    # checks are moved
+    checks = {
+        Importance.CRITICAL: [check_small_dataset_compression,check_regular_timestamps],
+        Importance.BEST_PRACTICE_SUGGESTION: [check_data_orientation, check_timestamps_match_first_dimension]
+    }
+    config = {'CRITICAL': ['check_data_orientation'], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
+
+    out = configure_checks(config, checks)
+
+    assert check_data_orientation in out[Importance.CRITICAL]
+    assert check_data_orientation not in out[Importance.BEST_PRACTICE_SUGGESTION]
+
+    assert check_regular_timestamps not in out[Importance.CRITICAL]
+    assert check_regular_timestamps in out[Importance.BEST_PRACTICE_SUGGESTION]
+
+    # checks in same place are not moved
+    config = {'CRITICAL': ['check_regular_timestamps']}
+
+    out = configure_checks(config, checks)
+
+    assert check_regular_timestamps in out[Importance.CRITICAL]
+    assert check_regular_timestamps not in out[Importance.BEST_PRACTICE_SUGGESTION]
+
