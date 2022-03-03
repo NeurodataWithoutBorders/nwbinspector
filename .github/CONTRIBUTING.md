@@ -38,7 +38,7 @@ with tests
 ```python
 def test_check_experimenter_pass():
     assert check_experimenter(nwbfile=NWBFile(..., experimenter="test_experimenter")) is None
- 
+
 def test_check_experimenter_fail():
     assert check_experimenter(nwbfile=make_minimal_nwbfile()) == InspectorMessage(message="Experimenter is missing.")
 ```
