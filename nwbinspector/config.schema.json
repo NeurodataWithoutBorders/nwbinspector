@@ -18,6 +18,12 @@
       "items": {
         "type": "string"
       }
+    },
+    "SKIP": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

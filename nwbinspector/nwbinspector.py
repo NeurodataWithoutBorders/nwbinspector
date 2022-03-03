@@ -13,6 +13,7 @@ import copy
 import click
 import pynwb
 from natsort import natsorted
+import yaml
 
 from . import available_checks
 from .inspector_tools import (
@@ -55,6 +56,7 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
+@click.option("-c", "--config-path", help="path of config .yaml file that overwrites importance of checks.")
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 def inspect_all_cli(
     path: str,
@@ -65,12 +67,18 @@ def inspect_all_cli(
     ignore: Optional[str] = None,
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    config_path: Optional[str] = None,
     json_file_path: str = None,
 ):
     """Primary CLI usage."""
+    if config_path is not None:
+        with open(file=config_path, mode="r") as stream:
+            config = yaml.load(stream, yaml.Loader)
+
     organized_results = inspect_all(
         path,
         modules=modules,
+        config=config,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
@@ -109,8 +117,9 @@ def inspect_all(
     nwbfiles = natsorted(nwbfiles)
 
     if config is not None:
-
-        custom_check_config = configure_checks(config, available_checks)
+        checks = configure_checks(config, available_checks)
+    else:
+        checks = available_checks
 
     for module in modules:
         importlib.import_module(module)
@@ -118,14 +127,18 @@ def inspect_all(
     for file_index, nwbfile_path in enumerate(nwbfiles):
         organized_results.update(
             inspect_nwb(
-                nwbfile_path=nwbfile_path, importance_threshold=importance_threshold, ignore=ignore, select=select
+                nwbfile_path=nwbfile_path,
+                checks=checks,
+                importance_threshold=importance_threshold,
+                ignore=ignore,
+                select=select,
             )
         )
     return organized_results
 
 
-def configure_checks(config, available_checks):
-    output_checks = copy.copy(available_checks)
+def configure_checks(config, checks=available_checks):
+    output_checks = copy.copy(checks)
     for importance_name, func_names in config.items():
         for func_name in func_names:
             for importance, functions in output_checks.items():
@@ -134,8 +147,9 @@ def configure_checks(config, available_checks):
                 i = 0
                 while i < len(functions):
                     if functions[i].__name__ == func_name:
-
-                        output_checks[Importance._member_map_[importance_name]].append(functions.pop(i))
+                        func = functions.pop(i)
+                        if not importance_name == "SKIP":
+                            output_checks[Importance[importance_name]].append(func)
                     else:
                         i += 1
 
@@ -176,6 +190,8 @@ def inspect_nwb(
     ignore: list, optional
         Names of functions to skip.
     select: list, optional
+    driver: str, optional
+        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
     """
     if ignore is not None and select is not None:
         raise ValueError("Options 'ignore' and 'select' cannot both be used.")
