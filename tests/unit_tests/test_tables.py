@@ -1,3 +1,4 @@
+import platform
 from unittest import TestCase
 
 import pytest
@@ -168,16 +169,19 @@ class TestCheckBinaryColumns(TestCase):
             )
         ]
 
-    def test_binary_int32_fail(self):
+    def test_binary_int_fail(self):
         self.table.add_column(name="test_col", description="")
         for x in [1, 0, 1, 0, 1]:
             self.table.add_row(test_col=x)
-        print(check_column_binary_capability(table=self.table))
+        if platform.system() == "Windows":
+            platform_saved_bytes = "15.00B"
+        else:
+            platform_saved_bytes = "35.00B"
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
                     "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 15.00B."
+                    f"renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
                 ),
                 severity=Severity.NO_SEVERITY,
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
