@@ -105,6 +105,8 @@ def register_check(importance: Importance, neurodata_type):
                 auto_parsed_result = list()
                 for result in output:
                     auto_parsed_result.append(auto_parse(check_function=check_function, obj=obj, result=result))
+                if not any(auto_parsed_result):
+                    auto_parsed_result = None
             else:
                 auto_parsed_result = auto_parse(check_function=check_function, obj=obj, result=output)
             return auto_parsed_result
