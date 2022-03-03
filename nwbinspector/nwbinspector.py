@@ -1,5 +1,4 @@
 """Primary functions for inspecting NWBFiles."""
-import itertools
 import os
 import importlib
 import traceback
@@ -8,7 +7,6 @@ from collections import OrderedDict, Iterable
 import json
 from enum import Enum
 from typing import Optional
-import copy
 
 import click
 import pynwb
@@ -41,10 +39,7 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
@@ -74,6 +69,8 @@ def inspect_all_cli(
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
+    else:
+        config = None
 
     organized_results = inspect_all(
         path,
@@ -138,27 +135,20 @@ def inspect_all(
 
 
 def configure_checks(config, checks=available_checks):
-    output_checks = copy.copy(checks)
-    for importance_name, func_names in config.items():
-        for func_name in func_names:
-            for importance, functions in output_checks.items():
-                if importance.name == importance_name:
+    checks_out = []
+    for check in checks:
+        for importance_name, func_names in config.items():
+            if check.__name__ in func_names:
+                if importance_name == "SKIP":
                     continue
-                i = 0
-                while i < len(functions):
-                    if functions[i].__name__ == func_name:
-                        func = functions.pop(i)
-                        if not importance_name == "SKIP":
-                            output_checks[Importance[importance_name]].append(func)
-                    else:
-                        i += 1
-
-    return output_checks
+                check.importance = Importance[importance_name]
+        checks_out.append(check)
+    return checks_out
 
 
 def inspect_nwb(
     nwbfile_path: FilePathType,
-    checks: OrderedDict = available_checks,
+    checks: list = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -171,12 +161,8 @@ def inspect_nwb(
     ----------
     nwbfile_path : FilePathType
         Path to the NWBFile.
-    checks : dictionary, optional
-        A nested dictionary specifying which quality checks to run.
-        Outer key is importance, inner key is NWB object type, and values are lists of test functions to run.
-        This can be modified or extended by calling `from nwbinspector import available_checks`,
-        then modifying `available_checks` as desired prior to passing into this function.
-        By default, all available checks are run.
+    checks : list, optional
+        list of checks to run
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
@@ -213,23 +199,23 @@ def inspect_nwb(
                     unorganized_results["PYNWB_VALIDATION"].append(message)
             nwbfile = io.read()
             check_results = list()
-            for importance, check_functions in checks.items():
-                if importance.value >= importance_threshold.value:
-                    for nwbfile_object in nwbfile.objects.values():
-                        for check_function in check_functions:
-                            if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                                if ignore is not None and check_function.__name__ in ignore:
-                                    continue
-                                if select is not None and check_function.__name__ not in select:
-                                    continue
-                                output = check_function(nwbfile_object)
-                                if output is not None:
-                                    if isinstance(output, Iterable):
-                                        check_results.extend(output)
-                                    else:
-                                        check_results.append(output)
-            if any(check_results):
-                unorganized_results.update(organize_check_results(check_results=check_results))
+            for check_function in checks:
+                if (
+                    (ignore is not None and check_function.__name__ in ignore)
+                    or (select is not None and check_function.__name__ not in select)
+                    or (check_function.importance.value < importance_threshold.value)
+                ):
+                    continue
+                for nwbfile_object in nwbfile.objects.values():
+                    if issubclass(type(nwbfile_object), check_function.neurodata_type):
+                        output = check_function(nwbfile_object)
+                        if output is not None:
+                            if isinstance(output, Iterable):
+                                check_results.extend(output)
+                            else:
+                                check_results.append(output)
+                if any(check_results):
+                    unorganized_results.update(organize_check_results(check_results=check_results))
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
