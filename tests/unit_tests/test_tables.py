@@ -1,6 +1,8 @@
+import platform
 from unittest import TestCase
 
 import pytest
+import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from pynwb.file import TimeIntervals
 
@@ -9,6 +11,7 @@ from nwbinspector import (
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
     check_dynamic_table_region_data_validity,
+    check_column_binary_capability,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance, Severity
 
@@ -36,7 +39,10 @@ class TestCheckDynamicTableRegion(TestCase):
         dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 20], table=self.table)
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             severity=Severity.NO_SEVERITY,
-            message="Some elements of dyn_tab are out of range because they are greater than the length of the target table. Note that data should contain indices, not ids.",
+            message=(
+                "Some elements of dyn_tab are out of range because they are greater than the length of the target "
+                "table. Note that data should contain indices, not ids."
+            ),
             importance=Importance.CRITICAL,
             check_function_name="check_dynamic_table_region_data_validity",
             object_type="DynamicTableRegion",
@@ -114,6 +120,96 @@ def test_pass_check_time_intervals_stop_after_start():
     time_intervals.add_row(start_time=2.0, stop_time=2.5)
     time_intervals.add_row(start_time=3.0, stop_time=3.5)
     assert check_time_intervals_stop_after_start(time_intervals) is None
+
+
+class TestCheckBinaryColumns(TestCase):
+    def setUp(self):
+        self.table = DynamicTable(name="test_table", description="")
+
+    def test_non_binary_pass(self):
+        self.table.add_column(name="test_col", description="")
+        for x in [1.0, 2.0, 3.0]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) is None
+
+    def test_array_of_non_binary_pass(self):
+        self.table.add_column(name="test_col", description="")
+        for x in [[1.0, 2.0], [2.0, 3.0], [1.0, 2.0]]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) is None
+
+    def test_jagged_array_of_non_binary_pass(self):
+        self.table.add_column(name="test_col", description="", index=True)
+        for x in [[1.0, 2.0], [1.0, 2.0, 3.0], [1.0, 2.0]]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) is None
+
+    def test_no_saved_bytes_pass(self):
+        self.table.add_column(name="test_col", description="")
+        for x in np.array([1, 0, 1, 0], dtype="uint8"):
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) is None
+
+    def test_binary_floats_fail(self):
+        self.table.add_column(name="test_col", description="")
+        for x in [1.0, 0.0, 1.0, 0.0, 1.0]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) == [
+            InspectorMessage(
+                message=(
+                    "test_col uses floats but has binary values [0. 1.]. Consider making it boolean instead and "
+                    "renaming the column to start with 'is_'; doing so will save 35.00B."
+                ),
+                severity=Severity.NO_SEVERITY,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_column_binary_capability",
+                object_type="DynamicTable",
+                object_name="test_table",
+                location="/",
+            )
+        ]
+
+    def test_binary_int_fail(self):
+        self.table.add_column(name="test_col", description="")
+        for x in [1, 0, 1, 0, 1]:
+            self.table.add_row(test_col=x)
+        if platform.system() == "Windows":
+            platform_saved_bytes = "15.00B"
+        else:
+            platform_saved_bytes = "35.00B"
+        assert check_column_binary_capability(table=self.table) == [
+            InspectorMessage(
+                message=(
+                    "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
+                    f"renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
+                ),
+                severity=Severity.NO_SEVERITY,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_column_binary_capability",
+                object_type="DynamicTable",
+                object_name="test_table",
+                location="/",
+            )
+        ]
+
+    def test_binary_string_fail(self):
+        self.table.add_column(name="test_col", description="")
+        for x in ["YES", "NO", "NO", "YES"]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) == [
+            InspectorMessage(
+                message=(
+                    "test_col uses strings but has binary values ['NO' 'YES']. Consider making it boolean instead and "
+                    "renaming the column to start with 'is_'; doing so will save 44.00B."
+                ),
+                severity=Severity.NO_SEVERITY,
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_column_binary_capability",
+                object_type="DynamicTable",
+                object_name="test_table",
+                location="/",
+            )
+        ]
 
 
 @pytest.mark.skip(reason="TODO")
