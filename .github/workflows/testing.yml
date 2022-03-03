@@ -1,11 +1,9 @@
 name: Testing
-on: [pull_request, push]
+on: pull_request
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
-    # run pipeline on either a push event or a PR event on a fork
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
       matrix:

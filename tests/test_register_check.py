@@ -21,29 +21,18 @@ class TestRegisterClass(TestCase):
     def test_register_importance_error_non_enum_type(self):
         bad_importance = "test_bad_importance"
 
-        if version.parse(python_version()) >= version.parse("3.8"):
-            with self.assertRaisesWith(
-                exc_type=TypeError,
-                exc_msg="unsupported operand type(s) for 'in': 'str' and 'EnumMeta'",
-            ):
+        with self.assertRaisesWith(
+            exc_type=ValueError,
+            exc_msg=(
+                f"Indicated importance ({bad_importance}) of custom check (bad_importance_function) is not a valid "
+                "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
+                "or Importance.BEST_PRACTICE_SUGGESTION."
+            ),
+        ):
 
-                @register_check(importance=bad_importance, neurodata_type=None)
-                def bad_importance_function():
-                    pass
-
-        else:
-            with self.assertRaisesWith(
-                exc_type=ValueError,
-                exc_msg=(
-                    f"Indicated importance ({bad_importance}) of custom check (bad_importance_function) is not a valid "
-                    "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
-                    "or Importance.BEST_PRACTICE_SUGGESTION."
-                ),
-            ):
-
-                @register_check(importance=bad_importance, neurodata_type=None)
-                def bad_importance_function():
-                    pass
+            @register_check(importance=bad_importance, neurodata_type=None)
+            def bad_importance_function():
+                pass
 
     def test_register_importance_error_enum_type(self):
         class SomeRandomEnum(Enum):
@@ -54,15 +43,30 @@ class TestRegisterClass(TestCase):
         with self.assertRaisesWith(
             exc_type=ValueError,
             exc_msg=(
-                f"Indicated importance ({bad_importance}) of custom check (bad_severity_function) is not a valid "
+                f"Indicated importance ({bad_importance}) of custom check (bad_importance_function) is not a valid "
                 "importance level! Please choose one of Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, "
                 "or Importance.BEST_PRACTICE_SUGGESTION."
             ),
         ):
 
             @register_check(importance=bad_importance, neurodata_type=None)
-            def bad_severity_function():
+            def bad_importance_function():
                 pass
+
+    def test_register_importance_error_both_forbidden_check_levels(self):
+        for forbidden_importance in [Importance.ERROR, Importance.PYNWB_VALIDATION]:
+            with self.assertRaisesWith(
+                exc_type=ValueError,
+                exc_msg=(
+                    f"Indicated importance ({forbidden_importance}) of custom check (forbidden_importance_function) is "
+                    "not a valid importance level! Please choose one of Importance.CRITICAL, "
+                    "Importance.BEST_PRACTICE_VIOLATION, or Importance.BEST_PRACTICE_SUGGESTION."
+                ),
+            ):
+
+                @register_check(importance=forbidden_importance, neurodata_type=None)
+                def forbidden_importance_function():
+                    pass
 
     def test_register_severity_error_non_enum_type(self):
         bad_severity = "test_bad_severity"
@@ -78,7 +82,6 @@ class TestRegisterClass(TestCase):
                     return InspectorMessage(severity=bad_severity, message="")
 
                 bad_severity_function(time_series=self.default_time_series)
-
         else:
             with self.assertRaisesWith(
                 exc_type=ValueError,
@@ -181,7 +184,11 @@ class TestRegisterClass(TestCase):
         from nwbinspector import available_checks
 
         neurodata_type = DynamicTable
-        for importance in Importance:
+        for importance in [
+            Importance.CRITICAL,
+            Importance.BEST_PRACTICE_VIOLATION,
+            Importance.BEST_PRACTICE_SUGGESTION,
+        ]:
 
             @register_check(importance=importance, neurodata_type=neurodata_type)
             def good_check_function():
