@@ -7,13 +7,13 @@
         "type": "string"
       }
     },
-    "BEST_PRACTICE_VIOLATIONS": {
+    "BEST_PRACTICE_VIOLATION": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "BEST_PRACTICE_SUGGESTIONS": {
+    "BEST_PRACTICE_SUGGESTION": {
       "type": "array",
       "items": {
         "type": "string"

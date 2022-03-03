@@ -296,10 +296,10 @@ def test_configure_checks():
 
     # checks are moved
     checks = {
-        Importance.CRITICAL: [check_small_dataset_compression,check_regular_timestamps],
-        Importance.BEST_PRACTICE_SUGGESTION: [check_data_orientation, check_timestamps_match_first_dimension]
+        Importance.CRITICAL: [check_small_dataset_compression, check_regular_timestamps],
+        Importance.BEST_PRACTICE_SUGGESTION: [check_data_orientation, check_timestamps_match_first_dimension],
     }
-    config = {'CRITICAL': ['check_data_orientation'], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
+    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
 
     out = configure_checks(config, checks)
 
@@ -310,10 +310,9 @@ def test_configure_checks():
     assert check_regular_timestamps in out[Importance.BEST_PRACTICE_SUGGESTION]
 
     # checks in same place are not moved
-    config = {'CRITICAL': ['check_regular_timestamps']}
+    config = {"CRITICAL": ["check_regular_timestamps"]}
 
     out = configure_checks(config, checks)
 
     assert check_regular_timestamps in out[Importance.CRITICAL]
     assert check_regular_timestamps not in out[Importance.BEST_PRACTICE_SUGGESTION]
-
