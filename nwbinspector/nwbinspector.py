@@ -39,7 +39,10 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
+    "--report-file-path",
+    default=None,
+    help="Save path for the report file.",
+    type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
