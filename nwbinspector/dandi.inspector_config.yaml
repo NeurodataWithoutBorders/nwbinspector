@@ -1,7 +1,7 @@
 CRITICAL:
   - check_subject_exists
   - check_subject_id_exists
-BEST_PRACTICE_VIOLATIONS:
+BEST_PRACTICE_VIOLATION:
   - check_subject_sex
   - check_subject_species
   - check_subject_age
