@@ -135,7 +135,7 @@ def configure_checks(config, available_checks):
                 while i < len(functions):
                     if functions[i].__name__ == func_name:
 
-                        output_checks[Importance._member_map_[importance_name]].append(functions.pop(i))
+                        output_checks[importance_name].append(functions.pop(i))
                     else:
                         i += 1
 
