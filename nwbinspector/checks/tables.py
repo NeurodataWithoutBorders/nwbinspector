@@ -113,9 +113,15 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                 saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
                     get_data_shape(data=column.data, strict_no_data_load=True)
                 )
+                if unique_values.dtype == "float":
+                    print_dtype = "floats"
+                elif unique_values.dtype == "int":
+                    print_dtype = "integers"
+                elif unique_values.dtype == "<U3":
+                    print_dtype = "strings"
                 yield InspectorMessage(
                     message=(
-                        f"{column.name} is {unique_values.dtype} but has binary values {unique_values}. Consider "
+                        f"{column.name} uses {print_dtype} but has binary values {unique_values}. Consider "
                         "making it boolean instead and renaming the column to start with 'is_'; doing so will "
                         f"save {format_byte_size(byte_size=saved_bytes)}."
                     )

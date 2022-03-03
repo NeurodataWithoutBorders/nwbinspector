@@ -156,7 +156,7 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col is float64 but has binary values [0. 1.]. Consider making it boolean instead and "
+                    "test_col uses floats but has binary values [0. 1.]. Consider making it boolean instead and "
                     "renaming the column to start with 'is_'; doing so will save 35.00B."
                 ),
                 severity=Severity.NO_SEVERITY,
@@ -176,7 +176,7 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col is int32 but has binary values [0 1]. Consider making it boolean instead and "
+                    "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
                     "renaming the column to start with 'is_'; doing so will save 15.00B."
                 ),
                 severity=Severity.NO_SEVERITY,
@@ -195,7 +195,7 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col is <U3 but has binary values ['NO' 'YES']. Consider making it boolean instead and "
+                    "test_col uses strings but has binary values ['NO' 'YES']. Consider making it boolean instead and "
                     "renaming the column to start with 'is_'; doing so will save 44.00B."
                 ),
                 severity=Severity.NO_SEVERITY,
