@@ -91,16 +91,33 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if hasattr(column, "data") and not isinstance(column, VectorIndex):
             if np.asarray(column.data[0]).itemsize == 1:
-                continue # already boolean, int8, or uint8
+                continue  # already boolean, int8, or uint8
             unique_values = np.unique(column.data[:nelems])
-            saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
-                get_data_shape(data=column.data, strict_no_data_load=True)
-            )
-            if len(unique_values) == 2:
+            if len(unique_values) > 2:
+                continue
+            parsed_unique_values = np.array(unique_values)
+            if parsed_unique_values.dtype == np.dtype("<U3"):  # parse strings as all lower-case
+                for j in range(2):
+                    parsed_unique_values[j] = parsed_unique_values[j].lower()
+            else:  # any int dtype greater than 8-bit, upcast to float for comparison
+                parsed_unique_values = parsed_unique_values.astype(float)
+            pairs_to_check = [
+                [1.0, 0.0],
+                ["yes", "no"],
+                ["y", "n"],
+                ["true", "false"],
+                ["t", "f"],
+                ["hit", "miss"],
+            ]
+            if any([set(parsed_unique_values) == set(pair) for pair in pairs_to_check]):
+                saved_bytes = (unique_values.dtype.itemsize - 1) * np.product(
+                    get_data_shape(data=column.data, strict_no_data_load=True)
+                )
                 yield InspectorMessage(
                     message=(
                         f"{column.name} is {unique_values.dtype} but has binary values {unique_values}. Consider "
-                        f"making it boolean instead; doing so will save {format_byte_size(byte_size=saved_bytes)}."
+                        "making it boolean instead and renaming the column to start with 'is_'; doing so will "
+                        f"save {format_byte_size(byte_size=saved_bytes)}."
                     )
                 )
 
