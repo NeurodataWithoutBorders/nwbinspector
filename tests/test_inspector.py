@@ -291,10 +291,10 @@ def test_configure_checks():
 
     # checks are moved
     checks = [
-         check_small_dataset_compression,
-         check_regular_timestamps,
-         check_data_orientation,
-         check_timestamps_match_first_dimension
+        check_small_dataset_compression,
+        check_regular_timestamps,
+        check_data_orientation,
+        check_timestamps_match_first_dimension,
     ]
     config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
 
