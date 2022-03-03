@@ -21,6 +21,7 @@ When approved, follow these steps to add the new check function to the core regi
 3) Write a one-line docstring briefly describing the check and its intention.
 4) Use the simplest possible logic for detecting the issue. If the applied logic is general to arbitrary Python data types (_e.g._, any numpy array), consider including it in the `utils`.
 5) `if` the issue is detected, `return` an `InspectorMessage` object with an informative `message` detailing what was expected.
+6) Inside one of the `tests/unit_tests/` files include tests of both a passing check (where `None` is returned) and a failing check (an `InspectorMessage` is returned).
 
 A good example for reference is
 
@@ -30,4 +31,14 @@ def check_experimenter(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
+```
+
+with tests
+
+```python
+def test_check_experimenter_pass():
+    assert check_experimenter(nwbfile=NWBFile(..., experimenter="test_experimenter")) is None
+ 
+def test_check_experimenter_fail():
+    assert check_experimenter(nwbfile=make_minimal_nwbfile()) == InspectorMessage(message="Experimenter is missing.")
 ```
