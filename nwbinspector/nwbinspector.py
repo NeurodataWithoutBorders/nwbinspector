@@ -72,6 +72,9 @@ def inspect_all_cli(
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
+        with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+            schema = json.load(fp=fp)
+        jsonschema.validate(config, schema)
     else:
         config = None
 
