@@ -3,7 +3,7 @@ import os
 import importlib
 import traceback
 from pathlib import Path
-from collections import OrderedDict, Iterable
+from collections import Iterable
 import json
 from enum import Enum
 from typing import Optional
@@ -12,6 +12,7 @@ import click
 import pynwb
 from natsort import natsorted
 import yaml
+import jsonschema
 
 from . import available_checks
 from .inspector_tools import (
@@ -32,6 +33,23 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return o.name
         else:
             return super().default(o)
+
+
+def organize_messages_by_file(messages):
+    files = sorted(set(message.file for message in messages))
+    out = {}
+    for file in files:
+        out[file] = {}
+        file_messages = list(filter(lambda x: x.file == file, messages))
+        for importance in sorted(
+                set(message.importance for message in file_messages),
+                key=lambda x: -x.value
+        ):
+            out[file][importance] = sorted(
+                filter(lambda x: x.importance == importance, file_messages),
+                key=lambda x: -x.severity.value,
+            )
+    return out
 
 
 @click.command()
@@ -78,24 +96,24 @@ def inspect_all_cli(
     else:
         config = None
 
-    organized_results = inspect_all(
+    messages = list(inspect_all(
         path,
         modules=modules,
         config=config,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
-    )
+    ))
     if json_file_path is not None:
         with open(json_file_path, "w") as fp:
-            json.dump(organized_results, fp, cls=InspectorOutputJSONEncoder)
+            json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
 
-    if len(organized_results):
+    if len(messages):
+        organized_results = organize_messages_by_file(messages)
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
-            print(f"{os.linesep*2}Log file saved at {str(report_file_path.absolute())}!{os.linesep}")
 
 
 def inspect_all(
@@ -126,18 +144,15 @@ def inspect_all(
 
     for module in modules:
         importlib.import_module(module)
-    organized_results = dict()
     for file_index, nwbfile_path in enumerate(nwbfiles):
-        organized_results.update(
-            inspect_nwb(
-                nwbfile_path=nwbfile_path,
-                checks=checks,
-                importance_threshold=importance_threshold,
-                ignore=ignore,
-                select=select,
-            )
-        )
-    return organized_results
+        for message in inspect_nwb(
+            nwbfile_path=nwbfile_path,
+            checks=checks,
+            importance_threshold=importance_threshold,
+            ignore=ignore,
+            select=select,
+        ):
+            yield message
 
 
 def configure_checks(config, checks=available_checks):
@@ -150,6 +165,19 @@ def configure_checks(config, checks=available_checks):
                 check.importance = Importance[importance_name]
         checks_out.append(check)
     return checks_out
+
+
+def run_checks(nwbfile, checks):
+    for check_function in checks:
+        for nwbfile_object in nwbfile.objects.values():
+            if issubclass(type(nwbfile_object), check_function.neurodata_type):
+                output = check_function(nwbfile_object)
+                if output is not None:
+                    if isinstance(output, Iterable):
+                        for x in output:
+                            yield x
+                    else:
+                        yield output
 
 
 def inspect_nwb(
@@ -192,47 +220,33 @@ def inspect_nwb(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-    unorganized_results = OrderedDict({importance.name: list() for importance in Importance})
-    try:
-        with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
-            validation_errors = pynwb.validate(io=io)
-            if any(validation_errors):
-                for validation_error in validation_errors:
-                    message = InspectorMessage(message=validation_error.reason)
-                    message.importance = Importance.PYNWB_VALIDATION
-                    message.check_function_name = validation_error.name
-                    message.location = validation_error.location
-                    unorganized_results["PYNWB_VALIDATION"].append(message)
+    with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
+        validation_errors = pynwb.validate(io=io)
+        if any(validation_errors):
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                )
+        try:
             nwbfile = io.read()
-            check_results = list()
-            for check_function in checks:
-                if (
-                    (ignore is not None and check_function.__name__ in ignore)
-                    or (select is not None and check_function.__name__ not in select)
-                    or (check_function.importance.value < importance_threshold.value)
-                ):
-                    continue
-                for nwbfile_object in nwbfile.objects.values():
-                    if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                        output = check_function(nwbfile_object)
-                        if output is not None:
-                            if isinstance(output, Iterable):
-                                check_results.extend(output)
-                            else:
-                                check_results.append(output)
-                if any(check_results):
-                    unorganized_results.update(organize_check_results(check_results=check_results))
-    except Exception as ex:
-        message = InspectorMessage(message=traceback.format_exc())
-        message.importance = Importance.ERROR
-        message.check_function_name = ex
-        unorganized_results["ERROR"].append(message)
-    organized_result = OrderedDict()
-    for importance_level, results in unorganized_results.items():
-        if any(results):
-            organized_result.update({importance_level: results})
-    organized_result = {str(nwbfile_path): organized_result}
-    return organized_result
+        except Exception as ex:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=ex
+            )
+        if select:
+            checks = [x for x in checks if x.__name__ in select]
+        elif ignore:
+            checks = [x for x in checks if x.__name__ not in ignore]
+        if importance_threshold:
+            checks = [x for x in checks if x.importance.value >= importance_threshold.value]
+        for inspector_message in run_checks(nwbfile, checks=checks):
+            inspector_message.file = nwbfile_path
+            yield inspector_message
 
 
 if __name__ == "__main__":

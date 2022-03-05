@@ -25,8 +25,8 @@ class Severity(Enum):
     """
 
     HIGH = 2
-    LOW = 1
-    NO_SEVERITY = 0
+    NO_SEVERITY = 1
+    LOW = 0
 
 
 available_checks = list()
@@ -72,6 +72,7 @@ class InspectorMessage:
     object_type: str = ""
     object_name: str = ""
     location: str = ""
+    file: str = None
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked

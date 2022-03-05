@@ -41,9 +41,9 @@ def format_organized_results_output(organized_results: Dict[str, Dict[str, list]
         formatted_output.append("=" * len(nwbfile_name_string) + "\n")
 
         for importance_index, (importance_level, check_results) in enumerate(organized_check_results.items(), start=1):
-            importance_string = importance_level.replace("_", " ")
+            importance_string = importance_level.name.replace("_", " ")
             formatted_output.append(f"\n{importance_string}\n")
-            formatted_output.append("-" * len(importance_level) + "\n")
+            formatted_output.append("-" * len(importance_string) + "\n")
 
             if importance_level in ["ERROR", "PYNWB_VALIDATION"]:
                 for check_index, check_result in enumerate(check_results, start=1):

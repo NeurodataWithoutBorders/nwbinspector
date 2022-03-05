@@ -18,7 +18,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb, configure_checks
+from nwbinspector.nwbinspector import inspect_nwb, configure_checks, run_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -73,7 +73,7 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.tempdir = Path(mkdtemp())
+        cls.tempdir = Path(os.getcwd())
         cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
@@ -91,6 +91,7 @@ class TestInspector(TestCase):
         add_simple_table(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
         # Last file to be left without violations
+        cls.nwbfiles = nwbfiles
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
@@ -99,7 +100,8 @@ class TestInspector(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls.tempdir)
+        pass
+        #rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -133,8 +135,8 @@ class TestInspector(TestCase):
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
 
     def test_inspect_nwb(self):
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
-        true_critical_results = [
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
+        messages = [
             InspectorMessage(
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
@@ -146,6 +148,7 @@ class TestInspector(TestCase):
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
+                file=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message="The length of the first dimension of data does not match the length of timestamps.",
@@ -155,9 +158,8 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
+                file=self.nwbfile_paths[0]
             ),
-        ]
-        true_violation_results = [
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
@@ -169,9 +171,8 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
+                file=self.nwbfile_paths[0],
             ),
-        ]
-        true_suggestion_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
                 severity=Severity.LOW,
@@ -180,22 +181,16 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
                 location="/acquisition/",
+                file=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListofDictEqual(
-            test_list=test_results[self.nwbfile_paths[0]]["CRITICAL"], true_list=true_critical_results
-        )
-        self.assertListofDictEqual(
-            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"], true_list=true_violation_results
-        )
-        self.assertListofDictEqual(
-            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_SUGGESTION"], true_list=true_suggestion_results
-        )
+        for message in messages:
+            assert message in test_results
 
     def test_inspect_nwb_importance_threshold(self):
-        test_results = inspect_nwb(
+        test_results = list(inspect_nwb(
             nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
-        )
+        ))
         true_results = [
             InspectorMessage(
                 severity=Severity.NO_SEVERITY,
@@ -208,6 +203,7 @@ class TestInspector(TestCase):
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
+                file=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 severity=Severity.NO_SEVERITY,
@@ -217,9 +213,10 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
+                file=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListofDictEqual(test_list=test_results[self.nwbfile_paths[0]]["CRITICAL"], true_list=true_results)
+        assert true_results == test_results
 
     def test_command_line_runs_cli_only(self):
         console_output_file = self.tempdir / "test_console_output.txt"
@@ -262,7 +259,7 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
+        test_results = list(run_checks(self.nwbfiles[0], checks=[iterable_check_function]))
 
         for inspector_message in [
             InspectorMessage(
@@ -284,7 +281,7 @@ class TestInspector(TestCase):
                 location="/acquisition/",
             ),
         ]:
-            assert inspector_message in test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"]
+            assert inspector_message in test_results
 
 
 def test_configure_checks():
