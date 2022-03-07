@@ -23,6 +23,7 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
             message="The second dimension of data does not match the length of rois. Your data may be transposed."
         )
 
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=RoiResponseSeries)
 def check_roi_response_series_link_to_plane_segmentation(roi_response_series: RoiResponseSeries):
     if not isinstance(roi_response_series.rois.table, PlaneSegmentation):

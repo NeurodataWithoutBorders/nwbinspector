@@ -7,7 +7,10 @@ from pynwb import NWBFile
 from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ophys import check_roi_response_series_dims, check_roi_response_series_link_to_plane_segmentation
+from nwbinspector.checks.ophys import (
+    check_roi_response_series_dims,
+    check_roi_response_series_link_to_plane_segmentation,
+)
 from nwbinspector.register_checks import InspectorMessage, Importance, Severity
 
 
@@ -135,7 +138,7 @@ class TestCheckRoiResponseSeries(TestCase):
         for _ in range(5):
             dt.add_row(a=1)
 
-        dtr = DynamicTableRegion(name="n", description="desc", data=[0,1,2,3,4], table = dt)
+        dtr = DynamicTableRegion(name="n", description="desc", data=[0, 1, 2, 3, 4], table=dt)
         roi_resp_series = RoiResponseSeries(
             name="RoiResponseSeries",
             data=np.ones((40, 5)),  # 50 samples, 2 ROIs
