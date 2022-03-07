@@ -74,8 +74,8 @@ def display_messages_by_importance(messages, indent_sz=2):
         disp.append("-" * (len(importance.name) + 4))
         for ii, (check_name, check_data) in enumerate(imp_data.items()):
             disp.append(f"{i}.{ii}.  {check_name}")
+            counter = 0
             for file, file_messages in check_data.items():
-                counter = 0
                 for message in file_messages:
                     disp.append(
                         f"{indent}{i}.{ii}.{counter}.  {file}:{message.location}{message.object_name} -"
