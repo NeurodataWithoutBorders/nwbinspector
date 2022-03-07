@@ -52,15 +52,46 @@ def organize_messages_by_file(messages):
     return out
 
 
+def organize_messages_by_importance(messages):
+    out = {}
+    for message in sorted(messages, key=lambda x: (-x.importance.value, -x.severity.value, x.file)):
+        if message.importance not in out:
+            out[message.importance] = dict()
+        if message.check_function_name not in out[message.importance]:
+            out[message.importance][message.check_function_name] = dict()
+        if message.file not in out[message.importance][message.check_function_name]:
+            out[message.importance][message.check_function_name][message.file] = []
+        out[message.importance][message.check_function_name][message.file].append(message)
+    return out
+
+
+def display_messages_by_importance(messages, indent_sz=2):
+    indent = " " * indent_sz
+    disp = []
+    data = organize_messages_by_importance(messages)
+    for i, (importance, imp_data) in enumerate(data.items()):
+        disp.append(f"{i}.  {importance.name}")
+        disp.append("-" * (len(importance.name) + 4))
+        for ii, (check_name, check_data) in enumerate(imp_data.items()):
+            disp.append(f"{i}.{ii}.  {check_name}")
+            for file, file_messages in check_data.items():
+                counter = 0
+                for message in file_messages:
+                    disp.append(
+                        f"{indent}{i}.{ii}.{counter}.  {file}:{message.location}{message.object_name} -"
+                        f" {message.message}"
+                    )
+                    counter += 1
+        disp.append("")
+    return disp
+
+
 @click.command()
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
@@ -96,14 +127,16 @@ def inspect_all_cli(
     else:
         config = None
 
-    messages = list(inspect_all(
-        path,
-        modules=modules,
-        config=config,
-        ignore=ignore if ignore is None else ignore.split(","),
-        select=select if select is None else select.split(","),
-        importance_threshold=Importance[threshold],
-    ))
+    messages = list(
+        inspect_all(
+            path,
+            modules=modules,
+            config=config,
+            ignore=ignore if ignore is None else ignore.split(","),
+            select=select if select is None else select.split(","),
+            importance_threshold=Importance[threshold],
+        )
+    )
     if json_file_path is not None:
         with open(json_file_path, "w") as fp:
             json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
@@ -171,7 +204,15 @@ def run_checks(nwbfile, checks):
     for check_function in checks:
         for nwbfile_object in nwbfile.objects.values():
             if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                output = check_function(nwbfile_object)
+                try:
+                    output = check_function(nwbfile_object)
+                # if an individual check fails, include it in the report and continue with the inspection
+                except Exception:
+                    output = InspectorMessage(
+                        message=traceback.format_exc(),
+                        importance=Importance.ERROR,
+                        check_function_name=check_function.__name__,
+                    )
                 if output is not None:
                     if isinstance(output, Iterable):
                         for x in output:
