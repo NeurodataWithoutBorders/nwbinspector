@@ -2,7 +2,7 @@
 
 We welcome any suggestions to this project! We've done our best to make this as easy as possible for developers to propose new checks.
 
-Begin by raising a ['New Check' issue](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/new/choose) to discuss it with the rest of the team. Please wait for approval on the Issue before beginning the PR process.
+Begin by raising a ['New Check' issue](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/new/choose) to discuss it with the rest of the team. __Please wait for approval on the Issue before beginning the PR process.__
 
 Once approved, follow these steps to add the new check function to the core registry. We ask that you keep Pull Requests as small as possible to facilitate review; if suggesting the addition of multiple checks, please make a separate Pull Request for each individual check.
 
