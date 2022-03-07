@@ -1,5 +1,5 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
-from collections import defaultdict, OrderedDict, Iterable
+from collections import Iterable
 from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
@@ -29,8 +29,7 @@ class Severity(Enum):
     NO_SEVERITY = 0
 
 
-global available_checks
-available_checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
+available_checks = list()
 
 
 @dataclass
@@ -80,7 +79,7 @@ class InspectorMessage:
 def register_check(importance: Importance, neurodata_type):
     """Wrap a check function to add it to the list of default checks for that severity and neurodata type."""
 
-    def register_check_and_auto_parse(check_function) -> InspectorMessage:
+    def register_check_and_auto_parse(check_function):
         if importance not in [
             Importance.CRITICAL,
             Importance.BEST_PRACTICE_VIOLATION,
@@ -105,11 +104,13 @@ def register_check(importance: Importance, neurodata_type):
                 auto_parsed_result = list()
                 for result in output:
                     auto_parsed_result.append(auto_parse(check_function=check_function, obj=obj, result=result))
+                if not any(auto_parsed_result):
+                    auto_parsed_result = None
             else:
                 auto_parsed_result = auto_parse(check_function=check_function, obj=obj, result=output)
             return auto_parsed_result
 
-        available_checks[check_function.importance][check_function.neurodata_type].append(auto_parse_some_output)
+        available_checks.append(auto_parse_some_output)
 
         return auto_parse_some_output
 
