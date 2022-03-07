@@ -101,7 +101,7 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
-        #rmtree(cls.tempdir)
+        # rmtree(cls.tempdir)
 
     def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
         for dictionary in test_list:
@@ -158,7 +158,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
-                file=self.nwbfile_paths[0]
+                file=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message=(
@@ -188,9 +188,11 @@ class TestInspector(TestCase):
             assert message in test_results
 
     def test_inspect_nwb_importance_threshold(self):
-        test_results = list(inspect_nwb(
-            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
-        ))
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+            )
+        )
         true_results = [
             InspectorMessage(
                 severity=Severity.NO_SEVERITY,
