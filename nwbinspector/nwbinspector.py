@@ -11,8 +11,9 @@ from typing import Optional
 import click
 import pynwb
 from natsort import natsorted
+import yaml
 
-from . import available_checks, Importance
+from . import available_checks
 from .inspector_tools import (
     organize_check_results,
     format_organized_results_output,
@@ -53,6 +54,7 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
+@click.option("-c", "--config-path", help="path of config .yaml file that overwrites importance of checks.")
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 def inspect_all_cli(
     path: str,
@@ -63,12 +65,23 @@ def inspect_all_cli(
     ignore: Optional[str] = None,
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
+    config_path: Optional[str] = None,
     json_file_path: str = None,
 ):
     """Primary CLI usage."""
+    if config_path is not None:
+        with open(file=config_path, mode="r") as stream:
+            config = yaml.load(stream, yaml.Loader)
+        with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+            schema = json.load(fp=fp)
+        jsonschema.validate(config, schema)
+    else:
+        config = None
+
     organized_results = inspect_all(
         path,
         modules=modules,
+        config=config,
         ignore=ignore if ignore is None else ignore.split(","),
         select=select if select is None else select.split(","),
         importance_threshold=Importance[threshold],
@@ -90,6 +103,7 @@ def inspect_all(
     modules: OptionalListOfStrings = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
+    config: dict = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
 ):
     """Inspect all NWBFiles at the specified path."""
@@ -105,21 +119,42 @@ def inspect_all(
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
     nwbfiles = natsorted(nwbfiles)
 
+    if config is not None:
+        checks = configure_checks(config, available_checks)
+    else:
+        checks = available_checks
+
     for module in modules:
         importlib.import_module(module)
     organized_results = dict()
     for file_index, nwbfile_path in enumerate(nwbfiles):
         organized_results.update(
             inspect_nwb(
-                nwbfile_path=nwbfile_path, importance_threshold=importance_threshold, ignore=ignore, select=select
+                nwbfile_path=nwbfile_path,
+                checks=checks,
+                importance_threshold=importance_threshold,
+                ignore=ignore,
+                select=select,
             )
         )
     return organized_results
 
 
+def configure_checks(config, checks=available_checks):
+    checks_out = []
+    for check in checks:
+        for importance_name, func_names in config.items():
+            if check.__name__ in func_names:
+                if importance_name == "SKIP":
+                    continue
+                check.importance = Importance[importance_name]
+        checks_out.append(check)
+    return checks_out
+
+
 def inspect_nwb(
     nwbfile_path: FilePathType,
-    checks: OrderedDict = available_checks,
+    checks: list = available_checks,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -132,12 +167,8 @@ def inspect_nwb(
     ----------
     nwbfile_path : FilePathType
         Path to the NWBFile.
-    checks : dictionary, optional
-        A nested dictionary specifying which quality checks to run.
-        Outer key is importance, inner key is NWB object type, and values are lists of test functions to run.
-        This can be modified or extended by calling `from nwbinspector import available_checks`,
-        then modifying `available_checks` as desired prior to passing into this function.
-        By default, all available checks are run.
+    checks : list, optional
+        list of checks to run
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
@@ -151,6 +182,8 @@ def inspect_nwb(
     ignore: list, optional
         Names of functions to skip.
     select: list, optional
+    driver: str, optional
+        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
     """
     if ignore is not None and select is not None:
         raise ValueError("Options 'ignore' and 'select' cannot both be used.")
@@ -172,24 +205,23 @@ def inspect_nwb(
                     unorganized_results["PYNWB_VALIDATION"].append(message)
             nwbfile = io.read()
             check_results = list()
-            for importance, checks_per_object_type in checks.items():
-                if importance.value >= importance_threshold.value:
-                    for check_object_type, check_functions in checks_per_object_type.items():
-                        for nwbfile_object in nwbfile.objects.values():
-                            if issubclass(type(nwbfile_object), check_object_type):
-                                for check_function in check_functions:
-                                    if ignore is not None and check_function.__name__ in ignore:
-                                        continue
-                                    if select is not None and check_function.__name__ not in select:
-                                        continue
-                                    output = check_function(nwbfile_object)
-                                    if output is not None:
-                                        if isinstance(output, Iterable):
-                                            check_results.extend(output)
-                                        else:
-                                            check_results.append(output)
-            if any(check_results):
-                unorganized_results.update(organize_check_results(check_results=check_results))
+            for check_function in checks:
+                if (
+                    (ignore is not None and check_function.__name__ in ignore)
+                    or (select is not None and check_function.__name__ not in select)
+                    or (check_function.importance.value < importance_threshold.value)
+                ):
+                    continue
+                for nwbfile_object in nwbfile.objects.values():
+                    if issubclass(type(nwbfile_object), check_function.neurodata_type):
+                        output = check_function(nwbfile_object)
+                        if output is not None:
+                            if isinstance(output, Iterable):
+                                check_results.extend(output)
+                            else:
+                                check_results.append(output)
+                if any(check_results):
+                    unorganized_results.update(organize_check_results(check_results=check_results))
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR

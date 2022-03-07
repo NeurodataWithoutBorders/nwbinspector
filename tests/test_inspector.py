@@ -4,7 +4,6 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from typing import List
-from collections import OrderedDict, defaultdict
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -19,7 +18,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb
+from nwbinspector.nwbinspector import inspect_nwb, configure_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -75,15 +74,12 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
-        check_list = [
+        cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        cls.checks = OrderedDict({importance: defaultdict(list) for importance in Importance})
-        for check in check_list:
-            cls.checks[check.importance][check.neurodata_type].append(check)
         num_nwbfiles = 2
         nwbfiles = list()
         for j in range(num_nwbfiles):
@@ -267,7 +263,8 @@ class TestInspector(TestCase):
                 yield InspectorMessage(message=f"Column: {col.name}")
 
         test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
-        true_results = [
+
+        for inspector_message in [
             InspectorMessage(
                 message="Column: start_time",
                 severity=Severity.NO_SEVERITY,
@@ -286,7 +283,29 @@ class TestInspector(TestCase):
                 object_name="test_table",
                 location="/acquisition/",
             ),
-        ]
-        self.assertListofDictEqual(
-            test_list=test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"], true_list=true_results
-        )
+        ]:
+            assert inspector_message in test_results[self.nwbfile_paths[0]]["BEST_PRACTICE_VIOLATION"]
+
+
+def test_configure_checks():
+
+    # checks are moved
+    checks = [
+        check_small_dataset_compression,
+        check_regular_timestamps,
+        check_data_orientation,
+        check_timestamps_match_first_dimension,
+    ]
+    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
+
+    out = configure_checks(config, checks)
+
+    assert out[2].importance is Importance.CRITICAL
+    assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
+
+    # checks in same place are not moved
+    config = {"CRITICAL": ["check_regular_timestamps"]}
+
+    out = configure_checks(config, checks)
+
+    assert out[1].importance is Importance.CRITICAL
