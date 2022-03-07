@@ -5,8 +5,9 @@ from uuid import uuid4
 import numpy as np
 from pynwb import NWBFile
 from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries
+from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ophys import check_roi_response_series_dims
+from nwbinspector.checks.ophys import check_roi_response_series_dims, check_roi_response_series_link_to_plane_segmentation
 from nwbinspector.register_checks import InspectorMessage, Importance, Severity
 
 
@@ -112,7 +113,7 @@ class TestCheckRoiResponseSeries(TestCase):
             location="/processing/ophys/",
         )
 
-    def test_pass_check(self):
+    def test_pass_check_roi_response_series_dims(self):
         rt_region = self.plane_segmentation.create_roi_table_region(
             region=[0, 1, 2, 3, 4],
             description="the first of two ROIs",
@@ -127,3 +128,47 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         assert check_roi_response_series_dims(roi_resp_series) is None
+
+    def test_check_roi_response_series_link_to_plane_segmentation(self):
+        dt = DynamicTable(name="name", description="desc")
+        dt.add_column("a", "desc")
+        for _ in range(5):
+            dt.add_row(a=1)
+
+        dtr = DynamicTableRegion(name="n", description="desc", data=[0,1,2,3,4], table = dt)
+        roi_resp_series = RoiResponseSeries(
+            name="RoiResponseSeries",
+            data=np.ones((40, 5)),  # 50 samples, 2 ROIs
+            rois=dtr,
+            unit="n.a.",
+            rate=30.0,
+        )
+
+        self.ophys_module.add(roi_resp_series)
+
+        assert check_roi_response_series_link_to_plane_segmentation(roi_resp_series) == InspectorMessage(
+            severity=Severity.NO_SEVERITY,
+            message="rois field does not point to a PlaneSegmentation table.",
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_roi_response_series_link_to_plane_segmentation",
+            object_type="RoiResponseSeries",
+            object_name="RoiResponseSeries",
+            location="/processing/ophys/",
+        )
+
+    def test_pass_check_roi_response_series_link_to_plane_segmentation(self):
+
+        rt_region = self.plane_segmentation.create_roi_table_region(
+            region=[0, 1, 2, 3, 4],
+            description="the first of two ROIs",
+        )
+
+        roi_resp_series = RoiResponseSeries(
+            name="RoiResponseSeries",
+            data=np.ones((40, 5)),  # 50 samples, 2 ROIs
+            rois=rt_region,
+            unit="n.a.",
+            rate=30.0,
+        )
+
+        assert check_roi_response_series_link_to_plane_segmentation(roi_resp_series) is None
