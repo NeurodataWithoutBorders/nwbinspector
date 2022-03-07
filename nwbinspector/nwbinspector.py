@@ -41,10 +41,7 @@ def organize_messages_by_file(messages):
     for file in files:
         out[file] = {}
         file_messages = list(filter(lambda x: x.file == file, messages))
-        for importance in sorted(
-                set(message.importance for message in file_messages),
-                key=lambda x: -x.value
-        ):
+        for importance in sorted(set(message.importance for message in file_messages), key=lambda x: -x.value):
             out[file][importance] = sorted(
                 filter(lambda x: x.importance == importance, file_messages),
                 key=lambda x: -x.severity.value,
@@ -91,7 +88,10 @@ def display_messages_by_importance(messages, indent_sz=2):
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
-    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
+    "--report-file-path",
+    default=None,
+    help="Save path for the report file.",
+    type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
@@ -274,11 +274,7 @@ def inspect_nwb(
         try:
             nwbfile = io.read()
         except Exception as ex:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=ex
-            )
+            yield InspectorMessage(message=traceback.format_exc(), importance=Importance.ERROR, check_function_name=ex)
         if select:
             checks = [x for x in checks if x.__name__ in select]
         elif ignore:
