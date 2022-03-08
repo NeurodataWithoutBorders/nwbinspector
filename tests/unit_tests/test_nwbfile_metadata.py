@@ -27,7 +27,6 @@ minimal_nwbfile = make_minimal_nwbfile()
 
 def test_check_experimenter():
     assert check_experimenter(minimal_nwbfile) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_experimenter",
@@ -39,7 +38,6 @@ def test_check_experimenter():
 
 def test_check_experiment_description():
     assert check_experiment_description(minimal_nwbfile) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Experiment description is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_experiment_description",
@@ -51,7 +49,6 @@ def test_check_experiment_description():
 
 def test_check_institution():
     assert check_institution(minimal_nwbfile) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Metadata /general/institution is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_institution",
@@ -77,7 +74,6 @@ def test_check_subject_sex():
     nwbfile.subject = Subject(subject_id="001")
 
     assert check_subject_sex(nwbfile.subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject.sex is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
@@ -91,7 +87,6 @@ def test_check_subject_sex_other_value():
     subject = Subject(subject_id="001", sex="Male")
 
     assert check_subject_sex(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
@@ -104,7 +99,6 @@ def test_check_subject_sex_other_value():
 def test_check_subject_age_missing():
     subject = Subject(subject_id="001", sex="Male")
     assert check_subject_age(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject is missing age.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
@@ -117,7 +111,6 @@ def test_check_subject_age_missing():
 def test_check_subject_species():
     subject = Subject(subject_id="001")
     assert check_subject_species(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject species is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_species",
@@ -130,7 +123,6 @@ def test_check_subject_species():
 def test_check_subject_age_iso8601():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
         "weeks.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -145,7 +137,6 @@ def test_check_subject_species_not_iso8601():
     subject = Subject(subject_id="001", species="Human")
 
     assert check_subject_species(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_species",
@@ -162,7 +153,6 @@ def test_pass_check_subject_age():
 
 def test_check_subject_exists():
     assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="Subject is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_exists",
@@ -181,7 +171,6 @@ def test_pass_check_subject_exists():
 def test_check_subject_id_exists():
     subject = Subject(sex="Male")
     assert check_subject_id_exists(subject) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="subject_id is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_id_exists",
@@ -204,7 +193,6 @@ def test_pass_check_subject_id_exist():
 def test_check_processing_module_name():
     processing_module = ProcessingModule("test", "desc")
     assert check_processing_module_name(processing_module) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message=f"Processing module is named test. It is recommended to use the schema "
         f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
