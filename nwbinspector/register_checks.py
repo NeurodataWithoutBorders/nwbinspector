@@ -50,9 +50,6 @@ class InspectorMessage:
         The user will never directly see this severity, but it will prioritize the order in which check results are
         presented by the NWBInspector.
 
-
-    Returns
-    -------
     importance : Importance
         The Importance level specified by the decorator of the check function.
     check_function_name : str
@@ -63,6 +60,8 @@ class InspectorMessage:
         The name of the instantiated object being inspected.
     location : str
         The location relative to the root of the NWBFile where the inspected object may be found.
+    file : str
+        The path to the NWBFile this message pertains to.
     """
 
     message: str
@@ -72,6 +71,7 @@ class InspectorMessage:
     object_type: str = ""
     object_name: str = ""
     location: str = ""
+    file: str = ""
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked

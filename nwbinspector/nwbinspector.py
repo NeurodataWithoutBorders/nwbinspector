@@ -5,6 +5,7 @@ import traceback
 from pathlib import Path
 from collections import OrderedDict, Iterable
 import json
+import jsonschema
 from enum import Enum
 from typing import Optional
 
@@ -15,6 +16,7 @@ import yaml
 
 from . import available_checks
 from .inspector_tools import (
+    organize_messages_by_file,
     organize_check_results,
     format_organized_results_output,
     print_to_console,
@@ -25,6 +27,8 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for the NWBInspector."""
+
     def default(self, o):
         if isinstance(o, InspectorMessage):
             return o.__dict__
@@ -77,8 +81,7 @@ def inspect_all_cli(
         jsonschema.validate(config, schema)
     else:
         config = None
-
-    organized_results = inspect_all(
+    messages = inspect_all(
         path,
         modules=modules,
         config=config,
@@ -88,9 +91,9 @@ def inspect_all_cli(
     )
     if json_file_path is not None:
         with open(json_file_path, "w") as fp:
-            json.dump(organized_results, fp, cls=InspectorOutputJSONEncoder)
-
-    if len(organized_results):
+            json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
+    if len(messages):
+        organized_results = organize_messages_by_file(messages)
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
@@ -123,7 +126,6 @@ def inspect_all(
         checks = configure_checks(config, available_checks)
     else:
         checks = available_checks
-
     for module in modules:
         importlib.import_module(module)
     organized_results = dict()
@@ -140,7 +142,8 @@ def inspect_all(
     return organized_results
 
 
-def configure_checks(config, checks=available_checks):
+def configure_checks(config: dict, checks: list = available_checks):
+    """Filter a list of check functions (the entire base registry by default) according to the configuration."""
     checks_out = []
     for check in checks:
         for importance_name, func_names in config.items():
@@ -192,7 +195,8 @@ def inspect_nwb(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-    unorganized_results = OrderedDict({importance.name: list() for importance in Importance})
+    file_name = Path(nwbfile_path).name
+    messages = list()
     try:
         with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
             validation_errors = pynwb.validate(io=io)
@@ -202,7 +206,8 @@ def inspect_nwb(
                     message.importance = Importance.PYNWB_VALIDATION
                     message.check_function_name = validation_error.name
                     message.location = validation_error.location
-                    unorganized_results["PYNWB_VALIDATION"].append(message)
+                    message.file = file_name
+                    messages["PYNWB_VALIDATION"].append(message)
             nwbfile = io.read()
             check_results = list()
             for check_function in checks:
@@ -214,25 +219,22 @@ def inspect_nwb(
                     continue
                 for nwbfile_object in nwbfile.objects.values():
                     if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                        output = check_function(nwbfile_object)
-                        if output is not None:
-                            if isinstance(output, Iterable):
-                                check_results.extend(output)
+                        message = check_function(nwbfile_object)
+                        if message is not None:
+                            message.file = file_name
+                            if isinstance(message, Iterable):
+                                messages.extend(message)
                             else:
-                                check_results.append(output)
+                                messages.append(message)
                 if any(check_results):
-                    unorganized_results.update(organize_check_results(check_results=check_results))
+                    messages.update(organize_check_results(check_results=check_results))
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
         message.check_function_name = ex
-        unorganized_results["ERROR"].append(message)
-    organized_result = OrderedDict()
-    for importance_level, results in unorganized_results.items():
-        if any(results):
-            organized_result.update({importance_level: results})
-    organized_result = {str(nwbfile_path): organized_result}
-    return organized_result
+        message.file = file_name
+        messages["ERROR"].append(message)
+    return messages
 
 
 if __name__ == "__main__":

@@ -1,14 +1,15 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
-import sys
 import os
-from enum import Enum
+import sys
 from collections import OrderedDict
 from typing import Dict, List
 from pathlib import Path
+from natsort import natsorted
+from copy import copy
 
 import numpy as np
 
-from .register_checks import Importance
+from .register_checks import Importance, InspectorMessage
 from .utils import FilePathType
 
 
@@ -17,6 +18,58 @@ def sort_by_descending_severity(check_results: list):
     severities = [check_result.severity.value for check_result in check_results]
     descending_indices = np.argsort(severities)[::-1]
     return [check_results[j] for j in descending_indices]
+
+
+def organize_messages_by_file(messages: List[InspectorMessage]):
+    """Order InspectorMessages by file name then importance."""
+    files = natsorted(set(message.file for message in messages))
+    messages_by_file = {file: list for file in files}
+    out = copy(messages_by_file)
+    for message in messages:
+        messages_by_file[message.file] = message
+    for file, messages_for_file in messages_by_file.items():
+        realized_importance = sorted(set([message.importance for message in messages_for_file]), key=lambda x: -x.value)
+        messages_per_importance = {importance: [] for importance in realized_importance}
+        for message in messages_for_file:
+            messages_per_importance[message.importance]
+        out[message.file] = sorted(messages_per_importance, key=lambda x: -x.severity.value)
+    return out
+
+
+def organize_messages_by_importance(messages: List[InspectorMessage]):
+    """Order InspectorMessages by importance, check function name, then file name."""
+    out = dict()
+    for message in natsorted(messages, key=lambda x: (-x.importance.value, -x.severity.value, x.file)):
+        if message.importance not in out:
+            out[message.importance] = dict()
+        if message.check_function_name not in out[message.importance]:
+            out[message.importance][message.check_function_name] = dict()
+        if message.file not in out[message.importance][message.check_function_name]:
+            out[message.importance][message.check_function_name][message.file] = []
+        out[message.importance][message.check_function_name][message.file].append(message)
+    return out
+
+
+def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
+    """Print InspectorMessages in order of importance."""
+    indent = " " * indent_size
+    disp = []
+    data = organize_messages_by_importance(messages)
+    for i, (importance, imp_data) in enumerate(data.items()):
+        disp.append(f"{i}.  {importance.name}")
+        disp.append("-" * (len(importance.name) + 4))
+        for ii, (check_name, check_data) in enumerate(imp_data.items()):
+            disp.append(f"{i}.{ii}.  {check_name}")
+            counter = 0
+            for file, file_messages in check_data.items():
+                for message in file_messages:
+                    disp.append(
+                        f"{indent}{i}.{ii}.{counter}.  {file}:{message.location}{message.object_name} -"
+                        f" {message.message}"
+                    )
+                    counter += 1
+        disp.append("")
+    return disp
 
 
 def organize_check_results(check_results: list):
@@ -41,9 +94,9 @@ def format_organized_results_output(organized_results: Dict[str, Dict[str, list]
         formatted_output.append("=" * len(nwbfile_name_string) + "\n")
 
         for importance_index, (importance_level, check_results) in enumerate(organized_check_results.items(), start=1):
-            importance_string = importance_level.replace("_", " ")
+            importance_string = importance_level.name.replace("_", " ")
             formatted_output.append(f"\n{importance_string}\n")
-            formatted_output.append("-" * len(importance_level) + "\n")
+            formatted_output.append("-" * len(importance_string) + "\n")
 
             if importance_level in ["ERROR", "PYNWB_VALIDATION"]:
                 for check_index, check_result in enumerate(check_results, start=1):
