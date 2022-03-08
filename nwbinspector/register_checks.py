@@ -26,7 +26,6 @@ class Severity(Enum):
 
     HIGH = 2
     LOW = 1
-    NO_SEVERITY = 0
 
 
 available_checks = list()
@@ -65,8 +64,8 @@ class InspectorMessage:
     """
 
     message: str
-    severity: Severity = None
     importance: Importance = Importance.BEST_PRACTICE_SUGGESTION
+    severity: Severity = Severity.LOW
     check_function_name: str = ""
     object_type: str = ""
     object_name: str = ""
@@ -121,9 +120,7 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
     """Automatically fill values in the InspectorMessage from the check function."""
     if result is not None:
         auto_parsed_result = result
-        if auto_parsed_result.severity is None:  # For perfect consistency with not specifying
-            auto_parsed_result.severity = Severity.NO_SEVERITY
-        if auto_parsed_result.severity not in Severity:
+        if not isinstance(auto_parsed_result.severity, Severity):
             raise ValueError(
                 f"Indicated severity ({auto_parsed_result.severity}) of custom check "
                 f"({check_function.__name__}) is not a valid severity level! Please choose one of "

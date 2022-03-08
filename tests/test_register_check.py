@@ -1,10 +1,8 @@
-from platform import python_version
-from packaging import version
 from enum import Enum
 
 from hdmf.common import DynamicTable
-from pynwb import TimeSeries
 from hdmf.testing import TestCase
+from pynwb import TimeSeries
 
 from nwbinspector.register_checks import register_check, Importance, Severity, InspectorMessage
 
@@ -68,41 +66,8 @@ class TestRegisterClass(TestCase):
                 def forbidden_importance_function():
                     pass
 
-    def test_register_severity_error_non_enum_type(self):
+    def test_register_severity_error(self):
         bad_severity = "test_bad_severity"
-
-        if version.parse(python_version()) >= version.parse("3.8"):
-            with self.assertRaisesWith(
-                exc_type=TypeError,
-                exc_msg="unsupported operand type(s) for 'in': 'str' and 'EnumMeta'",
-            ):
-
-                @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
-                def bad_severity_function(time_series: TimeSeries):
-                    return InspectorMessage(severity=bad_severity, message="")
-
-                bad_severity_function(time_series=self.default_time_series)
-        else:
-            with self.assertRaisesWith(
-                exc_type=ValueError,
-                exc_msg=(
-                    f"Indicated severity ({bad_severity}) of custom check "
-                    "(bad_severity_function) is not a valid severity level! Please choose one of "
-                    "Severity.HIGH, Severity.LOW, or do not specify any severity."
-                ),
-            ):
-
-                @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
-                def bad_severity_function(time_series: TimeSeries):
-                    return InspectorMessage(severity=bad_severity, message="")
-
-                bad_severity_function(time_series=self.default_time_series)
-
-    def test_register_severity_error_enum_type(self):
-        class SomeRandomEnum(Enum):
-            random_name = -1
-
-        bad_severity = SomeRandomEnum.random_name
 
         with self.assertRaisesWith(
             exc_type=ValueError,
@@ -140,26 +105,6 @@ class TestRegisterClass(TestCase):
                 ),
             )
 
-    def test_register_none_severity(self):
-        importance = Importance.BEST_PRACTICE_SUGGESTION
-
-        @register_check(importance=importance, neurodata_type=TimeSeries)
-        def good_check_function(time_series: TimeSeries):
-            return InspectorMessage(severity=None, message="")
-
-        self.assertEqual(
-            first=good_check_function(time_series=self.default_time_series),
-            second=InspectorMessage(
-                severity=Severity.NO_SEVERITY,
-                message="",
-                importance=importance,
-                check_function_name="good_check_function",
-                object_type="TimeSeries",
-                object_name="temp",
-                location="/",
-            ),
-        )
-
     def test_register_missing_severity(self):
         importance = Importance.BEST_PRACTICE_SUGGESTION
 
@@ -170,9 +115,9 @@ class TestRegisterClass(TestCase):
         self.assertEqual(
             first=good_check_function(time_series=self.default_time_series),
             second=InspectorMessage(
-                severity=Severity.NO_SEVERITY,
                 message="",
                 importance=importance,
+                severity=Severity.LOW,
                 check_function_name="good_check_function",
                 object_type="TimeSeries",
                 object_name="temp",

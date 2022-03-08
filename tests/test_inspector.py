@@ -163,7 +163,6 @@ class TestInspector(TestCase):
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
                     "longest dimension. Here, another dimension is longer."
                 ),
-                severity=Severity.NO_SEVERITY,
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
@@ -173,7 +172,6 @@ class TestInspector(TestCase):
             ),
             InspectorMessage(
                 message="The length of the first dimension of data does not match the length of timestamps.",
-                severity=Severity.NO_SEVERITY,
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
@@ -190,7 +188,6 @@ class TestInspector(TestCase):
         )
         true_results = [
             InspectorMessage(
-                severity=Severity.NO_SEVERITY,
                 message=(
                     "Data may be in the wrong orientation. Time should be in the first dimension, and is "
                     "usually the longest dimension. Here, another dimension is longer."
@@ -203,7 +200,6 @@ class TestInspector(TestCase):
                 file="testing0.nwb",
             ),
             InspectorMessage(
-                severity=Severity.NO_SEVERITY,
                 message="The length of the first dimension of data does not match the length of timestamps.",
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
@@ -260,7 +256,6 @@ class TestInspector(TestCase):
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
-                severity=Severity.NO_SEVERITY,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="iterable_check_function",
                 object_type="TimeIntervals",
@@ -270,7 +265,6 @@ class TestInspector(TestCase):
             ),
             InspectorMessage(
                 message="Column: stop_time",
-                severity=Severity.NO_SEVERITY,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="iterable_check_function",
                 object_type="TimeIntervals",
