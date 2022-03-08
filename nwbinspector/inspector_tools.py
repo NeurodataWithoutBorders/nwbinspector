@@ -10,24 +10,7 @@ from .register_checks import Importance, InspectorMessage
 from .utils import FilePathType
 
 
-def fancy_organize_messages(messages: List[InspectorMessage], levels: List[str]):
-    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
-    unique_values = list(set(getattr(message, levels[0]) for message in messages))
-    sorted_values = sort_unique_values(unique_values)
-    if len(levels) > 1:
-        return {
-            value: fancy_organize_messages(
-                [message for message in messages if getattr(message, levels[0]) == value], levels[1:]
-            )
-            for value in sorted_values
-        }
-    else:
-        return {
-            value: [messages for message in messages if getattr(message, levels[0]) == value] for value in sorted_values
-        }
-
-
-def sort_unique_values(unique_values: set):
+def _sort_unique_values(unique_values: set):
     """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
     if any(unique_values) and isinstance(unique_values[0], Enum):
         return natsorted(unique_values, key=lambda x: -x.value)
@@ -35,74 +18,71 @@ def sort_unique_values(unique_values: set):
         return natsorted(unique_values)
 
 
-def construct_output(presorted_level_values: list):
+def _construct_output(presorted_level_values: list):
     """Construct an empty output dictionary according to the pre-sorted and unique levels."""
     if len(presorted_level_values) > 1:
-        return {value: construct_output(presorted_level_values[1:]) for value in presorted_level_values[0]}
+        return {value: _construct_output(presorted_level_values[1:]) for value in presorted_level_values[0]}
     else:
         return {value: list() for value in presorted_level_values[0]}
 
 
-def append_output(output: dict, message: InspectorMessage, levels: list, loc=None):
+def _append_output(output: dict, message: InspectorMessage, levels: list, loc: dict):
     """Append message to list at final level of arbitrarily nested dictionary."""
-    if loc is None:
-        loc = output
     if len(levels) >= 1:
         loc = loc.get(getattr(message, levels[0]))
-        return append_output(output=output, message=message, levels=levels[1:], loc=loc)
+        _append_output(output=output, message=message, levels=levels[1:], loc=loc)
     else:
         loc.append(message)
 
 
-def efficient_organize_messages(messages: List[InspectorMessage], levels: List[str]):
-    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
+def _clean_output(levels: list, loc: dict):
+    """Remove portions of output tree that were never filled."""
+    if len(levels) >= 1:
+        keys = list(loc.keys())
+        vals = list(loc.values())
+        for k, v in zip(keys, vals):
+            if not v:
+                del loc[k]
+            else:
+                _clean_output(levels=levels[1:], loc=loc[k])
+
+
+def organize_messages(messages: List[InspectorMessage], levels: List[str]):
+    """
+    General function for organizing list of InspectorMessages into a nested dictionary structure.
+
+    Returns a nested dictionary organized according to the order of the 'levels' argument.
+
+    Parameters
+    ----------
+    messages : list of InspectorMessages
+    levels: list of strings
+        Each string in this list must correspond onto an attribute of the InspectorMessage class, excluding the
+        'message' text.
+    """
+    assert "message" not in levels, (
+        "You must specify levels to organize by that correspond to attributes of the InspectorMessage class, not "
+        "including the text message."
+    )
+
     presorted_level_values = list()
     for level in levels:
         presorted_level_values.append(
-            sort_unique_values(unique_values=list(set(getattr(message, level) for message in messages)))
+            _sort_unique_values(unique_values=list(set(getattr(message, level) for message in messages)))
         )
-    output = construct_output(presorted_level_values=presorted_level_values)
+    output = _construct_output(presorted_level_values=presorted_level_values)
 
     for message in messages:
-        append_output(output=output, message=message, levels=levels)
+        _append_output(output=output, message=message, levels=levels, loc=output)
+    _clean_output(levels=levels, loc=output)
     return output
-
-
-def organize_messages_by_file(messages: List[InspectorMessage]):
-    """Order InspectorMessages by file name then importance."""
-    files = natsorted(set(message.file for message in messages))
-    importance_levels = [Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, Importance.BEST_PRACTICE_SUGGESTION]
-    out = {file: {importance: list() for importance in importance_levels} for file in files}
-    for message in messages:
-        out[message.file][message.importance].append(message)
-    for file in files:
-        for importance in importance_levels:
-            if out[file][importance]:
-                out[file][importance] = sorted(out[file][importance], key=lambda x: -x.severity.value)
-            else:
-                out[file].pop(importance)
-    return out
-
-
-def organize_messages_by_importance(messages: List[InspectorMessage]):
-    """Order InspectorMessages by importance, check function name, then file name."""
-    out = dict()
-    for message in natsorted(messages, key=lambda x: (-x.importance.value, -x.severity.value, x.file)):
-        if message.importance not in out:
-            out[message.importance] = dict()
-        if message.check_function_name not in out[message.importance]:
-            out[message.importance][message.check_function_name] = dict()
-        if message.file not in out[message.importance][message.check_function_name]:
-            out[message.importance][message.check_function_name][message.file] = []
-        out[message.importance][message.check_function_name][message.file].append(message)
-    return out
 
 
 def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
     """Print InspectorMessages in order of importance."""
     indent = " " * indent_size
     disp = []
-    data = organize_messages_by_importance(messages)
+    data = organize_messages(messages=messages, levels=["importance", "files"])
     for i, (importance, imp_data) in enumerate(data.items()):
         disp.append(f"{i}.  {importance.name}")
         disp.append("-" * (len(importance.name) + 4))
