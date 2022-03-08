@@ -1,22 +1,71 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 import os
 import sys
-from collections import OrderedDict
 from typing import Dict, List
 from pathlib import Path
 from natsort import natsorted
-
-import numpy as np
+from enum import Enum
 
 from .register_checks import Importance, InspectorMessage
 from .utils import FilePathType
 
 
-def sort_by_descending_severity(check_results: list):
-    """Order the dictionaries in the check_list by severity."""
-    severities = [check_result.severity.value for check_result in check_results]
-    descending_indices = np.argsort(severities)[::-1]
-    return [check_results[j] for j in descending_indices]
+def fancy_organize_messages(messages: List[InspectorMessage], levels: List[str]):
+    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
+    unique_values = list(set(getattr(message, levels[0]) for message in messages))
+    sorted_values = sort_unique_values(unique_values)
+    if len(levels) > 1:
+        return {
+            value: fancy_organize_messages(
+                [message for message in messages if getattr(message, levels[0]) == value], levels[1:]
+            )
+            for value in sorted_values
+        }
+    else:
+        return {
+            value: [messages for message in messages if getattr(message, levels[0]) == value] for value in sorted_values
+        }
+
+
+def sort_unique_values(unique_values: set):
+    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
+    if any(unique_values) and isinstance(unique_values[0], Enum):
+        return natsorted(unique_values, key=lambda x: -x.value)
+    else:
+        return natsorted(unique_values)
+
+
+def construct_output(presorted_level_values: list):
+    """Construct an empty output dictionary according to the pre-sorted and unique levels."""
+    if len(presorted_level_values) > 1:
+        return {value: construct_output(presorted_level_values[1:]) for value in presorted_level_values[0]}
+    else:
+        return {value: list() for value in presorted_level_values[0]}
+
+
+def append_output(output: dict, message: InspectorMessage, levels: list, loc=None):
+    """Append message to list at final level of arbitrarily nested dictionary."""
+    if loc is None:
+        loc = output
+    if len(levels) >= 1:
+        loc = loc.get(getattr(message, levels[0]))
+        return append_output(output=output, message=message, levels=levels[1:], loc=loc)
+    else:
+        loc.append(message)
+
+
+def efficient_organize_messages(messages: List[InspectorMessage], levels: List[str]):
+    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
+    presorted_level_values = list()
+    for level in levels:
+        presorted_level_values.append(
+            sort_unique_values(unique_values=list(set(getattr(message, level) for message in messages)))
+        )
+    output = construct_output(presorted_level_values=presorted_level_values)
+
+    for message in messages:
+        append_output(output=output, message=message, levels=levels)
+    return output
 
 
 def organize_messages_by_file(messages: List[InspectorMessage]):
@@ -69,18 +118,6 @@ def display_messages_by_importance(messages: List[InspectorMessage], indent_size
                     counter += 1
         disp.append("")
     return disp
-
-
-def organize_check_results(check_results: list):
-    """Format the list of returned results from checks."""
-    initial_results = OrderedDict({importance.name: list() for importance in Importance})
-    for check_result in check_results:
-        initial_results[check_result.importance.name].append(check_result)
-    organized_check_results = OrderedDict()
-    for importance_level, check_results in initial_results.items():
-        if any(check_results):
-            organized_check_results.update({importance_level: sort_by_descending_severity(check_results=check_results)})
-    return organized_check_results
 
 
 def format_organized_results_output(organized_results: Dict[str, Dict[str, list]]) -> List[str]:

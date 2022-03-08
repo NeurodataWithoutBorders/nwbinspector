@@ -11,13 +11,11 @@ from typing import Optional, List
 
 import click
 import pynwb
-from natsort import natsorted
 import yaml
 
 from . import available_checks
 from .inspector_tools import (
     organize_messages_by_file,
-    organize_check_results,
     format_organized_results_output,
     print_to_console,
     save_report,
@@ -93,7 +91,7 @@ def inspect_all_cli(
         with open(json_file_path, "w") as fp:
             json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
-        organized_results = organize_messages_by_file(messages)
+        organized_results = organize_messages_by_file(messages=messages)
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
@@ -120,17 +118,15 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-    nwbfiles = natsorted(nwbfiles)
-
     if config is not None:
         checks = configure_checks(config, available_checks)
     else:
         checks = available_checks
     for module in modules:
         importlib.import_module(module)
-    organized_results = dict()
-    for file_index, nwbfile_path in enumerate(nwbfiles):
-        organized_results.update(
+    messages = list()
+    for nwbfile_path in nwbfiles:
+        messages.extend(
             inspect_nwb(
                 nwbfile_path=nwbfile_path,
                 checks=checks,
@@ -139,10 +135,10 @@ def inspect_all(
                 select=select,
             )
         )
-    return organized_results
+    return messages
 
 
-def configure_checks(config: dict, checks: list = available_checks):
+def configure_checks(config: dict, checks: list = available_checks) -> list:
     """Filter a list of check functions (the entire base registry by default) according to the configuration."""
     checks_out = []
     for check in checks:
@@ -207,9 +203,8 @@ def inspect_nwb(
                     message.check_function_name = validation_error.name
                     message.location = validation_error.location
                     message.file = file_name
-                    messages["PYNWB_VALIDATION"].append(message)
+                    messages.append(message)
             nwbfile = io.read()
-            check_results = list()
             for check_function in checks:
                 if (
                     (ignore is not None and check_function.__name__ in ignore)
@@ -226,14 +221,12 @@ def inspect_nwb(
                                 messages.extend(message)
                             else:
                                 messages.append(message)
-                if any(check_results):
-                    messages.update(organize_check_results(check_results=check_results))
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
         message.check_function_name = ex
         message.file = file_name
-        messages["ERROR"].append(message)
+        messages.append(message)
     return messages
 
 
