@@ -27,7 +27,7 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
         }
 
 
-def sort_unique_values(unique_values: set):
+def sort_unique_values(unique_values: list):
     """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
     if any(unique_values) and isinstance(unique_values[0], Enum):
         return natsorted(unique_values, key=lambda x: -x.value)
