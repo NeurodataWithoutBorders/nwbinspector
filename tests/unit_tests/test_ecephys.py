@@ -28,7 +28,6 @@ def test_check_negative_spike_times_some_negative():
     units_table.add_unit(spike_times=[0.0, 0.1])
     units_table.add_unit(spike_times=[-1.0])
     assert check_negative_spike_times(units_table=units_table) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message=(
             "This Units table contains negative spike times. Time should generally be aligned to the earliest time "
             "reference in the NWBFile."
@@ -63,7 +62,6 @@ class TestCheckElectricalSeries(TestCase):
                 filtering="unknown",
                 group=group,
             )
-
         self.nwbfile = nwbfile
 
     def test_check_electrical_series_wrong_dims(self):
@@ -81,7 +79,6 @@ class TestCheckElectricalSeries(TestCase):
         self.nwbfile.add_acquisition(electrical_series)
 
         assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
             message="The second dimension of data does not match the length of electrodes. Your data may be transposed.",
             importance=Importance.CRITICAL,
             check_function_name="check_electrical_series_dims",
@@ -105,7 +102,6 @@ class TestCheckElectricalSeries(TestCase):
         self.nwbfile.add_acquisition(electrical_series)
 
         assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
             message="The second dimension of data does not match the length of electrodes, but instead the first does. Data is oriented incorrectly and should be transposed.",
             importance=Importance.CRITICAL,
             check_function_name="check_electrical_series_dims",

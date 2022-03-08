@@ -21,7 +21,6 @@ def test_check_regular_timestamps():
             timestamps=[1.2, 3.2, 5.2],
         )
     ) == InspectorMessage(
-        severity=Severity.LOW,
         message=(
             "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
             "instead of timestamps."
@@ -43,7 +42,6 @@ def test_check_data_orientation():
             rate=1.0,
         )
     ) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message=(
             "Data may be in the wrong orientation. "
             "Time should be in the first dimension, and is usually the longest dimension. "
@@ -66,7 +64,6 @@ def test_check_timestamps():
             timestamps=[1.0, 2.0, 3.0],
         )
     ) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -80,7 +77,6 @@ def test_check_timestamps_empty_data():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[], timestamps=[1.0, 2.0, 3.0])
     ) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -94,7 +90,6 @@ def test_check_timestamps_empty_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[])
     ) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="The length of the first dimension of data does not match the length of timestamps.",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -107,7 +102,6 @@ def test_check_timestamps_empty_timestamps():
 def test_check_timestamps_ascending():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
-        severity=Severity.NO_SEVERITY,
         message="test_time_series timestamps are not ascending.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_timestamps_ascending",
