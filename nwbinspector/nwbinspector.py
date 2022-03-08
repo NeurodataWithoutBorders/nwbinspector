@@ -2,12 +2,12 @@
 import os
 import importlib
 import traceback
-from pathlib import Path
-from collections import OrderedDict, Iterable
 import json
 import jsonschema
+from pathlib import Path
+from collections import Iterable
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 import click
 import pynwb
@@ -162,7 +162,7 @@ def inspect_nwb(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     driver: str = None,
-):
+) -> List[InspectorMessage]:
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
 

@@ -5,7 +5,6 @@ from collections import OrderedDict
 from typing import Dict, List
 from pathlib import Path
 from natsort import natsorted
-from copy import copy
 
 import numpy as np
 
@@ -23,16 +22,16 @@ def sort_by_descending_severity(check_results: list):
 def organize_messages_by_file(messages: List[InspectorMessage]):
     """Order InspectorMessages by file name then importance."""
     files = natsorted(set(message.file for message in messages))
-    messages_by_file = {file: list for file in files}
-    out = copy(messages_by_file)
+    importance_levels = [Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, Importance.BEST_PRACTICE_SUGGESTION]
+    out = {file: {importance: list() for importance in importance_levels} for file in files}
     for message in messages:
-        messages_by_file[message.file] = message
-    for file, messages_for_file in messages_by_file.items():
-        realized_importance = sorted(set([message.importance for message in messages_for_file]), key=lambda x: -x.value)
-        messages_per_importance = {importance: [] for importance in realized_importance}
-        for message in messages_for_file:
-            messages_per_importance[message.importance]
-        out[message.file] = sorted(messages_per_importance, key=lambda x: -x.severity.value)
+        out[message.file][message.importance].append(message)
+    for file in files:
+        for importance in importance_levels:
+            if out[file][importance]:
+                out[file][importance] = sorted(out[file][importance], key=lambda x: -x.severity.value)
+            else:
+                out[file].pop(importance)
     return out
 
 
