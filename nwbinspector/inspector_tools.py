@@ -23,7 +23,11 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
         }
     else:
         return {
-            value: [message for message in messages if getattr(message, levels[0]) == value] for value in sorted_values
+            value: sorted(
+                [message for message in messages if getattr(message, levels[0]) == value],
+                key=lambda x: -x.severity.value,
+            )
+            for value in sorted_values
         }
 
 

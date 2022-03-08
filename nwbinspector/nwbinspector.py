@@ -91,12 +91,12 @@ def inspect_all_cli(
         with open(json_file_path, "w") as fp:
             json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
-        organized_results = organize_messages_by_file(messages=messages)
+        organized_results = organize_messages(messages=messages, levels=["file", "importance"])
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
-            print(f"{os.linesep*2}Log file saved at {str(report_file_path.absolute())}!{os.linesep}")
+            print(f"{os.linesep*2}Log file saved at {str(Path(report_file_path).absolute())}!{os.linesep}")
 
 
 def inspect_all(
@@ -214,13 +214,15 @@ def inspect_nwb(
                     continue
                 for nwbfile_object in nwbfile.objects.values():
                     if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                        message = check_function(nwbfile_object)
-                        if message is not None:
-                            message.file = file_name
-                            if isinstance(message, Iterable):
-                                messages.extend(message)
+                        check_result = check_function(nwbfile_object)
+                        if check_result is not None:
+                            if isinstance(check_result, Iterable):
+                                for message in check_result:
+                                    message.file = file_name
+                                    messages.append(message)
                             else:
-                                messages.append(message)
+                                check_result.file = file_name
+                                messages.append(check_result)
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
