@@ -120,7 +120,7 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
     """Automatically fill values in the InspectorMessage from the check function."""
     if result is not None:
         auto_parsed_result = result
-        if auto_parsed_result.severity not in [Severity.LOW, Severity.HIGH]:
+        if not isinstance(auto_parsed_result.severity, Severity):
             raise ValueError(
                 f"Indicated severity ({auto_parsed_result.severity}) of custom check "
                 f"({check_function.__name__}) is not a valid severity level! Please choose one of "
