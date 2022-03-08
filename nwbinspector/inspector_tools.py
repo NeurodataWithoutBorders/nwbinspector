@@ -6,24 +6,24 @@ from pathlib import Path
 from natsort import natsorted
 from enum import Enum
 
-from .register_checks import Importance, InspectorMessage
+from .register_checks import InspectorMessage
 from .utils import FilePathType
 
 
-def fancy_organize_messages(messages: List[InspectorMessage], levels: List[str]):
+def organize_messages(messages: List[InspectorMessage], levels: List[str]):
     """General function for organizing list of InspectorMessages into a nested dictionary structure."""
     unique_values = list(set(getattr(message, levels[0]) for message in messages))
     sorted_values = sort_unique_values(unique_values)
     if len(levels) > 1:
         return {
-            value: fancy_organize_messages(
+            value: organize_messages(
                 [message for message in messages if getattr(message, levels[0]) == value], levels[1:]
             )
             for value in sorted_values
         }
     else:
         return {
-            value: [messages for message in messages if getattr(message, levels[0]) == value] for value in sorted_values
+            value: [message for message in messages if getattr(message, levels[0]) == value] for value in sorted_values
         }
 
 
@@ -35,74 +35,11 @@ def sort_unique_values(unique_values: set):
         return natsorted(unique_values)
 
 
-def construct_output(presorted_level_values: list):
-    """Construct an empty output dictionary according to the pre-sorted and unique levels."""
-    if len(presorted_level_values) > 1:
-        return {value: construct_output(presorted_level_values[1:]) for value in presorted_level_values[0]}
-    else:
-        return {value: list() for value in presorted_level_values[0]}
-
-
-def append_output(output: dict, message: InspectorMessage, levels: list, loc=None):
-    """Append message to list at final level of arbitrarily nested dictionary."""
-    if loc is None:
-        loc = output
-    if len(levels) >= 1:
-        loc = loc.get(getattr(message, levels[0]))
-        return append_output(output=output, message=message, levels=levels[1:], loc=loc)
-    else:
-        loc.append(message)
-
-
-def efficient_organize_messages(messages: List[InspectorMessage], levels: List[str]):
-    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
-    presorted_level_values = list()
-    for level in levels:
-        presorted_level_values.append(
-            sort_unique_values(unique_values=list(set(getattr(message, level) for message in messages)))
-        )
-    output = construct_output(presorted_level_values=presorted_level_values)
-
-    for message in messages:
-        append_output(output=output, message=message, levels=levels)
-    return output
-
-
-def organize_messages_by_file(messages: List[InspectorMessage]):
-    """Order InspectorMessages by file name then importance."""
-    files = natsorted(set(message.file for message in messages))
-    importance_levels = [Importance.CRITICAL, Importance.BEST_PRACTICE_VIOLATION, Importance.BEST_PRACTICE_SUGGESTION]
-    out = {file: {importance: list() for importance in importance_levels} for file in files}
-    for message in messages:
-        out[message.file][message.importance].append(message)
-    for file in files:
-        for importance in importance_levels:
-            if out[file][importance]:
-                out[file][importance] = sorted(out[file][importance], key=lambda x: -x.severity.value)
-            else:
-                out[file].pop(importance)
-    return out
-
-
-def organize_messages_by_importance(messages: List[InspectorMessage]):
-    """Order InspectorMessages by importance, check function name, then file name."""
-    out = dict()
-    for message in natsorted(messages, key=lambda x: (-x.importance.value, -x.severity.value, x.file)):
-        if message.importance not in out:
-            out[message.importance] = dict()
-        if message.check_function_name not in out[message.importance]:
-            out[message.importance][message.check_function_name] = dict()
-        if message.file not in out[message.importance][message.check_function_name]:
-            out[message.importance][message.check_function_name][message.file] = []
-        out[message.importance][message.check_function_name][message.file].append(message)
-    return out
-
-
 def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
     """Print InspectorMessages in order of importance."""
     indent = " " * indent_size
     disp = []
-    data = organize_messages_by_importance(messages)
+    data = organize_messages(messages, ["importance", "check_function_name", "file"])
     for i, (importance, imp_data) in enumerate(data.items()):
         disp.append(f"{i}.  {importance.name}")
         disp.append("-" * (len(importance.name) + 4))

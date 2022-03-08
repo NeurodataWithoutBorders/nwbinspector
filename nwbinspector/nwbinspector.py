@@ -15,7 +15,7 @@ import yaml
 
 from . import available_checks
 from .inspector_tools import (
-    organize_messages_by_file,
+    organize_messages,
     format_organized_results_output,
     print_to_console,
     save_report,
@@ -224,7 +224,7 @@ def inspect_nwb(
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
-        message.check_function_name = ex
+        message.check_function_name = f"{type(ex)}: {str(ex)}"
         message.file = file_name
         messages.append(message)
     return messages
