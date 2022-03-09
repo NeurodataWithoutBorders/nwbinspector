@@ -256,9 +256,9 @@ def inspect_nwb(
                 importance=Importance.ERROR,
                 check_function_name=f"{type(ex)}: {str(ex)}",
             )
-    for inspector_message in run_checks(nwbfile, checks=checks):
-        inspector_message.file = file_name
-        yield inspector_message
+        for inspector_message in run_checks(nwbfile, checks=checks):
+            inspector_message.file = file_name
+            yield inspector_message
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
