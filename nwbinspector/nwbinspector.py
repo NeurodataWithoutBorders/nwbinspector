@@ -91,7 +91,7 @@ def inspect_all_cli(
         with open(json_file_path, "w") as fp:
             json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
-        organized_results = organize_messages(messages=messages, levels=["file", "importance"])
+        organized_results = organize_messages(messages=messages, levels=["filename", "importance"])
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
@@ -191,7 +191,7 @@ def inspect_nwb(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-    file_name = Path(nwbfile_path).name
+    filename = Path(nwbfile_path).name
     messages = list()
     try:
         with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
@@ -202,7 +202,7 @@ def inspect_nwb(
                     message.importance = Importance.PYNWB_VALIDATION
                     message.check_function_name = validation_error.name
                     message.location = validation_error.location
-                    message.file = file_name
+                    message.filename = filename
                     messages.append(message)
             nwbfile = io.read()
             for check_function in checks:
@@ -218,16 +218,16 @@ def inspect_nwb(
                         if check_result is not None:
                             if isinstance(check_result, Iterable):
                                 for message in check_result:
-                                    message.file = file_name
+                                    message.filename = filename
                                     messages.append(message)
                             else:
-                                check_result.file = file_name
+                                check_result.filename = filename
                                 messages.append(check_result)
     except Exception as ex:
         message = InspectorMessage(message=traceback.format_exc())
         message.importance = Importance.ERROR
         message.check_function_name = f"{type(ex)}: {str(ex)}"
-        message.file = file_name
+        message.file = filename
         messages.append(message)
     return messages
 

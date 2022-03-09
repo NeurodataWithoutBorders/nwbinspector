@@ -143,7 +143,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
             InspectorMessage(
                 message=(
@@ -156,7 +156,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
             InspectorMessage(
                 message=(
@@ -168,7 +168,7 @@ class TestInspector(TestCase):
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
             InspectorMessage(
                 message="The length of the first dimension of data does not match the length of timestamps.",
@@ -177,7 +177,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
@@ -197,7 +197,7 @@ class TestInspector(TestCase):
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
             InspectorMessage(
                 message="The length of the first dimension of data does not match the length of timestamps.",
@@ -206,7 +206,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
@@ -261,7 +261,7 @@ class TestInspector(TestCase):
                 object_type="TimeIntervals",
                 object_name="test_table",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
             InspectorMessage(
                 message="Column: stop_time",
@@ -270,7 +270,7 @@ class TestInspector(TestCase):
                 object_type="TimeIntervals",
                 object_name="test_table",
                 location="/acquisition/",
-                file="testing0.nwb",
+                filename="testing0.nwb",
             ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
