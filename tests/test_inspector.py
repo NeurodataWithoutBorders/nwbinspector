@@ -1,9 +1,9 @@
 import os
-from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from typing import List
+from unittest import TestCase
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -18,7 +18,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb, configure_checks
+from nwbinspector.nwbinspector import inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -80,7 +80,7 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        num_nwbfiles = 2
+        num_nwbfiles = 3
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
@@ -255,7 +255,6 @@ class TestInspector(TestCase):
                 yield InspectorMessage(message=f"Column: {col.name}")
 
         test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
-        print(test_results)
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -278,26 +277,22 @@ class TestInspector(TestCase):
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
 
+    def test_inspect_nwb_manual_iteration(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        message = next(generator)
+        true_result = InspectorMessage(
+            message="data is not compressed. Consider enabling compression when writing a dataset.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            severity=Severity.LOW,
+            check_function_name="check_small_dataset_compression",
+            object_type="TimeSeries",
+            object_name="test_time_series_1",
+            location="/acquisition/",
+            file="testing0.nwb",
+        )
+        self.assertEqual(message, true_result)
 
-def test_configure_checks():
-
-    # checks are moved
-    checks = [
-        check_small_dataset_compression,
-        check_regular_timestamps,
-        check_data_orientation,
-        check_timestamps_match_first_dimension,
-    ]
-    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
-
-    out = configure_checks(checks=checks, config=config)
-
-    assert out[2].importance is Importance.CRITICAL
-    assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
-
-    # checks in same place are not moved
-    config = {"CRITICAL": ["check_regular_timestamps"]}
-
-    out = configure_checks(checks=checks, config=config)
-
-    assert out[1].importance is Importance.CRITICAL
+    def test_inspect_nwb_manual_iteration_stop(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+        with self.assertRaises(expected_exception=StopIteration):
+            next(generator)

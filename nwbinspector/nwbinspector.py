@@ -36,6 +36,13 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return super().default(o)
 
 
+def validate_config(config: dict):
+    """Validate an instance of configuration against the official schema."""
+    with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+        schema = json.load(fp=fp)
+    jsonschema.validate(instance=config, schema=schema)
+
+
 def configure_checks(
     checks: list = available_checks,
     config: Optional[dict] = None,
@@ -76,19 +83,21 @@ def configure_checks(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-
     if config is not None:
+        validate_config(config=config)
         checks_out = []
         for check in checks:
+            skip_check = False
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
+                        skip_check = True
                         continue
                     check.importance = Importance[importance_name]
-            checks_out.append(check)
+            if not skip_check:
+                checks_out.append(check)
     else:
         checks_out = checks
-
     if select:
         checks_out = [x for x in checks_out if x.__name__ in select]
     elif ignore:
@@ -136,9 +145,6 @@ def inspect_all_cli(
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
-        with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
-            schema = json.load(fp=fp)
-        jsonschema.validate(config, schema)
     else:
         config = None
     messages = list(
@@ -182,10 +188,8 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-
     for module in modules:
         importlib.import_module(module)
-
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
     for nwbfile_path in nwbfiles:
@@ -235,7 +239,6 @@ def inspect_nwb(
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
-
     file_name = Path(nwbfile_path).name
     with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
         validation_errors = pynwb.validate(io=io)
