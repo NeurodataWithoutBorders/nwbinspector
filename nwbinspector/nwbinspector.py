@@ -112,7 +112,7 @@ def inspect_all(
 
     in_path = Path(path)
     if in_path.is_dir():
-        nwbfiles = list(in_path.glob("**/*.nwb", recursive=True))
+        nwbfiles = list(in_path.rglob("*.nwb"))
     elif in_path.is_file():
         nwbfiles = [in_path]
     else:
