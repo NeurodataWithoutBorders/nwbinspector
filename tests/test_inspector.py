@@ -276,7 +276,6 @@ class TestInspector(TestCase):
                 file="testing0.nwb",
             ),
         ]
-        # true_results = [[InspectorMessage(message='Column: start_time', importance=Importance.BEST_PRACTICE_VIOLATION, severity=Severity.LOW, check_function_name='iterable_check_function', object_type='TimeIntervals', object_name='test_table', location='/acquisition/', file='/var/folders/8j/lj8_4pws64xd276f19nhwwkh0000gn/T/tmp4ivukp5x/testing0.nwb'), InspectorMessage(message='Column: stop_time', importance=Importance.BEST_PRACTICE_VIOLATION, severity=Severity.LOW, check_function_name='iterable_check_function', object_type='TimeIntervals', object_name='test_table', location='/acquisition/', file='/var/folders/8j/lj8_4pws64xd276f19nhwwkh0000gn/T/tmp4ivukp5x/testing0.nwb')]
         self.assertListEqual(list1=test_results, list2=true_results)
 
 
@@ -291,7 +290,7 @@ def test_configure_checks():
     ]
     config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
 
-    out = configure_checks(config, checks)
+    out = configure_checks(checks=checks, config=config)
 
     assert out[2].importance is Importance.CRITICAL
     assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
