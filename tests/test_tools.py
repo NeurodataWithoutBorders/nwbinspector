@@ -42,7 +42,7 @@ class TestOrganization(TestCase):
                 object_type="ElectricalSeries",
                 object_name="ts1",
                 location="/acquisition/",
-                filename="file1.nwb",
+                file_path="path1/file1.nwb",
             ),
             InspectorMessage(
                 message="test2",
@@ -51,7 +51,7 @@ class TestOrganization(TestCase):
                 object_type="DynamicTable",
                 object_name="tab",
                 location="/acquisition/",
-                filename="file1.nwb",
+                file_path="path1/file1.nwb",
             ),
             InspectorMessage(
                 message="test3",
@@ -61,7 +61,7 @@ class TestOrganization(TestCase):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                filename="file2.nwb",
+                file_path="path2/file2.nwb",
             ),
             InspectorMessage(
                 message="test4",
@@ -70,7 +70,7 @@ class TestOrganization(TestCase):
                 object_type="ElectricalSeries",
                 object_name="ts1",
                 location="/processing/ecephys/LFP/",
-                filename="file3.nwb",
+                file_path="path2/path3/file3.nwb",
             ),
         ]
 
@@ -85,9 +85,9 @@ class TestOrganization(TestCase):
             organize_messages(messages=self.messages, levels=["message"])
 
     def test_file_by_importance(self):
-        test_result = organize_messages(messages=self.messages, levels=["filename", "importance"])
+        test_result = organize_messages(messages=self.messages, levels=["file_path", "importance"])
         true_result = {
-            "file1.nwb": {
+            "path1/file1.nwb": {
                 Importance.CRITICAL: [
                     InspectorMessage(
                         message="test2",
@@ -97,7 +97,7 @@ class TestOrganization(TestCase):
                         object_type="DynamicTable",
                         object_name="tab",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ],
                 Importance.BEST_PRACTICE_SUGGESTION: [
@@ -109,11 +109,11 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ],
             },
-            "file2.nwb": {
+            "path2/file2.nwb": {
                 Importance.BEST_PRACTICE_SUGGESTION: [
                     InspectorMessage(
                         message="test3",
@@ -123,11 +123,11 @@ class TestOrganization(TestCase):
                         object_type="NWBFile",
                         object_name="root",
                         location="/",
-                        filename="file2.nwb",
+                        file_path="path2/file2.nwb",
                     )
                 ]
             },
-            "file3.nwb": {
+            "path2/path3/file3.nwb": {
                 Importance.CRITICAL: [
                     InspectorMessage(
                         message="test4",
@@ -137,7 +137,7 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/processing/ecephys/LFP/",
-                        filename="file3.nwb",
+                        file_path="path2/path3/file3.nwb",
                     )
                 ]
             },
@@ -158,7 +158,7 @@ class TestOrganization(TestCase):
                             object_type="NWBFile",
                             object_name="root",
                             location="/",
-                            filename="file2.nwb",
+                            file_path="path2/file2.nwb",
                         )
                     ]
                 }
@@ -174,7 +174,7 @@ class TestOrganization(TestCase):
                             object_type="DynamicTable",
                             object_name="tab",
                             location="/acquisition/",
-                            filename="file1.nwb",
+                            file_path="path1/file1.nwb",
                         )
                     ]
                 },
@@ -188,7 +188,7 @@ class TestOrganization(TestCase):
                             object_type="ElectricalSeries",
                             object_name="ts1",
                             location="/acquisition/",
-                            filename="file1.nwb",
+                            file_path="path1/file1.nwb",
                         )
                     ],
                     "/processing/ecephys/LFP/": [
@@ -200,7 +200,7 @@ class TestOrganization(TestCase):
                             object_type="ElectricalSeries",
                             object_name="ts1",
                             location="/processing/ecephys/LFP/",
-                            filename="file3.nwb",
+                            file_path="path2/path3/file3.nwb",
                         )
                     ],
                 },
@@ -221,7 +221,7 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ]
             },
@@ -235,7 +235,7 @@ class TestOrganization(TestCase):
                         object_type="DynamicTable",
                         object_name="tab",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ],
                 "ts1": [
@@ -247,7 +247,7 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/processing/ecephys/LFP/",
-                        filename="file3.nwb",
+                        file_path="path2/path3/file3.nwb",
                     )
                 ],
             },
@@ -261,7 +261,7 @@ class TestOrganization(TestCase):
                         object_type="NWBFile",
                         object_name="root",
                         location="/",
-                        filename="file2.nwb",
+                        file_path="path2/file2.nwb",
                     )
                 ]
             },
@@ -270,11 +270,11 @@ class TestOrganization(TestCase):
 
     def test_reverse(self):
         test_result = organize_messages(
-            messages=self.messages, levels=["importance", "filename"], reverse=[False, True]
+            messages=self.messages, levels=["importance", "file_path"], reverse=[False, True]
         )
         true_result = {
             Importance.CRITICAL: {
-                "file3.nwb": [
+                "path2/path3/file3.nwb": [
                     InspectorMessage(
                         message="test4",
                         importance=Importance.CRITICAL,
@@ -283,10 +283,10 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/processing/ecephys/LFP/",
-                        filename="file3.nwb",
+                        file_path="path2/path3/file3.nwb",
                     )
                 ],
-                "file1.nwb": [
+                "path1/file1.nwb": [
                     InspectorMessage(
                         message="test2",
                         importance=Importance.CRITICAL,
@@ -295,12 +295,12 @@ class TestOrganization(TestCase):
                         object_type="DynamicTable",
                         object_name="tab",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ],
             },
             Importance.BEST_PRACTICE_SUGGESTION: {
-                "file2.nwb": [
+                "path2/file2.nwb": [
                     InspectorMessage(
                         message="test3",
                         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -309,10 +309,10 @@ class TestOrganization(TestCase):
                         object_type="NWBFile",
                         object_name="root",
                         location="/",
-                        filename="file2.nwb",
+                        file_path="path2/file2.nwb",
                     )
                 ],
-                "file1.nwb": [
+                "path1/file1.nwb": [
                     InspectorMessage(
                         message="test1",
                         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -321,7 +321,7 @@ class TestOrganization(TestCase):
                         object_type="ElectricalSeries",
                         object_name="ts1",
                         location="/acquisition/",
-                        filename="file1.nwb",
+                        file_path="path1/file1.nwb",
                     )
                 ],
             },

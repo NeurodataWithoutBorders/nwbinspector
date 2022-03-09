@@ -60,8 +60,9 @@ class InspectorMessage:
         The name of the instantiated object being inspected.
     location : str
         The location relative to the root of the NWBFile where the inspected object may be found.
-    filename : str
-        The name of the NWBFile this message pertains to.
+    file_path : str
+        The path of the NWBFile this message pertains to
+        Relative to the path called from inspect_nwb, inspect_all, or the path specified at the command line.
     """
 
     message: str
@@ -71,7 +72,7 @@ class InspectorMessage:
     object_type: str = ""
     object_name: str = ""
     location: str = ""
-    filename: str = ""
+    file_path: str = ""
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
