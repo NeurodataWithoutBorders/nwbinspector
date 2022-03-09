@@ -143,7 +143,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
                 location="/acquisition/",
-                file="testing0.nwb",
+                file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message=(
@@ -156,7 +156,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
-                file="testing0.nwb",
+                file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message=(
@@ -169,7 +169,7 @@ class TestInspector(TestCase):
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
                 location="/processing/behavior/Position/",
-                file="testing0.nwb",
+                file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message="The length of the first dimension of data does not match the length of timestamps.",
@@ -179,7 +179,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
                 location="/acquisition/",
-                file="testing0.nwb",
+                file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
                 message=(
@@ -192,7 +192,7 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/",
-                file="testing1.nwb",
+                file_path=self.nwbfile_paths[1],
             ),
         ]
         self.assertListsEquivalent(test_list=test_results, true_list=true_results)
@@ -212,7 +212,7 @@ class TestInspector(TestCase):
                     object_type="TimeSeries",
                     object_name="test_time_series_1",
                     location="/acquisition/",
-                    file="testing0.nwb",
+                    file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
                     message=(
@@ -225,7 +225,7 @@ class TestInspector(TestCase):
                     object_type="TimeSeries",
                     object_name="test_time_series_2",
                     location="/acquisition/",
-                    file="testing0.nwb",
+                    file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
                     message=(
@@ -238,7 +238,7 @@ class TestInspector(TestCase):
                     object_type="SpatialSeries",
                     object_name="my_spatial_series",
                     location="/processing/behavior/Position/",
-                    file="testing0.nwb",
+                    file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
                     message="The length of the first dimension of data does not match the length of timestamps.",
@@ -248,7 +248,7 @@ class TestInspector(TestCase):
                     object_type="TimeSeries",
                     object_name="test_time_series_3",
                     location="/acquisition/",
-                    file="testing0.nwb",
+                    file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
                     message=(
@@ -261,7 +261,7 @@ class TestInspector(TestCase):
                     object_type="TimeSeries",
                     object_name="test_time_series_2",
                     location="/acquisition/",
-                    file="testing1.nwb",
+                    file_path=self.nwbfile_paths[1],
                 ),
             ]
             self.assertListsEquivalent(test_list=test_results, true_list=true_results)
