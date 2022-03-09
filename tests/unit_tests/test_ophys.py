@@ -147,7 +147,6 @@ class TestCheckRoiResponseSeries(TestCase):
         self.ophys_module.add(roi_resp_series)
 
         assert check_roi_response_series_link_to_plane_segmentation(roi_resp_series) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
             message="rois field does not point to a PlaneSegmentation table.",
             importance=Importance.BEST_PRACTICE_VIOLATION,
             check_function_name="check_roi_response_series_link_to_plane_segmentation",
