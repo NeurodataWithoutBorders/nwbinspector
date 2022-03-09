@@ -11,7 +11,23 @@ from .utils import FilePathType
 
 
 def organize_messages(messages: List[InspectorMessage], levels: List[str]):
-    """General function for organizing list of InspectorMessages into a nested dictionary structure."""
+    """
+    General function for organizing list of InspectorMessages.
+
+    Returns a nested dictionary organized according to the order of the 'levels' argument.
+
+    Parameters
+    ----------
+    messages : list of InspectorMessages
+    levels: list of strings
+        Each string in this list must correspond onto an attribute of the InspectorMessage class, excluding the
+        'message' text.
+    """
+    assert "message" not in levels, (
+        "You must specify levels to organize by that correspond to attributes of the InspectorMessage class, not "
+        "including the text message."
+    )
+
     unique_values = list(set(getattr(message, levels[0]) for message in messages))
     sorted_values = sort_unique_values(unique_values)
     if len(levels) > 1:
