@@ -127,6 +127,7 @@ def configure_checks(
 )
 @click.option("-c", "--config-path", help="path of config .yaml file that overwrites importance of checks.")
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
+@click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -138,8 +139,9 @@ def inspect_all_cli(
     threshold: str = "BEST_PRACTICE_SUGGESTION",
     config_path: Optional[str] = None,
     json_file_path: Optional[str] = None,
+    n_jobs: int = 1,
 ):
-    """Primary CLI usage."""
+    """Primary CLI usage of the NWBInspector."""
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
@@ -147,12 +149,13 @@ def inspect_all_cli(
         config = None
     messages = list(
         inspect_all(
-            path,
+            path=path,
             modules=modules,
             config=config,
             ignore=ignore if ignore is None else ignore.split(","),
             select=select if select is None else select.split(","),
             importance_threshold=Importance[threshold],
+            n_jobs=n_jobs,
         )
     )
     if json_file_path is not None:
@@ -176,7 +179,38 @@ def inspect_all(
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
 ):
-    """Inspect all NWBFiles at the specified path."""
+    """
+    Inspect a NWBFile object and return suggestions for improvements according to best practices.
+
+    Parameters
+    ----------
+    path : PathType
+        File path to an NWBFile, or folder path to iterate over recursively and scan all NWBFiles present.
+    modules : list of strings, optional
+        List of external module names to load; examples would be namespace extensions.
+        These modules may also contain their own custom checks for their extensions.
+    config : dict
+        Dictionary valid against our JSON configuration schema.
+        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+        Typically loaded via json.load from a valid .json file
+    ignore: list of strings, optional
+        Names of functions to skip.
+    select: list of strings, optional
+        Names of functions to pick out of available checks.
+    importance_threshold : string, optional
+        Ignores tests with an assigned importance below this threshold.
+        Importance has three levels:
+            CRITICAL
+                - potentially incorrect data
+            BEST_PRACTICE_VIOLATION
+                - very suboptimal data representation
+            BEST_PRACTICE_SUGGESTION
+                - improvable data representation
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    n_jobs : int = 1
+        Number of jobs to use in parallel. Set to -1 to use all available resources.
+        Set to 1 (also the default) to disable.
+    """
     modules = modules or []
     path = Path(path)
 
@@ -192,9 +226,16 @@ def inspect_all(
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
-    if n_jobs > 1:
+    if n_jobs != 1:
 
-        with ThreadPoolExecutor() as executor:
+        # max_workers for threading is a different concept to number of processes; from the documentation
+        # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
+        # we can multiply the specified number of jobs by 5
+        if n_jobs != -1:
+            max_workers = n_jobs * 5
+        else:
+            max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for nwbfile_path in nwbfiles:
                 futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
@@ -229,6 +270,10 @@ def inspect_nwb(
         Dictionary valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
         Typically loaded via json.load from a valid .json file
+    ignore: list, optional
+        Names of functions to skip.
+    select: list, optional
+        Names of functions to pick out of available checks.
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
@@ -239,9 +284,6 @@ def inspect_nwb(
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    ignore: list, optional
-        Names of functions to skip.
-    select: list, optional
     driver: str, optional
         Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
     """

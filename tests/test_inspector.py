@@ -357,6 +357,19 @@ class TestInspector(TestCase):
             skip_first_newlines=True,
         )
 
+    def test_command_line_runs_cli_only_parallel(self):
+        console_output_file = self.tempdir / "test_console_output_2.txt"
+        os.system(
+            f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,"
+            f"check_data_orientation,check_regular_timestamps,check_small_dataset_compression --no-color "
+            f"> {console_output_file} --n-jobs 2"
+        )
+        self.assertLogFileContentsEqual(
+            test_file_path=console_output_file,
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
+            skip_first_newlines=True,
+        )
+
     def test_command_line_runs_saves_report(self):
         os.system(
             f"nwbinspector {str(self.nwbfile_paths[0])} --report-file-path {self.tempdir / 'nwbinspector_report.txt'}"
