@@ -101,12 +101,6 @@ class TestInspector(TestCase):
     def tearDownClass(cls):
         rmtree(cls.tempdir)
 
-    def assertListofDictEqual(self, list1: List[dict], list2: List[dict]):
-        for dictionary in list1:
-            self.assertIn(member=dictionary, container=list2)
-        for dictionary in list2:
-            self.assertIn(member=dictionary, container=list1)
-
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
         assert path.exists()
