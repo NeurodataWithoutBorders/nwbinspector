@@ -266,5 +266,62 @@ class TestOrganization(TestCase):
                 ]
             },
         }
+        self.assertDictEqual(d1=test_result, d2=true_result)
 
+    def test_reverse(self):
+        test_result = organize_messages(messages=self.messages, levels=["importance", "file"], reverse=[False, True])
+        true_result = {
+            Importance.CRITICAL: {
+                "file3.nwb": [
+                    InspectorMessage(
+                        message="test4",
+                        importance=Importance.CRITICAL,
+                        severity=Severity.LOW,
+                        check_function_name="fun2",
+                        object_type="ElectricalSeries",
+                        object_name="ts1",
+                        location="/processing/ecephys/LFP/",
+                        file="file3.nwb",
+                    )
+                ],
+                "file1.nwb": [
+                    InspectorMessage(
+                        message="test2",
+                        importance=Importance.CRITICAL,
+                        severity=Severity.LOW,
+                        check_function_name="fun2",
+                        object_type="DynamicTable",
+                        object_name="tab",
+                        location="/acquisition/",
+                        file="file1.nwb",
+                    )
+                ],
+            },
+            Importance.BEST_PRACTICE_SUGGESTION: {
+                "file2.nwb": [
+                    InspectorMessage(
+                        message="test3",
+                        importance=Importance.BEST_PRACTICE_SUGGESTION,
+                        severity=Severity.HIGH,
+                        check_function_name="fun3",
+                        object_type="NWBFile",
+                        object_name="root",
+                        location="/",
+                        file="file2.nwb",
+                    )
+                ],
+                "file1.nwb": [
+                    InspectorMessage(
+                        message="test1",
+                        importance=Importance.BEST_PRACTICE_SUGGESTION,
+                        severity=Severity.LOW,
+                        check_function_name="fun1",
+                        object_type="ElectricalSeries",
+                        object_name="ts1",
+                        location="/acquisition/",
+                        file="file1.nwb",
+                    )
+                ],
+            },
+        }
         self.assertDictEqual(d1=test_result, d2=true_result)
