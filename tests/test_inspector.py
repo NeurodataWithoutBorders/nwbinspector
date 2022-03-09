@@ -111,6 +111,13 @@ class TestInspector(TestCase):
         path = Path(path)
         assert path.exists()
 
+    def assertListsEquivalent(self, test_list: list, true_list: list):
+        """When the order of the list output is not relevant to the test, assert they have the same cotents."""
+        for member in test_list:
+            self.assertIn(member=member, container=true_list)
+        for member in true_list:
+            self.assertIn(member=member, container=test_list)
+
     def assertLogFileContentsEqual(
         self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
     ):
@@ -180,7 +187,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
         test_results = list(
@@ -211,7 +218,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
 
     def test_command_line_runs_cli_only(self):
         console_output_file = self.tempdir / "test_console_output.txt"
@@ -275,7 +282,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
 
     def test_inspect_nwb_manual_iteration(self):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
@@ -288,7 +295,7 @@ class TestInspector(TestCase):
             object_type="TimeSeries",
             object_name="test_time_series_1",
             location="/acquisition/",
-            file="testing0.nwb",
+            file_path=self.nwbfile_paths[0],
         )
         self.assertEqual(message, true_result)
 
