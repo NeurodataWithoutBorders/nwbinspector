@@ -3,7 +3,6 @@
   "description": "Form of an nwbinspector config file.",
   "version": "0.0.1",
   "type": "object",
-  "additionalProperties": false,
   "properties": {
     "CRITICAL": {
       "type": "array",

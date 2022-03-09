@@ -4,7 +4,6 @@ import importlib
 import traceback
 import json
 import jsonschema
-import types
 from pathlib import Path
 from collections import Iterable
 from enum import Enum
@@ -42,23 +41,6 @@ def validate_config(config: dict):
     with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
         schema = json.load(fp=fp)
     jsonschema.validate(instance=config, schema=schema)
-
-
-def copy_function(function):
-    """
-    Return a copy of a function so that internal attributes can be adjusted without changing the original function.
-
-    Required to ensure our configuration of functions in the registry does not effect the registry itself.
-
-    Taken from
-    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
-    """
-    copied_function = types.FunctionType(
-        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
-    )
-    # in case f was given attrs (note this dict is a shallow copy):
-    copied_function.__dict__.update(function.__dict__)
-    return copied_function
 
 
 def configure_checks(
@@ -105,16 +87,15 @@ def configure_checks(
         validate_config(config=config)
         checks_out = []
         for check in checks:
-            mapped_check = copy_function(check)
             skip_check = False
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
                         skip_check = True
                         continue
-                    mapped_check.importance = Importance[importance_name]
+                    check.importance = Importance[importance_name]
             if not skip_check:
-                checks_out.append(mapped_check)
+                checks_out.append(check)
     else:
         checks_out = checks
     if select:
