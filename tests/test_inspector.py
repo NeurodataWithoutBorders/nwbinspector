@@ -18,7 +18,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb, configure_checks
+from nwbinspector.nwbinspector import inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -274,27 +274,3 @@ class TestInspector(TestCase):
             ),
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
-
-
-def test_configure_checks():
-
-    # checks are moved
-    checks = [
-        check_small_dataset_compression,
-        check_regular_timestamps,
-        check_data_orientation,
-        check_timestamps_match_first_dimension,
-    ]
-    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
-
-    out = configure_checks(config, checks)
-
-    assert out[2].importance is Importance.CRITICAL
-    assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
-
-    # checks in same place are not moved
-    config = {"CRITICAL": ["check_regular_timestamps"]}
-
-    out = configure_checks(config, checks)
-
-    assert out[1].importance is Importance.CRITICAL

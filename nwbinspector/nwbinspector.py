@@ -8,6 +8,7 @@ from pathlib import Path
 from collections import Iterable
 from enum import Enum
 from typing import Optional, List
+from types import FunctionType
 
 import click
 import pynwb
@@ -34,6 +35,95 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return o.name
         else:
             return super().default(o)
+
+
+def validate_config(config: dict):
+    """Validate an instance of configuration against the official schema."""
+    with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+        schema = json.load(fp=fp)
+    jsonschema.validate(instance=config, schema=schema)
+
+
+def copy_function(function):
+    """
+    Return a copy of a function so that internal attributes can be adjusted without changing the original function.
+
+    Required to ensure our configuration of functions in the registry does not effect the registry itself.
+
+    Taken from
+    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
+    """
+    copied_function = FunctionType(
+        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
+    )
+    # in case f was given attrs (note this dict is a shallow copy):
+    copied_function.__dict__.update(function.__dict__)
+    return copied_function
+
+
+def configure_checks(
+    checks: list = available_checks,
+    config: Optional[dict] = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+) -> list:
+    """
+    Filter a list of check functions (the entire base registry by default) according to the configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Dictionary valid against our JSON configuration schema.
+        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+        Typically loaded via json.load from a valid .json file
+    checks : list of check functions
+        Defaults to all registered checks.
+    ignore: list, optional
+        Names of functions to skip.
+    select: list, optional
+        If loading all registered checks, this can be shorthand for selecting only a handful of them.
+    importance_threshold : string, optional
+        Ignores all tests with an post-configuration assigned importance below this threshold.
+        Importance has three levels:
+            CRITICAL
+                - potentially incorrect data
+            BEST_PRACTICE_VIOLATION
+                - very suboptimal data representation
+            BEST_PRACTICE_SUGGESTION
+                - improvable data representation
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    """
+    if ignore is not None and select is not None:
+        raise ValueError("Options 'ignore' and 'select' cannot both be used.")
+    if importance_threshold not in Importance:
+        raise ValueError(
+            f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
+            "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
+        )
+    if config is not None:
+        validate_config(config=config)
+        checks_out = []
+        for check in checks:
+            mapped_check = copy_function(check)
+            skip_check = False
+            for importance_name, func_names in config.items():
+                if check.__name__ in func_names:
+                    if importance_name == "SKIP":
+                        skip_check = True
+                        continue
+                    mapped_check.importance = Importance[importance_name]
+            if not skip_check:
+                checks_out.append(mapped_check)
+    else:
+        checks_out = checks
+    if select:
+        checks_out = [x for x in checks_out if x.__name__ in select]
+    elif ignore:
+        checks_out = [x for x in checks_out if x.__name__ not in ignore]
+    if importance_threshold:
+        checks_out = [x for x in checks_out if x.importance.value >= importance_threshold.value]
+    return checks_out
 
 
 @click.command()
@@ -136,19 +226,6 @@ def inspect_all(
             )
         )
     return messages
-
-
-def configure_checks(config: dict, checks: list = available_checks) -> list:
-    """Filter a list of check functions (the entire base registry by default) according to the configuration."""
-    checks_out = []
-    for check in checks:
-        for importance_name, func_names in config.items():
-            if check.__name__ in func_names:
-                if importance_name == "SKIP":
-                    continue
-                check.importance = Importance[importance_name]
-        checks_out.append(check)
-    return checks_out
 
 
 def inspect_nwb(
