@@ -1,34 +1,83 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
-import sys
 import os
-from enum import Enum
-from collections import OrderedDict
+import sys
 from typing import Dict, List
 from pathlib import Path
+from natsort import natsorted
+from enum import Enum
 
-import numpy as np
-
-from .register_checks import Importance
+from .register_checks import InspectorMessage
 from .utils import FilePathType
 
 
-def sort_by_descending_severity(check_results: list):
-    """Order the dictionaries in the check_list by severity."""
-    severities = [check_result.severity.value for check_result in check_results]
-    descending_indices = np.argsort(severities)[::-1]
-    return [check_results[j] for j in descending_indices]
+def _sort_unique_values(unique_values: list, reverse: bool = False):
+    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
+    if any(unique_values) and isinstance(unique_values[0], Enum):
+        return natsorted(unique_values, key=lambda x: -x.value, reverse=reverse)
+    else:
+        return natsorted(unique_values, reverse=reverse)
 
 
-def organize_check_results(check_results: list):
-    """Format the list of returned results from checks."""
-    initial_results = OrderedDict({importance.name: list() for importance in Importance})
-    for check_result in check_results:
-        initial_results[check_result.importance.name].append(check_result)
-    organized_check_results = OrderedDict()
-    for importance_level, check_results in initial_results.items():
-        if any(check_results):
-            organized_check_results.update({importance_level: sort_by_descending_severity(check_results=check_results)})
-    return organized_check_results
+def organize_messages(messages: List[InspectorMessage], levels: List[str], reverse=None):
+    """
+    General function for organizing list of InspectorMessages.
+
+    Returns a nested dictionary organized according to the order of the 'levels' argument.
+
+    Parameters
+    ----------
+    messages : list of InspectorMessages
+    levels: list of strings
+        Each string in this list must correspond onto an attribute of the InspectorMessage class, excluding the
+        'message' text.
+    """
+    assert "message" not in levels, (
+        "You must specify levels to organize by that correspond to attributes of the InspectorMessage class, not "
+        "including the text message."
+    )
+    if reverse is None:
+        reverse = [False] * len(levels)
+    unique_values = list(set(getattr(message, levels[0]) for message in messages))
+    sorted_values = _sort_unique_values(unique_values, reverse=reverse[0])
+    if len(levels) > 1:
+        return {
+            value: organize_messages(
+                messages=[message for message in messages if getattr(message, levels[0]) == value],
+                levels=levels[1:],
+                reverse=reverse[1:],
+            )
+            for value in sorted_values
+        }
+    else:
+        return {
+            value: sorted(
+                [message for message in messages if getattr(message, levels[0]) == value],
+                key=lambda x: -x.severity.value,
+            )
+            for value in sorted_values
+        }
+
+
+def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
+    """Print InspectorMessages in order of importance."""
+    indent = " " * indent_size
+    disp = []
+    data = organize_messages(messages, ["importance", "check_function_name", "file"])
+    for i, (importance, imp_data) in enumerate(data.items()):
+        disp.append(f"{i}.  {importance.name}")
+        disp.append("-" * (len(importance.name) + 4))
+        for ii, (check_name, check_data) in enumerate(imp_data.items()):
+            disp.append(f"{i}.{ii}.  {check_name}")
+            counter = 0
+            for file, file_messages in check_data.items():
+                for message in file_messages:
+                    disp.append(
+                        f"{indent}{i}.{ii}.{counter}.  {file}:{message.location}{message.object_name} -"
+                        f" {message.message}"
+                    )
+                    counter += 1
+        disp.append("")
+    return disp
 
 
 def format_organized_results_output(organized_results: Dict[str, Dict[str, list]]) -> List[str]:
@@ -41,9 +90,9 @@ def format_organized_results_output(organized_results: Dict[str, Dict[str, list]
         formatted_output.append("=" * len(nwbfile_name_string) + "\n")
 
         for importance_index, (importance_level, check_results) in enumerate(organized_check_results.items(), start=1):
-            importance_string = importance_level.replace("_", " ")
+            importance_string = importance_level.name.replace("_", " ")
             formatted_output.append(f"\n{importance_string}\n")
-            formatted_output.append("-" * len(importance_level) + "\n")
+            formatted_output.append("-" * len(importance_string) + "\n")
 
             if importance_level in ["ERROR", "PYNWB_VALIDATION"]:
                 for check_index, check_result in enumerate(check_results, start=1):

@@ -4,6 +4,7 @@ from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
+
 import h5py
 
 
@@ -49,9 +50,6 @@ class InspectorMessage:
         The user will never directly see this severity, but it will prioritize the order in which check results are
         presented by the NWBInspector.
 
-
-    Returns
-    -------
     importance : Importance
         The Importance level specified by the decorator of the check function.
     check_function_name : str
@@ -62,6 +60,9 @@ class InspectorMessage:
         The name of the instantiated object being inspected.
     location : str
         The location relative to the root of the NWBFile where the inspected object may be found.
+    file_path : str
+        The path of the NWBFile this message pertains to
+        Relative to the path called from inspect_nwb, inspect_all, or the path specified at the command line.
     """
 
     message: str
@@ -71,6 +72,7 @@ class InspectorMessage:
     object_type: str = ""
     object_name: str = ""
     location: str = ""
+    file_path: str = ""
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
