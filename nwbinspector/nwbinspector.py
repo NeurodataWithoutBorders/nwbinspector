@@ -104,17 +104,16 @@ def configure_checks(
     if config is not None:
         validate_config(config=config)
         checks_out = []
+        ignore = ignore or []
         for check in checks:
             mapped_check = copy_function(check)
-            skip_check = False
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
-                        skip_check = True
+                        ignore.append(check.__name__)
                         continue
                     mapped_check.importance = Importance[importance_name]
-            if not skip_check:
-                checks_out.append(mapped_check)
+            checks_out.append(mapped_check)
     else:
         checks_out = checks
     if select:
