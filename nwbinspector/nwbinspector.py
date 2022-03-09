@@ -87,15 +87,12 @@ def configure_checks(
         validate_config(config=config)
         checks_out = []
         for check in checks:
-            skip_check = False
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
-                        skip_check = True
                         continue
                     check.importance = Importance[importance_name]
-            if not skip_check:
-                checks_out.append(check)
+            checks_out.append(check)
     else:
         checks_out = checks
     if select:
