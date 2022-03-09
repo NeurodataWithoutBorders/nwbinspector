@@ -37,6 +37,13 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return super().default(o)
 
 
+def validate_config(config: dict):
+    """Validate an instance of configuration against the official schema."""
+    with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+        schema = json.load(fp=fp)
+    jsonschema.validate(instance=config, schema=schema)
+
+
 def configure_checks(
     checks: list = available_checks,
     config: Optional[dict] = None,
@@ -78,6 +85,7 @@ def configure_checks(
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
     if config is not None:
+        validate_config(config=config)
         checks_out = []
         for check in checks:
             for importance_name, func_names in config.items():
@@ -109,7 +117,7 @@ def configure_checks(
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
-@click.option("-s", "--select", help="Comma-separated names of checks to run")
+@click.option("-s", "--select", help="Comma-separated names of checks to run.")
 @click.option(
     "-t",
     "--threshold",
@@ -129,15 +137,12 @@ def inspect_all_cli(
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
     config_path: Optional[str] = None,
-    json_file_path: str = None,
+    json_file_path: Optional[str] = None,
 ):
     """Primary CLI usage."""
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
-        with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
-            schema = json.load(fp=fp)
-        jsonschema.validate(config, schema)
     else:
         config = None
     messages = list(
@@ -154,7 +159,7 @@ def inspect_all_cli(
         with open(json_file_path, "w") as fp:
             json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
-        organized_results = organize_messages(messages=messages, levels=["file", "importance"])
+        organized_results = organize_messages(messages=messages, levels=["file_path", "importance"])
         formatted_results = format_organized_results_output(organized_results=organized_results)
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
@@ -177,7 +182,7 @@ def inspect_all(
 
     in_path = Path(path)
     if in_path.is_dir():
-        nwbfiles = list(in_path.glob("*.nwb"))
+        nwbfiles = list(in_path.rglob("*.nwb"))
     elif in_path.is_file():
         nwbfiles = [in_path]
     else:
@@ -244,8 +249,8 @@ def inspect_nwb(
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
-    file_name = Path(nwbfile_path).name
-    with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
+    nwbfile_path = str(nwbfile_path)
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         validation_errors = pynwb.validate(io=io)
         if any(validation_errors):
             for validation_error in validation_errors:
@@ -254,7 +259,7 @@ def inspect_nwb(
                     importance=Importance.PYNWB_VALIDATION,
                     check_function_name=validation_error.name,
                     location=validation_error.location,
-                    file=file_name,
+                    file_path=nwbfile_path,
                 )
         try:
             nwbfile = io.read()
@@ -263,9 +268,10 @@ def inspect_nwb(
                 message=traceback.format_exc(),
                 importance=Importance.ERROR,
                 check_function_name=f"{type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
             )
         for inspector_message in run_checks(nwbfile, checks=checks):
-            inspector_message.file = file_name
+            inspector_message.file_path = nwbfile_path
             yield inspector_message
 
 
