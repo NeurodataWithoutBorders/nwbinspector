@@ -10,7 +10,15 @@ from .register_checks import InspectorMessage
 from .utils import FilePathType
 
 
-def organize_messages(messages: List[InspectorMessage], levels: List[str]):
+def _sort_unique_values(unique_values: list, reverse: bool = False):
+    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
+    if any(unique_values) and isinstance(unique_values[0], Enum):
+        return natsorted(unique_values, key=lambda x: -x.value, reverse=reverse)
+    else:
+        return natsorted(unique_values, reverse=reverse)
+
+
+def organize_messages(messages: List[InspectorMessage], levels: List[str], reverse=None):
     """
     General function for organizing list of InspectorMessages.
 
@@ -27,13 +35,16 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
         "You must specify levels to organize by that correspond to attributes of the InspectorMessage class, not "
         "including the text message."
     )
-
+    if reverse is None:
+        reverse = [False] * len(levels)
     unique_values = list(set(getattr(message, levels[0]) for message in messages))
-    sorted_values = sort_unique_values(unique_values)
+    sorted_values = _sort_unique_values(unique_values, reverse=reverse[0])
     if len(levels) > 1:
         return {
             value: organize_messages(
-                [message for message in messages if getattr(message, levels[0]) == value], levels[1:]
+                messages=[message for message in messages if getattr(message, levels[0]) == value],
+                levels=levels[1:],
+                reverse=reverse[1:],
             )
             for value in sorted_values
         }
@@ -45,14 +56,6 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
             )
             for value in sorted_values
         }
-
-
-def sort_unique_values(unique_values: list):
-    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
-    if any(unique_values) and isinstance(unique_values[0], Enum):
-        return natsorted(unique_values, key=lambda x: -x.value)
-    else:
-        return natsorted(unique_values)
 
 
 def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
