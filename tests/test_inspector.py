@@ -2,7 +2,6 @@ import os
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
-from typing import List
 from unittest import TestCase
 
 import numpy as np
@@ -198,11 +197,9 @@ class TestInspector(TestCase):
         self.assertListsEquivalent(test_list=test_results, true_list=true_results)
 
         def test_inspect_all_parallel(self):
-            test_results = []
-            for test_result in inspect_all(
-                path=Path(self.nwbfile_paths[0]).parent, select=[x.__name__ for x in self.checks], n_jobs=2
-            ):
-                test_results.extend(test_result)
+            test_results = list(
+                inspect_all(path=Path(self.nwbfile_paths[0]).parent, select=[x.__name__ for x in self.checks], n_jobs=2)
+            )
             true_results = [
                 InspectorMessage(
                     message="data is not compressed. Consider enabling compression when writing a dataset.",

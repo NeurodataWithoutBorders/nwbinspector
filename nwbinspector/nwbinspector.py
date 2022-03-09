@@ -8,11 +8,11 @@ from pathlib import Path
 from collections import Iterable
 from enum import Enum
 from typing import Optional, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import click
 import pynwb
 import yaml
-from joblib import Parallel, delayed
 
 from . import available_checks
 from .inspector_tools import (
@@ -194,13 +194,13 @@ def inspect_all(
 
     if n_jobs > 1:
 
-        def dispatch_inspection(nwbfile_path: FilePathType, checks: list):
-            return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks))
-
-        for message in Parallel(n_jobs=n_jobs)(
-            delayed(dispatch_inspection)(nwbfile_path=nwbfile_path, checks=checks) for nwbfile_path in nwbfiles
-        ):
-            yield message
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for nwbfile_path in nwbfiles:
+                futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
+            for future in as_completed(futures):
+                for message in future.result():
+                    yield message
     else:
         for nwbfile_path in nwbfiles:
             for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
