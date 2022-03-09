@@ -48,7 +48,7 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
-@click.option("-s", "--select", help="Comma-separated names of checks to run")
+@click.option("-s", "--select", help="Comma-separated names of checks to run.")
 @click.option(
     "-t",
     "--threshold",
@@ -68,7 +68,7 @@ def inspect_all_cli(
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
     config_path: Optional[str] = None,
-    json_file_path: str = None,
+    json_file_path: Optional[str] = None,
 ):
     """Primary CLI usage."""
     if config_path is not None:

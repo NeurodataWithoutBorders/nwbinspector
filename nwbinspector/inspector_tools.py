@@ -10,6 +10,14 @@ from .register_checks import InspectorMessage
 from .utils import FilePathType
 
 
+def _sort_unique_values(unique_values: list):
+    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
+    if any(unique_values) and isinstance(unique_values[0], Enum):
+        return natsorted(unique_values, key=lambda x: -x.value)
+    else:
+        return natsorted(unique_values)
+
+
 def organize_messages(messages: List[InspectorMessage], levels: List[str]):
     """
     General function for organizing list of InspectorMessages.
@@ -29,7 +37,7 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
     )
 
     unique_values = list(set(getattr(message, levels[0]) for message in messages))
-    sorted_values = sort_unique_values(unique_values)
+    sorted_values = _sort_unique_values(unique_values)
     if len(levels) > 1:
         return {
             value: organize_messages(
@@ -45,14 +53,6 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str]):
             )
             for value in sorted_values
         }
-
-
-def sort_unique_values(unique_values: list):
-    """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
-    if any(unique_values) and isinstance(unique_values[0], Enum):
-        return natsorted(unique_values, key=lambda x: -x.value)
-    else:
-        return natsorted(unique_values)
 
 
 def display_messages_by_importance(messages: List[InspectorMessage], indent_size: int = 2):
