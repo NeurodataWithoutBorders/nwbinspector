@@ -12,6 +12,7 @@ from typing import Optional, List
 import click
 import pynwb
 import yaml
+from joblib import Parallel, delayed
 
 from . import available_checks
 from .inspector_tools import (
@@ -76,7 +77,6 @@ def configure_checks(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
         )
-
     if config is not None:
         checks_out = []
         for check in checks:
@@ -88,7 +88,6 @@ def configure_checks(
             checks_out.append(check)
     else:
         checks_out = checks
-
     if select:
         checks_out = [x for x in checks_out if x.__name__ in select]
     elif ignore:
@@ -170,6 +169,7 @@ def inspect_all(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    n_jobs: int = 1,
 ):
     """Inspect all NWBFiles at the specified path."""
     modules = modules or []
@@ -182,15 +182,24 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-
     for module in modules:
         importlib.import_module(module)
-
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
-    for nwbfile_path in nwbfiles:
-        for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+
+    if n_jobs > 1:
+
+        def dispatch_inspection(nwbfile_path: FilePathType, checks: list):
+            return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks))
+
+        for message in Parallel(n_jobs=n_jobs)(
+            delayed(dispatch_inspection)(nwbfile_path=nwbfile_path, checks=checks) for nwbfile_path in nwbfiles
+        ):
             yield message
+    else:
+        for nwbfile_path in nwbfiles:
+            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+                yield message
 
 
 def inspect_nwb(
@@ -235,7 +244,6 @@ def inspect_nwb(
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
-
     file_name = Path(nwbfile_path).name
     with pynwb.NWBHDF5IO(path=str(nwbfile_path), mode="r", load_namespaces=True, driver=driver) as io:
         validation_errors = pynwb.validate(io=io)
