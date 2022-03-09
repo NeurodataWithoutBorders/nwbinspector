@@ -1,5 +1,5 @@
 # """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
-from pynwb.ophys import RoiResponseSeries
+from pynwb.ophys import RoiResponseSeries, PlaneSegmentation
 
 from hdmf.utils import get_data_shape
 
@@ -22,6 +22,12 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
         return InspectorMessage(
             message="The second dimension of data does not match the length of rois. Your data may be transposed."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=RoiResponseSeries)
+def check_roi_response_series_link_to_plane_segmentation(roi_response_series: RoiResponseSeries):
+    if not isinstance(roi_response_series.rois.table, PlaneSegmentation):
+        return InspectorMessage(message="rois field does not point to a PlaneSegmentation table.")
 
 
 # @nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
