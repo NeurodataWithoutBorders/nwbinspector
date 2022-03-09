@@ -257,7 +257,7 @@ def inspect_nwb(
                 check_function_name=f"{type(ex)}: {str(ex)}",
             )
     for inspector_message in run_checks(nwbfile, checks=checks):
-        inspector_message.file = nwbfile_path
+        inspector_message.file = file_name
         yield inspector_message
 
 

@@ -133,7 +133,7 @@ class TestInspector(TestCase):
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
 
     def test_inspect_nwb(self):
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -183,8 +183,10 @@ class TestInspector(TestCase):
         self.assertListEqual(list1=test_results, list2=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        test_results = inspect_nwb(
-            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+            )
         )
         true_results = [
             InspectorMessage(
@@ -252,7 +254,8 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+        print(test_results)
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -273,6 +276,7 @@ class TestInspector(TestCase):
                 file="testing0.nwb",
             ),
         ]
+        # true_results = [[InspectorMessage(message='Column: start_time', importance=Importance.BEST_PRACTICE_VIOLATION, severity=Severity.LOW, check_function_name='iterable_check_function', object_type='TimeIntervals', object_name='test_table', location='/acquisition/', file='/var/folders/8j/lj8_4pws64xd276f19nhwwkh0000gn/T/tmp4ivukp5x/testing0.nwb'), InspectorMessage(message='Column: stop_time', importance=Importance.BEST_PRACTICE_VIOLATION, severity=Severity.LOW, check_function_name='iterable_check_function', object_type='TimeIntervals', object_name='test_table', location='/acquisition/', file='/var/folders/8j/lj8_4pws64xd276f19nhwwkh0000gn/T/tmp4ivukp5x/testing0.nwb')]
         self.assertListEqual(list1=test_results, list2=true_results)
 
 
@@ -295,6 +299,6 @@ def test_configure_checks():
     # checks in same place are not moved
     config = {"CRITICAL": ["check_regular_timestamps"]}
 
-    out = configure_checks(config, checks)
+    out = configure_checks(checks=checks, config=config)
 
     assert out[1].importance is Importance.CRITICAL
