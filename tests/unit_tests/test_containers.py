@@ -33,7 +33,6 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
             true_output = InspectorMessage(
-                severity=Severity.LOW,
                 message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_small_dataset_compression",
@@ -52,7 +51,6 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.1)
             true_output = InspectorMessage(
-                severity=Severity.LOW,
                 message="test_dataset is not compressed. Consider enabling compression when writing a dataset.",
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_small_dataset_compression",

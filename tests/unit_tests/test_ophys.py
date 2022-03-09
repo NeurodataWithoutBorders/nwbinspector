@@ -58,7 +58,6 @@ class TestCheckRoiResponseSeries(TestCase):
         for _ in range(10):
             image_mask = np.zeros((100, 100))
             self.plane_segmentation.add_roi(image_mask=image_mask)
-
         self.nwbfile = nwbfile
 
     def test_check_flipped_dims(self):
@@ -79,7 +78,6 @@ class TestCheckRoiResponseSeries(TestCase):
         self.ophys_module.add(roi_resp_series)
 
         assert check_roi_response_series_dims(roi_resp_series) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
             message="The second dimension of data does not match the length of rois, "
             "but instead the first does. Data is oriented incorrectly and should be transposed.",
             importance=Importance.CRITICAL,
@@ -107,7 +105,6 @@ class TestCheckRoiResponseSeries(TestCase):
         self.ophys_module.add(roi_resp_series)
 
         assert check_roi_response_series_dims(roi_resp_series) == InspectorMessage(
-            severity=Severity.NO_SEVERITY,
             message="The second dimension of data does not match the length of rois. Your " "data may be transposed.",
             importance=Importance.CRITICAL,
             check_function_name="check_roi_response_series_dims",
