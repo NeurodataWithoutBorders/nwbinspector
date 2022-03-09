@@ -1,9 +1,9 @@
 import os
-from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from typing import List
+from unittest import TestCase
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -80,7 +80,7 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        num_nwbfiles = 2
+        num_nwbfiles = 3
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
@@ -100,12 +100,6 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
-    def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
-        for dictionary in test_list:
-            self.assertIn(member=dictionary, container=true_list)
-        for dictionary in true_list:
-            self.assertIn(member=dictionary, container=test_list)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
@@ -133,7 +127,7 @@ class TestInspector(TestCase):
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
 
     def test_inspect_nwb(self):
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -183,8 +177,10 @@ class TestInspector(TestCase):
         self.assertListEqual(list1=test_results, list2=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        test_results = inspect_nwb(
-            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+            )
         )
         true_results = [
             InspectorMessage(
@@ -252,7 +248,7 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -275,6 +271,26 @@ class TestInspector(TestCase):
         ]
         self.assertListEqual(list1=test_results, list2=true_results)
 
+    def test_inspect_nwb_manual_iteration(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        message = next(generator)
+        true_result = InspectorMessage(
+            message="data is not compressed. Consider enabling compression when writing a dataset.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            severity=Severity.LOW,
+            check_function_name="check_small_dataset_compression",
+            object_type="TimeSeries",
+            object_name="test_time_series_1",
+            location="/acquisition/",
+            file_path=self.nwbfile_paths[0],
+        )
+        self.assertEqual(message, true_result)
+
+    def test_inspect_nwb_manual_iteration_stop(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+        with self.assertRaises(expected_exception=StopIteration):
+            next(generator)
+
 
 def test_configure_checks():
 
@@ -287,7 +303,7 @@ def test_configure_checks():
     ]
     config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
 
-    out = configure_checks(config, checks)
+    out = configure_checks(checks=checks, config=config)
 
     assert out[2].importance is Importance.CRITICAL
     assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
@@ -295,6 +311,5 @@ def test_configure_checks():
     # checks in same place are not moved
     config = {"CRITICAL": ["check_regular_timestamps"]}
 
-    out = configure_checks(config, checks)
-
+    out = configure_checks(checks=checks, config=config)
     assert out[1].importance is Importance.CRITICAL

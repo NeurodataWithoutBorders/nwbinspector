@@ -36,6 +36,74 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return super().default(o)
 
 
+def validate_config(config: dict):
+    """Validate an instance of configuration against the official schema."""
+    with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+        schema = json.load(fp=fp)
+    jsonschema.validate(instance=config, schema=schema)
+
+
+def configure_checks(
+    checks: list = available_checks,
+    config: Optional[dict] = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+) -> list:
+    """
+    Filter a list of check functions (the entire base registry by default) according to the configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Dictionary valid against our JSON configuration schema.
+        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+        Typically loaded via json.load from a valid .json file
+    checks : list of check functions
+        Defaults to all registered checks.
+    ignore: list, optional
+        Names of functions to skip.
+    select: list, optional
+        If loading all registered checks, this can be shorthand for selecting only a handful of them.
+    importance_threshold : string, optional
+        Ignores all tests with an post-configuration assigned importance below this threshold.
+        Importance has three levels:
+            CRITICAL
+                - potentially incorrect data
+            BEST_PRACTICE_VIOLATION
+                - very suboptimal data representation
+            BEST_PRACTICE_SUGGESTION
+                - improvable data representation
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    """
+    if ignore is not None and select is not None:
+        raise ValueError("Options 'ignore' and 'select' cannot both be used.")
+    if importance_threshold not in Importance:
+        raise ValueError(
+            f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
+            "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
+        )
+    if config is not None:
+        validate_config(config=config)
+        checks_out = []
+        for check in checks:
+            for importance_name, func_names in config.items():
+                if check.__name__ in func_names:
+                    if importance_name == "SKIP":
+                        continue
+                    check.importance = Importance[importance_name]
+            checks_out.append(check)
+    else:
+        checks_out = checks
+    if select:
+        checks_out = [x for x in checks_out if x.__name__ in select]
+    elif ignore:
+        checks_out = [x for x in checks_out if x.__name__ not in ignore]
+    if importance_threshold:
+        checks_out = [x for x in checks_out if x.importance.value >= importance_threshold.value]
+    return checks_out
+
+
 @click.command()
 @click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
@@ -74,18 +142,17 @@ def inspect_all_cli(
     if config_path is not None:
         with open(file=config_path, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
-        with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
-            schema = json.load(fp=fp)
-        jsonschema.validate(config, schema)
     else:
         config = None
-    messages = inspect_all(
-        path,
-        modules=modules,
-        config=config,
-        ignore=ignore if ignore is None else ignore.split(","),
-        select=select if select is None else select.split(","),
-        importance_threshold=Importance[threshold],
+    messages = list(
+        inspect_all(
+            path,
+            modules=modules,
+            config=config,
+            ignore=ignore if ignore is None else ignore.split(","),
+            select=select if select is None else select.split(","),
+            importance_threshold=Importance[threshold],
+        )
     )
     if json_file_path is not None:
         with open(json_file_path, "w") as fp:
@@ -102,9 +169,9 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
+    config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    config: dict = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
 ):
     """Inspect all NWBFiles at the specified path."""
@@ -118,45 +185,22 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-    if config is not None:
-        checks = configure_checks(config, available_checks)
-    else:
-        checks = available_checks
     for module in modules:
         importlib.import_module(module)
-    messages = list()
+    # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
+    checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
     for nwbfile_path in nwbfiles:
-        messages.extend(
-            inspect_nwb(
-                nwbfile_path=nwbfile_path,
-                checks=checks,
-                importance_threshold=importance_threshold,
-                ignore=ignore,
-                select=select,
-            )
-        )
-    return messages
-
-
-def configure_checks(config: dict, checks: list = available_checks) -> list:
-    """Filter a list of check functions (the entire base registry by default) according to the configuration."""
-    checks_out = []
-    for check in checks:
-        for importance_name, func_names in config.items():
-            if check.__name__ in func_names:
-                if importance_name == "SKIP":
-                    continue
-                check.importance = Importance[importance_name]
-        checks_out.append(check)
-    return checks_out
+        for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+            yield message
 
 
 def inspect_nwb(
     nwbfile_path: FilePathType,
     checks: list = available_checks,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     driver: str = None,
 ) -> List[InspectorMessage]:
     """
@@ -168,6 +212,10 @@ def inspect_nwb(
         Path to the NWBFile.
     checks : list, optional
         list of checks to run
+    config : dict
+        Dictionary valid against our JSON configuration schema.
+        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+        Typically loaded via json.load from a valid .json file
     importance_threshold : string, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
@@ -184,52 +232,63 @@ def inspect_nwb(
     driver: str, optional
         Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
     """
-    if ignore is not None and select is not None:
-        raise ValueError("Options 'ignore' and 'select' cannot both be used.")
-    if importance_threshold not in Importance:
-        raise ValueError(
-            f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
-            "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
+    if any(x is not None for x in [config, ignore, select, importance_threshold]):
+        checks = configure_checks(
+            checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
     nwbfile_path = str(nwbfile_path)
-    messages = list()
-    try:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-            validation_errors = pynwb.validate(io=io)
-            if any(validation_errors):
-                for validation_error in validation_errors:
-                    message = InspectorMessage(message=validation_error.reason)
-                    message.importance = Importance.PYNWB_VALIDATION
-                    message.check_function_name = validation_error.name
-                    message.location = validation_error.location
-                    message.file_path = nwbfile_path
-                    messages.append(message)
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        validation_errors = pynwb.validate(io=io)
+        if any(validation_errors):
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+        try:
             nwbfile = io.read()
-            for check_function in checks:
-                if (
-                    (ignore is not None and check_function.__name__ in ignore)
-                    or (select is not None and check_function.__name__ not in select)
-                    or (check_function.importance.value < importance_threshold.value)
-                ):
-                    continue
-                for nwbfile_object in nwbfile.objects.values():
-                    if issubclass(type(nwbfile_object), check_function.neurodata_type):
-                        check_result = check_function(nwbfile_object)
-                        if check_result is not None:
-                            if isinstance(check_result, Iterable):
-                                for message in check_result:
-                                    message.file_path = nwbfile_path
-                                    messages.append(message)
-                            else:
-                                check_result.file_path = nwbfile_path
-                                messages.append(check_result)
-    except Exception as ex:
-        message = InspectorMessage(message=traceback.format_exc())
-        message.importance = Importance.ERROR
-        message.check_function_name = f"{type(ex)}: {str(ex)}"
-        message.file_path = nwbfile_path
-        messages.append(message)
-    return messages
+        except Exception as ex:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"{type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
+            )
+        for inspector_message in run_checks(nwbfile, checks=checks):
+            inspector_message.file_path = nwbfile_path
+            yield inspector_message
+
+
+def run_checks(nwbfile: pynwb.NWBFile, checks: list):
+    """
+    Run checks on an open NWBFile object.
+
+    Parameters
+    ----------
+    nwbfile : NWBFile
+    checks : list
+    """
+    for check_function in checks:
+        for nwbfile_object in nwbfile.objects.values():
+            if issubclass(type(nwbfile_object), check_function.neurodata_type):
+                try:
+                    output = check_function(nwbfile_object)
+                # if an individual check fails, include it in the report and continue with the inspection
+                except Exception:
+                    output = InspectorMessage(
+                        message=traceback.format_exc(),
+                        importance=Importance.ERROR,
+                        check_function_name=check_function.__name__,
+                    )
+                if output is not None:
+                    if isinstance(output, Iterable):
+                        for x in output:
+                            yield x
+                    else:
+                        yield output
 
 
 if __name__ == "__main__":
