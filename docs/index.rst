@@ -7,7 +7,8 @@ Welcome to the documentation for the NWBInspector!
   :scale: 100 %
   :align: right
 
-NWBInspector is a Python-based package designed to asses and suggest improvements for the quality of Neurodata Without Borders files (NWBFiles).
+NWBInspector is a Python-based package designed to asses the quality of Neurodata Without Borders 
+files (NWBFiles) and to suggest improvements for any Best Practice violations that are found.
 
 
 .. note::
