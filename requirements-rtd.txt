@@ -1,5 +1,5 @@
 numpy
-json_schema==3.2.0
+jsonschema==3.2.0
 myst_parser==0.13.5
 sphinx==3.5.1
 sphinx_rtd_theme==0.5.1
