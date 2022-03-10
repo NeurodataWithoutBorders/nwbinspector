@@ -8,11 +8,11 @@ Check functions
 .. toctree::
     :maxdepth: 4
 
-    checks.ecephys
-    checks.icephys
-    checks.ophys
-    checks.nwb_containers
-    checks.nwbfile_metadata
-    checks.nwb_containers
-    checks.tables
-    checks.time_series
+    nwbinspector.checks.ecephys
+    nwbinspector.checks.icephys
+    nwbinspector.checks.ophys
+    nwbinspector.checks.nwb_containers
+    nwbinspector.checks.nwbfile_metadata
+    nwbinspector.checks.nwb_containers
+    nwbinspector.checks.tables
+    nwbinspector.checks.time_series
