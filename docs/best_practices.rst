@@ -1,3 +1,6 @@
+Best Practices
+==============
+
 The goal of the following document is to provide users of the NWB standard with additional guidelines on common best practices to 
 facilitate consistent use of the standard and help avoid common problems and most effectively leverage the NWB:N data standard 
 and its ecosystem of software tools.
