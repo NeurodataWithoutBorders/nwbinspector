@@ -1,7 +1,7 @@
 name: Documentation
 description: Is the documentation of something missing, unclear, or lacking? This is the place.
 title: "[Documentation]: "
-labels: "documentation"
+labels: "topic: docs"
 body:
   - type: markdown
     attributes:
