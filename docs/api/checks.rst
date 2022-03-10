@@ -12,3 +12,11 @@ Time Series
 -----------
 .. automodule:: nwbinspector.checks.time_series
 
+NWB Containers
+-----------
+.. automodule:: nwbinspector.checks.nwb_containers
+
+Tables
+-----------
+.. automodule:: nwbinspector.checks.tables
+
