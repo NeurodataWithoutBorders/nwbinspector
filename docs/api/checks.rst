@@ -1,7 +1,7 @@
 Check functions
 ============
 
-.. automodule:: nwbinspepctor
+.. automodule:: nwbinspector
     :members:
     :no-undoc-members:
 
