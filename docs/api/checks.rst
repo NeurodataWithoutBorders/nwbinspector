@@ -5,6 +5,7 @@ Check Functions
     :members:
     :no-undoc-members:
 
-Time Series
-===========
-.. automodule:: nwbinspector.checks.time_series
+.. toctree::
+    :maxdepth: 4
+
+    checks.all
