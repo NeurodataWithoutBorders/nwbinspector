@@ -1,7 +1,7 @@
 Check Functions
 ===============
 
-.. automodule:: nwb-conversion-tools
+.. automodule:: nwbinspector
     :members:
     :no-undoc-members:
 
