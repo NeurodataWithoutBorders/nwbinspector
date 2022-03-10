@@ -9,6 +9,6 @@ Check Functions
     :maxdepth: 4
 
 Time Series
-===========
+-----------
 .. automodule:: nwbinspector.checks.time_series
 
