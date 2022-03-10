@@ -1,4 +1,4 @@
-Check functions
+Check Functions
 ============
 
 .. automodule:: nwbinspector
