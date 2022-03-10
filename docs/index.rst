@@ -21,6 +21,7 @@ NWBInspector is a Python-based package designed to asses and suggest improvement
    :maxdepth: 2
    :caption: Contents:
 
+   best_practices
    user_guide
    developer_guide
 
@@ -32,9 +33,7 @@ NWBInspector is a Python-based package designed to asses and suggest improvement
     Check Functions <api/checks>
     
 
-For more information regarding the NWB Standard, please view
-
-- The `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_
+For more information regarding the NWB Standard, please view the `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_.
 
 .. Indices and tables
 .. ==================
