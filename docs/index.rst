@@ -12,10 +12,11 @@ NWBInspector is a Python-based package designed to asses and suggest improvement
 
 .. note::
 
-    This packages is in alpha development; as such, we make every effort towards
+    This package is in alpha development; as such, we make every effort towards
     a stable environment but bugs are known to occur. If you use this software
-    for your own quality assurance and discover any issues throughout the process, please let us know through
-    the `GitHub Issues <https://github.com/NeurodatWithoutBorders/nwbinspector/issues>`_ page.
+    for your own quality assurance purposes and discover any issues throughout 
+    the process, please let us know by filing a ticket on our 
+    `GitHub Issues <https://github.com/NeurodatWithoutBorders/nwbinspector/issues>`_ page.
 
 .. toctree::
    :maxdepth: 2
