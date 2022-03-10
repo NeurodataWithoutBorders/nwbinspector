@@ -8,4 +8,7 @@ Check Functions
 .. toctree::
     :maxdepth: 4
 
-    checks.all
+Time Series
+===========
+.. automodule:: nwbinspector.checks.time_series
+
