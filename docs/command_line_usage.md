@@ -35,11 +35,4 @@ nwbinspector path/to/my/data.nwb -m my_extension_module1 my_extension_module2
 nwbinspector path/to/my/data/dir/ --n-jobs -1
 ```
 
-
-Advanced Flags
---------------
-
-There are many other flags for more advanced features of the package...
-
-```bash
-```
+Other flags may be viewed in the command line by calling `nwbinspector --help`.
