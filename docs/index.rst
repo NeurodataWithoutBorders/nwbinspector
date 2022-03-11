@@ -25,6 +25,11 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
 
    best_practices
    user_guide
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
    developer_guide
 
 
