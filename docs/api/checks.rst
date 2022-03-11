@@ -8,15 +8,29 @@ Check Functions
 .. toctree::
     :maxdepth: 4
 
+NWBFile Metadata
+----------------
+
+NWB Containers
+--------------
+.. automodule:: nwbinspector.checks.nwb_containers
+
 Time Series
 -----------
 .. automodule:: nwbinspector.checks.time_series
 
-NWB Containers
------------
-.. automodule:: nwbinspector.checks.nwb_containers
-
 Tables
------------
+------
 .. automodule:: nwbinspector.checks.tables
 
+Intracellular Electrophysiology (icephys)
+-----------------------------------------
+.. automodule:: nwbinspector.checks.icephys
+
+Extracellular Electrophysiology (ecephys)
+-----------------------------------------
+.. automodule:: nwbinspector.checks.ecephys
+
+Optical Electrophysiology (ophys)
+---------------------------------
+.. automodule:: nwbinspector.checks.ophys
