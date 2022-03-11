@@ -15,7 +15,11 @@ nwbinspector path/to/my/data/dir/
 
 which should quickly display a basic report to your console window.
 
-(# TODO, maybe show an example of basic output here)
+(TODO, maybe show an example of basic output here)
+
+
+Common Flags
+------------
 
 There are many common options you can specify with flags, such as saving the report for future reference...
 

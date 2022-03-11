@@ -18,7 +18,21 @@ NWB Containers
 
 Time Series
 -----------
-.. automodule:: nwbinspector.checks.time_series
+
+Check functions that can apply to any descendant of DynamicTable.
+
+.. _check_regular_timestamps:
+.. autofunction:: nwbinspector.checks.time_series.check_regular_timestamps
+Best Practice: :ref:`best_practice_regular_timestamps`
+
+.. _check_data_orientation:
+.. autofunction:: nwbinspector.checks.time_series.check_data_orientation
+
+.. _check_timestamps_match_first_dimension:
+.. autofunction:: nwbinspector.checks.time_series.check_timestamps_match_first_dimension
+
+.. _check_timestamps_ascending:
+.. autofunction:: nwbinspector.checks.time_series.check_timestamps_ascending
 
 Tables
 ------

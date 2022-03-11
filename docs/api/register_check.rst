@@ -10,4 +10,4 @@ All common data class used across the package, as well as the decorator for addi
 .. toctree::
     :maxdepth: 4
 
-.. automodule:: nwbinspector.checks.register_checks
+.. automodule:: nwbinspector.register_checks

@@ -26,7 +26,7 @@ from .utils import FilePathType, PathType, OptionalListOfStrings
 
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):
-    """Custom JSON encoder for the NWBInspector."""
+    """Custom JSONEncoder for the NWBInspector."""
 
     def default(self, o):
         if isinstance(o, InspectorMessage):

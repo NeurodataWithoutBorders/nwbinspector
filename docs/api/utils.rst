@@ -10,4 +10,4 @@ Very general purpose helper functions and logic that can be utilized by other pa
 .. toctree::
     :maxdepth: 4
 
-.. automodule:: nwbinspector.checks.utils
+.. automodule:: nwbinspector.utils

@@ -1,85 +1,6 @@
-Best Practices
-==============
+Unsorted
+========
 
-The goal of the following document is to provide users of the NWB standard with additional guidelines on common best practices to 
-facilitate consistent use of the standard and help avoid common problems and most effectively leverage the NWB:N data standard 
-and its ecosystem of software tools.
-
-Authors
-Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
-
-Preamble
-To enable NWB to accommodate the needs of the diverse neuroscience community, NWB provides a great degree of flexibility. 
-In particular, the number of instances of a particular neurodata_type and corresponding names are often not fixed, to enable, 
-e.g., storage of data from arbitrary numbers of devices withing the same file. While this flexibility is essential to enable 
-coverage of a broad range of use-cases, it can also lead to ambiguity. At the same time, we ultimately have the desire to have 
-the schema as strict-as-possible to provide users and tool builders with a consistent organization of data. As such, we need to 
-strike a fine balance between flexibility to enable support for varying experiments and use-cases and strictness in the schema 
-to enforce standard organization of data. The following “best practices” provide advice from developers and experienced users 
-that outline some of the pitfalls to avoid and common usage patterns to emulate.
-
-NWBFile
-An NWBFile object generally contains data from a single experimental session.
-
-file organization
-The /acquisition group is specifically for time series measurements that are acquired from an acquisition system, 
-e.g. an ElectricalSeries with the voltages from the recording systems or the output of the position sensors (like your wheel 
-position). The processing modules are for intermediate data. If you take the wheel position and derive the position of the animal 
-in meters, that would go in /processing/behavior/Position/SpatialSeries. An LFP signal that is a downsampled version of the acquired 
-data would go in /processing/ecephys/LFP/ElectricalSeries. It may not always be 100% clear whether data is acquired or derived, so 
-in those cases you should just use your best judgement.
-
-identifiers
-NWBFile has two distinct places for ids: session_id and identifier.
-
-The session_id field marks unique experimental sessions. The session_id should have a one-to-one relationship with a recording session. 
-Sometimes you may find yourself having multiple NWB files that correspond to the same session. This can happen for instance if you separate 
-out processing steps into multiple files or if you want to compare different processing systems. In this case, the session_id should be the 
-same for each file. Each lab should use a standard for session_id so that sessions have unique names within the lab and the sessions ids are human-readable.
-The identifier tag should be a globally unique value for the NWBFile. Two different NWBFiles from the same session should have different 
-identifier values if they differ in any way. It is recommended that you use a unique id generator like uuid to ensure its uniqueness and it is 
-not important that the identifier field is human readable.
-TimeSeries
-Many of the neurodata_types in NWB inherit from the TimeSeries neurodata_type. When using TimeSeries or any of its descendants, make sure the following are followed.
-
-Time dimension goes first. In TimeSeries.data, the first dimension on the disk is always time. Keep in mind that the dimensions are reversed in MatNWB, 
-so in memory in MatNWB the time dimension must be last. In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
-ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the brain that are monitoring neural 
-activity, and only those electrodes should be in the electrodes table. Use TimeSeries for other data in units Volts, such as the reading on a force-sensitive resistor.
-times are always in seconds. timestamps or starting_time should be in seconds with respect to the timestamps_reference_time.
-TimeSeries data should be stored as one continuous stream. Data should be stored in one continuous stream, as it is acquired, not by trial as is often 
-reshaped for analysis. Data can be trial-aligned on-the-fly using the trials table. Storing measured data as a continuous stream ensures that other users 
-have access to the inter-trial data, and that we can align the data with whatever window they need. If you only have data in specific segments of time, then 
-only include those timepoints in the data. Use timestamps, even if there is a constant sampling rate within each segment, and have the timestamps correctly 
-reflect the gaps in the recording. Use the TimeSeries.description field to explain how the data was segmented.
-If the sampling rate is constant, use rate. TimeSeries allows you to specify time using either timestamps or rate and starting_time (which defaults to 0). 
-For TimeSeries objects that have a constant sampling rate, rate should be used instead of timestamps. This will ensure that you can use analysis and 
-visualization tools that rely on a constant sampling rate.
-Use chunking to optimize reading of large data for your use case. By default, when using the HDF5 backend, TimeSeries data are stored on disk in C-ordering. 
-This means that if “data” dataset of a TimeSeries has multiple dimensions, then all data from a single timestamp are stored contiguously on disk, then data 
-from the next timestamp are stored contiguously. This storage scheme may be optimal for certain uses, such as slicing TimeSeries by time; however, it may be 
-sub-optimal for other uses, such as reading data from all timestamps for a particular value in the second or third dimension. Data writers can optimize the 
-storage of large data arrays for particular uses by using chunking and compression. For more information about chunking and compression, consult the PyNWB 
-documentation and MatNWB documentation.
-DynamicTables
-DynamicTable allow you to define custom columns, which offer a high degree of flexibility.
-
-Store data with long columns rather than long rows. When constructing dynamic tables, keep in mind that the data is stored by column, so it will be 
-inefficient to store data in a table with many columns.
-bools
-Use boolean values where appropriate. Although boolean values (True/False) are not used in the core schema, they are a supported data type, and we 
-encourage the use of DynamicTable columns with boolean values. For instance, boolean values would be appropriate for a correct custom column to the trials table.
-times
-Times are always stored in seconds in NWB:N. This rule applies to times in TimeSeries, TimeIntervals and across NWB:N in general. E.g., in TimeInterval 
-objects such as the trials and epochs table, start_time and stop_time should both be in seconds with respect to the timestamps_reference_time (which by 
-default is set to the session_start_time).
-Additional time columns in TimeInterval tables (e.g., trials) should have _time as name suffix. E.g., if you add more times in the trials table, for 
-instance a subject response time, name it with _time at the end (e.g. response_time) and store the time values in seconds from the timestamps_reference_time, 
-just like start_time and stop_time.
-Set the timestamps_reference_time if you need to use a different reference time. Rather than relative times, it can in practice be useful to use a common 
-global reference time across files (e.g., Posix time). To do so, NWB:N allows users to set the timestamps_reference_time which serves as reference for all 
-timestamps in a file. By default, timestamp_reference_time is usually set to the session_start_time to use relative times.
-electrodes: ‘location’
 The ‘location’ field should reflect your best estimate of the recorded brain area. The 'location' column of the electrodes table is meant to store the 
 brain region that the electrode as in. Different labs have different standards for electrode localization. Some use atlases and coordinate maps to 
 precisely place an electrode, and use physiological measures to confirm its placement. Others use histology or imaging processing algorithms to identify 
@@ -90,6 +11,7 @@ Use established ontologies for naming areas It is preferable to use established 
 We recommend the Allen Brain Atlas terms for mice, and you may use either the full name or the abbreviation (do not make up your own terms.)
 x,y,z is for the anatomical coordinates. For mice, use the Allen Institute Common Coordinate Framework v3, which follows the convention 
 (+x = posterior, +y = inferior, +z = right).
+
 For relative position of an electrode on a probe, use rel_x, rel_y[, rel_z]. These positions will be used by spike sorting software to determine 
 electrodes that are close enough to share a neuron.
 The location column of the electrodes table is required. If you do not know the location of an electrode, use 'unknown'.

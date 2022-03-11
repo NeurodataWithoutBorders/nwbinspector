@@ -23,7 +23,7 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
    :maxdepth: 2
    :caption: Contents
 
-   best_practices
+   best_practices_index
    user_guide
    developer_guide
 
@@ -33,6 +33,10 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
     :caption: API Documentation
 
     Check Functions <api/checks>
+    Core Functions <api/nwbinspector>
+    Data Classes and Check Registration <api/register_check>
+    Organization and Display Tools <api/tools>
+    Generic Utils <api/utils>
     
 
 For more information regarding the NWB Standard, please view the `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_.

@@ -8,4 +8,4 @@ Tools for Organizating and Displaying Reports
 .. toctree::
     :maxdepth: 4
 
-.. automodule:: nwbinspector.checks.inspector_tools
+.. automodule:: nwbinspector.inspector_tools
