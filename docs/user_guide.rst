@@ -14,7 +14,7 @@ available to aid you in adjusting your data conversion code in PyNWB or MatNWB
 to adhere more strictly to the officially encouraged Best Practices.
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     installation
     command_line_usage
