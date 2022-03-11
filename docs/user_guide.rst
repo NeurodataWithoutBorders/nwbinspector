@@ -16,4 +16,5 @@ to adhere more strictly to the officially encouraged Best Practices.
 .. toctree::
     :maxdepth: 1
 
-    core_nwbinspector
+    installation
+    command_line_usage
