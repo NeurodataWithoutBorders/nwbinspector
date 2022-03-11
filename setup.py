@@ -3,7 +3,6 @@ from setuptools import setup, find_packages
 # Get the long description from the README file
 with open("README.md", "r") as f:
     long_description = f.read()
-
 setup(
     name="nwbinspector",
     version="0.2.3",
