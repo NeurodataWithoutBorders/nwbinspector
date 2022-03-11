@@ -20,7 +20,7 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
     `GitHub Issues <https://github.com/NeurodatWithoutBorders/nwbinspector/issues>`_ page.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    best_practices
