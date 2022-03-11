@@ -1,5 +1,5 @@
-Using the NWBInspector as a Library
-===================================
+Using the Library
+=================
 
 For users familiar with Python, our core functions may also be used directly to allow greater freedom in handling input and output.
 
