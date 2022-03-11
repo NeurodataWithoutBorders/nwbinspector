@@ -7,7 +7,7 @@ Welcome to the documentation for the NWBInspector!
   :scale: 100 %
   :align: right
 
-NWBInspector is a Python-based package designed to asses the quality of Neurodata Without Borders 
+NWBInspector is a Python-based package designed to asses the quality of Neurodata Without Borders
 files (NWBFiles) and to suggest improvements for any Best Practice violations that are found.
 
 
@@ -15,8 +15,8 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
 
     This package is in alpha development; as such, we make every effort towards
     a stable environment but bugs are known to occur. If you use this software
-    for your own quality assurance purposes and discover any issues throughout 
-    the process, please let us know by filing a ticket on our 
+    for your own quality assurance purposes and discover any issues throughout
+    the process, please let us know by filing a ticket on our
     `GitHub Issues <https://github.com/NeurodatWithoutBorders/nwbinspector/issues>`_ page.
 
 .. toctree::
@@ -37,13 +37,13 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
     Data Classes and Check Registration <api/register_check>
     Organization and Display Tools <api/tools>
     Generic Utils <api/utils>
-    
+
 
 For more information regarding the NWB Standard, please view the `NWB Format Specification <https://nwb-schema.readthedocs.io/en/latest/>`_.
 
 .. Indices and tables
 .. ==================
-.. 
+..
 .. * :ref:`genindex`
 .. * :ref:`modindex`
 .. * :ref:`search`

@@ -13,5 +13,5 @@ To install the package in any generic Python v3.7-v3.9 environment, simply type
 
     If the standard Python Package Index (PyPI, where `pip` installs from) is not working for you, it
     should also be possible to install from conda-forge via
-    
+
     ```conda install nwbinspector```

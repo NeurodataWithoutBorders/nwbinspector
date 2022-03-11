@@ -3,7 +3,7 @@ Developer Guide
 
 There are many ways to contribute to the NWBInspector!
 
-Please always begin this process by `raising an Issue <https://github.com/NeurodataWithoutBorders/nwbinspector/issues>`_ on the main 
+Please always begin this process by `raising an Issue <https://github.com/NeurodataWithoutBorders/nwbinspector/issues>`_ on the main
 repository so we can openly discuss it taking action. Please do not open a Pull Request (PR) until the Issue has been approved by the team.
 
 The most common contribution is to help us add a new Best Practices and check functions for them.

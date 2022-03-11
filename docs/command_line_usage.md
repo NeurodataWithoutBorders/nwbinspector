@@ -38,7 +38,7 @@ Or enabling parallelization over a directory to allow the NWBInspector to run ma
 nwbinspector path/to/my/data/dir/ --n-jobs -1
 ```
 
-And if your file was written using NWB extensions (link to extensions) that may possess their own specific 
+And if your file was written using NWB extensions (link to extensions) that may possess their own specific
 best practices, those checks are automatically imported along with the module...
 
 ```bash

@@ -13,7 +13,7 @@ For importing, the first thing you always want to import is the base registry of
 from nwbinspector import available_checks
 ```
 
-This registry is a list of predefined and automatically imported functions. 
+This registry is a list of predefined and automatically imported functions.
 Every check function is designed to run on a certain core data type in an NWBFile we will refer to as the `neurodata_type`.
 
 
