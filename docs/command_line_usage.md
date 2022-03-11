@@ -1,5 +1,5 @@
-Using the NWBInspector Command Line (CLI)
-=========================================
+Using the Command Line Interface (CLI)
+======================================
 
 The NWBInspector tool offers convenient command-line usage via any standard Conda or IPython terminal.
 
