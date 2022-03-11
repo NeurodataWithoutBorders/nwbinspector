@@ -18,3 +18,4 @@ to adhere more strictly to the officially encouraged Best Practices.
 
     installation
     command_line_usage
+    using_as_a_library
