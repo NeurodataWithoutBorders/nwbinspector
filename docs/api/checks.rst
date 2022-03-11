@@ -10,6 +10,7 @@ Check Functions
 
 NWBFile Metadata
 ----------------
+.. automodule:: nwbinspector.checks.nwbfile_metadata
 
 NWB Containers
 --------------
