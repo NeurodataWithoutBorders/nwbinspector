@@ -70,6 +70,8 @@ def add_simple_table(nwbfile: NWBFile):
 
 
 class TestInspector(TestCase):
+    maxDiff = None
+
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
@@ -99,12 +101,6 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
-    def assertListsEquivalent(self, test_list: list, true_list: list):
-        for member in test_list:
-            self.assertIn(member=member, container=true_list)
-        for member in true_list:
-            self.assertIn(member=member, container=test_list)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
@@ -194,7 +190,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[1],
             ),
         ]
-        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
         def test_inspect_all_parallel(self):
             test_results = list(
@@ -261,7 +257,7 @@ class TestInspector(TestCase):
                     file_path=self.nwbfile_paths[1],
                 ),
             ]
-            self.assertListsEquivalent(test_list=test_results, true_list=true_results)
+            self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb(self):
         test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
@@ -311,7 +307,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
         test_results = list(
@@ -342,7 +338,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_command_line_runs_cli_only(self):
         console_output_file = self.tempdir / "test_console_output.txt"
@@ -419,7 +415,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListsEquivalent(test_list=test_results, true_list=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb_manual_iteration(self):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
