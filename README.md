@@ -1,4 +1,4 @@
-<img src="logo/logo.png" width="300">
+<img src="docs/logo/logo.png" width="300">
 
 [![PyPI version](https://badge.fury.io/py/nwbinspector.svg)](https://badge.fury.io/py/nwbinspector)
 ![Tests](https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/testing.yml/badge.svg)
