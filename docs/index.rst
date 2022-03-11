@@ -1,4 +1,4 @@
-.. image:: /docs/logo/logo.png
+.. image:: nwbinspector/docs/logo/logo.png
 
 Welcome to the documentation for the NWBInspector!
 ======================================================
