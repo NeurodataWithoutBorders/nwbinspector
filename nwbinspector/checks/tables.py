@@ -87,6 +87,8 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
+
+    Best Practice - :ref:`best_practice_test`
     """
     for column in table.columns:
         if hasattr(column, "data") and not isinstance(column, VectorIndex):

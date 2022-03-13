@@ -6,8 +6,10 @@ Very general purpose helper functions and logic that can be utilized by other pa
 .. automodule:: nwbinspector
     :members:
     :no-undoc-members:
+    :noindex:
 
 .. toctree::
     :maxdepth: 4
 
 .. automodule:: nwbinspector.utils
+    :noindex:
