@@ -95,13 +95,10 @@ def register_check(importance: Importance, neurodata_type):
         check_function.importance = importance
         check_function.neurodata_type = neurodata_type
 
-        # Magic for autodocs
-        if sys.modules[check_function.__module__].__doc__ is None:
-            sys.modules[check_function.__module__].__doc__ = ""
-        sys.modules[check_function.__module__].__doc__ += f".. _{check_function.__name__}\n"
+        # for autodocs
         if check_function.__doc__ is None:
             check_function.__doc__ = ""
-        check_function.__doc__ += f"Best Practice: :ref:`best_practice_{check_function.__name__[6:]}`"
+        check_function.__doc__ += f"\nBest Practice: :ref:`best_practice_{check_function.__name__[6:]}`"
 
         @wraps(check_function)
         def auto_parse_some_output(*args, **kwargs) -> InspectorMessage:

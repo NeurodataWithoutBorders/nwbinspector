@@ -5,6 +5,9 @@ Many of the neurodata_types in NWB inherit from the TimeSeries neurodata_type.
 
 When using TimeSeries or any of its descendants, make sure the following are followed.
 
+
+.. _best_practice_data_orientation:
+
 Dimension Order
 ~~~~~~~~~~~~~~~
 
@@ -13,6 +16,9 @@ The time dimension always goes first. In TimeSeries.data, the first dimension on
 Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB the time dimension must be last.
 
 In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
+
+
+Check function: :ref:`check_data_orientation <check_data_orientation>`
 
 
 Units of Time
@@ -32,6 +38,7 @@ Subtypes
 ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the brain that are monitoring neural
 activity, and only those electrodes should be in the electrodes table.
 
+
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
 TimeSeries data should be stored as one continuous stream.
@@ -48,6 +55,7 @@ One could use timestamps for this, even if there is a constant sampling rate wit
 
 
 .. _best_practice_regular_timestamps:
+
 
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

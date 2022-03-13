@@ -5,7 +5,7 @@ The DynamicTable data type that NWB uses allows you to define custom columns, wh
 
 
 
-.. _best_practice_test:
+.. _best_practice_dynamic_table_region_data_validity:
 
 Unassigned
 ~~~~~~~~~~
@@ -15,6 +15,7 @@ inefficient to store data in a table with many columns.
 bools
 
 Check function :ref:`check_column_binary_capability <check_column_binary_capability>`
+
 
 
 

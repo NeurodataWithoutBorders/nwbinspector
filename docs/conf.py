@@ -49,3 +49,15 @@ autodoc_default_options = {
     "toctree": True,
 }
 add_module_names = False
+
+
+def add_refs_to_module_docstring(app, what, name, obj, options, lines):
+    if what == "module" and name[:20] == "nwbinspector.checks.":
+        if lines is None:
+            lines = ""
+        for check_function_name in [x for x in obj.__dict__ if "check_" in x]:
+            lines.append(f".. _{check_function_name}:")
+
+
+def setup(app):
+    app.connect("autodoc-process-docstring", add_refs_to_module_docstring)
