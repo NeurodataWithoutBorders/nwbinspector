@@ -8,7 +8,7 @@ extlinks = {
     # "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
     # "hdmf-docs": ("https://hdmf.readthedocs.io/en/stable/", ""),
     # "hdmf-src": ("https://github.com/hdmf-dev/hdmf", ""),
-    "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb/", ""),
+    "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", ""),
     # "matnwb-docs": ("https://neurodatawithoutborders.github.io/matnwb/", ""),
     # "nwbconversiontool-docs": ("https://nwb-conversion-tools.readthedocs.io/en/main/", ""),
     # "nwbconversiontool-src": ("https://github.com/catalystneuro/nwb-conversion-tools/", ""),
@@ -29,11 +29,16 @@ extlinks = {
     # "nwb-widgets-docs": ("https://github.com/NeurodataWithoutBorders/nwb-jupyter-widgets", ""),
     # "nwb-widgets-src": ("https://github.com/NeurodataWithoutBorders/nwb-jupyter-widgets", ""),
     # "caiman-docs": ("https://caiman.readthedocs.io/en/master/", ""),
-    "nwb-overview": ("https://nwb-overview.readthedocs.io/en/latest/index.html", ""),
+    "nwb-overview": ("https://nwb-overview.readthedocs.io/en/latest/", ""),
     # "nwb-overview-src": ("https://github.com/NeurodataWithoutBorders/nwb-overview", ""),
     # "nwb-main": ("https://www.nwb.org/", ""),
     "conda-install": (
         "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation",
+        "",
+    ),
+    "nwbinspector-issues": ("https://github.com/NeurodataWithoutBorders/nwbinspector/issues", ""),
+    "nwbinspector-contributing": (
+        "https://github.com/NeurodataWithoutBorders/nwbinspector/.github/CONTRIBUTING.md",
         "",
     ),
 }
