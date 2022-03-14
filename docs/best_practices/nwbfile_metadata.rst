@@ -42,11 +42,42 @@ not important that the identifier field is human readable.
 Subject
 -------
 
-Subject ID
-~~~~~~~~~~
+It is recommended to always include as many details about the experimental subject as possible. If the data is 
+simulated, a simple ID of "simulated_subject" would be sufficient.
 
-Subject Sex
-~~~~~~~~~~~
 
-Subject Species
-~~~~~~~~~~~~~~~
+ID
+~~
+
+A Subject ID is required for upload to the DANDI archive (TODO: link). Even if the goal of a given NWBFile is not for 
+DANDI upload, if the Subject is specified at all it should be given an ID for reference.
+
+
+Sex
+~~~
+
+The Subject's sex should be specified as a single upper-case character among the follow four possibilities: "M" (male), 
+"F" (female), "U" (unknown), or "O" (other, for asexual species).
+
+
+Species
+~~~~~~~
+
+The Subject's species should be set to the proper Latin binomial. E.g., a rat would be "Rattus norvegicus". Specially 
+bred subspecies may be further specified by a dash, e.g., "Rattus norvegicus - Long Evans".
+
+
+Age
+~~~
+
+The age parameter of Subject should use the ISO 8601 Duration format. 
+For instance indicating an age of 90 days would be 'P90D'.
+
+
+Date of Birth
+~~~~~~~~~~~~~
+
+The age parameter of Subject should use the ISO 8601 format. 
+For instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30".
+
+TODO: add links to ISO 8601 format

@@ -21,10 +21,13 @@ In PyNWB the order of the dimensions is the same in memory as on disk, so the ti
 Check function: :ref:`check_data_orientation <check_data_orientation>`
 
 
-Units of Time
-~~~~~~~~~~~~~
+Units of Measurement
+~~~~~~~~~~~~~~~~~~~~
 
 Time-related values should always in seconds. This include ```rate``` (if applicable), which should should be in Hz.
+
+Every TimeSeries instance has a unit as an attribute of the data Dataset, which is meant to indicate the unit of 
+measurement of that data. We advise using SI units.
 
 
 Global Time Reference
