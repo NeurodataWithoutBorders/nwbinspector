@@ -17,5 +17,5 @@ jobs:
         run: pip install -r requirements-rtd.txt
       - name: Install package for API docs
         run: pip install -e .
-      - name: Run pytest with coverage
-        run: sphinx -b linkcheck ./docs ./test_build
+      - name: Test External Links
+        run: sphinx-build -b linkcheck ./docs ./test_build
