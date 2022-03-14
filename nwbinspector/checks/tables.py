@@ -1,8 +1,4 @@
-"""
-Check functions that can apply to any descendant of DynamicTable.
-
-.. _check_dynamic_table_region_data_validity:
-"""
+"""Check functions that can apply to any descendant of DynamicTable."""
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
@@ -91,8 +87,6 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
-
-    Best Practice - :ref:`best_practice_column_binary_capability`
     """
     for column in table.columns:
         if hasattr(column, "data") and not isinstance(column, VectorIndex):

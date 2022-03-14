@@ -51,13 +51,13 @@ autodoc_default_options = {
 add_module_names = False
 
 
-def add_refs_to_module_docstring(app, what, name, obj, options, lines):
+def add_refs_to_docstrings(app, what, name, obj, options, lines):
     if what == "module" and name[:20] == "nwbinspector.checks.":
-        if lines is None:
-            lines = ""
         for check_function_name in [x for x in obj.__dict__ if "check_" in x]:
             lines.append(f".. _{check_function_name}:")
+    if what == "function" and name[:6] == "check_":
+        lines.append("Best Practice: :ref:`best_practice_{obj.__name__[6:]}`")
 
 
 def setup(app):
-    app.connect("autodoc-process-docstring", add_refs_to_module_docstring)
+    app.connect("autodoc-process-docstring", add_refs_to_docstrings)
