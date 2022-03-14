@@ -1,7 +1,7 @@
 .. image:: logo/logo.png
 
 Welcome to the documentation for the NWBInspector!
-======================================================
+==================================================
 
 ..
   :scale: 100 %
@@ -16,8 +16,7 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
     This package is in alpha development; as such, we make every effort towards
     a stable environment but bugs are known to occur. If you use this software
     for your own quality assurance purposes and discover any issues throughout
-    the process, please let us know by filing a ticket on our
-    `GitHub Issues <https://github.com/NeurodatWithoutBorders/nwbinspector/issues>`_ page.
+    the process, please let us know by filing a ticket on our :nwbinspector-issues: page.
 
 .. toctree::
    :maxdepth: 2

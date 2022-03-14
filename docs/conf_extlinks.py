@@ -8,7 +8,7 @@ extlinks = {
     # "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
     # "hdmf-docs": ("https://hdmf.readthedocs.io/en/stable/", ""),
     # "hdmf-src": ("https://github.com/hdmf-dev/hdmf", ""),
-    "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", ""),
+    "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", "%s"),
     # "matnwb-docs": ("https://neurodatawithoutborders.github.io/matnwb/", ""),
     # "nwbconversiontool-docs": ("https://nwb-conversion-tools.readthedocs.io/en/main/", ""),
     # "nwbconversiontool-src": ("https://github.com/catalystneuro/nwb-conversion-tools/", ""),
