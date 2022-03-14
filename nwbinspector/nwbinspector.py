@@ -24,6 +24,10 @@ from .inspector_tools import (
 from .register_checks import InspectorMessage, Importance
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
+INTERNAL_CONFIGS = dict(
+    dandi=os.path.join(os.path.abspath(__file__), "internal_configs", "dandi.inspector_config.yaml")
+)
+
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):
     """Custom JSONEncoder for the NWBInspector."""
@@ -125,7 +129,8 @@ def configure_checks(
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
-@click.option("-c", "--config-path", help="path of config .yaml file that overwrites importance of checks.")
+@click.option("-c", "--config", help="name of config or path of config .yaml file that overwrites importance of "
+                                     "checks.")
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 def inspect_all_cli(
@@ -137,13 +142,14 @@ def inspect_all_cli(
     ignore: Optional[str] = None,
     select: Optional[str] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
-    config_path: Optional[str] = None,
+    config: Optional[str] = None,
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
 ):
     """Primary CLI usage of the NWBInspector."""
-    if config_path is not None:
-        with open(file=config_path, mode="r") as stream:
+    if config is not None:
+        config = INTERNAL_CONFIGS.get(config, config)
+        with open(file=config, mode="r") as stream:
             config = yaml.load(stream, yaml.Loader)
     else:
         config = None
