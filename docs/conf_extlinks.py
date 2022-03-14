@@ -38,7 +38,7 @@ extlinks = {
     ),
     "nwbinspector-issues": ("https://github.com/NeurodataWithoutBorders/nwbinspector/issues", ""),
     "nwbinspector-contributing": (
-        "https://github.com/NeurodataWithoutBorders/nwbinspector/.github/CONTRIBUTING.md",
+        "https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/.github/CONTRIBUTING.md",
         "",
     ),
 }
