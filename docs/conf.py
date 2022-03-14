@@ -55,7 +55,7 @@ def add_refs_to_docstrings(app, what, name, obj, options, lines):
     if what == "module" and name[:20] == "nwbinspector.checks.":
         for check_function_name in [x for x in obj.__dict__ if "check_" in x]:
             lines.append(f".. _{check_function_name}:")
-    if what == "function" and name[:6] == "check_":
+    if what == "function" and obj.__name__[:6] == "check_":
         lines.append("Best Practice: :ref:`best_practice_{obj.__name__[6:]}`")
 
 
