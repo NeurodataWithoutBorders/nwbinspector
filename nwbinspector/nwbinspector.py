@@ -54,6 +54,8 @@ def copy_function(function):
     Taken from
     https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
+    if getattr(function, "__wrapped__", False):
+        function = function.__wrapped__
     copied_function = FunctionType(
         function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
     )
@@ -244,7 +246,6 @@ def inspect_all(
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
         importlib.import_module(module)
-
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 

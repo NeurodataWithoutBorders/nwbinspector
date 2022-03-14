@@ -58,8 +58,7 @@ class TestCheckConfiguration(TestCase):
         config = dict(SKIP=["check_timestamps_match_first_dimension"])
         validate_config(config=config)
         checks_out = configure_checks(checks=self.checks, config=config)
-        print([checks_out, self.checks[:3]])
-        self.assertListEqual(list1=checks_out, list2=self.checks[:3])
+        self.assertListEqual(list1=[x.__name__ for x in checks_out], list2=[x.__name__ for x in self.checks[:3]])
 
     def test_bad_schema(self):
         config = dict(WRONG="test")
