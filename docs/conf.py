@@ -1,13 +1,25 @@
 import sys
 from pathlib import Path
 
+sys.path.append(str(Path(__file__).parent))
+from conf_extlinks import extlinks
+from conf_extlinks import intersphinx_mapping
+
 sys.path.insert(0, Path(__file__).resolve().parents[1])
 
 project = "NWBInspector"
 copyright = "2022, CatalystNeuro"
 author = "Cody Baker, Ryan Ly, and Ben Dichter"
 
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.autosummary", "sphinx.ext.napoleon", "myst_parser"]
+extensions = [
+    "sphinx.ext.doctest",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
+    "myst_parser",
+    "sphinx.ext.extlinks",
+]
 templates_path = ["_templates"]
 master_doc = "index"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
