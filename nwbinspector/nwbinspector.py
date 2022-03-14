@@ -129,8 +129,9 @@ def configure_checks(
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
-@click.option("-c", "--config", help="name of config or path of config .yaml file that overwrites importance of "
-                                     "checks.")
+@click.option(
+    "-c", "--config", help="name of config or path of config .yaml file that overwrites importance of " "checks."
+)
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 def inspect_all_cli(
