@@ -1,9 +1,8 @@
 import os
-from unittest import TestCase
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
-from typing import List
+from unittest import TestCase
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -18,7 +17,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_nwb
+from nwbinspector.nwbinspector import inspect_all, inspect_nwb, configure_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -71,6 +70,8 @@ def add_simple_table(nwbfile: NWBFile):
 
 
 class TestInspector(TestCase):
+    maxDiff = None
+
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
@@ -80,7 +81,7 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        num_nwbfiles = 2
+        num_nwbfiles = 3
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
@@ -100,12 +101,6 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
-    def assertListofDictEqual(self, test_list: List[dict], true_list: List[dict]):
-        for dictionary in test_list:
-            self.assertIn(member=dictionary, container=true_list)
-        for dictionary in true_list:
-            self.assertIn(member=dictionary, container=test_list)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
@@ -132,8 +127,140 @@ class TestInspector(TestCase):
                         test_file_lines[line_number + 1] = "=" * (len(test_file_lines[line_number]) - 1) + "\n"
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
 
+    def test_inspect_all(self):
+        test_results = list(inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks]))
+        true_results = [
+            InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                severity=Severity.LOW,
+                check_function_name="check_small_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+                location="/acquisition/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
+                    "and rate=2.0 instead of timestamps."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+                location="/acquisition/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
+                    "the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.CRITICAL,
+                severity=Severity.LOW,
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.CRITICAL,
+                severity=Severity.LOW,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
+                    "and rate=2.0 instead of timestamps."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+                location="/acquisition/",
+                file_path=self.nwbfile_paths[1],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+        def test_inspect_all_parallel(self):
+            test_results = list(
+                inspect_all(path=Path(self.nwbfile_paths[0]).parent, select=[x.__name__ for x in self.checks], n_jobs=2)
+            )
+            true_results = [
+                InspectorMessage(
+                    message="data is not compressed. Consider enabling compression when writing a dataset.",
+                    importance=Importance.BEST_PRACTICE_SUGGESTION,
+                    severity=Severity.LOW,
+                    check_function_name="check_small_dataset_compression",
+                    object_type="TimeSeries",
+                    object_name="test_time_series_1",
+                    location="/acquisition/",
+                    file_path=self.nwbfile_paths[0],
+                ),
+                InspectorMessage(
+                    message=(
+                        "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
+                        "and rate=2.0 instead of timestamps."
+                    ),
+                    importance=Importance.BEST_PRACTICE_VIOLATION,
+                    severity=Severity.LOW,
+                    check_function_name="check_regular_timestamps",
+                    object_type="TimeSeries",
+                    object_name="test_time_series_2",
+                    location="/acquisition/",
+                    file_path=self.nwbfile_paths[0],
+                ),
+                InspectorMessage(
+                    message=(
+                        "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
+                        "the longest dimension. Here, another dimension is longer."
+                    ),
+                    importance=Importance.CRITICAL,
+                    severity=Severity.LOW,
+                    check_function_name="check_data_orientation",
+                    object_type="SpatialSeries",
+                    object_name="my_spatial_series",
+                    location="/processing/behavior/Position/",
+                    file_path=self.nwbfile_paths[0],
+                ),
+                InspectorMessage(
+                    message="The length of the first dimension of data does not match the length of timestamps.",
+                    importance=Importance.CRITICAL,
+                    severity=Severity.LOW,
+                    check_function_name="check_timestamps_match_first_dimension",
+                    object_type="TimeSeries",
+                    object_name="test_time_series_3",
+                    location="/acquisition/",
+                    file_path=self.nwbfile_paths[0],
+                ),
+                InspectorMessage(
+                    message=(
+                        "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
+                        "and rate=2.0 instead of timestamps."
+                    ),
+                    importance=Importance.BEST_PRACTICE_VIOLATION,
+                    severity=Severity.LOW,
+                    check_function_name="check_regular_timestamps",
+                    object_type="TimeSeries",
+                    object_name="test_time_series_2",
+                    location="/acquisition/",
+                    file_path=self.nwbfile_paths[1],
+                ),
+            ]
+            self.assertCountEqual(first=test_results, second=true_results)
+
     def test_inspect_nwb(self):
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -180,11 +307,13 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb_importance_threshold(self):
-        test_results = inspect_nwb(
-            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+            )
         )
         true_results = [
             InspectorMessage(
@@ -209,7 +338,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_command_line_runs_cli_only(self):
         console_output_file = self.tempdir / "test_console_output.txt"
@@ -217,6 +346,19 @@ class TestInspector(TestCase):
             f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,"
             f"check_data_orientation,check_regular_timestamps,check_small_dataset_compression --no-color "
             f"> {console_output_file}"
+        )
+        self.assertLogFileContentsEqual(
+            test_file_path=console_output_file,
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report.txt",
+            skip_first_newlines=True,
+        )
+
+    def test_command_line_runs_cli_only_parallel(self):
+        console_output_file = self.tempdir / "test_console_output_2.txt"
+        os.system(
+            f"nwbinspector {str(self.tempdir)} -o -s check_timestamps_match_first_dimension,"
+            f"check_data_orientation,check_regular_timestamps,check_small_dataset_compression --no-color "
+            f"> {console_output_file} --n-jobs 2"
         )
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file,
@@ -252,7 +394,7 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"])
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -273,4 +415,47 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
         ]
-        self.assertListEqual(list1=test_results, list2=true_results)
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_manual_iteration(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        message = next(generator)
+        true_result = InspectorMessage(
+            message="data is not compressed. Consider enabling compression when writing a dataset.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            severity=Severity.LOW,
+            check_function_name="check_small_dataset_compression",
+            object_type="TimeSeries",
+            object_name="test_time_series_1",
+            location="/acquisition/",
+            file_path=self.nwbfile_paths[0],
+        )
+        self.assertEqual(message, true_result)
+
+    def test_inspect_nwb_manual_iteration_stop(self):
+        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+        with self.assertRaises(expected_exception=StopIteration):
+            next(generator)
+
+
+def test_configure_checks():
+
+    # checks are moved
+    checks = [
+        check_small_dataset_compression,
+        check_regular_timestamps,
+        check_data_orientation,
+        check_timestamps_match_first_dimension,
+    ]
+    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
+
+    out = configure_checks(checks=checks, config=config)
+
+    assert out[2].importance is Importance.CRITICAL
+    assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
+
+    # checks in same place are not moved
+    config = {"CRITICAL": ["check_regular_timestamps"]}
+
+    out = configure_checks(checks=checks, config=config)
+    assert out[1].importance is Importance.CRITICAL
