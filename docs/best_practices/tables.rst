@@ -15,7 +15,7 @@ inefficient to store data in a table with many columns.
 bools
 
 Check function :ref:`check_column_binary_capability <check_column_binary_capability>`
-
+:py:func:`nwbinspector.checks.table.check_column_binary_capability`
 
 
 
