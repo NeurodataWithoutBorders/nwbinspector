@@ -4,19 +4,6 @@ Using the Library
 For users familiar with Python, our core functions may also be used directly to allow greater freedom in handling input and output.
 
 
-Loading the Check Registry
---------------------------
-
-For importing, the first thing you always want to import is the base registry of checks...
-
-.. :code-block:: python
-    from nwbinspector import available_checks
-
-
-This registry is a list of predefined and automatically imported functions.
-Every check function is designed to run on a certain core data type in an NWBFile we will refer to as the `neurodata_type`.
-
-
 InspectorMesssage objects
 -------------------------
 
@@ -57,4 +44,14 @@ This has the same return structure as `inspect_nwb`
 .. note::
 
     For convenience, all path-based arguments in the NWBInspector library support both `str` and `pathlib.Path` types.
+
+
+Examining the Default Check Registry
+------------------------------------
+
+While it does not need to be imported directly for default usage, an interested user may inspect the `list` of all
+available check functions via
+
+.. :code-block:: python
+    from nwbinspector import available_checks
 
