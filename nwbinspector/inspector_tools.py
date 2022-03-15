@@ -178,7 +178,7 @@ def wrap_color(formatted_results: List[str], no_color: bool = False):  # pragma:
 
 
 def print_to_console(formatted_results: List[str], no_color: bool = False):
-    """Print log file contents to console."""
+    """Print report file contents to console."""
     wrap_color(formatted_results=formatted_results, no_color=no_color)
     sys.stdout.write(os.linesep * 2)
     for line in formatted_results:

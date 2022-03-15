@@ -103,7 +103,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             parsed_unique_values = np.array(unique_values)
             if isinstance(parsed_unique_values[0], Real):  # upcast to float for comparison
                 parsed_unique_values = parsed_unique_values.astype(float)
-            elif str(parsed_unique_values)[:2] == "<U":  # parse strings as all lower-case
+            elif str(parsed_unique_values.dtype)[:2] == "<U":  # parse strings as all lower-case
                 for j in range(2):
                     parsed_unique_values[j] = parsed_unique_values[j].lower()
             pairs_to_check = [
