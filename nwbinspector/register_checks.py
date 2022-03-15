@@ -96,6 +96,7 @@ def register_check(importance: Importance, neurodata_type):
 
         @wraps(check_function)
         def auto_parse_some_output(*args, **kwargs) -> InspectorMessage:
+
             if args:
                 obj = args[0]
             else:

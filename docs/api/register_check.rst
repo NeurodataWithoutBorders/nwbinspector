@@ -6,8 +6,10 @@ All common data class used across the package, as well as the decorator for addi
 .. automodule:: nwbinspector
     :members:
     :no-undoc-members:
+    :noindex:
 
 .. toctree::
     :maxdepth: 4
 
 .. automodule:: nwbinspector.register_checks
+    :noindex:

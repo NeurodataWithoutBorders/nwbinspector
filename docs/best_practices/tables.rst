@@ -5,6 +5,7 @@ The DynamicTable data type that NWB uses allows you to define custom columns, wh
 
 
 
+.. _best_practice_dynamic_table_region_data_validity:
 
 Unassigned
 ~~~~~~~~~~
@@ -12,6 +13,11 @@ Unassigned
 Store data with long columns rather than long rows. When constructing dynamic tables, keep in mind that the data is stored by column, so it will be
 inefficient to store data in a table with many columns.
 bools
+
+Check function :ref:`check_column_binary_capability <check_column_binary_capability>`
+
+
+
 
 Use boolean values where appropriate. Although boolean values (True/False) are not used in the core schema, they are a supported data type, and we
 encourage the use of DynamicTable columns with boolean values. For instance, boolean values would be appropriate for a correct custom column to the trials table.
