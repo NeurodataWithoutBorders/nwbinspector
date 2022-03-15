@@ -7,24 +7,24 @@ This is a collection of tutorials illustrating some of the more advanced uses of
 Yielding and Iterating
 ----------------------
 
-Both the `inspect_all` and `inspect_nwb` functions directly return generators. That is, they do not actually run any 
-checks on any NWBFile until the user performs an iteration command on them. In the basic usage, we recommend the 
-simplest way of doing this as simply casting the generator as a list, i.e, `list(inspect_nwb(...))` which will 
+Both the `inspect_all` and `inspect_nwb` functions directly return generators. That is, they do not actually run any
+checks on any NWBFile until the user performs an iteration command on them. In the basic usage, we recommend the
+simplest way of doing this as simply casting the generator as a list, i.e, `list(inspect_nwb(...))` which will
 automatically collapse the iteration.
 
 However, if a user chooses, they can harness these generators in more sophisticated ways, such as
 
 .. :code-block:: python
     results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
-    
+
     first_message = next(results_generator)
-    
-which will return either the first `InspectorMessage` for the first Best Practice issue detected in the file (if any), 
+
+which will return either the first `InspectorMessage` for the first Best Practice issue detected in the file (if any),
 or it will raise a `StopIteration` error. This error can be caught in the following manner
 
 .. :code-block:: python
     results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
-    
+
     try:
         first_message = next(results_generator)
     except StopIteration:
@@ -34,7 +34,7 @@ Of course, the generator can be treated as any other iterable as well, such as w
 
 .. :code-block:: python
     results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
-    
+
     for message in results_generator:
         print(message)
 
@@ -78,6 +78,6 @@ Our organization functions are capable of arbitrary nesting based on attributes 
 
     organized_messages = organized_messages(messagess=list(inspect_all(...)), levels=["file_path", "importance"])
 
-This will return a nested dictionary of the same depth as as `levels`, with each key being the unique values within 
+This will return a nested dictionary of the same depth as as `levels`, with each key being the unique values within
 that nested condition. While `levels = ["file_path", "importance"]` is the default behavior, any combination and order
 of `InspectorMessage` attributes can be utilized to produce a more easily readable structure.
