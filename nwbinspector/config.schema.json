@@ -1,8 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Form of an nwbinspector config file.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "CRITICAL": {
       "type": "array",

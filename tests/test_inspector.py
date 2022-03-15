@@ -436,26 +436,3 @@ class TestInspector(TestCase):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
-
-
-def test_configure_checks():
-
-    # checks are moved
-    checks = [
-        check_small_dataset_compression,
-        check_regular_timestamps,
-        check_data_orientation,
-        check_timestamps_match_first_dimension,
-    ]
-    config = {"CRITICAL": ["check_data_orientation"], "BEST_PRACTICE_SUGGESTION": ["check_regular_timestamps"]}
-
-    out = configure_checks(checks=checks, config=config)
-
-    assert out[2].importance is Importance.CRITICAL
-    assert out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
-
-    # checks in same place are not moved
-    config = {"CRITICAL": ["check_regular_timestamps"]}
-
-    out = configure_checks(checks=checks, config=config)
-    assert out[1].importance is Importance.CRITICAL
