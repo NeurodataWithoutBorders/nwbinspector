@@ -9,6 +9,7 @@ from collections import Iterable
 from enum import Enum
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from types import FunctionType
 
 import click
 import pynwb
@@ -46,6 +47,25 @@ def validate_config(config: dict):
     with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
         schema = json.load(fp=fp)
     jsonschema.validate(instance=config, schema=schema)
+
+
+def copy_function(function):
+    """
+    Return a copy of a function so that internal attributes can be adjusted without changing the original function.
+
+    Required to ensure our configuration of functions in the registry does not effect the registry itself.
+
+    Taken from
+    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
+    """
+    if getattr(function, "__wrapped__", False):
+        function = function.__wrapped__
+    copied_function = FunctionType(
+        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
+    )
+    # in case f was given attrs (note this dict is a shallow copy):
+    copied_function.__dict__.update(function.__dict__)
+    return copied_function
 
 
 def configure_checks(
@@ -91,13 +111,16 @@ def configure_checks(
     if config is not None:
         validate_config(config=config)
         checks_out = []
+        ignore = ignore or []
         for check in checks:
+            mapped_check = copy_function(check)
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
+                        ignore.append(check.__name__)
                         continue
-                    check.importance = Importance[importance_name]
-            checks_out.append(check)
+                    mapped_check.importance = Importance[importance_name]
+            checks_out.append(mapped_check)
     else:
         checks_out = checks
     if select:
