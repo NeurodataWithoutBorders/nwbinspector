@@ -1,14 +1,13 @@
 Extensions
 ==========
 
-Extend only when necessary.
-
-Extensions are an essential mechanism to integrate data with NWB that is otherwise not supported. However, we here need
-to consider that there are certain costs associated with extensions, e.g., cost of creating, supporting, documenting,
-and maintaining new extensions and effort for users to use and learn extensions. As such, we should create new
-extensions only when necessary and use existing neurodata_types as much as possible. DynamicTables used in NWB,
-e.g., to store information about time intervals and electrodes, provide the ability to dynamically add columns without
-the need for extensions and, as such, can help avoid the need for custom extensions in many cases.
+Extend only when necessary. Extensions are an essential mechanism to integrate data with NWB that is otherwise not
+supported. However, we here need to consider that there are certain costs associated with extensions, e.g., cost of
+creating, supporting, documenting, and maintaining new extensions and effort for users to use and learn extensions.
+As such, users should attempt to use core neurodata_types or existing extentions before creating extensions.
+``DynamicTables``, which are used throughout the NWB schema e.g., to store information about time intervals and
+electrodes, provide the ability to dynamically add columns without the need for extensions, and can help avoid the
+need for custom extensions in many cases.
 
 TODO, add links to the tutorials for extensions
 
@@ -31,7 +30,11 @@ fields (groups, datasets, attributes, links etc.) to describe what they store an
 Write the Specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using pynwb, you can store the specification (core and extension)  within the  NWBFile by using
-```io.write(filepath, cache_spec=True)```. Caching the specification is preferable, particularly if you are using a
+When using pynwb, you can store the specification (core and extension)  within the NWBFile by using
+. Caching the specification is preferable, particularly if you are using a
 custom extension, because this ensures that anybody who receives the data also receives the necessary data to
 interpret it.
+
+.. note::
+    In PyNWB, the extension is cached automatically. This can be specified explicitly with ``io.write(filepath,
+    cache_spec=True)``
