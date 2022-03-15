@@ -26,7 +26,7 @@ Units of Measurement
 
 Time-related values should always in seconds. This include ```rate``` (if applicable), which should should be in Hz.
 
-Every TimeSeries instance has a unit as an attribute of the data Dataset, which is meant to indicate the unit of 
+Every TimeSeries instance has a unit as an attribute of the data Dataset, which is meant to indicate the unit of
 measurement of that data. We advise using SI units.
 
 
