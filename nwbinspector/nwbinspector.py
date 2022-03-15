@@ -25,9 +25,7 @@ from .inspector_tools import (
 from .register_checks import InspectorMessage, Importance
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
-INTERNAL_CONFIGS = dict(
-    dandi=os.path.join(os.path.abspath(__file__), "internal_configs", "dandi.inspector_config.yaml")
-)
+INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):
@@ -153,7 +151,7 @@ def configure_checks(
     help="Ignores tests with an assigned importance below this threshold.",
 )
 @click.option(
-    "-c", "--config", help="name of config or path of config .yaml file that overwrites importance of " "checks."
+    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of " "checks."
 )
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
@@ -174,7 +172,7 @@ def inspect_all_cli(
     if config is not None:
         config = INTERNAL_CONFIGS.get(config, config)
         with open(file=config, mode="r") as stream:
-            config = yaml.load(stream, yaml.Loader)
+            config = yaml.load(stream=stream, Loader=yaml.Loader)
     else:
         config = None
     messages = list(
@@ -189,8 +187,8 @@ def inspect_all_cli(
         )
     )
     if json_file_path is not None:
-        with open(json_file_path, "w") as fp:
-            json.dump(messages, fp, cls=InspectorOutputJSONEncoder)
+        with open(file=json_file_path, mode="w") as fp:
+            json.dump(obj=messages, fp=fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
         organized_results = organize_messages(messages=messages, levels=["file_path", "importance"])
         formatted_results = format_organized_results_output(organized_results=organized_results)
