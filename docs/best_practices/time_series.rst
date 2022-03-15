@@ -5,6 +5,9 @@ Many of the neurodata_types in NWB inherit from the TimeSeries neurodata_type.
 
 When using TimeSeries or any of its descendants, make sure the following are followed.
 
+
+.. _best_practice_data_orientation:
+
 Dimension Order
 ~~~~~~~~~~~~~~~
 
@@ -15,10 +18,16 @@ Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB 
 In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
 
 
-Units of Time
-~~~~~~~~~~~~~
+Check function: :ref:`check_data_orientation <check_data_orientation>`
+
+
+Units of Measurement
+~~~~~~~~~~~~~~~~~~~~
 
 Time-related values should always in seconds. This include ```rate``` (if applicable), which should should be in Hz.
+
+Every TimeSeries instance has a unit as an attribute of the data Dataset, which is meant to indicate the unit of
+measurement of that data. We advise using SI units.
 
 
 Global Time Reference
@@ -31,6 +40,7 @@ Subtypes
 
 ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the brain that are monitoring neural
 activity, and only those electrodes should be in the electrodes table.
+
 
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
@@ -48,6 +58,7 @@ One could use timestamps for this, even if there is a constant sampling rate wit
 
 
 .. _best_practice_regular_timestamps:
+
 
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

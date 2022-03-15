@@ -20,7 +20,10 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
 .. toctree::
    :maxdepth: 2
 
-   NWBFile Metadata <best_practices/nwbfile_metadata>
-   Time Series <best_practices/time_series>
-   Tables <best_practices/tables>
-   Unsorted <best_practices/other>
+   nwbfile_metadata
+   time_series
+   tables
+   ecephys
+   naming
+   simulated_data
+   extensions

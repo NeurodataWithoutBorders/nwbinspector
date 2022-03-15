@@ -20,10 +20,9 @@ files (NWBFiles) and to suggest improvements for any Best Practice violations th
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
 
-   best_practices_index
-   user_guide
+   best_practices/best_practices_index
+   user_guide/user_guide
    developer_guide
 
 
