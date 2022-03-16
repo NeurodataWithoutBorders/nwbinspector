@@ -16,8 +16,6 @@ You may then run the NWBInspector via the command line via the following usages
 
 which should quickly display a basic report to your console window.
 
-(TODO, maybe show an example of basic output here)
-
 
 Common Flags
 ------------
@@ -49,4 +47,4 @@ checks, those checks can be added ...
     nwbinspector path/to/my/data.nwb -m my_extension_module1 my_extension_module2
 
 
-Other flags may be viewed in the command line by calling `nwbinspector --help`.
+Other flags may be viewed in the command line by calling :code:`nwbinspector --help`.

@@ -7,9 +7,9 @@ This is a collection of tutorials illustrating some of the more advanced uses of
 Yielding and Iterating
 ----------------------
 
-Both the `inspect_all` and `inspect_nwb` functions directly return generators. That is, they do not actually run any
+Both the :code:`inspect_all` and :code:`inspect_nwb` functions directly return generators. That is, they do not actually run any
 checks on any NWBFile until the user performs an iteration command on them. In the basic usage, we recommend the
-simplest way of doing this as simply casting the generator as a list, i.e, `list(inspect_nwb(...))` which will
+simplest way of doing this as simply casting the generator as a list, i.e, :code:`list(inspect_nwb(...))` which will
 automatically collapse the iteration.
 
 However, if a user chooses, they can harness these generators in more sophisticated ways, such as
@@ -20,8 +20,8 @@ However, if a user chooses, they can harness these generators in more sophistica
 
     first_message = next(results_generator)
 
-which will return either the first `InspectorMessage` for the first Best Practice issue detected in the file (if any),
-or it will raise a `StopIteration` error. This error can be caught in the following manner
+which will return either the first :code:`InspectorMessage` for the first Best Practice issue detected in the file (if any),
+or it will raise a :code:`StopIteration` error. This error can be caught in the following manner
 
 .. code-block:: python
 
@@ -32,7 +32,7 @@ or it will raise a `StopIteration` error. This error can be caught in the follow
     except StopIteration:
         print("There are no messages!")
 
-Of course, the generator can be treated as any other iterable as well, such as with `for` loops
+Of course, the generator can be treated as any other iterable as well, such as with :code:`for` loops
 
 .. code-block:: python
 
@@ -46,12 +46,12 @@ Running on a DANDISets (ros3)
 -----------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
-uploaded to the DANDI archive (TODO: add link). While one could technically just download the DANDISet and
+uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDISet and
 use the NWBInspector as normal, there is another, less expensive possibility in terms of bandwith. This is especially
 useful when the underlying dataset is quite large and thus impractical to download - some DANDISets can even be on the TB scale!
 
-The general tutorial for using the `ros3` driver can be found here (TODO: add link). This driver can be passed directly
-into our core inspection functions, and the `path` or `nwbfile_path` arguments in this case become the S3 path on the
+The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed directly
+into our core inspection functions, and the :code:`path` or :code:`nwbfile_path` arguments in this case become the S3 path on the
 DANDI archive. Resolution of these paths can be performed via the following code
 
 .. code-block:: python
