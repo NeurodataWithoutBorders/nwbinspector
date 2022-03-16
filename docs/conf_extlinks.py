@@ -1,6 +1,5 @@
 # Use this for mapping to external links
 extlinks = {
-    # "incf_collection": ("https://training.incf.org/collection/neurodata-without-borders-neurophysiology-nwbn", ""),
     # "nwb_extension_git": ("https://github.com/nwb-extensions/%s", ""),
     # "ndx-catalog": ("https://nwb-extensions.github.io/", ""),
     # "pynwb-issue": ("https://github.com/NeurodataWithoutBorders/pynwb/issues/%s", "pynwb#%s"),
@@ -41,6 +40,8 @@ extlinks = {
         "https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/.github/CONTRIBUTING.md",
         "",
     ),
+    "dandi-archive": ("https://dandiarchive.org", ""),
+    "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html", ""),
 }
 
 # Use this for mapping for links to commonly used documentation
