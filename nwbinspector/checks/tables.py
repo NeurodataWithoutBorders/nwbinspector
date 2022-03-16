@@ -96,9 +96,9 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                 continue  # already boolean, int8, or uint8
             try:
                 unique_values = np.unique(column.data[:nelems])
-            except Exception:  # some columns can contain references to other objects in the NWBFile
+            except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue
-            if len(unique_values) > 2:
+            if unique_values.size != 2:
                 continue
             parsed_unique_values = np.array(unique_values)
             if isinstance(parsed_unique_values[0], Real):  # upcast to float for comparison
