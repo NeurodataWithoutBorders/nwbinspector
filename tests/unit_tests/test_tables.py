@@ -203,6 +203,12 @@ class TestCheckBinaryColumns(TestCase):
             )
         ]
 
+    def test_binary_string_pass(self):
+        self.table.add_column(name="test_col", description="")
+        for x in ["testing", "testingAgain", "MoreTesting", "testing"]:
+            self.table.add_row(test_col=x)
+        assert check_column_binary_capability(table=self.table) is None
+
 
 @pytest.mark.skip(reason="TODO")
 def test_check_single_tables():
