@@ -190,7 +190,7 @@ def inspect_all_cli(
         print_to_console(formatted_results=formatted_results, no_color=no_color)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
-            print(f"{os.linesep*2}Log file saved at {str(Path(report_file_path).absolute())}!{os.linesep}")
+            print(f"{os.linesep*2}Report saved to {str(Path(report_file_path).absolute())}!{os.linesep}")
 
 
 def inspect_all(
