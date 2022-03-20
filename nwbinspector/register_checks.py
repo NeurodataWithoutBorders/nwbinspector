@@ -1,5 +1,5 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
-from collections import Iterable
+from collections.abc import Iterable
 from functools import wraps
 from enum import Enum
 from dataclasses import dataclass

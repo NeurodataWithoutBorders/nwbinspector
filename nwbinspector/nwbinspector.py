@@ -5,7 +5,7 @@ import traceback
 import json
 import jsonschema
 from pathlib import Path
-from collections import Iterable
+from collections.abc import Iterable
 from enum import Enum
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
