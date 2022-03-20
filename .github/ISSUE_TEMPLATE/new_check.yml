@@ -1,7 +1,7 @@
 name: New Check
 description: Suggest an idea for a new check to be applied to NWBFiles and their contents.
 title: "[Add Check]: "
-labels: ["new check"]
+labels: ["category: new check"]
 body:
   - type: markdown
     attributes:
