@@ -32,7 +32,7 @@ Units of Measurement
 Time-related values should always in seconds. This include ``rate`` (if applicable), which should should be in Hz.
 
 Every TimeSeries instance has a ``unit`` as an attribute of the ``Dataset``, which is meant to indicate the unit of
-measurement for that data, using the appropriate type from the 
+measurement for that data, using the appropriate type from the
 `International System of Units (SI) <https://en.wikipedia.org/wiki/International_System_of_Units>`_
 
 
@@ -51,10 +51,10 @@ Global Time Reference
 Subtypes
 ~~~~~~~~
 
-ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the 
+ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the
 brain that are monitoring neural activity, and only those electrodes should be in the electrodes table.
 
-For non-neural electrodes that still may store and report raw values in Volts, simply use a general ``TimeSeries`` 
+For non-neural electrodes that still may store and report raw values in Volts, simply use a general ``TimeSeries``
 object with ``unit`` set to ``Volts``.
 
 
@@ -63,18 +63,18 @@ object with ``unit`` set to ``Volts``.
 
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
-TimeSeries data should generally be stored as one continuous stream as it was acquired, not by trial as is often 
+TimeSeries data should generally be stored as one continuous stream as it was acquired, not by trial as is often
 reshaped for analysis.
 
 Data can be trial-aligned on-the-fly using the ``trials`` table.
 
-Storing measured data as a continuous stream ensures that other users have access to the inter-trial data, and that we 
+Storing measured data as a continuous stream ensures that other users have access to the inter-trial data, and that we
 can align the data within any specifiable window.
 
-If you only have data spanning specific segments of time, then only include those timepoints in the data, see 
+If you only have data spanning specific segments of time, then only include those timepoints in the data, see
 :ref:`best_practice_regular_timestamps` for more information.
 
-A primary implication is that the values in ``timestamps``, as well as the corresponding ordering of their indices 
+A primary implication is that the values in ``timestamps``, as well as the corresponding ordering of their indices
 in the ``data`` array, should always be strictly increasing.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_ascending`
@@ -86,7 +86,7 @@ Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_asce
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``TimeSeries`` allows you to specify time using either ``timestamps`` or ``rate`` together with ``starting_time`` 
+``TimeSeries`` allows you to specify time using either ``timestamps`` or ``rate`` together with ``starting_time``
 (which defaults to 0).
 
 If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
@@ -95,7 +95,7 @@ For segmented data, refer to the section covering :ref:`best_practice_time_serie
 
     1. If the sampling rate is constant within each segment, each segment can be written as a separate ``TimeSeries``
     with the ``starting_time`` incremented appropriately.
-    2. Even if the sampling rate is constant within each segment, a single ``TimeSeries`` can be written using the 
+    2. Even if the sampling rate is constant within each segment, a single ``TimeSeries`` can be written using the
     ``timestamps`` vector to appropriately indicate the gaps between segments.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_regular_timestamps`
@@ -117,10 +117,10 @@ contiguously on disk, followed by the next timestamp, and so on.
 This storage scheme may be optimal for certain uses, such as slicing TimeSeries by time; however, it may be sub-optimal
 for other uses, such as reading data from all timestamps for a particular value in the second or third dimension.
 
-This is especially important when writing NWBFiles that are intended to be uploaded to the 
+This is especially important when writing NWBFiles that are intended to be uploaded to the
 :dandi-archive:`DANDI Archive <>` for storage, sharing, and publication.
 
-For more information about how to enable chunking and compression on your data, consult the 
+For more information about how to enable chunking and compression on your data, consult the
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#chunking>` or the
 `MatNWB instructions <https://neurodatawithoutborders.github.io/matnwb/tutorials/html/dataPipe.html#2>`_.
 
@@ -130,13 +130,13 @@ For more information about how to enable chunking and compression on your data, 
 Compress Data
 ~~~~~~~~~~~~~
 
-Data writers can optimize the storage of large data arrays for particular uses by using compression applied to each 
+Data writers can optimize the storage of large data arrays for particular uses by using compression applied to each
 chunk individually.
 
-This is especially important when writing NWBFiles that are intended to be uploaded to the 
+This is especially important when writing NWBFiles that are intended to be uploaded to the
 :dandi-archive:`DANDI Archive <>` for storage, sharing, and publication.
 
-For more information about how to enable compression on your data, consult the 
+For more information about how to enable compression on your data, consult the
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#compression-and-other-i-o-filters>` or the
 `MatNWB instructions <https://neurodatawithoutborders.github.io/matnwb/tutorials/html/dataPipe.html#2>`_
 
