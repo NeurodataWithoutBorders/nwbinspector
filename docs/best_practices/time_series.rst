@@ -1,9 +1,10 @@
 Time Series
 ===========
 
-When using ``TimeSeries`` or any of its descendants, please ensure the following practices are followed.
+When using :py:class:`~pynwb.base.TimeSeries` or any of its descendants, please ensure the following practices are followed.
 
-Note that these extend to any general subtype, such as ``ElectricalSeries``, ``SpatialSeries``, ``ImageSeries``, etc.
+Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys.ElectricalSeries`, 
+:py:class:`~pynwb.behavior.SpatialSeries`, :py:class:`~pynwb.image.ImageSeries`, etc.
 
 
 
@@ -23,7 +24,7 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 
 
 
-.. _best_practice_unit_of_measurement
+.. _best_practice_unit_of_measurement:
 
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +37,7 @@ measurement for that data, using the appropriate type from the
 
 
 
-.. _best_practice_time_series_global_time_reference
+.. _best_practice_time_series_global_time_reference:
 
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
@@ -45,7 +46,7 @@ Global Time Reference
 
 
 
-.. _best_practice_time_series_subtypes
+.. _best_practice_time_series_subtypes:
 
 Subtypes
 ~~~~~~~~
@@ -58,7 +59,7 @@ object with ``unit`` set to ``Volts``.
 
 
 
-.. _best_practice_timestamps_ascending
+.. _best_practice_timestamps_ascending:
 
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
