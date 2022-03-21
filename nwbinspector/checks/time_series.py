@@ -46,7 +46,11 @@ def check_data_orientation(time_series: TimeSeries):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_timestamps_match_first_dimension(time_series: TimeSeries):
-    """If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data."""
+    """
+    If the TimeSeries has timestamps, check if their length is the same as the zero-axis of data.
+
+    Best Practice: :ref:`best_practice_data_orientation`
+    """
     if (
         time_series.data is not None
         and time_series.timestamps is not None
@@ -59,6 +63,7 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
+    """Check that the values in the timestamps array are strictly increasing."""
     if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
