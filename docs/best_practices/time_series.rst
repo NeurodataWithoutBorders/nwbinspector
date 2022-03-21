@@ -17,7 +17,7 @@ Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB 
 
 In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
 
-Check function: :py:meth:`check_data_orientation <nwbinspector.checks.time_series.check_data_orientation>`
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_data_orientation`
 
 
 .. _best_practice_unit_of_measurement
@@ -76,7 +76,7 @@ If the sampling rate is constant, use rate. TimeSeries allows you to specify tim
 For TimeSeries objects that have a constant sampling rate, rate should be used instead of timestamps. This will ensure that you can use analysis and
 visualization tools that rely on a constant sampling rate.
 
-Check function: :py:meth:`check_regular_timestamps <nwbinspector.checks.time_series.check_regular_timestamps>`
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_regular_timestamps`
 
 
 
