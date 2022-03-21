@@ -3,7 +3,7 @@ Time Series
 
 When using :py:class:`~pynwb.base.TimeSeries` or any of its descendants, please ensure the following practices are followed.
 
-Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys.ElectricalSeries`, 
+Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys.ElectricalSeries`,
 :py:class:`~pynwb.behavior.SpatialSeries`, :py:class:`~pynwb.image.ImageSeries`, etc.
 
 
@@ -29,8 +29,12 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
+<<<<<<< HEAD
 Time-related values should always in seconds. This include :py:attr:`~pynwb.base.TimeSeries.rate` (if applicable), which
 should should be in Hz.
+=======
+Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
+>>>>>>> 09ce3dcf67d7be26d12a4710bc5ab252d9a1c791
 
 Every TimeSeries instance has :py:attr:`~pynwb.base.TimeSeries.unit` as an attribute, which is meant to indicate the unit of
 measurement for that data, using the appropriate type from the
@@ -90,9 +94,7 @@ Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``TimeSeries`` allows you to specify time using either ``timestamps`` or ``rate`` together with ``starting_time``
-(which defaults to 0).
-
-If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
+(which defaults to 0). If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
 
 For segmented data, refer to the section covering :ref:`best_practice_time_series_break_in_continuity`;
 
