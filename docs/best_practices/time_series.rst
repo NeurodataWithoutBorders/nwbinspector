@@ -87,9 +87,7 @@ Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``TimeSeries`` allows you to specify time using either ``timestamps`` or ``rate`` together with ``starting_time``
-(which defaults to 0).
-
-If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
+(which defaults to 0). If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
 
 For segmented data, refer to the section covering :ref:`best_practice_time_series_break_in_continuity`;
 
