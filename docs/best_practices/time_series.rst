@@ -7,8 +7,9 @@ When using TimeSeries or any of its descendants, make sure the following are fol
 
 
 .. _best_practice_data_orientation:
-Dimension Order
-~~~~~~~~~~~~~~~
+
+Data Orientation
+~~~~~~~~~~~~~~~~
 
 The time dimension always goes first. In TimeSeries.data, the first dimension on the disk is always time.
 
@@ -20,6 +21,7 @@ Check function: :py:meth:`check_data_orientation <nwbinspector.checks.time_serie
 
 
 .. _best_practice_unit_of_measurement
+
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -30,6 +32,7 @@ measurement of that data. We advise using SI units.
 
 
 .. _best_practice_time_series_global_time_reference
+
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -37,6 +40,7 @@ Global Time Reference
 
 
 .. _best_practice_time_series_subtypes
+
 Subtypes
 ~~~~~~~~
 
@@ -45,6 +49,7 @@ activity, and only those electrodes should be in the electrodes table.
 
 
 .. _best_practice_time_series_break_in_continuity
+
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
 TimeSeries data should be stored as one continuous stream.
@@ -61,6 +66,7 @@ One could use timestamps for this, even if there is a constant sampling rate wit
 
 
 .. _best_practice_regular_timestamps:
+
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
