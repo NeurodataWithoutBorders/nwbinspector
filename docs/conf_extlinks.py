@@ -4,7 +4,7 @@ extlinks = {
     # "ndx-catalog": ("https://nwb-extensions.github.io/", ""),
     # "pynwb-issue": ("https://github.com/NeurodataWithoutBorders/pynwb/issues/%s", "pynwb#%s"),
     # "pynwb-src": ("https://github.com/NeurodataWithoutBorders/pynwb/", ""),
-    # "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
+    "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
     # "hdmf-docs": ("https://hdmf.readthedocs.io/en/stable/", ""),
     # "hdmf-src": ("https://github.com/hdmf-dev/hdmf", ""),
     "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", "%s"),
