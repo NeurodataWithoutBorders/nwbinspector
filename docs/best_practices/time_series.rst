@@ -29,7 +29,7 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This include ``rate`` (if applicable), which should should be in Hz.
+Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
 
 Every TimeSeries instance has a ``unit`` as an attribute of the ``Dataset``, which is meant to indicate the unit of
 measurement for that data, using the appropriate type from the
