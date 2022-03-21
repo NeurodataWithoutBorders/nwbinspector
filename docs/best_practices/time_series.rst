@@ -13,7 +13,7 @@ Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys
 Data Orientation
 ~~~~~~~~~~~~~~~~
 
-The time dimension always goes first. In TimeSeries.data, the first dimension on the disk is always time.
+The time dimension always goes first. In :py:attr:`~pynwb.base.TimeSeries.data`, the first dimension on the disk is always time.
 
 Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB the time dimension must be last.
 
@@ -29,9 +29,10 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This include ``rate`` (if applicable), which should should be in Hz.
+Time-related values should always in seconds. This include :py:attr:`~pynwb.base.TimeSeries.rate` (if applicable), which
+should should be in Hz.
 
-Every TimeSeries instance has a ``unit`` as an attribute of the ``Dataset``, which is meant to indicate the unit of
+Every TimeSeries instance has :py:attr:`~pynwb.base.TimeSeries.unit` as an attribute, which is meant to indicate the unit of
 measurement for that data, using the appropriate type from the
 `International System of Units (SI) <https://en.wikipedia.org/wiki/International_System_of_Units>`_
 
@@ -42,7 +43,8 @@ measurement for that data, using the appropriate type from the
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
-``timestamps`` or ``starting_time`` should be in seconds with respect to the global ``timestamps_reference_time`` of the NWBFile.
+:py:attr:`~pynwb.base.TimeSeries.timestamps` or :py:attr:`~pynwb.base.TimeSeries.rate` should be in seconds with respect
+to the global :py:attr:`~pynwb.file.NWBFIle.timestamps_reference_time`` of the NWBFile.
 
 
 
@@ -51,11 +53,12 @@ Global Time Reference
 Subtypes
 ~~~~~~~~
 
-ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the
-brain that are monitoring neural activity, and only those electrodes should be in the electrodes table.
+:py:class:`~pynwb.ecephys.ElectricalSeries` are reserved for neural data. :py:class:`~pynwb.ecephys.ElectricalSeries`
+holds signal from electrodes positioned in or around the brain that are monitoring neural activity, and only those
+electrodes should be in the :py:class:`~pynwb.file.ElectrodeTable`.
 
-For non-neural electrodes that still may store and report raw values in Volts, simply use a general ``TimeSeries``
-object with ``unit`` set to ``Volts``.
+For non-neural electrodes that still may store and report raw values in Volts, simply use a general
+:py:class:`~pynwb.base.TimeSeries` object with :py:attr:`~pynwb.base.TimeSeries.unit` set to "Volts".
 
 
 
@@ -63,10 +66,10 @@ object with ``unit`` set to ``Volts``.
 
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
-TimeSeries data should generally be stored as one continuous stream as it was acquired, not by trial as is often
-reshaped for analysis.
+:py:attr:`~pynwb.base.TimeSeries.data` should generally be stored as one continuous stream as it was acquired, not by
+trial as is often reshaped for analysis.
 
-Data can be trial-aligned on-the-fly using the ``trials`` table.
+Data can be trial-aligned on-the-fly using the :py:class:`~pynwb.file.TrialTable`.
 
 Storing measured data as a continuous stream ensures that other users have access to the inter-trial data, and that we
 can align the data within any specifiable window.
@@ -74,8 +77,8 @@ can align the data within any specifiable window.
 If you only have data spanning specific segments of time, then only include those timepoints in the data, see
 :ref:`best_practice_regular_timestamps` for more information.
 
-A primary implication is that the values in ``timestamps``, as well as the corresponding ordering of their indices
-in the ``data`` array, should always be strictly increasing.
+A primary implication is that the values in :py:attr:`~pynwb.base.TimeSeries.timestamps`, as well as the corresponding
+ordering of their indices in the :py:attr:`~pynwb.base.TimeSeries.data` array, should always be strictly increasing.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_ascending`
 
