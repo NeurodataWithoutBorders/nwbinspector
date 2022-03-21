@@ -1,13 +1,12 @@
 Time Series
 ===========
 
-Many of the neurodata_types in NWB inherit from the TimeSeries neurodata_type.
+Many of the neurodata_types in NWB inherit from the TimeSeries (:py:class:`TimeSeries <pynwb.TimeSeries>`) neurodata_type.
 
 When using TimeSeries or any of its descendants, make sure the following are followed.
 
 
 .. _best_practice_data_orientation:
-
 Dimension Order
 ~~~~~~~~~~~~~~~
 
@@ -17,10 +16,10 @@ Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB 
 
 In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
 
+Check function: :py:meth:`check_data_orientation <nwbinspector.checks.time_series.check_data_orientation>`
 
-Check function: :ref:`check_data_orientation <check_data_orientation>`
 
-
+.. _best_practice_unit_of_measurement
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -30,11 +29,14 @@ Every TimeSeries instance has a unit as an attribute of the data Dataset, which 
 measurement of that data. We advise using SI units.
 
 
+.. _best_practice_time_series_global_time_reference
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
 ```timestamps``` or ```starting_time``` should be in seconds with respect to the global ```timestamps_reference_time``` of the NWBFile.
 
+
+.. _best_practice_time_series_subtypes
 Subtypes
 ~~~~~~~~
 
@@ -42,6 +44,7 @@ ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from 
 activity, and only those electrodes should be in the electrodes table.
 
 
+.. _best_practice_time_series_break_in_continuity
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
 TimeSeries data should be stored as one continuous stream.
@@ -58,8 +61,6 @@ One could use timestamps for this, even if there is a constant sampling rate wit
 
 
 .. _best_practice_regular_timestamps:
-
-
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -69,7 +70,8 @@ If the sampling rate is constant, use rate. TimeSeries allows you to specify tim
 For TimeSeries objects that have a constant sampling rate, rate should be used instead of timestamps. This will ensure that you can use analysis and
 visualization tools that rely on a constant sampling rate.
 
-Check function: :ref:`check_regular_timestamps <check_regular_timestamps>`
+Check function: :py:meth:`check_regular_timestamps <nwbinspector.checks.time_series.check_regular_timestamps>`
+
 
 
 
