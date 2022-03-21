@@ -3,7 +3,7 @@ Time Series
 
 When using :py:class:`~pynwb.base.TimeSeries` or any of its descendants, please ensure the following practices are followed.
 
-Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys.ElectricalSeries`, 
+Note that these extend to any general subtype, such as :py:class:`~pynwb.ecephys.ElectricalSeries`,
 :py:class:`~pynwb.behavior.SpatialSeries`, :py:class:`~pynwb.image.ImageSeries`, etc.
 
 
