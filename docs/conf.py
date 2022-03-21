@@ -64,8 +64,8 @@ add_module_names = False
 
 
 def add_refs_to_docstrings(app, what, name, obj, options, lines):
-    if what == "function" and name[:6] == "check_":
-        lines.append("Best Practice: :ref:`best_practice_{obj.__name__[6:]}`")
+    if what == "function" and obj.__name__.startswith("check_"):
+        lines.append(f"Best Practice: :ref:`best_practice_{obj.__name__[6:]} <best_practice_{obj.__name__[6:]}>`")
 
 
 def setup(app):

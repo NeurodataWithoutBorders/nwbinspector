@@ -1,7 +1,7 @@
 Time Series
 ===========
 
-Many of the neurodata_types in NWB inherit from the TimeSeries (:py:class:`TimeSeries <pynwb.TimeSeries>`) neurodata_type.
+Many of the neurodata_types in NWB inherit from the TimeSeries neurodata_type.
 
 When using TimeSeries or any of its descendants, make sure the following are followed.
 
