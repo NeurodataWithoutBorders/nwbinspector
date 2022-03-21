@@ -18,7 +18,7 @@ Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB 
 
 In PyNWB the order of the dimensions is the same in memory as on disk, so the time index should be first.
 
-Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientation` and 
+Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientation` and
 :py:meth:`~nwbinspector.checks.time_series.check_timestamps_match_first_dimension`
 
 
@@ -108,10 +108,10 @@ Use chunking to optimize reading of large data for your use case.
 
 By default, when using the HDF5 backend, TimeSeries data are stored on disk in Column-ordering.
 
-This means that if the `data` of a TimeSeries has multiple dimensions, then all data from a single timestamp are stored 
+This means that if the `data` of a TimeSeries has multiple dimensions, then all data from a single timestamp are stored
 contiguously on disk, followed by the next timestamp, and so on.
 
-This storage scheme may be optimal for certain uses, such as slicing TimeSeries by time; however, it may be sub-optimal 
+This storage scheme may be optimal for certain uses, such as slicing TimeSeries by time; however, it may be sub-optimal
 for other uses, such as reading data from all timestamps for a particular value in the second or third dimension.
 
 
