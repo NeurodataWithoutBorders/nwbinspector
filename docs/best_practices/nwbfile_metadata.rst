@@ -9,6 +9,22 @@ File Organization
 -----------------
 
 
+.. _best_practice_global_time_reference
+
+Global Time Reference
+~~~~~~~~~~~~~~~~~~~~~
+
+An NWBFile can have two primary time references. The global time reference for all objects in the NWBFile is the
+:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time`. By default, this is also set to the
+:py:attr:`~pynwb.file.NWBFile.session_start_time`, but when writing multiple NWBFiles that are all designed to align
+to the same time reference, the :py:attr:`~pynwb.file.NWBFile.session_start_time` may be set separately from the
+explicitly set common :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` used across all of the NWBFiles.
+
+All time-related data in the NWBFile should be synchronized to this global clock so that future users of the NWBFile
+are able to understand the timing of all events.
+
+
+
 Acquisition & Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -22,6 +38,7 @@ in meters, that would go in ```/processing/behavior/Position/SpatialSeries```.
 An LFP signal that is a downsampled version of the acquired data would go in ```/processing/ecephys/LFP/ElectricalSeries```.
 
 It may not always be 100% clear whether data is acquired or derived, so in those cases you should just use your best judgement.
+
 
 
 File Identifiers
