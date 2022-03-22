@@ -7,7 +7,7 @@ import jsonschema
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, Union, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
 
@@ -64,6 +64,20 @@ def copy_function(function):
     # in case f was given attrs (note this dict is a shallow copy):
     copied_function.__dict__.update(function.__dict__)
     return copied_function
+
+
+def load_config(filepath_or_keyword: PathType) -> dict:
+    """
+    Load a config dictionary either via keyword search of the internal configs, or an explicit filepath.
+
+    Currently supported keywords are:
+        - 'dandi'
+            For all DANDI archive related practices, including validation and upload.
+    """
+    file = INTERNAL_CONFIGS.get(filepath_or_keyword, filepath_or_keyword)
+    with open(file=file, mode="r") as stream:
+        config = yaml.load(stream=stream, Loader=yaml.Loader)
+    return config
 
 
 def configure_checks(
@@ -151,7 +165,7 @@ def configure_checks(
     help="Ignores tests with an assigned importance below this threshold.",
 )
 @click.option(
-    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of " "checks."
+    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of checks."
 )
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
@@ -172,11 +186,7 @@ def inspect_all_cli(
 ):
     """Primary CLI usage of the NWBInspector."""
     if config is not None:
-        config = INTERNAL_CONFIGS.get(config, config)
-        with open(file=config, mode="r") as stream:
-            config = yaml.load(stream=stream, Loader=yaml.Loader)
-    else:
-        config = None
+        config = load_config(filepath_or_keyword=config)
     messages = list(
         inspect_all(
             path=path,
@@ -204,7 +214,7 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    config: dict = None,
+    config: Optional[Union[dict, str]] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
@@ -221,8 +231,8 @@ def inspect_all(
     modules : list of strings, optional
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
-    config : dict
-        Dictionary valid against our JSON configuration schema.
+    config : dict, optional
+        If a dictionary, it must be valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
         Typically loaded via json.load from a valid .json file
     ignore: list of strings, optional
