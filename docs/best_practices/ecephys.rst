@@ -12,7 +12,7 @@ Electrodes
 Location
 ~~~~~~~~
 
-The 'location' field should reflect your best estimate of the recorded brain area. Different labs have different
+The ``location`` field should reflect your best estimate of the recorded brain area. Different labs have different
 standards for electrode localization. Some use atlases and coordinate maps to precisely place an electrode, and use
 physiological measures to confirm its placement. Others use histology or imaging processing algorithms to identify
 regions after-the-fact. You fill this column with localization results from your most accurate method. For instance,
@@ -20,8 +20,8 @@ if you target electrodes using physiology, and later use histology to confirm pl
 add a new column to the electrodes table called 'location_target', set those values to the original intended target,
 and alter the values of 'location' to match the histology results.
 
-The ``location`` column of the electrodes table is required. If you do not know the location of an electrode, use
-'unknown'.
+The ``location`` column of the ``ElectrodeTable`` is required. If you do not know the location of
+an electrode, use ``'unknown'``.
 
 
 
@@ -67,8 +67,8 @@ Negative Spike Times
 ~~~~~~~~~~~~~~~~~~~~
 
 All spike times should be greater than zero. Being less than zero implies the spikes are either trial-aligned (and
-should therefore be aligned to the global :py:attr:`~pynwb.file.NWBFile.timestamp_reference_time`) or the
-:py:attr:`~pynwb.file.NWBFile.timestamp_reference_time` is not set to agree with the
+should therefore be aligned to the global :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time`) or the
+:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` is not set to agree with the
 :py:attr:`~pynwb.file.NWBFile.session_start_time`. In either case the spike times (and all other temporal data) should
 be aligned to the earliest recorded timestamp in the file.
 
