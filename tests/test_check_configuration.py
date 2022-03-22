@@ -67,7 +67,6 @@ class TestCheckConfiguration(TestCase):
 
     def test_load_config(self):
         config = load_config(filepath_or_keyword="dandi")
-        print(config)
         self.assertDictEqual(
             d1=config,
             d2={
