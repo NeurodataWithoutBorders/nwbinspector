@@ -67,9 +67,6 @@ Negative Spike Times
 ~~~~~~~~~~~~~~~~~~~~
 
 All spike times should be greater than zero. Being less than zero implies the spikes are either trial-aligned (and
-should therefore be aligned to the global :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time`) or the
-:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` is not set to agree with the
-:py:attr:`~pynwb.file.NWBFile.session_start_time`. In either case the spike times (and all other temporal data) should
-be aligned to the earliest recorded timestamp in the file.
+should therefore be after the :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time`.
 
 Check function: :py:meth:`~nwbinspector.checks.ecephys.check_negative_spike_times`
