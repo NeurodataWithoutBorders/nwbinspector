@@ -342,7 +342,7 @@ def inspect_nwb(
         )
     nwbfile_path = str(nwbfile_path)
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
+        if skip_validate:
             validation_errors = pynwb.validate(io=io)
             if any(validation_errors):
                 for validation_error in validation_errors:
