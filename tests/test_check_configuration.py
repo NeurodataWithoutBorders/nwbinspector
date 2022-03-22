@@ -9,7 +9,7 @@ from nwbinspector import (
     check_timestamps_match_first_dimension,
     available_checks,
 )
-from nwbinspector.nwbinspector import validate_config, configure_checks, copy_function
+from nwbinspector.nwbinspector import validate_config, configure_checks, copy_function, load_config
 
 
 class TestCheckConfiguration(TestCase):
@@ -64,3 +64,14 @@ class TestCheckConfiguration(TestCase):
         config = dict(WRONG="test")
         with self.assertRaises(expected_exception=ValidationError):
             validate_config(config=config)
+
+    def test_load_config(self):
+        config = load_config(filepath_or_keyword="dandi")
+        print(config)
+        self.assertDictEqual(
+            d1=config,
+            d2={
+                "CRITICAL": ["check_subject_exists", "check_subject_id_exists"],
+                "BEST_PRACTICE_VIOLATION": ["check_subject_sex", "check_subject_species", "check_subject_age"],
+            },
+        )
