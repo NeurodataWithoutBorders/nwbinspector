@@ -214,7 +214,7 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    config: Optional[Union[dict, str]] = None,
+    config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
