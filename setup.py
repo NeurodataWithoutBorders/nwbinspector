@@ -16,4 +16,5 @@ setup(
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
     install_requires=["pynwb", "natsort", "click", "PyYAML", "jsonschema"],
     entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
+    license="BSD-3-Clause",
 )
