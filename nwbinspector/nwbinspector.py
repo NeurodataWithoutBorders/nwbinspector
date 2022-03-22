@@ -155,6 +155,7 @@ def configure_checks(
 )
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
+@click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -167,6 +168,7 @@ def inspect_all_cli(
     config: Optional[str] = None,
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
+    skip_validate: bool = False,
 ):
     """Primary CLI usage of the NWBInspector."""
     if config is not None:
@@ -184,6 +186,7 @@ def inspect_all_cli(
             select=select if select is None else select.split(","),
             importance_threshold=Importance[threshold],
             n_jobs=n_jobs,
+            skip_validate=skip_validate,
         )
     )
     if json_file_path is not None:
@@ -206,6 +209,7 @@ def inspect_all(
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
+    skip_validate: bool = False,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -235,9 +239,12 @@ def inspect_all(
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    n_jobs : int = 1
+    n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
         Set to 1 (also the default) to disable.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
     """
     modules = modules or []
     path = Path(path)
@@ -284,6 +291,7 @@ def inspect_nwb(
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     driver: str = None,
+    skip_validate: bool = False,
 ) -> List[InspectorMessage]:
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -314,6 +322,9 @@ def inspect_nwb(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     driver: str, optional
         Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
     """
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
@@ -321,16 +332,17 @@ def inspect_nwb(
         )
     nwbfile_path = str(nwbfile_path)
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        validation_errors = pynwb.validate(io=io)
-        if any(validation_errors):
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
+        if not skip_validate:
+            validation_errors = pynwb.validate(io=io)
+            if any(validation_errors):
+                for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
         try:
             nwbfile = io.read()
         except Exception as ex:
