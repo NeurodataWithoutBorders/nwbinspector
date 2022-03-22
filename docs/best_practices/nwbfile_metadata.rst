@@ -21,8 +21,8 @@ to the same time reference, the :py:attr:`~pynwb.file.NWBFile.session_start_time
 explicitly set common :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` used across all of the NWBFiles.
 
 All time-related data in the NWBFile should be synchronized to the
-:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` so that future users of the NWBFile are able to understand
-the timing of all events.
+:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` so that future users are able to understand the timing of all
+events contained within the NWBFile.
 
 
 
