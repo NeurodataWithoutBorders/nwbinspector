@@ -26,15 +26,12 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-<<<<<<< HEAD
-Time-related values should always in seconds. This include :py:attr:`~pynwb.base.TimeSeries.rate` (if applicable), which
-should should be in Hz.
-=======
-Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
->>>>>>> 09ce3dcf67d7be26d12a4710bc5ab252d9a1c791
+Time-related values should always in seconds. This includes :py:attr:`~pynwb.base.TimeSeries.rate` (if applicable),
+which should should be in Hz.
 
-Every TimeSeries instance has :py:attr:`~pynwb.base.TimeSeries.unit` as an attribute, which is meant to indicate the unit of
-measurement for that data, using the appropriate type from the
+
+Every TimeSeries instance has :py:attr:`~pynwb.base.TimeSeries.unit` as an attribute, which is meant to indicate the
+unit of measurement for that data, using the appropriate type from the
 `International System of Units (SI) <https://en.wikipedia.org/wiki/International_System_of_Units>`_
 
 
