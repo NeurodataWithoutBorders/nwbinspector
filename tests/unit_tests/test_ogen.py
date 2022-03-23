@@ -11,9 +11,7 @@ from nwbinspector.checks.ogen import check_optogenetic_stimulus_site_has_optogen
 class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
     def setUp(self) -> None:
         self.nwbfile = NWBFile(
-            session_description="session_description",
-            identifier="identifier",
-            session_start_time=datetime.now()
+            session_description="session_description", identifier="identifier", session_start_time=datetime.now()
         )
 
         device = Device(name="device_name")
@@ -29,9 +27,9 @@ class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
 
         ogen_series = OptogeneticSeries(
             name="ogen_series_name",
-            data=[1., 2., 3.],
+            data=[1.0, 2.0, 3.0],
             site=self.ogen_site,
-            rate=30.,
+            rate=30.0,
         )
 
         ogen_module = self.nwbfile.create_processing_module("ogen", "ogen")
@@ -40,6 +38,7 @@ class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
         assert check_optogenetic_stimulus_site_has_optogenetic_series(self.ogen_site) is None
 
     def test_check_triggered(self):
-        assert check_optogenetic_stimulus_site_has_optogenetic_series(
-            self.ogen_site
-        ).message == "OptogeneticStimulusSite is not referenced by any OptogeneticStimulusSite."
+        assert (
+            check_optogenetic_stimulus_site_has_optogenetic_series(self.ogen_site).message
+            == "OptogeneticStimulusSite is not referenced by any OptogeneticStimulusSite."
+        )
