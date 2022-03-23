@@ -49,8 +49,8 @@ See :ref:`best_practice_global_time_reference` for more information.
 Subtypes
 ~~~~~~~~
 
-ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the brain that are monitoring neural
-activity, and only those electrodes should be in the electrodes table.
+ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the
+brain that are monitoring neural activity, and only those electrodes should be in the electrodes table.
 
 
 .. _best_practice_time_series_break_in_continuity
