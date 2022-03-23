@@ -44,6 +44,24 @@ judgement.
 
 
 
+.. _best_practice_processing_module_name:
+
+Processing Module Names
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The name of any given processing module should be chosen from the following types: "ophys", "ecephys", "icephys",
+"behavior", "ogen", "retinotopy", or "misc". This helps standardize navigation of NWBFiles generated from labs and
+modalities. It also helps distinguish components of a given experiment, such as decoupling the intermediate data from
+neural acquisition systems from behavioral ones.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_processing_module_name`
+
+
+
+File Metadata
+-------------
+
+
 .. _best_practice_file_id:
 
 File Identifiers
@@ -64,6 +82,43 @@ The :py:attr:`~pynwb.file.NWBFile.identifier` tag should be a globally unique va
 :py:attr:`~pynwb.file.NWBFile.identifier` values if they differ in any way. It is recommended that you use a
 well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) or ?? (for MatNWB) to ensure uniqueness.
 The :py:attr:`~pynwb.file.NWBFile.identifier` does not need to be easily human-readable.
+
+
+
+.. _best_practice_experimenter:
+
+Experimenter
+~~~~~~~~~~~~
+
+The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This allows metadata collection programs,
+such as those on the :dandi-archive:`DANDI archive` to easily scan NWBFiles to more easily link individual authors to
+publications and external IDs, such as :orcid:`ORCID`.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
+
+
+
+.. _best_practice_experiment_description:
+
+Experiment Description
+~~~~~~~~~~~~~~~~~~~~~~
+
+The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This helps provide context for understanding
+the contents of the NWBFile.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment_description`
+
+
+
+.. _best_practice_institution:
+
+Institution
+~~~~~~~~~~~
+
+The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This allows metadata collection programs,
+such as those on the :dandi-archive:`DANDI archive` to easily scan NWBFiles to deliver summary statistics. 
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institution`
 
 
 

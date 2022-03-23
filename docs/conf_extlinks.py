@@ -45,6 +45,7 @@ extlinks = {
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
     "uuid": ("https://docs.python.org/3/library/uuid.html", ""),
     "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
+    "orcid": ("https://orcid.org/", ""),
 }
 
 # Use this for mapping for links to commonly used documentation
