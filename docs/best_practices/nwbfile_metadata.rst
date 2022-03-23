@@ -1,7 +1,7 @@
 NWBFile Metadata
 ================
 
-An NWBFile object generally contains data from a single experimental session.
+An :nwb-schema:ref:`sec-NWBFile` object generally contains data from a single experimental session.
 
 
 
@@ -14,15 +14,14 @@ File Organization
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
-An NWBFile can have two primary time references. The global time reference for all objects in the NWBFile is the
-:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time`. By default, this is also set to the
-:py:attr:`~pynwb.file.NWBFile.session_start_time`, but when writing multiple NWBFiles that are all designed to align
-to the same time reference, the :py:attr:`~pynwb.file.NWBFile.session_start_time` may be set separately from the
-explicitly set common :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` used across all of the NWBFiles.
+An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global time reference for all objects in the
+:nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is also set to the
+``session_start_time``, but when writing multiple NWBFiles that are all designed to align
+to the same time reference, the ``session_start_time`` may be set separately from the explicitly specified common
+``timestamps_reference_time`` used across all of the NWBFiles.
 
-All time-related data in the NWBFile should be synchronized to the
-:py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` so that future users are able to understand the timing of all
-events contained within the NWBFile.
+All time-related data in the NWBFile should be synchronized to the ``timestamps_reference_time`` so that future users
+are able to understand the timing of all events contained within the NWBFile.
 
 
 
@@ -32,7 +31,7 @@ Acquisition & Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The 'acquisition' group is specifically for time series measurements that are acquired from an acquisition system,
-*e.g.*, an :py:class:`~pynwb.ecephys.ElectricalSeries` with the voltages from the recording systems or the raw output of
+*e.g.*, an :nwb-schema:ref:`sec-ElectricalSeries` with the voltages from the recording systems or the raw output of
 any other environmental sensors.
 
 The 'processing' modules are for intermediate data, *e.g.*, if you derive the position of the animal from sensors or
@@ -67,21 +66,19 @@ File Metadata
 File Identifiers
 ~~~~~~~~~~~~~~~~
 
-NWBFile has two distinct places for identifiers: :py:attr:`~pynwb.file.NWBFile.session_id` and
-:py:attr:`~pynwb.file.NWBFile.identifier`.
+An :nwb-schema:ref:`sec-NWBFile` has two distinct places for identifiers: ``NWBFile.session_id`` and ``identifier``.
 
-The :py:attr:`~pynwb.file.NWBFile.session_id` field marks unique experimental sessions. The
-:py:attr:`~pynwb.file.NWBFile.session_id` should have a one-to-one relationship with a recording session. Sometimes you
-may find yourself having multiple NWBFiles that correspond to the same session. This can happen, for instance, if you
-separate out processing steps across multiple files or if you want to compare different processing outputs. In this
-case, the :py:attr:`~pynwb.file.NWBFile.session_id` should be the same for each file. Each lab should follow a standard
-structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily human-readable.
+The ``session_id`` field marks unique experimental sessions. The ``session_id`` should have a one-to-one relationship
+with a recording session. Sometimes you may find yourself having multiple NWBFiles that correspond to the same session.
+This can happen, for instance, if you separate out processing steps across multiple files or if you want to compare
+different processing outputs. In this case, the ``session_id`` should be the same for each file. Each lab should follow
+a standard structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily
+human-readable.
 
-The :py:attr:`~pynwb.file.NWBFile.identifier` tag should be a globally unique value for the
-:py:class:`~pynwb.file.NWBFile`. Two different NWBFiles from the same session should have different
-:py:attr:`~pynwb.file.NWBFile.identifier` values if they differ in any way. It is recommended that you use a
-well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) or ?? (for MatNWB) to ensure uniqueness.
-The :py:attr:`~pynwb.file.NWBFile.identifier` does not need to be easily human-readable.
+The ``identifier`` tag should be a globally unique value for the :nwb-schema:ref:`sec-NWBFile`. Two different NWBFiles
+from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
+use a well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) or ?? (for MatNWB) to ensure
+uniqueness. The ``identifier`` does not need to be easily human-readable.
 
 
 
@@ -90,9 +87,9 @@ The :py:attr:`~pynwb.file.NWBFile.identifier` does not need to be easily human-r
 Experimenter
 ~~~~~~~~~~~~
 
-The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This allows metadata collection programs,
-such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to more easily link individual authors to
-publications and external IDs, such as :orcid:`ORCID`.
+The ``experimenter`` field of an :nwb-schema:ref:`sec-NWBFile` should be specified. This allows metadata collection
+programs, such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to more easily link individual
+authors to publications and external IDs, such as :orcid:`ORCID`.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
 
@@ -103,8 +100,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment
 Experiment Description
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This helps provide context for understanding
-the contents of the NWBFile.
+The ``experiment_description`` field of an :nwb-schema:ref:`sec-NWBFile` should be specified. This helps provide
+context for understanding the contents of the file.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment_description`
 
@@ -115,8 +112,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment
 Institution
 ~~~~~~~~~~~
 
-The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This allows metadata collection programs,
-such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to deliver summary statistics.
+The ``institution`` field should be specified. This allows metadata collection programs, such as those on the
+:dandi-archive:`DANDI archive <>` to easily scan NWBFiles to deliver summary statistics.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institution`
 
@@ -139,9 +136,9 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_ex
 ID
 ~~
 
-A Subject ID is required for upload to the :dandi-archive:`DANDI archive <>`. Even if the goal of a given NWBFile is
-not intended for DANDI upload, if the :py:class:`~pynwb.file.Subject` is specified at all it should be given a
-:py:attr:`~pynwb.file.Subject.subject_id` for reference.
+A ``subject_id`` is required for upload to the :dandi-archive:`DANDI archive <>`. Even if the goal of a given NWBFile is
+not intended for DANDI upload, if the :nwb-schema:ref:`sec-Subject` is specified at all it should be given a
+``subject_id`` for reference.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id_exists`
 
@@ -152,7 +149,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id
 Sex
 ~~~
 
-The Subject's :py:attr:`~pynwb.file.Subject.sex` should be specified as a single upper-case character among the
+The ``sex`` of the :nwb-schema:ref:`sec-Subject` should be specified as a single upper-case character among the
 following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sex`
@@ -164,9 +161,9 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 Species
 ~~~~~~~
 
-The Subject's species should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat
-would be "Rattus norvegicus". Specific subspecies may be further specified by a dash, *e.g.*,
-"Rattus norvegicus - Long Evans".
+The ``species`` of a :nwb-schema:ref:`sec-Subject` should be set to the proper
+:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus". Specific subspecies
+may be further specified by a dash, *e.g.*, "Rattus norvegicus - Long Evans".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
 
@@ -177,8 +174,9 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sp
 Age
 ~~~
 
-The age parameter of Subject should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>` format.
-For instance indicating an age of 90 days would be 'P90D'.
+The ``age`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>`
+format. For instance indicating an age of 90 days would be 'P90D'. It is not necessary to include both ``age`` and
+``date_of_birth``, but at least one of them is recommended.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_age`
 
@@ -189,5 +187,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_ag
 Date of Birth
 ~~~~~~~~~~~~~
 
-The age parameter of Subject should use the :wikipedia:`ISO 8601 <ISO_8601>` format.
-For instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30".
+The ``date_of_birth`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 <ISO_8601>` format. For
+instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30". It is not necessary to
+include both ``age`` and ``date_of_birth``, but at least one of them is recommended.
+
