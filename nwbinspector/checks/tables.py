@@ -1,4 +1,6 @@
 """Check functions that can apply to any descendant of DynamicTable."""
+from numbers import Real
+
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
@@ -92,15 +94,18 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
         if hasattr(column, "data") and not isinstance(column, VectorIndex):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
-            unique_values = np.unique(column.data[:nelems])
-            if len(unique_values) > 2:
+            try:
+                unique_values = np.unique(column.data[:nelems])
+            except TypeError:  # some contained objects are unhashable or have no comparison defined
+                continue
+            if unique_values.size != 2:
                 continue
             parsed_unique_values = np.array(unique_values)
-            if parsed_unique_values.dtype == np.dtype("<U3"):  # parse strings as all lower-case
+            if isinstance(parsed_unique_values[0], Real):  # upcast to float for comparison
+                parsed_unique_values = parsed_unique_values.astype(float)
+            elif str(parsed_unique_values.dtype)[:2] == "<U":  # parse strings as all lower-case
                 for j in range(2):
                     parsed_unique_values[j] = parsed_unique_values[j].lower()
-            else:  # any int dtype greater than 8-bit, upcast to float for comparison
-                parsed_unique_values = parsed_unique_values.astype(float)
             pairs_to_check = [
                 [1.0, 0.0],
                 ["yes", "no"],
@@ -117,7 +122,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                     print_dtype = "floats"
                 elif unique_values.dtype == "int":
                     print_dtype = "integers"
-                elif unique_values.dtype == "<U3":
+                elif str(unique_values.dtype)[:2] == "<U":
                     print_dtype = "strings"
                 yield InspectorMessage(
                     message=(
