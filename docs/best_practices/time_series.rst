@@ -99,7 +99,7 @@ For segmented data, refer to the section covering :ref:`best_practice_time_serie
 
     1. If the sampling rate is constant within each segment, each segment can be written as a separate
     :nwb-schema:ref:`sec-TimeSeries` with the ``starting_time`` incremented appropriately.
-    
+
     2. Even if the sampling rate is constant within each segment, a single :nwb-schema:ref:`sec-TimeSeries` can be
     written using the ``timestamps`` vector to appropriately indicate the gaps between segments.
 
