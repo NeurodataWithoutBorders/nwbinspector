@@ -2,57 +2,9 @@ Time Series
 ===========
 
 When using :nwb-schema:ref:`TimeSeries <sec-TimeSeries>` or any subtype
-(e.g. :nwb-schema:ref:`ElectricalSeries <sec-ElectricalSeries>`, ...), please ensure the following practices are followed.
-
-:nwb-schema:ref:`SpatialSeries <sec-SpatialSeries>
-
-:nwb-schema:ref:`SpatialSeries <sec-Spatialseries>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatialSeries>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatialseries>
-
-:nwb-schema:ref:`SpatialSeries <sec-Spatial-Series>
-
-:nwb-schema:ref:`SpatialSeries <sec-Spatial-series>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatial-Series>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatial-series>
-
-:nwb-schema:ref:`SpatialSeries <sec-Spatial_Series>
-
-:nwb-schema:ref:`SpatialSeries <sec-Spatial_series>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatial_Series>
-
-:nwb-schema:ref:`SpatialSeries <sec-spatial_series>
-
-
-
-:nwb-schema:ref:`SpatialSeries <SpatialSeries>
-
-:nwb-schema:ref:`SpatialSeries <Spatialseries>
-
-:nwb-schema:ref:`SpatialSeries <spatialSeries>
-
-:nwb-schema:ref:`SpatialSeries <spatialseries>
-
-:nwb-schema:ref:`SpatialSeries <Spatial-Series>
-
-:nwb-schema:ref:`SpatialSeries <Spatial-series>
-
-:nwb-schema:ref:`SpatialSeries <spatial-Series>
-
-:nwb-schema:ref:`SpatialSeries <spatial-series>
-
-:nwb-schema:ref:`SpatialSeries <Spatial_Series>
-
-:nwb-schema:ref:`SpatialSeries <Spatial_series>
-
-:nwb-schema:ref:`SpatialSeries <spatial_Series>
-
-:nwb-schema:ref:`SpatialSeries <spatial_series>
+(*e.g.*, :nwb-schema:ref:`ElectricalSeries <sec-ElectricalSeries>`,
+:nwb-schema:ref:`SpatialSeries <sec-spatialseries>`,
+:nwb-schema:ref:`SpatialSeries <sec-spatialseries>`, etc.) please ensure the following practices are followed.
 
 
 
