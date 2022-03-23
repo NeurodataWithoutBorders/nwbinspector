@@ -116,7 +116,7 @@ Institution
 ~~~~~~~~~~~
 
 The :py:attr:`~pynwb.file.NWBFile.institution` field should be specified. This allows metadata collection programs,
-such as those on the :dandi-archive:`DANDI archive` to easily scan NWBFiles to deliver summary statistics. 
+such as those on the :dandi-archive:`DANDI archive` to easily scan NWBFiles to deliver summary statistics.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institution`
 
