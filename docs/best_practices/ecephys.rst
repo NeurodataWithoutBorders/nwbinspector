@@ -69,7 +69,7 @@ Negative Spike Times
 ~~~~~~~~~~~~~~~~~~~~
 
 All spike times should be greater than zero. Being less than zero implies the spikes are either trial-aligned (and
-should therefore be aligned to the ``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile`) or the 
+should therefore be aligned to the ``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile`) or the
 ``timestamps_reference_time`` itself is not set to the earliest recording time during the session.
 
 Check function: :py:meth:`~nwbinspector.checks.ecephys.check_negative_spike_times`
