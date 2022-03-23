@@ -190,4 +190,3 @@ Date of Birth
 The ``date_of_birth`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 <ISO_8601>` format. For
 instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30". It is not necessary to
 include both ``age`` and ``date_of_birth``, but at least one of them is recommended.
-
