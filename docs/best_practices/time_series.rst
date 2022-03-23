@@ -3,8 +3,8 @@ Time Series
 
 When using :nwb-schema:ref:`TimeSeries <sec-TimeSeries>` or any subtype
 (*e.g.*, :nwb-schema:ref:`ElectricalSeries <sec-ElectricalSeries>`,
-:nwb-schema:ref:`SpatialSeries <sec-spatialseries>`,
-:nwb-schema:ref:`SpatialSeries <sec-spatialseries>`, etc.) please ensure the following practices are followed.
+:nwb-schema:ref:`SpatialSeries <sec-SpatialSeries>`,
+:nwb-schema:ref:`SpatialSeries <sec-ImageSeries>`, etc.) please ensure the following practices are followed.
 
 
 
@@ -31,12 +31,12 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This includes :py:attr:`~pynwb.base.TimeSeries.rate` (if applicable),
-which should should be in Hz.
+Time-related values should always in seconds. This includes :nwb-schema:ref:`TimeSeries.rate <sec-TimeSeries>`
+(if applicable), which should should be in Hz.
 
 
-Every TimeSeries instance has :py:attr:`~pynwb.base.TimeSeries.unit` as an attribute, which is meant to indicate the
-unit of measurement for that data, using the appropriate type from the
+Every TimeSeries instance has :nwb-schema:ref:`TimeSeries.unit <sec-TimeSeries>` as an attribute, which is meant to
+indicate the unit of measurement for that data, using the appropriate type from the
 `International System of Units (SI) <https://en.wikipedia.org/wiki/International_System_of_Units>`_
 
 
@@ -46,8 +46,8 @@ unit of measurement for that data, using the appropriate type from the
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
-:py:attr:`~pynwb.base.TimeSeries.timestamps` or :py:attr:`~pynwb.base.TimeSeries.rate` should be in seconds with respect
-to the global :py:attr:`~pynwb.file.NWBFIle.timestamps_reference_time`` of the NWBFile.
+:nwb-schema:ref:`TimeSeries.timestamps <sec-TimeSeries>` or :nwb-schema:ref:`TimeSeries.rate <sec-TimeSeries>` should
+be in seconds with respect to the global :nwb-schema:ref:`NWBFile.timestamps_reference_time <sec-NWBFile>` of the NWBFile.
 
 
 
