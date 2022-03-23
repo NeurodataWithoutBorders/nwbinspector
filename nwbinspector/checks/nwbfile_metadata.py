@@ -50,8 +50,9 @@ def check_institution(nwbfile: NWBFile):
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601."""
     if subject.age is None:
-        return InspectorMessage(message="Subject is missing age.")
-    if not re.fullmatch(duration_regex, subject.age):
+        if subject.date_of_birth is None:
+            return InspectorMessage(message="Subject is missing age and date_of_birth.")
+    elif not re.fullmatch(duration_regex, subject.age):
         return InspectorMessage(
             message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
             "weeks."
