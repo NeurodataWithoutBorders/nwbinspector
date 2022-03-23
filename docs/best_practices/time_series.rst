@@ -1,7 +1,10 @@
 Time Series
 ===========
 
-When using :py:class:`~pynwb.base.TimeSeries` or any subtype (e.g. :py:class:`~pynwb.ecephys.ElectricalSeries`, :py:class:`~pynwb.behavior.SpatialSeries`, and :py:class:`~pynwb.image.ImageSeries`), please ensure the following practices are followed.
+When using :nwb-schema:ref:`TimeSeries <sec-TimeSeries>` or any subtype
+(e.g. :nwb-schema:ref:`ElectricalSeries <sec-ElectricalSeries>`,
+:nwb-schema:ref:`SpatialSeries <sec-SpatialSeries>, and
+:nwb-schema:ref:`ImageSeries <sec-ImageSeries>), please ensure the following practices are followed.
 
 
 
@@ -10,8 +13,8 @@ When using :py:class:`~pynwb.base.TimeSeries` or any subtype (e.g. :py:class:`~p
 Data Orientation
 ~~~~~~~~~~~~~~~~
 
-The time dimension always goes first. In :py:attr:`~pynwb.base.TimeSeries.data`
-(schema: :nwb-schema:ref:`TimeSeries <sec-TimeSeries>`), the first dimension on the disk is always time.
+The time dimension always goes first. In :nwb-schema:ref:`TimeSeries.data <sec-TimeSeries>`), the first dimension on
+the disk is always time.
 
 Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB the time dimension must be last.
 
