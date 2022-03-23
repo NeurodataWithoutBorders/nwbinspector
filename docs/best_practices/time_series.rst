@@ -1,10 +1,9 @@
 Time Series
 ===========
 
-When using :nwb-schema:ref:`TimeSeries <sec-TimeSeries>` or any subtype
-(*e.g.*, :nwb-schema:ref:`ElectricalSeries <sec-ElectricalSeries>`,
-:nwb-schema:ref:`SpatialSeries <sec-SpatialSeries>`,
-:nwb-schema:ref:`SpatialSeries <sec-ImageSeries>`, etc.) please ensure the following practices are followed.
+When using :nwb-schema:ref:`sec-TimeSeries` or any subtype
+(*e.g.*, :nwb-schema:ref:`sec-ElectricalSeries`, :nwb-schema:ref:`sec-SpatialSeries`,
+:nwb-schema:ref:`sec-ImageSeries`, etc.) please ensure the following practices are followed.
 
 
 
@@ -14,8 +13,7 @@ When using :nwb-schema:ref:`TimeSeries <sec-TimeSeries>` or any subtype
 Data Orientation
 ~~~~~~~~~~~~~~~~
 
-The time dimension always goes first. In :nwb-schema:ref:`TimeSeries.data <sec-TimeSeries>`), the first dimension on
-the disk is always time.
+For the ``data`` field of :nwb-schema:ref:`sec-TimeSeries`, the first dimension of the array should always be time.
 
 Keep in mind that the dimensions are reversed in MatNWB, so in memory in MatNWB the time dimension must be last.
 
@@ -31,13 +29,11 @@ Check functions: :py:meth:`~nwbinspector.checks.time_series.check_data_orientati
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This includes :nwb-schema:ref:`TimeSeries.rate <sec-TimeSeries>`
-(if applicable), which should should be in Hz.
+Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
 
-
-Every TimeSeries instance has :nwb-schema:ref:`TimeSeries.unit <sec-TimeSeries>` as an attribute, which is meant to
-indicate the unit of measurement for that data, using the appropriate type from the
-`International System of Units (SI) <https://en.wikipedia.org/wiki/International_System_of_Units>`_
+Every :nwb-schema:ref:`sec-TimeSeries` instance has ``unit`` as an attribute, which is meant to indicate the unit of
+measurement for that data, using the appropriate type from the
+:wikipedia:`International System of Units (SI) <International_System_of_Units>`.
 
 
 
@@ -46,8 +42,8 @@ indicate the unit of measurement for that data, using the appropriate type from 
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
 
-:nwb-schema:ref:`TimeSeries.timestamps <sec-TimeSeries>` or :nwb-schema:ref:`TimeSeries.rate <sec-TimeSeries>` should
-be in seconds with respect to the global :nwb-schema:ref:`NWBFile.timestamps_reference_time <sec-NWBFile>` of the NWBFile.
+The ``timestamps`` or ``rate`` of a :nwb-schema:ref:`sec-TimeSeries` should be in seconds with respect to
+the global ``timestamps_reference_time`` of the :nwb-schema:ref:`NWBFile <sec-NWBFile>`.
 
 
 
@@ -56,12 +52,14 @@ be in seconds with respect to the global :nwb-schema:ref:`NWBFile.timestamps_ref
 Subtypes
 ~~~~~~~~
 
-:py:class:`~pynwb.ecephys.ElectricalSeries` are reserved for neural data. :py:class:`~pynwb.ecephys.ElectricalSeries`
-holds signal from electrodes positioned in or around the brain that are monitoring neural activity, and only those
-electrodes should be in the :py:class:`~pynwb.file.ElectrodeTable`.
+
+:nwb-schema:ref:`sec-ElectricalSeries` are reserved for neural data. An
+:nwb-schema:ref:`sec-ElectricalSeries` holds signal from electrodes positioned in or around the
+brain that are monitoring neural activity, and only those electrodes should be in the
+:nwb-schema:ref:`ElectrodeTable <sec-ElectricalTable>`.
 
 For non-neural electrodes that still may store and report raw values in Volts, simply use a general
-:py:class:`~pynwb.base.TimeSeries` object with :py:attr:`~pynwb.base.TimeSeries.unit` set to "Volts".
+:nwb-schema:ref:`sec-TimeSeries` object with ``units`` set to "Volts".
 
 
 
@@ -69,10 +67,10 @@ For non-neural electrodes that still may store and report raw values in Volts, s
 
 Breaks in Continuity
 ~~~~~~~~~~~~~~~~~~~~
-:py:attr:`~pynwb.base.TimeSeries.data` should generally be stored as one continuous stream as it was acquired, not by
-trial as is often reshaped for analysis.
+The ``data`` field of :nwb-schema:ref:`sec-TimeSeries` should generally be stored as one continuous stream
+as it was acquired, not by trial as is often reshaped for analysis.
 
-Data can be trial-aligned on-the-fly using the :py:class:`~pynwb.file.TrialTable`.
+Data can be trial-aligned on-the-fly using the :nwb-schema:ref:`TrialTable <sec-TrialTable>`.
 
 Storing measured data as a continuous stream ensures that other users have access to the inter-trial data, and that we
 can align the data within any specifiable window.
@@ -80,8 +78,9 @@ can align the data within any specifiable window.
 If you only have data spanning specific segments of time, then only include those timepoints in the data, see
 :ref:`best_practice_regular_timestamps` for more information.
 
-A primary implication is that the values in :py:attr:`~pynwb.base.TimeSeries.timestamps`, as well as the corresponding
-ordering of their indices in the :py:attr:`~pynwb.base.TimeSeries.data` array, should always be strictly increasing.
+A primary implication is that the values in :nwb-schema:ref:`TimeSeries.timestamps <sec-TimeSeries>`, as well as the
+corresponding ordering of their indices in the :nwb-schema:ref:`TimeSeries.data <sec-TimeSeries>` array, should always
+be strictly increasing.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_ascending`
 
@@ -92,15 +91,17 @@ Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_asce
 Timestamps vs. Start & Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``TimeSeries`` allows you to specify time using either ``timestamps`` or ``rate`` together with ``starting_time``
-(which defaults to 0). If the sampling rate is constant, then specify the ``rate`` and ``starting_time`` instead of writing the full ``timestamps`` vector.
+:nwb-schema:ref:`sec-TimeSeries` allows you to specify time using either ``timestamps`` or ``rate``
+together with ``starting_time`` (which defaults to 0). If the sampling rate is constant, then specify the ``rate`` and
+``starting_time`` instead of writing the full ``timestamps`` vector.
 
 For segmented data, refer to the section covering :ref:`best_practice_time_series_break_in_continuity`;
 
-    1. If the sampling rate is constant within each segment, each segment can be written as a separate ``TimeSeries``
-    with the ``starting_time`` incremented appropriately.
-    2. Even if the sampling rate is constant within each segment, a single ``TimeSeries`` can be written using the
-    ``timestamps`` vector to appropriately indicate the gaps between segments.
+    1. If the sampling rate is constant within each segment, each segment can be written as a separate
+    :nwb-schema:ref:`sec-TimeSeries` with the ``starting_time`` incremented appropriately.
+    
+    2. Even if the sampling rate is constant within each segment, a single :nwb-schema:ref:`sec-TimeSeries` can be
+    written using the ``timestamps`` vector to appropriately indicate the gaps between segments.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_regular_timestamps`
 
@@ -113,13 +114,15 @@ Chunk Data
 
 Use chunking to optimize reading of large data for your use case.
 
-By default, when using the HDF5 backend, TimeSeries data are stored on disk in column-based ordering.
+By default, when using the HDF5 backend, :nwb-schema:ref:`sec-TimeSeries` ``data`` are stored on disk using
+column-based ordering.
 
-This means that if the `data` of a TimeSeries has multiple dimensions, then all data from a single timestamp are stored
-contiguously on disk, followed by the next timestamp, and so on.
+This means that if the ``data`` of a :nwb-schema:ref:`sec-TimeSeries` has multiple dimensions, then all data from a
+single timestamp are stored contiguously on disk, followed by the next timestamp, and so on.
 
-This storage scheme may be optimal for certain uses, such as slicing TimeSeries by time; however, it may be sub-optimal
-for other uses, such as reading data from all timestamps for a particular value in the second or third dimension.
+This storage scheme may be optimal for certain uses, such as slicing :nwb-schema:ref:`sec-TimeSeries` by time; however,
+it may be sub-optimal for other uses, such as reading data from all timestamps for a particular value in the second or
+third dimension.
 
 This is especially important when writing NWBFiles that are intended to be uploaded to the
 :dandi-archive:`DANDI Archive <>` for storage, sharing, and publication.
@@ -127,6 +130,7 @@ This is especially important when writing NWBFiles that are intended to be uploa
 For more information about how to enable chunking and compression on your data, consult the
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#chunking>` or the
 `MatNWB instructions <https://neurodatawithoutborders.github.io/matnwb/tutorials/html/dataPipe.html#2>`_.
+
 
 
 .. _best_practice_large_dataset_compression:
@@ -144,4 +148,5 @@ For more information about how to enable compression on your data, consult the
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#compression-and-other-i-o-filters>` or the
 `MatNWB instructions <https://neurodatawithoutborders.github.io/matnwb/tutorials/html/dataPipe.html#2>`_
 
-Check function: :ref:`~nwbinspector.checks.nwb_containers.check_large_dataset_compression`
+Check functions: :py::meth:`~nwbinspector.checks.nwb_containers.check_large_dataset_compression`,
+:py::meth:`~nwbinspector.checks.nwb_containers.check_small_dataset_compression`

@@ -42,6 +42,7 @@ extlinks = {
     ),
     "dandi-archive": ("https://dandiarchive.org", ""),
     "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html", ""),
+    "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
 }
 
 # Use this for mapping for links to commonly used documentation
