@@ -9,7 +9,7 @@ File Organization
 -----------------
 
 
-.. _best_practice_global_time_reference
+.. _best_practice_global_time_reference:
 
 Global Time Reference
 ~~~~~~~~~~~~~~~~~~~~~
@@ -32,14 +32,12 @@ Acquisition & Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The 'acquisition' group is specifically for time series measurements that are acquired from an acquisition system,
-e.g. an ElectricalSeries with the voltages from the recording systems or the output of the position sensors (like your
-wheel position).
+*e.g.*, an :py:class:`~pynwb.ecephys.ElectricalSeries` with the voltages from the recording systems or the raw output of
+any other environmental sensors.
 
-The 'processing' modules are for intermediate data. If you take the wheel position and derive the position of the animal
-in meters, that would go in ``/processing/behavior/Position/SpatialSeries``.
-
-An LFP signal that is a downsampled version of the acquired data would go in
-``/processing/ecephys/LFP/ElectricalSeries``.
+The 'processing' modules are for intermediate data, *e.g.*, if you derive the position of the animal from sensors or
+video tracking, that would go in ``/processing/behavior/Position/SpatialSeries``. An LFP signal that is a downsampled
+version of the acquired data would go in ``/processing/ecephys/LFP/ElectricalSeries``.
 
 It may not always be 100% clear whether data is acquired or derived, so in those cases you should just use your best
 judgement.
@@ -51,21 +49,21 @@ judgement.
 File Identifiers
 ~~~~~~~~~~~~~~~~
 
-NWBFile has two distinct places for identifiers: :py:attr:`pynwb.file.NWBFile.session_id` and
-:py:attr:`pynwb.file.NWBFile.identifier`.
+NWBFile has two distinct places for identifiers: :py:attr:`~pynwb.file.NWBFile.session_id` and
+:py:attr:`~pynwb.file.NWBFile.identifier`.
 
-The :py:attr:`pynwb.file.NWBFile.session_id` field marks unique experimental sessions. The
-:py:attr:`pynwb.file.NWBFile.session_id` should have a one-to-one relationship with a recording session. Sometimes you
+The :py:attr:`~pynwb.file.NWBFile.session_id` field marks unique experimental sessions. The
+:py:attr:`~pynwb.file.NWBFile.session_id` should have a one-to-one relationship with a recording session. Sometimes you
 may find yourself having multiple NWBFiles that correspond to the same session. This can happen, for instance, if you
 separate out processing steps across multiple files or if you want to compare different processing outputs. In this
-case, the :py:attr:`pynwb.file.NWBFile.session_id` should be the same for each file. Each lab should follow a standard
+case, the :py:attr:`~pynwb.file.NWBFile.session_id` should be the same for each file. Each lab should follow a standard
 structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily human-readable.
 
-The :py:attr:`pynwb.file.NWBFile.identifier` tag should be a globally unique value for the
-:py:class:`pynwb.file.NWBFile`. Two different NWBFiles from the same session should have different
-:py:attr:`pynwb.file.NWBFile.identifier` values if they differ in any way. It is recommended that you use a
-well-established algoritthmic generator such as :uuid:`uuid <>` (for PyNWB) or ?? (for MatNWB) to ensure uniqueness.
-The :py:attr:`pynwb.file.NWBFile.identifier` not need to be easily human-readable.
+The :py:attr:`~pynwb.file.NWBFile.identifier` tag should be a globally unique value for the
+:py:class:`~pynwb.file.NWBFile`. Two different NWBFiles from the same session should have different
+:py:attr:`~pynwb.file.NWBFile.identifier` values if they differ in any way. It is recommended that you use a
+well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) or ?? (for MatNWB) to ensure uniqueness.
+The :py:attr:`~pynwb.file.NWBFile.identifier` does not need to be easily human-readable.
 
 
 
@@ -99,8 +97,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id
 Sex
 ~~~
 
-The Subject's :py:attr:`~pynwb.file.Subject.sex` should be specified as a single upper-case character among the follow
-four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
+The Subject's :py:attr:`~pynwb.file.Subject.sex` should be specified as a single upper-case character among the
+following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sex`
 
@@ -111,8 +109,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 Species
 ~~~~~~~
 
-The Subject's species should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>`. E.g., a rat
-would be "Rattus norvegicus". Specific subspecies may be further specified by a dash, _e.g._,
+The Subject's species should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat
+would be "Rattus norvegicus". Specific subspecies may be further specified by a dash, *e.g.*,
 "Rattus norvegicus - Long Evans".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
