@@ -8,7 +8,11 @@ from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ecephys import check_negative_spike_times, check_electrical_series_dims, check_electrical_series_reference_electrodes_table
+from nwbinspector.checks.ecephys import (
+    check_negative_spike_times,
+    check_electrical_series_dims,
+    check_electrical_series_reference_electrodes_table,
+)
 from nwbinspector.register_checks import InspectorMessage, Importance
 
 
@@ -136,10 +140,7 @@ class TestCheckElectricalSeries(TestCase):
             dyn_tab.add_row(name=1)
 
         dynamic_table_region = DynamicTableRegion(
-            name="electrodes",
-            description="I am wrong",
-            data=[0, 1, 2, 3, 4],
-            table=dyn_tab
+            name="electrodes", description="I am wrong", data=[0, 1, 2, 3, 4], table=dyn_tab
         )
 
         electrical_series = ElectricalSeries(
@@ -150,5 +151,7 @@ class TestCheckElectricalSeries(TestCase):
             rate=30.0,
         )
 
-        assert check_electrical_series_reference_electrodes_table(electrical_series).message == "electrodes does not  reference an electrodes table."
-
+        assert (
+            check_electrical_series_reference_electrodes_table(electrical_series).message
+            == "electrodes does not  reference an electrodes table."
+        )

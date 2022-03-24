@@ -44,6 +44,4 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries):
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
 def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
     if electrical_series.electrodes.table.name != "electrodes":
-        return InspectorMessage(
-            message="electrodes does not  reference an electrodes table."
-        )
+        return InspectorMessage(message="electrodes does not  reference an electrodes table.")
