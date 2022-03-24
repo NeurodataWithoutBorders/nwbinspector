@@ -9,7 +9,7 @@ from nwbinspector import (
     check_timestamps_ascending,
     Importance,
 )
-from nwbinspector import Severity, InspectorMessage
+from nwbinspector import InspectorMessage
 
 
 def test_check_regular_timestamps():
