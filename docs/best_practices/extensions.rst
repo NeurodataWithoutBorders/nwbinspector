@@ -1,39 +1,49 @@
 Extensions
 ==========
 
-Extend only when necessary. Extensions are an essential mechanism to integrate data with NWB that is otherwise not
-supported. However, we here need to consider that there are certain costs associated with extensions, e.g., cost of
-creating, supporting, documenting, and maintaining new extensions and effort for users to use and learn extensions.
-As such, users should attempt to use core neurodata_types or existing extentions before creating extensions.
-``DynamicTables``, which are used throughout the NWB schema e.g., to store information about time intervals and
-electrodes, provide the ability to dynamically add columns without the need for extensions, and can help avoid the
-need for custom extensions in many cases.
+Extend existing NWBFile structures only when absolutely necessary. Extensions are an essential mechanism to integrate
+data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
+with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
+to use and learn already-created extensions.
 
-TODO, add links to the tutorials for extensions
+As such, users should attempt to use core ``neurodata_types`` or pre-existing extentions before creating new ones.
+:nwb-schema:ref:`sec-DynamicTables`, which are used throughout the NWB schema to store information about time intervals,
+electrodes, or spiking output, provide the ability to dynamically add columns without the need for extensions, and can
+help avoid the need for custom extensions in many cases.
+
+If an extension is ultimately required, tutorials for the process may be found through the
+:nwb-overview:`NWB Overview<extensions_tutorial/extensions_tutorial_home.html`.
+
+It is also encouraged for extensions to self-contain their own check functions for Best Practices defined for those
+particular extensions. See the NWBInspector Developer instructions for how to do this.  # TODO find link for that
+
 
 
 Use Existing Neurodata Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 When possible, use existing types when creating extensions either by creating new neurodata_types that inherit from
-existing ones, or by creating neurodata_types that contain existing ones. Building on existing types facilitates the
+existing ones, or by creating ``neurodata_types`` that contain existing ones. Building on existing types facilitates the
 reuse of existing functionality and interpretation of the data. If a community extension already exists that has a
 similar scope, it is preferable to use that extension rather than creating a new one.
+
 
 
 Provide Documentation
 ~~~~~~~~~~~~~~~~~~~~~
 
-When creating extensions be sure to provide meaningful documentation as part of the extension specification, of all
-fields (groups, datasets, attributes, links etc.) to describe what they store and how they are used.
+When creating extensions be sure to provide thorough, meaningful documentation as part of the extension specification.
+Be sure to explain all fields (groups, datasets, attributes, links etc.) and describe what they store and how they
+should be used.
+
 
 
 Write the Specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using pynwb, you can store the specification (core and extension)  within the NWBFile by using
-. Caching the specification is preferable, particularly if you are using a
-custom extension, because this ensures that anybody who receives the data also receives the necessary data to
-interpret it.
+When using pynwb, you can store the specification (core and extension) within the NWBFile. Caching the specification is
+preferable, particularly if you are using a custom extension, because this ensures that anybody who receives the data
+also receives the necessary data to interpret it.
 
 .. note::
     In PyNWB, the extension is cached automatically. This can be specified explicitly with ``io.write(filepath,
