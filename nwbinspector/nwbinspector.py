@@ -17,8 +17,9 @@ import yaml
 
 from . import available_checks
 from .inspector_tools import (
-    organize_messages,
-    format_organized_results_output,
+    format_messages,
+    # organize_messages,
+    # format_organized_results_output,
     print_to_console,
     save_report,
 )
@@ -141,6 +142,7 @@ def configure_checks(
     type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
+@click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
 @click.option("-s", "--select", help="Comma-separated names of checks to run.")
 @click.option(
@@ -160,6 +162,7 @@ def inspect_all_cli(
     modules: Optional[str] = None,
     no_color: bool = False,
     report_file_path: str = None,
+    levels: str = None,
     overwrite: bool = False,
     ignore: Optional[str] = None,
     select: Optional[str] = None,
@@ -175,14 +178,15 @@ def inspect_all_cli(
             config = yaml.load(stream=stream, Loader=yaml.Loader)
     else:
         config = None
+    levels = ["file_path", "importance"] if levels is None else levels.split(",")
     messages = list(
         inspect_all(
             path=path,
             modules=modules,
-            config=config,
             ignore=ignore if ignore is None else ignore.split(","),
             select=select if select is None else select.split(","),
             importance_threshold=Importance[threshold],
+            config=config,
             n_jobs=n_jobs,
         )
     )
@@ -190,11 +194,10 @@ def inspect_all_cli(
         with open(file=json_file_path, mode="w") as fp:
             json.dump(obj=messages, fp=fp, cls=InspectorOutputJSONEncoder)
     if len(messages):
-        organized_results = organize_messages(messages=messages, levels=["file_path", "importance"])
-        formatted_results = format_organized_results_output(organized_results=organized_results)
-        print_to_console(formatted_results=formatted_results, no_color=no_color)
+        formatted_messages = format_messages(messages=messages, levels=levels)
+        print_to_console(formatted_messages=formatted_messages, no_color=no_color)
         if report_file_path is not None:
-            save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
+            save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
             print(f"{os.linesep*2}Report saved to {str(Path(report_file_path).absolute())}!{os.linesep}")
 
 
