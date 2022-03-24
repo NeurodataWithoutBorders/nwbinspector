@@ -41,9 +41,9 @@ def check_small_dataset_compression(
     """
     for field in getattr(nwb_container, "fields", dict()).values():
         if (
-                isinstance(field, h5py.Dataset)
-                and field.compression is None
-                and mb_lower_bound * 1e6 < field.size * field.dtype.itemsize < gb_upper_bound * 1e9
+            isinstance(field, h5py.Dataset)
+            and field.compression is None
+            and mb_lower_bound * 1e6 < field.size * field.dtype.itemsize < gb_upper_bound * 1e9
         ):
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
                 severity = Severity.HIGH
