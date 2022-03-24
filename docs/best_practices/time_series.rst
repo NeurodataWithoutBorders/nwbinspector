@@ -139,12 +139,8 @@ Compress Data
 ~~~~~~~~~~~~~
 
 Data writers can optimize the storage of large data arrays for particular uses by using compression applied to each
-chunk individually.
-
-This is especially important when writing NWBFiles that are intended to be uploaded to the
-:dandi-archive:`DANDI Archive <>` for storage, sharing, and publication.
-
-For more information about how to enable compression on your data, consult the
+chunk individually. This is especially important when writing NWBFiles that are intended to be uploaded to the
+:dandi-archive:`DANDI Archive <>` for storage, sharing, and publication. For more information about how to enable compression on your data, consult the
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#compression-and-other-i-o-filters>` or the
 `MatNWB instructions <https://neurodatawithoutborders.github.io/matnwb/tutorials/html/dataPipe.html#2>`_
 
