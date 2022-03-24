@@ -6,9 +6,10 @@ import numpy as np
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
+from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ecephys import check_negative_spike_times, check_electrical_series_dims
-from nwbinspector.register_checks import InspectorMessage, Importance, Severity
+from nwbinspector.checks.ecephys import check_negative_spike_times, check_electrical_series_dims, check_electrical_series_reference_electrodes_table
+from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 def test_check_negative_spike_times_all_positive():
@@ -124,4 +125,30 @@ class TestCheckElectricalSeries(TestCase):
 
         self.nwbfile.add_acquisition(electrical_series)
 
-        assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) is None
+        assert check_electrical_series_dims(electrical_series) is None
+        assert check_electrical_series_reference_electrodes_table(electrical_series) is None
+
+    def test_trigger_check_electrical_series_reference_electrodes_table(self):
+
+        dyn_tab = DynamicTable("name", "desc")
+        dyn_tab.add_column("name", "desc")
+        for i in range(5):
+            dyn_tab.add_row(name=1)
+
+        dynamic_table_region = DynamicTableRegion(
+            name="electrodes",
+            description="I am wrong",
+            data=[0, 1, 2, 3, 4],
+            table=dyn_tab
+        )
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 5)),
+            electrodes=dynamic_table_region,
+            rate=30.0,
+        )
+
+        assert check_electrical_series_reference_electrodes_table(electrical_series).message == "electrodes does not  reference an electrodes table."
+
