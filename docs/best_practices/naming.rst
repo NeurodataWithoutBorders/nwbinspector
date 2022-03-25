@@ -2,52 +2,70 @@ Naming
 ======
 
 
+
 Neurodata Types
 ---------------
 
 
-As a default, name class instances with the same name as the class.
 
-Many of the Neurodata Types in NWB allow you to set their name to something other than the default name.
+.. _best_practice_object_names:
 
-This allows multiple objects of the same type to be stored side-by-side and allows data writers to provide
-human-readable information about the contents of the neurodata_type. If appropriate, simply use the name of the
-Neurodata Type as the name of that object.
+Naming Conventions
+~~~~~~~~~~~~~~~~~~
 
-For instance, if you are placing an ElectricalSeries object in /acquisition that holds voltage traces for a
-multichannel recording, consider simply naming that object "ElectricalSeries". This is the default_name for that
-object, and naming it like this will increase your chances that analysis and visualization tools will operate
-seamlessly with you data.There may be cases where you have multiple neurodata instances of the same type in the same
-Group. In this case the instances must have unique names. If they are both equally important data sources, build upon
-the class name (e.g. "ElectricalSeries_1" and "ElectricalSeries_2"). If one of the instances is an extra of less
-importance, name that one something different (e.g. "ElectricalSeries" and "ElectricalSeries_extra_electrode").
+As a default, name class instances with the same name as the class.  *E.g.*, if your :nwb-schema:ref:`sec-NWBFile` has
+only one :nwb-schema:ref:`sec-ElectricalSeries` for the raw acquisition, then simply name it ``ElectricalSeries``.
 
-Names are not for storing meta-data. If you need to place other data of the same neurodata_type, you will need to
-choose another name. Keep in mind that meta-data should not be stored solely in the name of objects. It is OK to name
-an object something like “ElectricalSeries_large_array” however the name alone is not sufficient documentation. In this
-case, the source of the signal will be clear from the device of the rows from the linked electrodes table region, and
-you should also include any important distinguishing information in the description field of the object. Make an effort
-to make meta-data as explicit as possible. Good names help users but do not help applications parse your file.
+Many of the Neurodata Types in NWB allow you to set their name to something other than the default name, and this should
+be done any time there are multiple types of the same class. *E.g.*, if you have several
+:nwb-schema:ref:`sec-ElectricalSeries` for different segments or devices, then add some distinguishing information to
+each name: ``ElectricalSeries1`` vs. ``ElectricalSeries2``, or ``ElectricalSeriesSegment1`` vs.
+``ElectricalSeriesSegment2``, etc. This allows multiple objects of the same type to be stored side-by-side and allows
+data writers to provide human-readable information about the contents of the ``neurodata_type``.
 
-’/’ is not allowed in names. When creating a custom name, using the forward slash (/) is not allowed, as this can
-confuse h5py and lead to the creation of an additional group. Instead of including a forward slash in the name, please
-use “Over” like in DfOverF.
+It is recommended to use :wikipedia:`CamelCase <Camel_case>` when naming instances of schematic classes.
+
+
+
+.. _best_practice_description:
+
+Metadata Descriptions
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``name`` of an object is for identifying that object within the file; it is not for storing metadata. Instead, the
+``description`` field for most objects can be used to include any important distinguishing information. When writing
+metadata, make every effort to be as explicit and self-contained as possible in the explaining relevant details.
+
+It is OK to name an object something like ``ElectricalSeriesDuringSomeEvent``, however the name alone is not sufficient
+documentation of the condition ``DuringSomeEvent``. In this case, the source of the signal will be clear from the
+:nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
+the full :nwb-schema:ref:`ElectrodeTable <groups-general-extracellular-ephys-electrodes>`, so you would not need to
+add any explicit metadata explaining these details.
+
+Slash-like characters ``'/'``, ``'\'``, or ``'|'``  are not not allowed in the ``name`` of an object. This can be
+confusing to systems that parse HDF5 files (which NWB uses, see the
+:nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
+specify the location of ``groups`` within the file.
+
+For mathematical expressions, instead of including the special character in the name, please use an English equivalent
+instead. *E.g.*, instead of "Df/f" use "DfOverF".
+
 
 
 Processing Modules
 ------------------
 
 
+.. _best_practice_processing_module_names:
+
 Indicate Modality
 ~~~~~~~~~~~~~~~~~
 
-Give preference to default processing module names. These names mirror the extension module names: “ecephys”,
-“icephys”, “behavior”, “ophys”, “misc”.
+Give preference to default :nwb-schema:ref:`sec-processingmodule` names. These names mirror the most common modalities:
+``ecephys``, ``icephys``, ``behavior``, ``ophys``, ``misc``.
 
-We encourage the use of these defaults, but there may be some cases when deviating from this pattern is appropriate.
+We encourage the use of these defaults, but there may be some cases when deviating from this pattern is appropriate,
+such as a non-standard modality or a mixture of processing data combined across multiple modalities.
 
-For instance, if there is a processing step that involves data from multiple modalities, or if the user wants to
-compare two processing pipelines for a single modality (e.g. different spike sorters), you should create
-Processing Modules with custom names.
-
-ProcessingModules are themselves neurodata_types, and the other rules for neurodata_types also apply here.
+:nwb-schema:ref:`ProcessingModules <sec-processingmodule>` are themselves ``neurodata_types``, and the other rules for
+``neurodata_types`` also apply here.
