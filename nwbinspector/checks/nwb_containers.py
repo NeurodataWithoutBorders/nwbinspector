@@ -43,8 +43,7 @@ def check_small_dataset_compression(
         if (
             isinstance(field, h5py.Dataset)
             and field.compression is None
-            and field.size * field.dtype.itemsize > mb_lower_bound * 1e6
-            and field.size * field.dtype.itemsize < gb_upper_bound * 1e9
+            and mb_lower_bound * 1e6 < field.size * field.dtype.itemsize < gb_upper_bound * 1e9
         ):
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
                 severity = Severity.HIGH

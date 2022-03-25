@@ -45,6 +45,3 @@ def check_roi_response_series_link_to_plane_segmentation(roi_response_series: Ro
 #             error_code = "A101"
 #             print("%s: '%s' %s is missing text for attribute 'location'"
 # % (error_code, site.name, type(site).__name__))
-#     if opto_sites and not opto_series:
-#         error_code = "A101"
-#         print("%s: OptogeneticStimulusSite object(s) exists without an OptogeneticSeries" % error_code)
