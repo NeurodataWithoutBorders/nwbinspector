@@ -4,7 +4,7 @@ extlinks = {
     # "ndx-catalog": ("https://nwb-extensions.github.io/", ""),
     # "pynwb-issue": ("https://github.com/NeurodataWithoutBorders/pynwb/issues/%s", "pynwb#%s"),
     # "pynwb-src": ("https://github.com/NeurodataWithoutBorders/pynwb/", ""),
-    # "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
+    "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
     # "hdmf-docs": ("https://hdmf.readthedocs.io/en/stable/", ""),
     # "hdmf-src": ("https://github.com/hdmf-dev/hdmf", ""),
     "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", "%s"),
@@ -42,9 +42,9 @@ extlinks = {
     ),
     "dandi-archive": ("https://dandiarchive.org", ""),
     "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html", ""),
+    "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
     "uuid": ("https://docs.python.org/3/library/uuid.html", ""),
-    "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
     "orcid": ("https://orcid.org/", ""),
 }
 

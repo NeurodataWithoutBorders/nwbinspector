@@ -2,8 +2,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
-from conf_extlinks import extlinks
-from conf_extlinks import intersphinx_mapping
+from conf_extlinks import extlinks, intersphinx_mapping
 
 sys.path.insert(0, Path(__file__).resolve().parents[1])
 
