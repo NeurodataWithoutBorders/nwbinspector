@@ -24,6 +24,7 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    time_series
    tables
    ecephys
+   ogen
    naming
    simulated_data
    extensions
