@@ -1,6 +1,8 @@
 Optogenetics
 ============
 
+.. _best_practice_optogenetic_stimulus_site_has_optogenetic_series:
+
 OptogeneticSeries
 -----------------
 
