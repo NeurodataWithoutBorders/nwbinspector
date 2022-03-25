@@ -25,6 +25,11 @@ def check_negative_spike_times(units_table: Units):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries):
+    """
+    Use the length of the linked electrode region to check the data orientation.
+
+    Best Practice: :ref:`best_practice_data_orientation`
+    """
     data = electrical_series.data
     electrodes = electrical_series.electrodes
 
