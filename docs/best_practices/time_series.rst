@@ -39,7 +39,7 @@ measurement for that data, using the appropriate type from the
 
 .. _best_practice_time_series_global_time_reference:
 
-Global Time Reference
+Time Series: Time References
 ~~~~~~~~~~~~~~~~~~~~~
 
 The ``timestamps`` or ``rate`` of a :nwb-schema:ref:`sec-TimeSeries` should be in seconds with respect to
@@ -51,7 +51,6 @@ the global ``timestamps_reference_time`` of the :nwb-schema:ref:`NWBFile <sec-NW
 
 Subtypes
 ~~~~~~~~
-
 
 :nwb-schema:ref:`sec-ElectricalSeries` are reserved for neural data. An
 :nwb-schema:ref:`sec-ElectricalSeries` holds signal from electrodes positioned in or around the
