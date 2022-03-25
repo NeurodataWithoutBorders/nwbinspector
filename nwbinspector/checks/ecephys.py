@@ -44,3 +44,9 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries):
             message="The second dimension of data does not match the length of electrodes. Your "
             "data may be transposed."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
+def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
+    if electrical_series.electrodes.table.name != "electrodes":
+        return InspectorMessage(message="electrodes does not  reference an electrodes table.")
