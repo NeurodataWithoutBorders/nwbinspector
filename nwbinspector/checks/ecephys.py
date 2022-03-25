@@ -1,6 +1,5 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 import numpy as np
-from numbers import Real
 
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
@@ -26,6 +25,11 @@ def check_negative_spike_times(units_table: Units):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries):
+    """
+    Use the length of the linked electrode region to check the data orientation.
+
+    Best Practice: :ref:`best_practice_data_orientation`
+    """
     data = electrical_series.data
     electrodes = electrical_series.electrodes
 
@@ -40,3 +44,9 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries):
             message="The second dimension of data does not match the length of electrodes. Your "
             "data may be transposed."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
+def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
+    if electrical_series.electrodes.table.name != "electrodes":
+        return InspectorMessage(message="electrodes does not  reference an electrodes table.")

@@ -4,7 +4,7 @@ extlinks = {
     # "ndx-catalog": ("https://nwb-extensions.github.io/", ""),
     # "pynwb-issue": ("https://github.com/NeurodataWithoutBorders/pynwb/issues/%s", "pynwb#%s"),
     # "pynwb-src": ("https://github.com/NeurodataWithoutBorders/pynwb/", ""),
-    # "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
+    "pynwb-docs": ("https://pynwb.readthedocs.io/en/stable/", "%s"),
     # "hdmf-docs": ("https://hdmf.readthedocs.io/en/stable/", ""),
     # "hdmf-src": ("https://github.com/hdmf-dev/hdmf", ""),
     "matnwb-src": ("https://github.com/NeurodataWithoutBorders/matnwb", "%s"),
@@ -42,6 +42,10 @@ extlinks = {
     ),
     "dandi-archive": ("https://dandiarchive.org", ""),
     "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html", ""),
+    "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
+    "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
+    "uuid": ("https://docs.python.org/3/library/uuid.html", ""),
+    "orcid": ("https://orcid.org/", ""),
 }
 
 # Use this for mapping for links to commonly used documentation
@@ -52,7 +56,8 @@ intersphinx_mapping = {
     # "matplotlib": ("https://matplotlib.org", None),
     # "h5py": ("https://docs.h5py.org/en/latest/", None),
     # "hdmf": ("https://hdmf.readthedocs.io/en/latest/", None),
-    # "pynwb": ("https://pynwb.readthedocs.io/en/stable/", None),
+    "pynwb": ("https://pynwb.readthedocs.io/en/stable/", None),
+    "nwb-schema": ("https://nwb-schema.readthedocs.io/en/latest/", None),
     # "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     # "nct": ("https://nwb-conversion-tools.readthedocs.io/", None),
 }
