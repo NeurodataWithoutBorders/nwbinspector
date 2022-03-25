@@ -31,12 +31,17 @@ Every TimeSeries instance has a unit as an attribute of the data Dataset, which 
 measurement of that data. We advise using SI units.
 
 
+
 .. _best_practice_time_series_global_time_reference
 
-Global Time Reference
+Time Series: Time References
 ~~~~~~~~~~~~~~~~~~~~~
 
-```timestamps``` or ```starting_time``` should be in seconds with respect to the global ```timestamps_reference_time``` of the NWBFile.
+:py:attr:`~pynwb.file.TimeSeries.timestamps` or :py:attr:`~pynwb.file.TimeSeries.starting_time` should be in units
+of seconds with respect to the global :py:attr:`~pynwb.file.NWBFile.timestamps_reference_time` of the NWBFile.
+
+See :ref:`best_practice_global_time_reference` for more information.
+
 
 
 .. _best_practice_time_series_subtypes
@@ -44,8 +49,8 @@ Global Time Reference
 Subtypes
 ~~~~~~~~
 
-ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the brain that are monitoring neural
-activity, and only those electrodes should be in the electrodes table.
+ElectrialSeries are reserved for neural data. ElectrialSeries holds signal from electrodes positioned in or around the
+brain that are monitoring neural activity, and only those electrodes should be in the electrodes table.
 
 
 .. _best_practice_time_series_break_in_continuity
