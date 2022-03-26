@@ -46,6 +46,20 @@ def check_institution(nwbfile: NWBFile):
         return InspectorMessage(message="Metadata /general/institution is missing.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_keywords(nwbfile: NWBFile):
+    """Check if keywords have been added for the session."""
+    if not nwbfile.keywords:
+        return "Metadata /general/keywords is missing!"
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_subject_exists(nwbfile: NWBFile):
+    """Check if subject exists."""
+    if nwbfile.subject is None:
+        return InspectorMessage(message="Subject is missing.")
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601."""
@@ -57,13 +71,6 @@ def check_subject_age(subject: Subject):
             message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
             "weeks."
         )
-
-
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_subject_exists(nwbfile: NWBFile):
-    """Check if subject exists."""
-    if nwbfile.subject is None:
-        return InspectorMessage(message="Subject is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
@@ -93,13 +100,6 @@ def check_subject_species(subject: Subject):
         return InspectorMessage(
             message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         )
-
-
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_keywords(nwbfile: NWBFile):
-#     """Check if keywords have been added for the session."""
-#     if not nwbfile.keywords:
-#         return "Metadata /general/keywords is missing!"
 
 
 # @nwbinspector_check(severity=1, neurodata_type=NWBFile)
