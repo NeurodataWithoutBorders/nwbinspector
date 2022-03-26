@@ -119,6 +119,26 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institutio
 
 
 
+.. _best_practice_keywords:
+
+Institution
+~~~~~~~~~~~
+
+The ``keywords`` field should be specified. This allows metadata collection programs, such as those on the
+:dandi-archive:`DANDI archive <>` to easily scan NWBFiles to enhance keyword-based search functionality. Try to think
+of what combination of words might make your file(s) unique or descriptive to help users trying to search for it. This
+could include the general modality or approach, the general region of cortex you wanted to study, or the type of neural
+data properties you were examining. Some examples are``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
+``"waveforms"``, ``"cell types"``, ``"granule cells"``, etc.
+
+If you are unsure of what keywords to use, try searching existing datasets on the :dandi-archive:`DANDI archive <>` for
+an approach similar to yours and try to align your own keywords to that while adding a couple that make your file(s)
+distinguishable.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_keywords`
+
+
+
 .. _best_practice_subject_exists:
 
 Subject
