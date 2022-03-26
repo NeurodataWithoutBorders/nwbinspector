@@ -10,11 +10,12 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experimenter,
     check_experiment_description,
     check_institution,
+    check_keywords,
+    check_subject_exists,
+    check_subject_id_exists,
     check_subject_sex,
     check_subject_age,
     check_subject_species,
-    check_subject_exists,
-    check_subject_id_exists,
     check_processing_module_name,
     PROCESSING_MODULE_CONFIG,
 )
@@ -58,9 +59,25 @@ def test_check_institution():
     )
 
 
-@pytest.mark.skip(reason="TODO")
-def test_check_keywords():
-    pass
+def test_check_keywords_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        keywords=["foo", "bar"],
+    )
+    assert check_keywords(nwbfile) is None
+
+
+def test_check_keywords_fail():
+    assert check_keywords(minimal_nwbfile) == InspectorMessage(
+        message="Metadata /general/keywords is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_keywords",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
 @pytest.mark.skip(reason="TODO")
