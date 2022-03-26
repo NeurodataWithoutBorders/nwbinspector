@@ -32,6 +32,14 @@ def check_empty_table(table: DynamicTable):
         return InspectorMessage(message="This table has no data added to it.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def check_column_data_is_not_none(table: DynamicTable, nelems: int = 200):
+    """Check column values in a DynamicTable to ensure they are not None."""
+    for column in table.columns:
+        if any((x is None for x in column.data[:nelems])):
+            yield InspectorMessage(message=f"The column '{column.name}' has 'data' set to None.")
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int = 200):
     """
@@ -140,17 +148,6 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 #         if len(tab.id) == 1:
 #             print("NOTE: '%s' %s has one row" % (tab.name, type(tab).__name__))
 #             continue
-
-
-# @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
-# def check_column_data_is_not_none(nwbfile):
-#     """Check column values in DynamicTable to enssure they are not None."""
-#     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
-#         for col in tab.columns:
-#             if not isinstance(col, hdmf.common.table.DynamicTableRegion) and col.data is None:
-#                 return f"'{tab.name}' {type(tab).__name__} column {col.name} data is None"
-#                 # continue
-#                 # TODO: think about how to handle this continuable logic in new refactor
 
 
 # # TODO, continue to break this up

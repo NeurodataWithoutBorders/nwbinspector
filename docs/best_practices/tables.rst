@@ -5,6 +5,19 @@ The DynamicTable data type that NWB uses allows you to define custom columns, wh
 
 
 
+.. _best_practice_column_data_is_not_none:
+
+Do Not Store Data as ``None``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specific to the :pynwb-docs:`PyNWB API <>`, when writing data to rows or columns of a :nwb-schema:`Dynamictable`, do
+not use the native Python type of ``None``, as it is not a :nwb-schema:ref:`supported value <common-attributes>` in the
+NWB schema.
+
+Check function :py:meth:`~nwbinspector.checks.table.check_column_data_is_not_none`
+
+
+
 .. _best_practice_dynamic_table_region_data_validity:
 
 Unassigned
