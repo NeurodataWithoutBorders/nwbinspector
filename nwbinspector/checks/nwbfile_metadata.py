@@ -50,7 +50,7 @@ def check_institution(nwbfile: NWBFile):
 def check_keywords(nwbfile: NWBFile):
     """Check if keywords have been added for the session."""
     if not nwbfile.keywords:
-        return "Metadata /general/keywords is missing!"
+        return InspectorMessage(message="Metadata /general/keywords is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
