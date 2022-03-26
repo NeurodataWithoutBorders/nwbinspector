@@ -68,6 +68,19 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_missing_unit(time_series: TimeSeries):
+    """
+    Check if the TimeSeries.unit field is empty.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
+    """
+    if not time_series.unit:
+        return InspectorMessage(
+            message="Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'."
+        )
+
+
 # TODO: break up logic of extra stuff into separate checks
 # def check_timeseries(nwbfile):
 #     """Check dataset values in TimeSeries objects"""
@@ -92,8 +105,3 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
 #                 "- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
 #                 % (error_code, ts.name, type(ts).__name__, ts.resolution)
 #             )
-
-#         if not ts.unit:
-#             error_code = "A101"
-#             print("- %s: '%s' %s data is missing text for attribute 'unit'"
-# % (error_code, ts.name, type(ts).__name__))

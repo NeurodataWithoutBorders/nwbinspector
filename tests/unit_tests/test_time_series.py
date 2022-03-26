@@ -7,6 +7,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
     check_timestamps_ascending,
+    check_missing_unit,
     Importance,
 )
 from nwbinspector import InspectorMessage
@@ -114,3 +115,20 @@ def test_check_timestamps_ascending():
 def test_pass_check_timestamps_ascending():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
     assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_missing_unit_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_missing_unit(time_series) is None
+
+
+def test_check_missing_unit_fail():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_missing_unit(time_series) == InspectorMessage(
+        message="Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_missing_unit",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
