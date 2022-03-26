@@ -134,7 +134,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_single_row(table: DynamicTable, nelems: int = 200):
+def check_single_row(table: DynamicTable):
     """Check if DynamicTable has only a single row; may be better represented by another data type."""
     if len(table.id) == 1:
         return InspectorMessage(
