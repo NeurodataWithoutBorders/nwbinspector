@@ -2,8 +2,8 @@
 import numpy as np
 
 from pynwb import TimeSeries
+from pynwb.image import ImageSeries
 
-# from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
 from ..utils import check_regular_series, is_ascending_series
 
@@ -66,6 +66,16 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
     """Check that the values in the timestamps array are strictly increasing."""
     if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_time_series_data_is_not_none(time_series: TimeSeries, nelems: int = 200):
+    """Check that the data values in a TimeSeries are not None."""
+    if isinstance(time_series, ImageSeries):
+        if time_series.external_file is not None:
+            return
+    if time_series.data is None or any((x is None for x in time_series.data[:nelems])):
+        return InspectorMessage("Data values in a TimeSeries cannot be None.")
 
 
 # TODO: break up logic of extra stuff into separate checks

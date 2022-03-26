@@ -145,3 +145,20 @@ chunk individually. This is especially important when writing NWBFiles that are 
 
 Check functions: :py::meth:`~nwbinspector.checks.nwb_containers.check_large_dataset_compression`,
 :py::meth:`~nwbinspector.checks.nwb_containers.check_small_dataset_compression`
+
+
+
+.. _best_practice_time_series_data_is_not_none:
+
+Do Not Store Data as ``None``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specific to the :pynwb-docs:`PyNWB API <>`, when writing data to a :nwb-schema:ref:`sec-TimeSeries` object, or any
+descendant, do not use the native Python type of ``None``, as it is not a
+:nwb-schema:ref:`supported value <common-attributes>` in the NWB schema.
+
+There is one exception to this for the :nwb-schema:ref:`imageseries` type: when reading and writing such objects in the
+:pynwb-docs:`PyNWB API <>`, if the ``external_file`` field was specified instead, the ``data`` field will be parsed as
+``None``.
+
+Check function: :py::meth:`~nwbinspector.checks.time_series.check_time_series_data_is_not_none`

@@ -7,6 +7,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
     check_timestamps_ascending,
+    check_time_series_data_is_not_none,
     Importance,
 )
 from nwbinspector import InspectorMessage
@@ -114,3 +115,25 @@ def test_check_timestamps_ascending():
 def test_pass_check_timestamps_ascending():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
     assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_time_series_data_is_not_none_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_time_series_data_is_not_none(time_series=time_series) is None
+
+
+def test_check_time_series_data_is_not_none_image_series_pass():
+    time_series = pynwb.image.ImageSeries(name="test_time_series", unit="test_units", rate=1.0, external_file=["1"])
+    assert check_time_series_data_is_not_none(time_series=time_series) is None
+
+
+def test_check_time_series_data_is_not_none_fail():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[None], timestamps=[1, 2, 3])
+    assert check_time_series_data_is_not_none(time_series=time_series) == InspectorMessage(
+        message="Data values in a TimeSeries cannot be None.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_time_series_data_is_not_none",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
