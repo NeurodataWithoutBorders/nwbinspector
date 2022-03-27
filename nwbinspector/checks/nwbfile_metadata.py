@@ -2,7 +2,7 @@
 import re
 
 from pynwb import NWBFile
-from pynwb.file import Subject, ProcessingModule
+from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
@@ -11,18 +11,6 @@ duration_regex = (
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
 species_regex = r"[A-Z][a-z]* [a-z]+"
-
-PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
-
-
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
-def check_processing_module_name(processing_module: ProcessingModule):
-    """Check if the name of a processing module is of a valid modality."""
-    if processing_module.name not in PROCESSING_MODULE_CONFIG:
-        return InspectorMessage(
-            f"Processing module is named {processing_module.name}. It is recommended to use the "
-            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
-        )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)

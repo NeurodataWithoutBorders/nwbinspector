@@ -15,10 +15,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_species,
     check_subject_exists,
     check_subject_id_exists,
-    check_processing_module_name,
-    PROCESSING_MODULE_CONFIG,
 )
-from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
 
 
@@ -193,24 +190,6 @@ def test_pass_check_subject_species():
 def test_pass_check_subject_id_exist():
     subject = Subject(subject_id="001", sex="Male")
     assert check_subject_id_exists(subject) is None
-
-
-def test_check_processing_module_name():
-    processing_module = ProcessingModule("test", "desc")
-    assert check_processing_module_name(processing_module) == InspectorMessage(
-        message=f"Processing module is named test. It is recommended to use the schema "
-        f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_processing_module_name",
-        object_type="ProcessingModule",
-        object_name="test",
-        location="/",
-    )
-
-
-def test_pass_check_processing_module_name():
-    processing_module = ProcessingModule("ecephys", "desc")
-    assert check_processing_module_name(processing_module) is None
 
 
 @pytest.mark.skip(reason="TODO")
