@@ -1,13 +1,7 @@
 from hdmf.common import DynamicTable
-from pynwb import ProcessingModule
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.general import (
-    check_name_slashes,
-    check_description,
-    check_processing_module_name,
-    PROCESSING_MODULE_CONFIG,
-)
+from nwbinspector.checks.general import check_name_slashes, check_description
 
 
 def test_check_name_slashes_pass():
@@ -56,21 +50,3 @@ def test_check_description_missing():
         object_name="test",
         location="/",
     )
-
-
-def test_check_processing_module_name():
-    processing_module = ProcessingModule("test", "desc")
-    assert check_processing_module_name(processing_module) == InspectorMessage(
-        message=f"Processing module is named test. It is recommended to use the schema "
-        f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_processing_module_name",
-        object_type="ProcessingModule",
-        object_name="test",
-        location="/",
-    )
-
-
-def test_pass_check_processing_module_name():
-    processing_module = ProcessingModule("ecephys", "desc")
-    assert check_processing_module_name(processing_module) is None

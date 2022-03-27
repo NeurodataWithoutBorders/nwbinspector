@@ -3,8 +3,8 @@ General
 
 
 
-Naming
-------
+Names
+-----
 
 
 
@@ -29,6 +29,24 @@ importance, name that one something different (e.g. "ElectricalSeries" and "Elec
 
 
 
+.. _best_practice_name_slashes:
+
+No Not Use Slashes
+~~~~~~~~~~~~~~~~~~
+
+’/’ is not allowed in names. When creating a custom name, using the forward slash (/) is not allowed, as this can
+confuse h5py and lead to the creation of an additional group. Instead of including a forward slash in the name, please
+use “Over” like in DfOverF.
+
+Check function: :py:meth:`~nwbinspector.checks.general.check_name_slashes`
+
+
+
+Names
+-----
+
+
+
 .. _best_practice_description:
 
 Metadata and Descriptions
@@ -44,41 +62,3 @@ to make meta-data as explicit as possible. Good names help users but do not help
 As such, it is not recommended to use blank or default 'placeholder' descriptions.
 
 Check function: :py:meth:`~nwbinspector.checks.general.check_description`
-
-
-
-.. _best_practice_name_slashes:
-
-No Not Use Slashes
-~~~~~~~~~~~~~~~~~~
-
-’/’ is not allowed in names. When creating a custom name, using the forward slash (/) is not allowed, as this can
-confuse h5py and lead to the creation of an additional group. Instead of including a forward slash in the name, please
-use “Over” like in DfOverF.
-
-Check function: :py:meth:`~nwbinspector.checks.general.check_name_slashes`
-
-
-
-Processing Modules
-------------------
-
-
-
-.. _best_practice_processing_module_name:
-
-Processing Modules
-~~~~~~~~~~~~~~~~~~
-
-Give preference to the following default processing module names. These names mirror the common modalities:
-“ecephys”, “icephys”, “behavior”, “ophys”, “misc”.
-
-We encourage the use of these defaults, but there may be some cases when deviating from this pattern is appropriate.
-
-For instance, if there is a processing step that involves data from multiple modalities, or if the user wants to
-compare two processing pipelines for a single modality (e.g. different spike sorters), you should create
-Processing Modules with custom names.
-
-ProcessingModules are themselves neurodata_types, and the other rules for neurodata_types also apply here.
-
-Check function: :py:meth:`~nwbinspector.checks.general.check_processing_module_name`
