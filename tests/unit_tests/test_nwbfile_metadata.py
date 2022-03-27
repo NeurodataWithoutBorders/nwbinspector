@@ -32,7 +32,7 @@ def test_check_session_start_time_pass():
 
 
 def test_check_session_start_time_fail():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(1960, 1, 1))
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(1970, 1, 1))
     assert check_session_start_time(nwbfile) == InspectorMessage(
         message="The session_start_time may not be set to the true date of the recording.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -52,7 +52,7 @@ def test_check_check_timestamps_reference_time_fail():
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
-        timestamps_reference_time=datetime(1960, 1, 1).astimezone(),
+        timestamps_reference_time=datetime(1970, 1, 1).astimezone(),
     )
     assert check_timestamps_reference_time(nwbfile) == InspectorMessage(
         message="The timestamps_reference_time may not be set to the true date of the recording.",
