@@ -16,6 +16,8 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_exists,
     check_subject_id_exists,
     check_processing_module_name,
+    check_session_start_time,
+    check_timestamps_reference_time,
     PROCESSING_MODULE_CONFIG,
 )
 from nwbinspector.register_checks import Severity
@@ -23,6 +25,43 @@ from nwbinspector.tools import make_minimal_nwbfile
 
 
 minimal_nwbfile = make_minimal_nwbfile()
+
+
+def test_check_session_start_time_pass():
+    assert check_session_start_time(minimal_nwbfile) is None
+
+
+def test_check_session_start_time_fail():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(1960, 1, 1))
+    assert check_session_start_time(nwbfile) == InspectorMessage(
+        message="The session_start_time may not be set to the true date of the recording.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_session_start_time",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_check_timestamps_reference_time_pass():
+    assert check_timestamps_reference_time(minimal_nwbfile) is None
+
+
+def test_check_check_timestamps_reference_time_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        timestamps_reference_time=datetime(1960, 1, 1).astimezone(),
+    )
+    assert check_timestamps_reference_time(nwbfile) == InspectorMessage(
+        message="The timestamps_reference_time may not be set to the true date of the recording.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_timestamps_reference_time",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
 def test_check_experimenter():

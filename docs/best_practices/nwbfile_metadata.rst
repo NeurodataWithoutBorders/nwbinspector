@@ -11,17 +11,25 @@ File Organization
 
 .. _best_practice_global_time_reference:
 
-Global Time Reference
-~~~~~~~~~~~~~~~~~~~~~
+Global Date and Time Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global time reference for all objects in the
-:nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is also set to the
-``session_start_time``, but when writing multiple NWBFiles that are all designed to align
-to the same time reference, the ``session_start_time`` may be set separately from the explicitly specified common
-``timestamps_reference_time`` used across all of the NWBFiles.
+An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global date and time reference for all
+objects in the :nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is also set to the
+``session_start_time``, but when writing multiple NWBFiles that are all designed to align to the same time reference,
+the ``session_start_time`` may be set separately from the explicitly specified common ``timestamps_reference_time``
+used across all of the NWBFiles.
 
 All time-related data in the NWBFile should be synchronized to the ``timestamps_reference_time`` so that future users
 are able to understand the timing of all events contained within the NWBFile.
+
+Given the importance of this field within an :nwb-schema:ref:`sec-NWBFile`, is it critical that it be set to a proper
+value. Default values should never be used for this field. If the true date and time are unknown, use your best guess
+or the date and time of writing the :nwb-schema:ref:`sec-NWBFile`.
+
+
+Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time`,
+:py:meth:`~nwbinspector.checks.nwbfile_metadata.check_timestamps_reference_time`
 
 
 
