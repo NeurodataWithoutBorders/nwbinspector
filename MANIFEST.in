@@ -1,2 +1,3 @@
 graft tests
 global-exclude *.py[cod]
+include nwbinspector/internal_configs/dandi.inspector_config.yaml
