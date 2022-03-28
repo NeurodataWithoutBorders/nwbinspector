@@ -31,12 +31,12 @@ importance, name that one something different (e.g. "ElectricalSeries" and "Elec
 
 .. _best_practice_name_slashes:
 
-No Not Use Slashes
+Do Not Use Slashes
 ~~~~~~~~~~~~~~~~~~
 
-’/’ is not allowed in names. When creating a custom name, using the forward slash (/) is not allowed, as this can
+'/' is not allowed in names. When creating a custom name, using the forward slash ('/') is not allowed, as this can
 confuse h5py and lead to the creation of an additional group. Instead of including a forward slash in the name, please
-use “Over” like in DfOverF.
+use "Over" like in DfOverF.
 
 Check function: :py:meth:`~nwbinspector.checks.general.check_name_slashes`
 
