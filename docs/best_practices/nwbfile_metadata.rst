@@ -119,6 +119,21 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institutio
 
 
 
+
+.. _best_practice_doi_publications:
+
+Link to DOI Publications
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``related_publications`` field does not need to be specified, but if it is it should be an explicit DOI link, either
+of the form ``'doi: ###'`` or as an external link of the form ``'http://dx.doi.org/###"'`` or `'https://doi.org/###'``.
+This allows metadata collection programs, such as those on the :dandi-archive:`DANDI archive <>` to easily form direct
+hyperlinks to the publications.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_doi_publications`
+
+
+
 .. _best_practice_subject_exists:
 
 Subject
