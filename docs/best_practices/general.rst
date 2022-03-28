@@ -42,8 +42,8 @@ Check function: :py:meth:`~nwbinspector.checks.general.check_name_slashes`
 
 
 
-Names
------
+Descriptions
+------------
 
 
 
