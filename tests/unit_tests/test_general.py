@@ -11,7 +11,7 @@ def test_check_name_slashes_pass():
 
 def test_check_name_slashes_fail():
     """HDMF/PyNWB forbid "/" in the object names. Might need an external file written in MATLAB to test that?"""
-    for x in ["\\", "|"]:
+    for x in ["\\"]:
         table = DynamicTable(name=f"test{x}ing", description="")
         assert check_name_slashes(obj=table) == InspectorMessage(
             message="Object name contains slashes.",
@@ -31,7 +31,7 @@ def test_check_description_pass():
 def test_check_description_fail():
     table = DynamicTable(name="test", description="No Description.")
     assert check_description(obj=table) == InspectorMessage(
-        message="Description is a placeholder.",
+        message="Description ('No Description.') is a placeholder.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_description",
         object_type="DynamicTable",

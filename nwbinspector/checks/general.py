@@ -8,7 +8,7 @@ COMMON_DESCRIPTION_PLACEHOLDERS = ["no description", "no desc", "none"]
 def check_name_slashes(obj):
     """Check if there  has been added for the session."""
     if hasattr(obj, "name") and any((x in obj.name for x in ["/", "\\"])):
-        return InspectorMessage(message="Object name contains slashes, .")
+        return InspectorMessage(message="Object name contains slashes.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
@@ -20,4 +20,4 @@ def check_description(obj):
     if obj.description is None or obj.description.strip(" ") == "":
         return InspectorMessage(message="Description is missing.")
     if obj.description.lower().strip(".") in common_description_placeholders:
-        return InspectorMessage(message=f"Description ({obj.description}) is a placeholder.")
+        return InspectorMessage(message=f"Description ('{obj.description}') is a placeholder.")
