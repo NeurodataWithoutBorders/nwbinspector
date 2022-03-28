@@ -58,7 +58,7 @@ def test_check_session_start_time_future_date_fail():
         identifier=str(uuid4()),
         session_start_time=datetime(2030, 1, 1, 0, 0, 0, 0, timezone.utc),
     )
-    assert check_session_start_time_old_date(nwbfile) == InspectorMessage(
+    assert check_session_start_time_future_date(nwbfile) == InspectorMessage(
         message="The session_start_time (2030-01-01 00:00:00+00:00) may not be set to the true date of the recording.",
         importance=Importance.CRITICAL,
         check_function_name="check_session_start_time_old_date",
