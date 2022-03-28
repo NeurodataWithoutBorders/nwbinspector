@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pynwb import NWBFile
 from pynwb.file import Subject, ProcessingModule
@@ -31,9 +31,13 @@ def test_check_session_start_time_pass():
 
 
 def test_check_session_start_time_past_fail():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(1970, 1, 1))
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime(1970, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
     assert check_session_start_time(nwbfile) == InspectorMessage(
-        message="The session_start_time (1970-01-01 00:00:00-05:00) may not be set to the true date of the recording.",
+        message="The session_start_time (1970-01-01 00:00:00+00:00) may not be set to the true date of the recording.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_session_start_time",
         object_type="NWBFile",
@@ -43,9 +47,13 @@ def test_check_session_start_time_past_fail():
 
 
 def test_check_session_start_time_future_fail():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2030, 1, 1))
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime(2030, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
     assert check_session_start_time(nwbfile) == InspectorMessage(
-        message="The session_start_time (2030-01-01 00:00:00-05:00) may not be set to the true date of the recording.",
+        message="The session_start_time (2030-01-01 00:00:00+00:00) may not be set to the true date of the recording.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_session_start_time",
         object_type="NWBFile",
