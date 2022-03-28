@@ -24,8 +24,8 @@ All time-related data in the NWBFile should be synchronized to the ``timestamps_
 are able to understand the timing of all events contained within the NWBFile.
 
 Given the importance of this field within an :nwb-schema:ref:`sec-NWBFile`, is it critical that it be set to a proper
-value. Default values should generally not be used for this field. If the true date and time are unknown, use your
-best guess or the date and time of writing the :nwb-schema:ref:`sec-NWBFile`.
+value. Default values should generally not be used for this field. If the true date is unknown, use your
+best guess. If the exact start time is unknown, then it is fine to simply set it to midnight on that date.
 
 
 Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_old_date`,
