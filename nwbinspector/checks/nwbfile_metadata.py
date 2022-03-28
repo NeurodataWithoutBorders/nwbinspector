@@ -29,7 +29,10 @@ def check_processing_module_name(processing_module: ProcessingModule):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time(nwbfile: NWBFile):
     """Check if the session_start_time was set to an appropriate value."""
-    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
+    if (
+        nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone()
+        or nwbfile.session_start_time >= datetime.now().astimezone()
+    ):
         return InspectorMessage(
             message=(
                 f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "

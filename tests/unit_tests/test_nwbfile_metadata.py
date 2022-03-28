@@ -30,10 +30,22 @@ def test_check_session_start_time_pass():
     assert check_session_start_time(minimal_nwbfile) is None
 
 
-def test_check_session_start_time_fail():
+def test_check_session_start_time_past_fail():
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(1970, 1, 1))
     assert check_session_start_time(nwbfile) == InspectorMessage(
         message="The session_start_time (1970-01-01 00:00:00-05:00) may not be set to the true date of the recording.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_session_start_time",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_session_start_time_future_fail():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2030, 1, 1))
+    assert check_session_start_time(nwbfile) == InspectorMessage(
+        message="The session_start_time (2030-01-01 00:00:00-05:00) may not be set to the true date of the recording.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_session_start_time",
         object_type="NWBFile",
