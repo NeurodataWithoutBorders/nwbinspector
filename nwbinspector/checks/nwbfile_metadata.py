@@ -115,4 +115,3 @@ def check_processing_module_name(processing_module: ProcessingModule):
             f"Processing module is named {processing_module.name}. It is recommended to use the "
             f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
         )
-
