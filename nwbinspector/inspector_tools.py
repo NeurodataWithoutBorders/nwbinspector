@@ -218,7 +218,7 @@ def print_to_console(formatted_messages: List[str], no_color: bool = False):
     wrap_color(formatted_messages=formatted_messages, no_color=no_color)
     sys.stdout.write(os.linesep * 2)
     for line in formatted_messages:
-        sys.stdout.write(line)
+        sys.stdout.write(line + "\n")
 
 
 def save_report(report_file_path: FilePathType, formatted_messages: List[str], overwrite=False):
