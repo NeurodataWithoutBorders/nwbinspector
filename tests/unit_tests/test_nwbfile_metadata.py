@@ -89,8 +89,8 @@ def test_check_doi_publications_pass():
         related_publications=["doi:", "http://dx.doi.org/", "https://doi.org/"],
     )
     assert check_doi_publications(nwbfile) is None
-  
-  
+
+
 def test_check_doi_publications_fail():
     nwbfile = NWBFile(
         session_description="",
