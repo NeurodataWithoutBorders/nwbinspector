@@ -82,7 +82,7 @@ def test_check_keywords_fail():
 
 
 def test_check_doi_publications_pass():
-    NWBFile(
+    nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
