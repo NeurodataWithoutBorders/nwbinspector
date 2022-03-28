@@ -60,6 +60,105 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str], rever
         }
 
 
+class MessageFormatter:
+    """Class containing all relevant formatting options for full customization of report display."""
+
+    def __init__(
+        self,
+        messages: List[InspectorMessage],
+        levels: List[str],
+        free_levels: List[str],
+        indent_size_per_level: List[int] = [2],
+        section_gap_per_level: List[str] = [[""]],
+    ):
+        self.levels = levels
+        self.nlevels = len(self.levels)
+        self.free_levels = free_levels
+        self.indent_size_per_level = indent_size_per_level
+        self.indents_per_level = [" " * indent_size for indent_size in self.indent_size_per_level]
+        self.section_gap_per_level = section_gap_per_level
+
+        # self.organized_messages = organize_messages(messages=messages, levels=levels)
+        self.formatted_messages = []
+
+        self._level_counter: List[int] = []
+        self._message_counter: int = 0
+
+    def _get_name(obj):
+        if isinstance(obj, Enum):
+            return obj.name
+        if isinstance(obj, str):
+            return obj
+
+    def _add_subsection(
+        organized_messages: Dict[str, Union[dict, List[InspectorMessage]]],
+        levels: List[str],
+    ):
+        """Recursive helper for display_messages."""
+        if len(levels) > 1:
+            this_level_counter = list(level_counter)
+            this_level_counter.append(0)
+            for i, (key, val) in enumerate(organized_messages.items()):  # Add section header and recurse
+                this_level_counter[-1] = i
+                increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{indent}"
+                section_name = f"{increment}{_get_name(obj=key)}"
+                formatted_messages.append(section_name)
+                formatted_messages.extend(["-" * len(section_name), ""])
+                _add_subsection(
+                    formatted_messages=formatted_messages,
+                    organized_messages=val,
+                    levels=levels[1:],
+                    free_levels=free_levels,
+                    indent=indent,
+                    level_counter=this_level_counter,
+                    message_counter=message_counter,
+                    nlevels=nlevels,
+                )
+        else:  # Final section, display message information
+            for key, val in organized_messages.items():
+                for message in val:
+                    message_header = ""
+                    if "file_path" in free_levels:
+                        message_header += f"{message.file_path} - "
+                    if "check_function_name" in free_levels:
+                        message_header += f"{message.check_function_name} - "
+                    if "importance" in free_levels:
+                        message_header += f"Importance level '{message.importance.name}' "
+                    if "object_type" in free_levels:
+                        message_header += f"'{message.object_type}' "
+                    if "object_name" in free_levels:
+                        message_header += f"object '{message.object_name}' "
+                    if "location" in free_levels and message.location not in ["", "/"]:
+                        message_header += f"located in '{message.location}' "
+                    this_level_counter = list(level_counter)
+                    this_level_counter.append(message_counter[0])
+                    message_counter[0] += 1
+                    increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{indent}"
+                    formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
+                    formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
+            formatted_messages.append("")
+
+    def format_messages(
+        messages: List[InspectorMessage], levels: List[str], reverse: Optional[List[bool]] = None, indent_size: int = 2
+    ) -> List[str]:
+        """Print InspectorMessages in order specified by the organization structure."""
+        free_levels = set([x for x in InspectorMessage.__annotations__]) - set(levels) - set(["message"])
+        nlevels = len(levels)
+        _add_subsection(
+            formatted_messages=formatted_messages,
+            organized_messages=organized_messages,
+            levels=levels,
+            free_levels=free_levels,
+            indent=indent,
+            level_counter=[],
+            message_counter=[0],
+            nlevels=nlevels,
+            section_break=True,
+        )
+        formatted_messages.append("")
+        return formatted_messages
+
+
 def _get_name(obj):
     if isinstance(obj, Enum):
         return obj.name
