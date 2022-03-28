@@ -41,9 +41,12 @@ It is OK to name an object something like ``ElectricalSeriesDuringSomeEvent``, h
 documentation of the condition ``DuringSomeEvent``. In this case, the source of the signal will be clear from the
 :nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
 the full :nwb-schema:ref:`ElectrodeTable <groups-general-extracellular-ephys-electrodes>`, so you would not need to
-add any explicit metadata explaining these details.
+add any explicit metadata explaining these details. Likewise, the event itself would be specified as an independent
+component to the experiment stored under ``acquisition``, the ``TrialsTable``, ``processing/behavior``
+(see :ref:`best_practice_processing_module_names` for more details), or using an extension such as
+:ndx-annotation-series:`ndx-events <>`.
 
-Slash-like characters ``'/'``, ``'\'``, or ``'|'``  are not not allowed in the ``name`` of an object. This can be
+Slash-like characters ``'/'`` or ``'\'``  are not not allowed in the ``name`` of an object. This can be
 confusing to systems that parse HDF5 files (which NWB uses, see the
 :nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
 specify the location of ``groups`` within the file.
