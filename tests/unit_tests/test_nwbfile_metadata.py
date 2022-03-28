@@ -10,11 +10,13 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_experimenter,
     check_experiment_description,
     check_institution,
+    check_keywords,
+    check_doi_publications,
+    check_subject_exists,
+    check_subject_id_exists,
     check_subject_sex,
     check_subject_age,
     check_subject_species,
-    check_subject_exists,
-    check_subject_id_exists,
     check_processing_module_name,
     PROCESSING_MODULE_CONFIG,
 )
@@ -58,13 +60,94 @@ def test_check_institution():
     )
 
 
+def test_check_keywords_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        keywords=["foo", "bar"],
+    )
+    assert check_keywords(nwbfile) is None
+
+
+def test_check_keywords_fail():
+    assert check_keywords(minimal_nwbfile) == InspectorMessage(
+        message="Metadata /general/keywords is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_keywords",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_doi_publications_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["doi:", "http://dx.doi.org/", "https://doi.org/"],
+    )
+    assert check_doi_publications(nwbfile) is None
+
+
+def test_check_doi_publications_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["wrong"],
+    )
+    assert check_doi_publications(nwbfile) == [
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications 'wrong' does not start with 'doi: ###' or is not an external "
+                "'doi' link."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_doi_publications",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
+    ]
+
+
+def test_check_doi_publications_multiple_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["wrong1", "wrong2"],
+    )
+    assert check_doi_publications(nwbfile) == [
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications 'wrong1' does not start with 'doi: ###' or is not an external "
+                "'doi' link."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_doi_publications",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        ),
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications 'wrong2' does not start with 'doi: ###' or is not an external "
+                "'doi' link."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_doi_publications",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        ),
+    ]
+
+
 @pytest.mark.skip(reason="TODO")
 def test_check_keywords():
-    pass
-
-
-@pytest.mark.skip(reason="TODO")
-def test_check_doi_publications():
     pass
 
 
