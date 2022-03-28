@@ -12,8 +12,9 @@ from nwbinspector import (
     check_time_intervals_stop_after_start,
     check_dynamic_table_region_data_validity,
     check_column_binary_capability,
+    check_single_row,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance, Severity
+from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 class TestCheckDynamicTableRegion(TestCase):
@@ -210,9 +211,26 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) is None
 
 
-@pytest.mark.skip(reason="TODO")
-def test_check_single_tables():
-    pass
+def test_check_single_row_pass():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=1)
+    table.add_row(test_column=2)
+    assert check_single_row(table=table) is None
+
+
+def test_check_single_row_fail():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=1)
+    assert check_single_row(table=table) == InspectorMessage(
+        message="This table has only a single row; it may be better represented by another data type.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_single_row",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+    )
 
 
 @pytest.mark.skip(reason="TODO")
