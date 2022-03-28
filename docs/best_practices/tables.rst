@@ -10,8 +10,7 @@ The DynamicTable data type that NWB uses allows you to define custom columns, wh
 Tables With Only a Single Row
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is not common to save a table with only a single row entry. Consider if other ``neurodata_types`` might be better
-suited, such as a one-dimensional :nwb-schema:ref:`sec-TimeSeries` or any of its subtypes.
+It is not common to save a table with only a single row entry. Consider other ``neurodata_types``, such as a one-dimensional :nwb-schema:ref:`sec-TimeSeries` or any of its subtypes.
 
 Check function: :py:meth:`~nwbinspector.checks.tables.check_single_row`
 
