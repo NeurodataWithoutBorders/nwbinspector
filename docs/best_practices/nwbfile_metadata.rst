@@ -28,8 +28,8 @@ value. Default values should generally not be used for this field. If the true d
 best guess or the date and time of writing the :nwb-schema:ref:`sec-NWBFile`.
 
 
-Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time`,
-:py:meth:`~nwbinspector.checks.nwbfile_metadata.check_timestamps_reference_time`
+Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_old_date`,
+:py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_future_date`,
 
 
 

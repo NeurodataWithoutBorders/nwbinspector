@@ -27,17 +27,23 @@ def check_processing_module_name(processing_module: ProcessingModule):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_session_start_time(nwbfile: NWBFile):
+def check_session_start_time_old_date(nwbfile: NWBFile):
     """Check if the session_start_time was set to an appropriate value."""
-    if (
-        nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone()
-        or nwbfile.session_start_time >= datetime.now().astimezone()
-    ):
+    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
             message=(
                 f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "
                 "recording."
             )
+        )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
+def check_session_start_time_future_date(nwbfile: NWBFile):
+    """Check if the session_start_time was set to an appropriate value."""
+    if nwbfile.session_start_time >= datetime.now().astimezone():
+        return InspectorMessage(
+            message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
         )
 
 
