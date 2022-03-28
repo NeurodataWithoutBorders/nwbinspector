@@ -43,10 +43,6 @@ def test_check_session_start_time_fail():
     )
 
 
-def test_check_check_timestamps_reference_time_pass():
-    assert check_timestamps_reference_time(minimal_nwbfile) is None
-
-
 def test_check_check_timestamps_reference_time_fail():
     nwbfile = NWBFile(
         session_description="",
