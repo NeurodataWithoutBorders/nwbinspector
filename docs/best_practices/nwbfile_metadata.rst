@@ -77,8 +77,9 @@ human-readable.
 
 The ``identifier`` tag should be a globally unique value for the :nwb-schema:ref:`sec-NWBFile`. Two different NWBFiles
 from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
-use a well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) to ensure
-uniqueness. The ``identifier`` does not need to be easily human-readable.
+use a well-established algorithmic generator such as ``uuid`` to ensure uniqueness. ``uuidi` can be
+:uuid:`used in PyNWB <>` or in MatNWB as ``java.util.UUID.randomUUID().toString()``. The ``identifier`` field does not
+need to be easily human-readable.
 
 
 
