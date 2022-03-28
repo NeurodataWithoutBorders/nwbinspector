@@ -44,7 +44,7 @@ Anatomical Coordinates
 The ``x``, ``y``, and ``z`` columns of the :nwb-schema:ref:`sec-ElectrodeTable` are for the precise anatomical
 coordinates within the Subject. For mice, use the
 :allen-brain-map:`Allen Institute Common Coordinate Framework v3 <atlas>`, which follows the convention
-(+x = posterior, +y = inferior, +z = towards right hemisphere).
+(+x = posterior, +y = inferior, +z = subject's right).
 
 
 
