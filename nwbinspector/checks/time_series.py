@@ -68,6 +68,15 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_resolution(time_series: TimeSeries):
+    """Check the resolution value of a TimeSeries for proper format (-1.0 or NaN for unknown)."""
+    if time_series.resolution != -1.0 and time_series.resolution <= 0:
+        return InspectorMessage(
+            message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
+        )
+
+
 # TODO: break up logic of extra stuff into separate checks
 # def check_timeseries(nwbfile):
 #     """Check dataset values in TimeSeries objects"""
@@ -85,13 +94,6 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
 #                         % (error_code, ts.name, type(ts).__name__)
 #                     )
 #             continue
-
-#         if not (np.isnan(ts.resolution) or ts.resolution == -1.0) and ts.resolution <= 0:
-#             error_code = "A101"
-#             print(
-#                 "- %s: '%s' %s data attribute 'resolution' should use -1.0 or NaN for unknown instead of %f"
-#                 % (error_code, ts.name, type(ts).__name__, ts.resolution)
-#             )
 
 #         if not ts.unit:
 #             error_code = "A101"
