@@ -121,8 +121,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institutio
 
 .. _best_practice_keywords:
 
-Institution
-~~~~~~~~~~~
+Keywords
+~~~~~~~~
 
 The ``keywords`` field should be specified. This allows metadata collection programs, such as those on the
 :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to enhance keyword-based search functionality. Try to think
@@ -135,7 +135,19 @@ If you are unsure of what keywords to use, try searching existing datasets on th
 an approach similar to yours and try to align your own keywords to that while adding a couple that make your file(s)
 distinguishable.
 
-Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_keywords`
+
+
+.. _best_practice_doi_publications:
+
+Link to DOI Publications
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``related_publications`` field does not need to be specified, but if it is it should be an explicit DOI link, either
+of the form ``'doi: ###'`` or as an external link of the form ``'http://dx.doi.org/###"'`` or `'https://doi.org/###'``.
+This allows metadata collection programs, such as those on the :dandi-archive:`DANDI archive <>` to easily form direct
+hyperlinks to the publications.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_doi_publications`
 
 
 
