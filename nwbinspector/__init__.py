@@ -1,5 +1,5 @@
 from .register_checks import available_checks, Importance
-from .nwbinspector import inspect_nwb, inspect_all
+from .nwbinspector import inspect_nwb, inspect_all, load_config
 from .checks.general import *
 from .checks.nwbfile_metadata import *
 from .checks.nwb_containers import *
