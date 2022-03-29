@@ -13,15 +13,21 @@ Neurodata Types
 Naming Conventions
 ~~~~~~~~~~~~~~~~~~
 
-As a default, name class instances with the same name as the class.  *E.g.*, if your :nwb-schema:ref:`sec-NWBFile` has
-only one :nwb-schema:ref:`sec-ElectricalSeries` for the raw acquisition, then simply name it ``ElectricalSeries``.
+As a default, name class instances with the same name as the class. If appropriate, simply use the name of the
+``neurodata_type`` as the name of that object. *E.g.*, if your :nwb-schema:ref:`sec-NWBFile` has only a single
+:nwb-schema:ref:`sec-ElectricalSeries` that holds voltage traces for a multichannel recording, then simply name it
+``ElectricalSeries``.
 
-Many of the Neurodata Types in NWB allow you to set their name to something other than the default name, and this should
-be done any time there are multiple types of the same class. *E.g.*, if you have several
-:nwb-schema:ref:`sec-ElectricalSeries` for different segments or devices, then add some distinguishing information to
-each name: ``ElectricalSeries1`` vs. ``ElectricalSeries2``, or ``ElectricalSeriesSegment1`` vs.
-``ElectricalSeriesSegment2``, etc. This allows multiple objects of the same type to be stored side-by-side and allows
-data writers to provide human-readable information about the contents of the ``neurodata_type``.
+There may be cases where you have multiple instances of the same ``neurodata_type`` in the same Group. In this case,
+the instances must have unique names. An easy way to achieve this is to add an index or other minimal distinguishing
+characteristics to the end of the name of that ``neurodata_type``; an example for multiple
+:nwb-schema:ref:`sec-ElectricalSeries` (corresponding perhaps to differing segments or electrode regions) might be to
+distinguish them as ``ElectricalSeries1`` and ``ElectricalSeries2``, or as ``ElectricalSeries`` and
+``ElectricalSeriesExtraElectrodes``.
+
+Following this practice allows multiple objects of the same type to be stored side-by-side and increase your chances
+that analysis and visualization tools will operate seamlessly to provide human-readable information about the contents
+of the file.
 
 It is recommended to use :wikipedia:`CamelCase <Camel_case>` when naming instances of schematic classes.
 
