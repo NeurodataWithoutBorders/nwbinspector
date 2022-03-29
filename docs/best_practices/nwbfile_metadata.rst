@@ -15,7 +15,7 @@ Global Date and Time Reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global date and time reference for all
-objects in the :nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is also set to the
+objects in the :nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is set to the
 ``session_start_time``, but when writing multiple NWBFiles that are all designed to align to the same time reference,
 the ``session_start_time`` may be set separately from the explicitly specified common ``timestamps_reference_time``
 used across all of the NWBFiles.
