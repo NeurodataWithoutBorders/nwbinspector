@@ -53,7 +53,7 @@ component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`t
 :ndx-annotation-series:`ndx-events <>`.
 
 Slash-like characters ``'/'`` or ``'\'``  are not not allowed in the ``name`` of an object. This can be
-confusing to systems that parse HDF5 files (which NWB uses, see the
+confusing to systems that parse HDF5 files (which NWB uses as the primary backend, see the
 :nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
 specify the location of ``groups`` within the file.
 
