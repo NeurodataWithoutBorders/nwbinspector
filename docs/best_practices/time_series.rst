@@ -35,6 +35,8 @@ Every :nwb-schema:ref:`sec-TimeSeries` instance has ``unit`` as an attribute, wh
 measurement for that data, using the appropriate type from the
 :wikipedia:`International System of Units (SI) <International_System_of_Units>`.
 
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_missing_unit`
+
 
 
 .. _best_practice_time_series_global_time_reference:
