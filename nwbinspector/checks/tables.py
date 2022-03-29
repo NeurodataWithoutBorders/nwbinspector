@@ -133,13 +133,13 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                 )
 
 
-# @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
-# def check_single_tables(nwbfile):
-#     """Check if DynamicTable has only a single row; may be better represented by another data type."""
-#     for tab in all_of_type(nwbfile, pynwb.core.DynamicTable):
-#         if len(tab.id) == 1:
-#             print("NOTE: '%s' %s has one row" % (tab.name, type(tab).__name__))
-#             continue
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
+def check_single_row(table: DynamicTable):
+    """Check if DynamicTable has only a single row; may be better represented by another data type."""
+    if len(table.id) == 1:
+        return InspectorMessage(
+            message="This table has only a single row; it may be better represented by another data type."
+        )
 
 
 # @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)

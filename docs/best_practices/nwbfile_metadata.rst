@@ -11,17 +11,24 @@ File Organization
 
 .. _best_practice_global_time_reference:
 
-Global Time Reference
-~~~~~~~~~~~~~~~~~~~~~
+Global Date and Time Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global time reference for all objects in the
-:nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is also set to the
-``session_start_time``, but when writing multiple NWBFiles that are all designed to align
-to the same time reference, the ``session_start_time`` may be set separately from the explicitly specified common
-``timestamps_reference_time`` used across all of the NWBFiles.
+An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global date and time reference for all
+objects in the :nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is set to the
+``session_start_time``, but when writing multiple NWBFiles that are all designed to align to the same time reference,
+the ``timestamp_reference_time`` used across all of the NWBFiles may be set separately from the ``session_start_time``.
 
 All time-related data in the NWBFile should be synchronized to the ``timestamps_reference_time`` so that future users
 are able to understand the timing of all events contained within the NWBFile.
+
+Given the importance of this field within an :nwb-schema:ref:`sec-NWBFile`, is it critical that it be set to a proper
+value. Default values should generally not be used for this field. If the true date is unknown, use your
+best guess. If the exact start time is unknown, then it is fine to simply set it to midnight on that date.
+
+
+Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_old_date`,
+:py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_future_date`,
 
 
 
@@ -77,8 +84,9 @@ human-readable.
 
 The ``identifier`` tag should be a globally unique value for the :nwb-schema:ref:`sec-NWBFile`. Two different NWBFiles
 from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
-use a well-established algorithmic generator such as :uuid:`uuid <>` (for PyNWB) to ensure
-uniqueness. The ``identifier`` does not need to be easily human-readable.
+use a well-established algorithmic generator such as ``uuid`` to ensure uniqueness. ``uuid`` can be
+:uuid:`used in PyNWB <>`, and MatNWB will automatically set the field using ``java.util.UUID.randomUUID().toString()``.
+The ``identifier`` field does not need to be easily human-readable.
 
 
 
@@ -116,6 +124,38 @@ The ``institution`` field should be specified. This allows metadata collection p
 :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to deliver summary statistics.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institution`
+
+
+
+.. _best_practice_keywords:
+
+Keywords
+~~~~~~~~
+
+The ``keywords`` field should be specified. This allows metadata collection programs, such as those on the
+:dandi-archive:`DANDI archive <>` to easily scan NWBFiles to enhance keyword-based search functionality. Try to think
+of what combination of words might make your file(s) unique or descriptive to help users trying to search for it. This
+could include the general modality or approach, the general region of cortex you wanted to study, or the type of neural
+data properties you were examining. Some examples are``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
+``"waveforms"``, ``"cell types"``, ``"granule cells"``, etc.
+
+If you are unsure of what keywords to use, try searching existing datasets on the :dandi-archive:`DANDI archive <>` for
+an approach similar to yours and try to align your own keywords to that while adding a couple that make your file(s)
+distinguishable.
+
+
+
+.. _best_practice_doi_publications:
+
+Link to DOI Publications
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``related_publications`` field does not need to be specified, but if it is it should be an explicit DOI link, either
+of the form ``'doi: ###'`` or as an external link of the form ``'http://dx.doi.org/###"'`` or `'https://doi.org/###'``.
+This allows metadata collection programs, such as those on the :dandi-archive:`DANDI archive <>` to easily form direct
+hyperlinks to the publications.
+
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_doi_publications`
 
 
 

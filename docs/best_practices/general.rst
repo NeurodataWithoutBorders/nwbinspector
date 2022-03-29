@@ -1,11 +1,21 @@
-Naming
-======
+General
+=======
 
 
+<<<<<<< HEAD:docs/best_practices/naming.rst
 
 Neurodata Types
 ---------------
+=======
+>>>>>>> dev:docs/best_practices/general.rst
 
+Names
+-----
+
+
+
+Standard Names
+~~~~~~~~~~~~~~
 
 
 .. _best_practice_object_names:
@@ -35,6 +45,7 @@ It is recommended to use :wikipedia:`CamelCase <Camel_case>` when naming instanc
 
 .. _best_practice_description:
 
+<<<<<<< HEAD:docs/best_practices/naming.rst
 Metadata Descriptions
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -59,13 +70,22 @@ specify the location of `Groups <https://schema-language.readthedocs.io/en/lates
 
 For mathematical expressions, instead of including the special character in the name, please use an English equivalent
 instead. *E.g.*, instead of "Df/f" use "DfOverF".
+=======
+>>>>>>> dev:docs/best_practices/general.rst
 
 
+.. _best_practice_name_slashes:
 
-Processing Modules
-------------------
+Do Not Use Slashes
+~~~~~~~~~~~~~~~~~~
+
+'/' is not allowed in Group or Dataset names, as this can confuse h5py and lead to the creation of an additional group.
+Instead of including a forward slash in the name, please use "Over" like in DfOverF.
+
+Check function: :py:meth:`~nwbinspector.checks.general.check_name_slashes`
 
 
+<<<<<<< HEAD:docs/best_practices/naming.rst
 .. _best_practice_processing_module_names:
 
 Indicate Modality
@@ -79,3 +99,25 @@ such as a non-standard modality or a mixture of processing data combined across 
 
 :nwb-schema:ref:`ProcessingModules <sec-processingmodule>` are themselves ``neurodata_types``, and the other rules for
 ``neurodata_types`` also apply here.
+=======
+
+Descriptions
+------------
+
+
+
+.. _best_practice_description:
+
+Metadata and Descriptions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Names are not for storing meta-data, so meta-data should not be stored solely in the name of objects. It is OK to name
+an object something like “ElectricalSeries_large_array” however the name alone is not sufficient documentation. In this
+case, the source of the signal will be clear from the device of the rows from the linked electrodes table region, and
+you should also include any important distinguishing information in the description field of the object. Make an effort
+to make meta-data as explicit as possible. Good names help users but do not help applications parse your file.
+
+As such, it is not recommended to use blank or default 'placeholder' descriptions.
+
+Check function: :py:meth:`~nwbinspector.checks.general.check_description`
+>>>>>>> dev:docs/best_practices/general.rst
