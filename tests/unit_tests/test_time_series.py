@@ -8,6 +8,7 @@ from nwbinspector import (
     check_timestamps_match_first_dimension,
     check_timestamps_ascending,
     check_missing_unit,
+    check_resolution,
     Importance,
 )
 from nwbinspector import InspectorMessage
@@ -130,5 +131,28 @@ def test_check_missing_unit_fail():
         check_function_name="check_missing_unit",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_positive_resolution_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=3.4)
+    assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_unknown_resolution_pass():
+    for valid_unknown in [-1.0, np.nan]:
+        time_series = pynwb.TimeSeries(name="test", unit="test", data=[1], timestamps=[1], resolution=valid_unknown)
+        assert check_resolution(time_series) is None
+
+
+def test_check_resolution_fail():
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=-2.0)
+    assert check_resolution(time_series) == InspectorMessage(
+        message="'resolution' should use -1.0 or NaN for unknown instead of -2.0.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_resolution",
+        object_type="TimeSeries",
+        object_name="test",
         location="/",
     )
