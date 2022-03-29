@@ -48,7 +48,7 @@ documentation of the condition ``DuringSomeEvent``. In this case, the source of 
 :nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
 the full :nwb-schema:ref:`ElectrodeTable <groups-general-extracellular-ephys-electrodes>`, so you would not need to
 add any explicit metadata explaining these details. Likewise, the event itself would be specified as an independent
-component to the experiment stored under ``acquisition``, the ``TrialsTable``, ``processing/behavior``
+component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`trials <groups-intervals-trials>` or :nwb-schema:ref:`epochs <roups-intervals-epochs>` intervals, ``processing/behavior``
 (see :ref:`best_practice_processing_module_names` for more details), or using an extension such as
 :ndx-annotation-series:`ndx-events <>`.
 
