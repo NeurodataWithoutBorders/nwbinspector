@@ -1,8 +1,8 @@
 from uuid import uuid4
 from datetime import datetime, timezone
 
-from pynwb import NWBFile
-from pynwb.file import Subject, ProcessingModule
+from pynwb import NWBFile, ProcessingModule
+from pynwb.file import Subject
 import pytest
 
 from nwbinspector import InspectorMessage, Importance
@@ -22,7 +22,6 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_session_start_time_future_date,
     PROCESSING_MODULE_CONFIG,
 )
-from nwbinspector.register_checks import Severity
 from nwbinspector.tools import make_minimal_nwbfile
 
 
@@ -321,6 +320,11 @@ def test_pass_check_subject_id_exist():
     assert check_subject_id_exists(subject) is None
 
 
+@pytest.mark.skip(reason="TODO")
+def test_check_subject_species():
+    pass
+
+
 def test_check_processing_module_name():
     processing_module = ProcessingModule("test", "desc")
     assert check_processing_module_name(processing_module) == InspectorMessage(
@@ -337,8 +341,3 @@ def test_check_processing_module_name():
 def test_pass_check_processing_module_name():
     processing_module = ProcessingModule("ecephys", "desc")
     assert check_processing_module_name(processing_module) is None
-
-
-@pytest.mark.skip(reason="TODO")
-def test_check_subject_species():
-    pass

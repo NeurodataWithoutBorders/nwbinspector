@@ -378,7 +378,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
     """
     for check_function in checks:
         for nwbfile_object in nwbfile.objects.values():
-            if issubclass(type(nwbfile_object), check_function.neurodata_type):
+            if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
                     output = check_function(nwbfile_object)
                 # if an individual check fails, include it in the report and continue with the inspection
