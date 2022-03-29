@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -18,12 +18,55 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_age,
     check_subject_species,
     check_processing_module_name,
+    check_session_start_time_old_date,
+    check_session_start_time_future_date,
     PROCESSING_MODULE_CONFIG,
 )
 from nwbinspector.tools import make_minimal_nwbfile
 
 
 minimal_nwbfile = make_minimal_nwbfile()
+
+
+def test_check_session_start_time_old_date_pass():
+    assert check_session_start_time_old_date(minimal_nwbfile) is None
+
+
+def test_check_session_start_time_old_date_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime(1970, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
+    assert check_session_start_time_old_date(nwbfile) == InspectorMessage(
+        message="The session_start_time (1970-01-01 00:00:00+00:00) may not be set to the true date of the recording.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_session_start_time_old_date",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_session_start_time_future_date_pass():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1))
+    assert check_session_start_time_future_date(nwbfile) is None
+
+
+def test_check_session_start_time_future_date_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime(2030, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
+    assert check_session_start_time_future_date(nwbfile) == InspectorMessage(
+        message="The session_start_time (2030-01-01 00:00:00+00:00) is set to a future date and time.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_session_start_time_future_date",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
 def test_check_experimenter():
