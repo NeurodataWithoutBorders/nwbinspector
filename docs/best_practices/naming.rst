@@ -55,7 +55,7 @@ component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`t
 Slash-like characters ``'/'`` or ``'\'``  are not not allowed in the ``name`` of an object. This can be
 confusing to systems that parse HDF5 files (which NWB uses as the primary backend, see the
 :nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
-specify the location of ``groups`` within the file.
+specify the location of `Groups <https://schema-language.readthedocs.io/en/latest/description.html#groups>`_ within the file.
 
 For mathematical expressions, instead of including the special character in the name, please use an English equivalent
 instead. *E.g.*, instead of "Df/f" use "DfOverF".
