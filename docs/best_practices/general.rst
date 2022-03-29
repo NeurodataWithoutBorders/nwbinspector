@@ -51,8 +51,7 @@ Descriptions
 Metadata and Descriptions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Names are not for storing meta-data. If you need to place other data of the same neurodata_type, you will need to
-choose another name. Keep in mind that meta-data should not be stored solely in the name of objects. It is OK to name
+Names are not for storing meta-data, so meta-data should not be stored solely in the name of objects. It is OK to name
 an object something like “ElectricalSeries_large_array” however the name alone is not sufficient documentation. In this
 case, the source of the signal will be clear from the device of the rows from the linked electrodes table region, and
 you should also include any important distinguishing information in the description field of the object. Make an effort
