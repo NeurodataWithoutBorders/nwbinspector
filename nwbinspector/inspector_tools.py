@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from platform import platform
 from importlib.metadata import version
+from collections import defaultdict
 
 import numpy as np
 
@@ -90,12 +91,14 @@ class MessageFormatter:
         messages: List[InspectorMessage],
         levels: List[str],
         reverse: Optional[List[bool]] = None,
+        detailed: bool = False,
         formatter_options: Optional[FormatterOptions] = None,
     ):
         self.nmessages = len(messages)
         self.nfiles = len(set(message.file_path for message in messages))
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels)
+        self.detailed = detailed
         self.levels = levels
         self.nlevels = len(levels)
         self.free_levels = (
@@ -103,6 +106,7 @@ class MessageFormatter:
             - set(levels)
             - set(["message", "object_name", "severity"])
         )
+        self.collection_levels = set([x for x in InspectorMessage.__annotations__]) - set(levels) - set(["severity"])
         self.reverse = reverse
         if formatter_options is None:
             self.formatter_options = FormatterOptions()
@@ -146,28 +150,48 @@ class MessageFormatter:
                 self.formatted_messages.extend(["-" * len(section_name), ""])
                 self._add_subsection(organized_messages=val, levels=levels[1:], level_counter=this_level_counter)
         else:  # Final section, display message information
-            for key, val in organized_messages.items():
-                for message in val:
-                    message_header = ""
-                    if "file_path" in self.free_levels:
-                        message_header += f"{message.file_path} - "
-                    if "check_function_name" in self.free_levels:
-                        message_header += f"{message.check_function_name} - "
-                    if "importance" in self.free_levels:
-                        message_header += f"Importance level '{message.importance.name}' "
-                    if "object_type" in self.free_levels:
-                        message_header += f"'{message.object_type}' "
-                    if "object_name" in self.free_levels:
-                        message_header += f"object '{message.object_name}' "
-                    if "location" in self.free_levels and message.location not in ["", "/"]:
-                        message_header += f"located in '{message.location}' "
-                    increment = (
-                        f"{'.'.join(np.array(this_level_counter, dtype=str))}.{self.message_counter}"
-                        f"{self.formatter_options.indent}"
+            if levels[0] == "file_path" and not self.detailed:
+                # Collect messages into unique parts based on available submessage information in the
+                # 'free_levels' plus 'message' and 'object_name'
+                submessages = [
+                    tuple([getattr(message, attr) for attr in self.collection_levels])
+                    for file_path, messages in organized_messages.items()
+                    for message in messages
+                ]
+                unique_submessages = set(submessages)
+                unique_counter = defaultdict(int)
+                for submessage in submessages:
+                    unique_counter[submessage] += 1
+                first_file_path = dict()
+                for unique_submessage in unique_submessages:
+                    first_file_path[unique_submessage] = next(
+                        (file_path for (file_path, message), submessage in zip(organized_messages.items(), submessages))
                     )
-                    self.formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
-                    self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
-                    self.message_counter += 1
+            # Display only the unique messages and first 'file_path' + counter for each
+            # TODO
+            else:
+                for key, val in organized_messages.items():
+                    for message in val:
+                        message_header = ""
+                        if "file_path" in self.free_levels:
+                            message_header += f"{message.file_path} - "
+                        if "check_function_name" in self.free_levels:
+                            message_header += f"{message.check_function_name} - "
+                        if "importance" in self.free_levels:
+                            message_header += f"Importance level '{message.importance.name}' "
+                        if "object_type" in self.free_levels:
+                            message_header += f"'{message.object_type}' "
+                        if "object_name" in self.free_levels:
+                            message_header += f"object '{message.object_name}' "
+                        if "location" in self.free_levels and message.location not in ["", "/"]:
+                            message_header += f"located in '{message.location}' "
+                        increment = (
+                            f"{'.'.join(np.array(this_level_counter, dtype=str))}.{self.message_counter}"
+                            f"{self.formatter_options.indent}"
+                        )
+                        self.formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
+                        self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
+                        self.message_counter += 1
 
     def format_messages(self) -> List[str]:
         """Deploy recursive addition of sections, termining with message display."""
