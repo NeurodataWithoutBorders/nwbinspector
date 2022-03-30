@@ -7,7 +7,7 @@ from natsort import natsorted
 from enum import Enum
 from dataclasses import dataclass
 from datetime import datetime
-from plateform import platform
+from platform import platform
 from importlib.metadata import version
 
 import numpy as np
@@ -78,6 +78,8 @@ class FormatterOptions:
 
     indent_size: int = 2
     indent: str = " " * indent_size
+    # TODO
+    # Future custom options could include section break sizes, control over header characters, section-specific indents
 
 
 class MessageFormatter:
@@ -91,7 +93,7 @@ class MessageFormatter:
         formatter_options: Optional[FormatterOptions] = None,
     ):
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
-        self.organized_messages = organize_messages(messages=messages, levels=levels)
+        self.initial_organized_messages = organize_messages(messages=messages, levels=levels)
         self.levels = levels
         self.nlevels = len(levels)
         self.free_levels = (
@@ -111,15 +113,14 @@ class MessageFormatter:
         self.formatted_messages = []
 
     def _count_messages_by_importance(self, messages: List[InspectorMessage]) -> Dict[str, int]:
-        message_count_by_importance = {importance_level: 0 for importance_level in Importance}
+        message_count_by_importance = {importance_level.name: 0 for importance_level in Importance}
         for message in messages:
             message_count_by_importance[message.importance.name] += 1
-        for importance_level in message_count_by_importance:
-            if not message_count_by_importance[importance_level]:
-                message_count_by_importance.pop(importance_level)
+        for key in [keys for keys, count in message_count_by_importance.items() if count == 0]:
+            message_count_by_importance.pop(key)
         return message_count_by_importance
 
-    def _get_name(self, obj):
+    def _get_name(self, obj) -> str:
         if isinstance(obj, Enum):
             return obj.name
         if isinstance(obj, str):
@@ -127,23 +128,24 @@ class MessageFormatter:
 
     def _add_subsection(
         self,
-        formatted_messages: List[str],
         organized_messages: Dict[str, Union[dict, List[InspectorMessage]]],
         levels: List[str],
         level_counter: List[int],
     ):
         """Recursive helper for display_messages."""
+        from copy import copy, deepcopy
+
+        # this_level_counter = deepcopy(list(level_counter))  # local copy passed from previous recursion level
+        this_level_counter = level_counter[:]
         if len(levels) > 1:
-            this_level_counter = list(level_counter)
             this_level_counter.append(0)
             for i, (key, val) in enumerate(organized_messages.items()):  # Add section header and recurse
                 this_level_counter[-1] = i
                 increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{self.formatter_options.indent}"
                 section_name = f"{increment}{self._get_name(obj=key)}"
-                formatted_messages.append(section_name)
-                formatted_messages.extend(["-" * len(section_name), ""])
+                self.formatted_messages.append(section_name)
+                self.formatted_messages.extend(["-" * len(section_name), ""])
                 self._add_subsection(
-                    formatted_messages=formatted_messages,
                     organized_messages=val,
                     levels=levels[1:],
                     level_counter=this_level_counter,
@@ -164,31 +166,34 @@ class MessageFormatter:
                         message_header += f"object '{message.object_name}' "
                     if "location" in self.free_levels and message.location not in ["", "/"]:
                         message_header += f"located in '{message.location}' "
-                    this_level_counter = list(level_counter)
-                    this_level_counter.append(self.message_counter)
+                    increment = (
+                        f"{'.'.join(np.array(this_level_counter, dtype=str))}.{self.message_counter}"
+                        f"{self.formatter_options.indent}"
+                    )
+                    self.formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
+                    self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
                     self.message_counter += 1
-                    increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{self.formatter_options.indent}"
-                    formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
-                    formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
-            formatted_messages.append("")
+            self.formatted_messages.append("")
 
     def format_messages(self) -> List[str]:
         """Deploy recursive addition of sections, termining with message display."""
         self.formatted_messages.extend(
             [
-                "********************************",
+                "*" * 39,
                 "NWBInspector Report Summary",
                 "",
-                f"Run on {str(datetime.now().astimezone())}",
+                f"Timestamp: {str(datetime.now().astimezone())}",
                 f"Platform: {platform()}",
                 f"NWBInspector version: {version('nwbinspector')}",
                 "Number of results:",
             ]
         )
-        self.formatted_message.append("********************************")
+        for importance_level, number_of_results in self.message_count_by_importance.items():
+            increment = " " * (4 - len(str(number_of_results)))
+            self.formatted_messages.append(f"{increment}{number_of_results} - {importance_level}")
+        self.formatted_messages.extend(["*" * 39, "", ""])
         self._add_subsection(
-            formatted_messages=self.formatted_messages,
-            organized_messages=self.organized_messages,
+            organized_messages=self.initial_organized_messages,
             levels=self.levels,
             level_counter=[],
         )
