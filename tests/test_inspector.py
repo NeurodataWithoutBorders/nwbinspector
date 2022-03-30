@@ -16,8 +16,11 @@ from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
+    check_session_start_time_old_date,
+    check_description,
+    available_checks,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb, configure_checks
+from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -436,3 +439,54 @@ class TestInspector(TestCase):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
+
+
+class TestSessionStartTimesOnFile(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        cls.nwbfile_path = cls.tempdir / "test.nwb"
+        nwbfile = make_minimal_nwbfile()
+        nwbfile.add_acquisition(DynamicTable(name="test", description=""))
+        with NWBHDF5IO(path=cls.nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_session_start_time_old_date_through_inspect_nwb(self):
+        results = list(
+            inspect_nwb(
+                # nwbfile_path=self.nwbfile_path,
+                nwbfile_path=self.nwbfile_path,
+                checks=[check_session_start_time_old_date],
+            )
+        )
+        results_errors = [x for x in results if x.importance.name == "ERROR"]
+        assert results_errors == []
+
+    def test_check_session_start_time_old_date_through_inspect_nwb_before_description_check(self):
+        results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_path,
+                checks=[check_session_start_time_old_date, check_description],
+            )
+        )
+        results_errors = [x for x in results if x.importance.name == "ERROR"]
+        assert results_errors == []
+
+    def test_check_session_start_time_old_date_through_inspect_nwb_with_description_check(self):
+        results = list(
+            inspect_nwb(
+                # nwbfile_path=self.nwbfile_path,
+                nwbfile_path=self.nwbfile_path,
+                checks=[check_description, check_session_start_time_old_date],
+            )
+        )
+        results_errors = [x for x in results if x.importance.name == "ERROR"]
+        # print(results_errors)
+        # if results_errors:
+        #     print(results_errors[0].message)
+        # assert results_errors  == []
+        assert len(results_errors) != 0
