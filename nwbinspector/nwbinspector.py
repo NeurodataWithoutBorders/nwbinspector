@@ -8,9 +8,10 @@ import warnings
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
-from typing import Optional, Union, List
+from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
+from warnings import filterwarnings
 
 import click
 import pynwb
@@ -345,7 +346,7 @@ def inspect_nwb(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
     nwbfile_path = str(nwbfile_path)
-    warnings.simplefilter("ignore")
+    filterwarnings(action="ignore", message="No cached namespaces found in .*")
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         if skip_validate:
             validation_errors = pynwb.validate(io=io)
