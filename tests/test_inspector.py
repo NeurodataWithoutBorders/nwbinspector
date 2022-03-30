@@ -485,8 +485,9 @@ class TestSessionStartTimesOnFile(TestCase):
             )
         )
         results_errors = [x for x in results if x.importance.name == "ERROR"]
+        assert len(results_errors) != 0
+        # TODO: what this test really should call is below; need to figure out source cause
         # print(results_errors)
         # if results_errors:
         #     print(results_errors[0].message)
         # assert results_errors  == []
-        assert len(results_errors) != 0
