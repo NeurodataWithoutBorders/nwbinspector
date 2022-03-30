@@ -92,6 +92,8 @@ class MessageFormatter:
         reverse: Optional[List[bool]] = None,
         formatter_options: Optional[FormatterOptions] = None,
     ):
+        self.nmessages = len(messages)
+        self.nfiles = len(set(message.file_path for message in messages))
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels)
         self.levels = levels
@@ -133,10 +135,7 @@ class MessageFormatter:
         level_counter: List[int],
     ):
         """Recursive helper for display_messages."""
-        from copy import copy, deepcopy
-
-        # this_level_counter = deepcopy(list(level_counter))  # local copy passed from previous recursion level
-        this_level_counter = level_counter[:]
+        this_level_counter = list(level_counter)  # local copy passed from previous recursion level
         if len(levels) > 1:
             this_level_counter.append(0)
             for i, (key, val) in enumerate(organized_messages.items()):  # Add section header and recurse
@@ -145,11 +144,7 @@ class MessageFormatter:
                 section_name = f"{increment}{self._get_name(obj=key)}"
                 self.formatted_messages.append(section_name)
                 self.formatted_messages.extend(["-" * len(section_name), ""])
-                self._add_subsection(
-                    organized_messages=val,
-                    levels=levels[1:],
-                    level_counter=this_level_counter,
-                )
+                self._add_subsection(organized_messages=val, levels=levels[1:], level_counter=this_level_counter)
         else:  # Final section, display message information
             for key, val in organized_messages.items():
                 for message in val:
@@ -173,31 +168,26 @@ class MessageFormatter:
                     self.formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
                     self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
                     self.message_counter += 1
-            self.formatted_messages.append("")
 
     def format_messages(self) -> List[str]:
         """Deploy recursive addition of sections, termining with message display."""
         self.formatted_messages.extend(
             [
-                "*" * 39,
+                "*" * 50,
                 "NWBInspector Report Summary",
                 "",
                 f"Timestamp: {str(datetime.now().astimezone())}",
                 f"Platform: {platform()}",
                 f"NWBInspector version: {version('nwbinspector')}",
-                "Number of results:",
+                "",
+                f"Found {self.nmessages} issues over {self.nfiles} files:",
             ]
         )
         for importance_level, number_of_results in self.message_count_by_importance.items():
-            increment = " " * (4 - len(str(number_of_results)))
+            increment = " " * (8 - len(str(number_of_results)))
             self.formatted_messages.append(f"{increment}{number_of_results} - {importance_level}")
-        self.formatted_messages.extend(["*" * 39, "", ""])
-        self._add_subsection(
-            organized_messages=self.initial_organized_messages,
-            levels=self.levels,
-            level_counter=[],
-        )
-        self.formatted_messages.append("")
+        self.formatted_messages.extend(["*" * 50, "", ""])
+        self._add_subsection(organized_messages=self.initial_organized_messages, levels=self.levels, level_counter=[])
         return self.formatted_messages
 
 
