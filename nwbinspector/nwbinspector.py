@@ -4,6 +4,7 @@ import importlib
 import traceback
 import json
 import jsonschema
+import warnings
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
@@ -341,6 +342,7 @@ def inspect_nwb(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
     nwbfile_path = str(nwbfile_path)
+    warnings.simplefilter("ignore")
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         if skip_validate:
             validation_errors = pynwb.validate(io=io)
