@@ -1,6 +1,7 @@
 <img src="docs/logo/logo.png" width="300">
 
 [![PyPI version](https://badge.fury.io/py/nwbinspector.svg)](https://badge.fury.io/py/nwbinspector)
+[![ReadTheDocs](https://readthedocs.org/projects/nwbinspector/badge/?version=dev)](https://nwbinspector.readthedocs.io/)
 ![Tests](https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/testing.yml/badge.svg)
 [![codecov](https://codecov.io/gh/NeurodataWithoutBorders/nwbinspector/branch/dev/graphs/badge.svg?branch=dev)](https://codecov.io/github/NeurodataWithoutBorders/nwbinspector?branch=dev)
 [![License](https://img.shields.io/pypi/l/pynwb.svg)](https://github.com/NeurodataWithoutBorders/nwbinspector/license.txt)

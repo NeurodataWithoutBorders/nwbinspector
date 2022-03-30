@@ -1,8 +1,9 @@
 """Check functions that examine general NWBFile metadata."""
 import re
+from datetime import datetime
 
-from pynwb import NWBFile
-from pynwb.file import Subject, ProcessingModule
+from pynwb import NWBFile, ProcessingModule
+from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
@@ -15,13 +16,24 @@ species_regex = r"[A-Z][a-z]* [a-z]+"
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
-def check_processing_module_name(processing_module: ProcessingModule):
-    """Check if the name of a processing module is of a valid modality."""
-    if processing_module.name not in PROCESSING_MODULE_CONFIG:
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_session_start_time_old_date(nwbfile: NWBFile):
+    """Check if the session_start_time was set to an appropriate value."""
+    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
-            f"Processing module is named {processing_module.name}. It is recommended to use the "
-            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+            message=(
+                f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "
+                "recording."
+            )
+        )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
+def check_session_start_time_future_date(nwbfile: NWBFile):
+    """Check if the session_start_time was set to an appropriate value."""
+    if nwbfile.session_start_time >= datetime.now().astimezone():
+        return InspectorMessage(
+            message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
         )
 
 
@@ -114,4 +126,14 @@ def check_subject_species(subject: Subject):
     if not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
             message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
+def check_processing_module_name(processing_module: ProcessingModule):
+    """Check if the name of a processing module is of a valid modality."""
+    if processing_module.name not in PROCESSING_MODULE_CONFIG:
+        return InspectorMessage(
+            f"Processing module is named {processing_module.name}. It is recommended to use the "
+            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
         )
