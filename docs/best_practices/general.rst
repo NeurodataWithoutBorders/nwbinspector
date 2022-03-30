@@ -53,7 +53,7 @@ Metadata and Descriptions
 The ``name`` of an object is for identifying that object within the file; it is not for storing metadata. Instead, the
 ``description`` field for most objects can be used to include any important distinguishing information. When writing
 metadata, make every effort to be as explicit and self-contained as possible in the explaining relevant details. Use
-official ontologies whenever specific references are required, and provide external links to those ontologies.
+official ontologies where appropriate.
 
 It is OK to name an object something like ``ElectricalSeriesDuringSomeEvent``, however the name alone is not sufficient
 documentation of the condition ``DuringSomeEvent``. In this case, the source of the signal will be clear from the
