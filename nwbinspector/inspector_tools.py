@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union
 from pathlib import Path
 from natsort import natsorted
 from enum import Enum
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -58,6 +59,23 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str], rever
             )
             for value in sorted_values
         }
+
+
+@dataclass
+class FormatterOptions:
+    indent_size: int = 2
+
+
+class MessageFormatter:
+    def __init__(
+        self,
+        messages: List[InspectorMessage],
+        levels: List[str],
+        reverse: Optional[List[bool]] = None,
+        formatter_options: Optional[FormatterOptions] = None,
+    ):
+        if formatter_options is None:
+            formatter_options = FormatterOptions()
 
 
 def _get_name(obj):
