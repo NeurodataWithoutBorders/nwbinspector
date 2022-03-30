@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
-from warning import filterwarnings
+from warnings import filterwarnings
 
 import click
 import pynwb
