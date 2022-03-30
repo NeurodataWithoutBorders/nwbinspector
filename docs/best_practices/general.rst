@@ -64,7 +64,7 @@ component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`t
 (see :ref:`best_practice_processing_module_names` for more details), or using an extension such as
 :ndx-annotation-series:`ndx-events <>`.
 
-Slash-like characters ``'/'`` or ``'\'``  are not not allowed in the ``name`` of an object. This can be
+Slash characters ``'/'`` and ``'\'``  should not be used in the ``name`` of an object, because they can be
 confusing to systems that parse HDF5 files (which NWB uses as the primary backend, see the
 :nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
 specify the location of `Groups <https://schema-language.readthedocs.io/en/latest/description.html#groups>`_ within the file.
