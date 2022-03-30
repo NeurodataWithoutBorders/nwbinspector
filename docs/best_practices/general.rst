@@ -8,10 +8,6 @@ Neurodata Types
 
 
 
-Standard Names
-~~~~~~~~~~~~~~
-
-
 .. _best_practice_object_names:
 
 Naming Conventions
