@@ -1,8 +1,9 @@
 """Check functions that examine general NWBFile metadata."""
 import re
+from datetime import datetime
 
-from pynwb import NWBFile
-from pynwb.file import Subject, ProcessingModule
+from pynwb import NWBFile, ProcessingModule
+from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
 
@@ -15,13 +16,24 @@ species_regex = r"[A-Z][a-z]* [a-z]+"
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
-def check_processing_module_name(processing_module: ProcessingModule):
-    """Check if the name of a processing module is of a valid modality."""
-    if processing_module.name not in PROCESSING_MODULE_CONFIG:
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_session_start_time_old_date(nwbfile: NWBFile):
+    """Check if the session_start_time was set to an appropriate value."""
+    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
-            f"Processing module is named {processing_module.name}. It is recommended to use the "
-            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+            message=(
+                f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "
+                "recording."
+            )
+        )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
+def check_session_start_time_future_date(nwbfile: NWBFile):
+    """Check if the session_start_time was set to an appropriate value."""
+    if nwbfile.session_start_time >= datetime.now().astimezone():
+        return InspectorMessage(
+            message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
         )
 
 
@@ -46,6 +58,35 @@ def check_institution(nwbfile: NWBFile):
         return InspectorMessage(message="Metadata /general/institution is missing.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_keywords(nwbfile: NWBFile):
+    """Check if keywords have been added for the session."""
+    if not nwbfile.keywords:
+        return InspectorMessage(message="Metadata /general/keywords is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_subject_exists(nwbfile: NWBFile):
+    """Check if subject exists."""
+    if nwbfile.subject is None:
+        return InspectorMessage(message="Subject is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_doi_publications(nwbfile: NWBFile):
+    """Check if related_publications has been properly added as 'doi: ###' or an external 'doi' link."""
+    valid_starts = ["doi:", "http://dx.doi.org/", "https://doi.org/"]
+    if nwbfile.related_publications:
+        for publication in nwbfile.related_publications:
+            if not any((publication.startswith(valid_start) for valid_start in valid_starts)):
+                yield InspectorMessage(
+                    message=(
+                        f"Metadata /general/related_publications '{publication}' does not start with 'doi: ###' or is "
+                        "not an external 'doi' link."
+                    )
+                )
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601."""
@@ -57,13 +98,6 @@ def check_subject_age(subject: Subject):
             message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
             "weeks."
         )
-
-
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_subject_exists(nwbfile: NWBFile):
-    """Check if subject exists."""
-    if nwbfile.subject is None:
-        return InspectorMessage(message="Subject is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
@@ -95,18 +129,11 @@ def check_subject_species(subject: Subject):
         )
 
 
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_keywords(nwbfile: NWBFile):
-#     """Check if keywords have been added for the session."""
-#     if not nwbfile.keywords:
-#         return "Metadata /general/keywords is missing!"
-
-
-# @nwbinspector_check(severity=1, neurodata_type=NWBFile)
-# def check_doi_publications(nwbfile: NWBFile):
-#     """Check if related_publications have been added as doi links."""
-#     valid_starts = ["doi:", "http://dx.doi.org/", "https://doi.org/"]
-#     if nwbfile.related_publications:
-#         for publication in nwbfile.related_publications:
-#             if any([publication.startswith(valid_start) for valid_start in valid_starts]):
-#                 return f"Metadata /general/related_publications '{publication}' does not include 'doi'!"
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
+def check_processing_module_name(processing_module: ProcessingModule):
+    """Check if the name of a processing module is of a valid modality."""
+    if processing_module.name not in PROCESSING_MODULE_CONFIG:
+        return InspectorMessage(
+            f"Processing module is named {processing_module.name}. It is recommended to use the "
+            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+        )

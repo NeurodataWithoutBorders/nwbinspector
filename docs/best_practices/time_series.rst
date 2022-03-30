@@ -35,6 +35,8 @@ Every :nwb-schema:ref:`sec-TimeSeries` instance has ``unit`` as an attribute, wh
 measurement for that data, using the appropriate type from the
 :wikipedia:`International System of Units (SI) <International_System_of_Units>`.
 
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_missing_unit`
+
 
 
 .. _best_practice_time_series_global_time_reference:
@@ -145,3 +147,14 @@ chunk individually. This is especially important when writing NWBFiles that are 
 
 Check functions: :py::meth:`~nwbinspector.checks.nwb_containers.check_large_dataset_compression`,
 :py::meth:`~nwbinspector.checks.nwb_containers.check_small_dataset_compression`
+
+
+
+.. _best_practice_resolution:
+
+Unknown Resolution
+~~~~~~~~~~~~~~~~~~
+
+If the ``resolution`` of a :nwb-schema:ref:`sec-TimeSeries` is unknown, use ``-1.0`` or ``NaN`` to indicate this.
+
+Check function: :py::meth:`~nwbinspector.checks.time_series.check_resolution`

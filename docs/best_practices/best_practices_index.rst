@@ -20,11 +20,11 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
 .. toctree::
    :maxdepth: 2
 
+   general
    nwbfile_metadata
    time_series
    tables
    ecephys
    ogen
-   naming
    simulated_data
    extensions

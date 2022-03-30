@@ -10,6 +10,7 @@ from enum import Enum
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
+from warnings import filterwarnings
 
 import click
 import pynwb
@@ -64,6 +65,20 @@ def copy_function(function):
     # in case f was given attrs (note this dict is a shallow copy):
     copied_function.__dict__.update(function.__dict__)
     return copied_function
+
+
+def load_config(filepath_or_keyword: PathType) -> dict:
+    """
+    Load a config dictionary either via keyword search of the internal configs, or an explicit filepath.
+
+    Currently supported keywords are:
+        - 'dandi'
+            For all DANDI archive related practices, including validation and upload.
+    """
+    file = INTERNAL_CONFIGS.get(filepath_or_keyword, filepath_or_keyword)
+    with open(file=file, mode="r") as stream:
+        config = yaml.load(stream=stream, Loader=yaml.Loader)
+    return config
 
 
 def configure_checks(
@@ -151,10 +166,11 @@ def configure_checks(
     help="Ignores tests with an assigned importance below this threshold.",
 )
 @click.option(
-    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of " "checks."
+    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of checks."
 )
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
+@click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -167,14 +183,11 @@ def inspect_all_cli(
     config: Optional[str] = None,
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
+    skip_validate: bool = False,
 ):
     """Primary CLI usage of the NWBInspector."""
     if config is not None:
-        config = INTERNAL_CONFIGS.get(config, config)
-        with open(file=config, mode="r") as stream:
-            config = yaml.load(stream=stream, Loader=yaml.Loader)
-    else:
-        config = None
+        config = load_config(filepath_or_keyword=config)
     messages = list(
         inspect_all(
             path=path,
@@ -184,6 +197,7 @@ def inspect_all_cli(
             select=select if select is None else select.split(","),
             importance_threshold=Importance[threshold],
             n_jobs=n_jobs,
+            skip_validate=skip_validate,
         )
     )
     if json_file_path is not None:
@@ -201,11 +215,12 @@ def inspect_all_cli(
 def inspect_all(
     path: PathType,
     modules: OptionalListOfStrings = None,
-    config: dict = None,
+    config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
+    skip_validate: bool = False,
 ):
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -217,8 +232,8 @@ def inspect_all(
     modules : list of strings, optional
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
-    config : dict
-        Dictionary valid against our JSON configuration schema.
+    config : dict, optional
+        If a dictionary, it must be valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
         Typically loaded via json.load from a valid .json file
     ignore: list of strings, optional
@@ -235,9 +250,12 @@ def inspect_all(
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    n_jobs : int = 1
+    n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
         Set to 1 (also the default) to disable.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
     """
     modules = modules or []
     path = Path(path)
@@ -284,6 +302,7 @@ def inspect_nwb(
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     driver: str = None,
+    skip_validate: bool = False,
 ) -> List[InspectorMessage]:
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -314,23 +333,28 @@ def inspect_nwb(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     driver: str, optional
         Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
     """
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
     nwbfile_path = str(nwbfile_path)
+    filterwarnings(action="ignore", message="No cached namespaces found in .*")
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        validation_errors = pynwb.validate(io=io)
-        if any(validation_errors):
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
+        if skip_validate:
+            validation_errors = pynwb.validate(io=io)
+            if any(validation_errors):
+                for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
         try:
             nwbfile = io.read()
         except Exception as ex:
@@ -356,7 +380,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
     """
     for check_function in checks:
         for nwbfile_object in nwbfile.objects.values():
-            if issubclass(type(nwbfile_object), check_function.neurodata_type):
+            if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
                     output = check_function(nwbfile_object)
                 # if an individual check fails, include it in the report and continue with the inspection
