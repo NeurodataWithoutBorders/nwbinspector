@@ -66,8 +66,7 @@ component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`t
 
 Slash characters ``'/'`` and ``'\'``  should not be used in the ``name`` of an object, because they can be
 confusing to systems that parse HDF5 files (which NWB uses as the primary backend, see the
-:nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details) because similar protocols are used to
-specify the location of `Groups <https://schema-language.readthedocs.io/en/latest/description.html#groups>`_ within the file.
+:nwb-overview:`NWB FAQ <faq_details/why_hdf5.html#why-hdf5>` for more details). The forward slash is used in `h5py` to specify a `Groups <https://schema-language.readthedocs.io/en/latest/description.html#groups>`_ hierarchy.
 
 For mathematical expressions, instead of including the special character in the name, please use an English equivalent
 instead. *E.g.*, instead of "Df/f" use "DfOverF".
