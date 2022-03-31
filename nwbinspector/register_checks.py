@@ -6,6 +6,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 import h5py
+from pynwb import NWBFile
+from pynwb.file import Subject
+from pynwb.ecephys import Device, ElectrodeGroup
+
+KNOWN_LOCATIONS = {
+    NWBFile: "/",
+    Subject: "/subject",
+    Device: "/general/devices",
+    ElectrodeGroup: "/general/extracellular_ephys/",
+    # TODO: add ophys equivalents
+}
 
 
 class Importance(Enum):
@@ -71,7 +82,7 @@ class InspectorMessage:
     check_function_name: str = ""
     object_type: str = ""
     object_name: str = ""
-    location: str = ""
+    location: Optional[str] = None
     file_path: str = ""
 
 
@@ -154,16 +165,7 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
         return auto_parsed_result
 
 
-known_location_dict = dict(
-    nwbfile="/",
-    subject="/subject",
-    devices="/general/devices",
-    electrode_group="/general/extracellular_ephys/",
-    # TODO: add ophys equivalents
-)
-
-
-def parse_location(neurodata_object) -> str:
+def parse_location(neurodata_object) -> Optional[str]:
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
@@ -174,4 +176,4 @@ def parse_location(neurodata_object) -> str:
         for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
                 return "/".join(field.parent.name.split("/")[:-1]) + "/"
-    return known_location_dict.get(neurodata_object, None)
+    return KNOWN_LOCATIONS.get(type(neurodata_object))
