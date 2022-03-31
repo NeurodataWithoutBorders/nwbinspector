@@ -7,18 +7,24 @@ from enum import Enum
 from datetime import datetime
 from platform import platform
 
-from importlib.metadata import version
 from natsort import natsorted
 
 from .register_checks import InspectorMessage
 from .utils import FilePathType
 
+try:
+    from importlib.metadata import version
+
+    inspector_version = version("nwbinspector")
+except ModuleNotFoundError:
+    from pkg_resources import get_distribution
+
+    inspector_version = get_distribution("nwbinspector").version
+
 
 def get_report_header():
     """Grab basic information from system at time of report generation."""
-    return dict(
-        Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=version("nwbinspector")
-    )
+    return dict(Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=inspector_version)
 
 
 def _sort_unique_values(unique_values: list, reverse: bool = False):
