@@ -204,7 +204,7 @@ def test_check_subject_sex():
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
-        location="/subject"
+        location="/subject",
     )
 
 
