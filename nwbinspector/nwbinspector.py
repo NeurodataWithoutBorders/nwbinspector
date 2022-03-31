@@ -276,7 +276,6 @@ def inspect_all(
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
-
     if n_jobs != 1:
 
         # max_workers for threading is a different concept to number of processes; from the documentation
