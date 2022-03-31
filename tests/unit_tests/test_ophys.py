@@ -11,7 +11,7 @@ from nwbinspector.checks.ophys import (
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance, Severity
+from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 class TestCheckRoiResponseSeries(TestCase):
@@ -84,7 +84,6 @@ class TestCheckRoiResponseSeries(TestCase):
             check_function_name="check_roi_response_series_dims",
             object_type="RoiResponseSeries",
             object_name="RoiResponseSeries",
-            location="/processing/ophys/",
         )
 
     def test_check_wrong_dims(self):
@@ -110,7 +109,6 @@ class TestCheckRoiResponseSeries(TestCase):
             check_function_name="check_roi_response_series_dims",
             object_type="RoiResponseSeries",
             object_name="RoiResponseSeries",
-            location="/processing/ophys/",
         )
 
     def test_pass_check_roi_response_series_dims(self):
@@ -134,7 +132,6 @@ class TestCheckRoiResponseSeries(TestCase):
         dt.add_column("a", "desc")
         for _ in range(5):
             dt.add_row(a=1)
-
         dtr = DynamicTableRegion(name="n", description="desc", data=[0, 1, 2, 3, 4], table=dt)
         roi_resp_series = RoiResponseSeries(
             name="RoiResponseSeries",
@@ -152,7 +149,6 @@ class TestCheckRoiResponseSeries(TestCase):
             check_function_name="check_roi_response_series_link_to_plane_segmentation",
             object_type="RoiResponseSeries",
             object_name="RoiResponseSeries",
-            location="/processing/ophys/",
         )
 
     def test_pass_check_roi_response_series_link_to_plane_segmentation(self):

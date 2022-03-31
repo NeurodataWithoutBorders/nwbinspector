@@ -16,8 +16,11 @@ from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
+    check_session_start_time_old_date,
+    check_description,
+    available_checks,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb, configure_checks
+from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -411,7 +414,6 @@ class TestInspector(TestCase):
                 check_function_name="iterable_check_function",
                 object_type="TimeIntervals",
                 object_name="test_table",
-                location="/acquisition/",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -420,7 +422,6 @@ class TestInspector(TestCase):
                 check_function_name="iterable_check_function",
                 object_type="TimeIntervals",
                 object_name="test_table",
-                location="/acquisition/",
                 file_path=self.nwbfile_paths[0],
             ),
         ]
