@@ -4,7 +4,6 @@ import importlib
 import traceback
 import json
 import jsonschema
-import warnings
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
@@ -19,9 +18,8 @@ import yaml
 
 from . import available_checks
 from .inspector_tools import (
+    get_report_header,
     format_messages,
-    # organize_messages,
-    # format_organized_results_output,
     print_to_console,
     save_report,
 )
@@ -206,8 +204,12 @@ def inspect_all_cli(
         )
     )
     if json_file_path is not None:
+        if Path(json_file_path).exists() and not overwrite:
+            raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
         with open(file=json_file_path, mode="w") as fp:
-            json.dump(obj=messages, fp=fp, cls=InspectorOutputJSONEncoder)
+            json_report = dict(header=get_report_header(), messages=messages)
+            json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
+            print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     if len(messages):
         formatted_messages = format_messages(messages=messages, levels=levels)
         print_to_console(formatted_messages=formatted_messages, no_color=no_color)

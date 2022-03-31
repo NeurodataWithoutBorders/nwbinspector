@@ -17,6 +17,13 @@ from .register_checks import InspectorMessage, Importance
 from .utils import FilePathType
 
 
+def get_report_header():
+    """Grab basic information from system at time of report generation."""
+    return dict(
+        Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=version("nwbinspector")
+    )
+
+
 def _sort_unique_values(unique_values: list, reverse: bool = False):
     """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
     if any(unique_values) and isinstance(unique_values[0], Enum):
@@ -132,6 +139,25 @@ class MessageFormatter:
         if isinstance(obj, str):
             return obj
 
+    def _get_message_header(self, message: InspectorMessage):
+        message_header = ""
+        if "file_path" in self.free_levels:
+            message_header += f"{message.file_path} - "
+        if "check_function_name" in self.free_levels:
+            message_header += f"{message.check_function_name} - "
+        if "importance" in self.free_levels:
+            message_header += f"Importance level '{message.importance.name}' - "
+        if "object_type" in self.free_levels:
+            message_header += f"'{message.object_type}' named '{message.object_name}' - "
+        if "location" in self.free_levels and message.location:
+            message_header += f"located in '{message.location}'"
+        return message_header
+
+    def _get_message_increment(self, level_counter: List[int]):
+        return (
+            f"{'.'.join(np.array(level_counter, dtype=str))}.{self.message_counter}" f"{self.formatter_options.indent}"
+        )
+
     def _add_subsection(
         self,
         organized_messages: Dict[str, Union[dict, List[InspectorMessage]]],
@@ -153,56 +179,44 @@ class MessageFormatter:
             if levels[0] == "file_path" and not self.detailed:
                 # Collect messages into unique parts based on available submessage information in the
                 # 'free_levels' plus 'message' and 'object_name'
-                submessages = [
-                    tuple([getattr(message, attr) for attr in self.collection_levels])
-                    for file_path, messages in organized_messages.items()
-                    for message in messages
-                ]
-                unique_submessages = set(submessages)
-                unique_counter = defaultdict(int)
-                for submessage in submessages:
-                    unique_counter[submessage] += 1
-                first_file_path = dict()
-                for unique_submessage in unique_submessages:
-                    first_file_path[unique_submessage] = next(
-                        (file_path for (file_path, message), submessage in zip(organized_messages.items(), submessages))
+                binned_messages = defaultdict(list)
+                for file_path, messages in organized_messages.items():
+                    for message in messages:
+                        submessage = tuple([getattr(message, attr) for attr in self.collection_levels])
+                        binned_messages[submessage].append(message)
+                # Display only the unique messages and first 'file_path' + counter for each
+                for same_messages in binned_messages.values():
+                    message = same_messages[0]
+                    increment = self._get_message_increment(level_counter=this_level_counter)
+                    message_header = self._get_message_header(message=message)
+                    num_same = len(same_messages)
+                    file_str = "files" if num_same > 1 else "file"
+                    self.formatted_messages.append(
+                        f"{increment}{message.file_path} and {num_same} other {file_str}: "
+                        f"{message_header.rstrip(' - ')}"
                     )
-            # Display only the unique messages and first 'file_path' + counter for each
-            # TODO
+                    self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
+                    self.message_counter += 1
             else:
                 for key, val in organized_messages.items():
                     for message in val:
-                        message_header = ""
-                        if "file_path" in self.free_levels:
-                            message_header += f"{message.file_path} - "
-                        if "check_function_name" in self.free_levels:
-                            message_header += f"{message.check_function_name} - "
-                        if "importance" in self.free_levels:
-                            message_header += f"Importance level '{message.importance.name}' "
-                        if "object_type" in self.free_levels:
-                            message_header += f"'{message.object_type}' "
-                        if "object_name" in self.free_levels:
-                            message_header += f"object '{message.object_name}' "
-                        if "location" in self.free_levels and message.location not in ["", "/"]:
-                            message_header += f"located in '{message.location}' "
-                        increment = (
-                            f"{'.'.join(np.array(this_level_counter, dtype=str))}.{self.message_counter}"
-                            f"{self.formatter_options.indent}"
-                        )
+                        increment = self._get_message_increment(level_counter=this_level_counter)
+                        message_header = self._get_message_header(message=message)
                         self.formatted_messages.append(f"{increment}{key}: {message_header.rstrip(' - ')}")
                         self.formatted_messages.extend([f"{' ' * len(increment)}  Message: {message.message}", ""])
                         self.message_counter += 1
 
     def format_messages(self) -> List[str]:
         """Deploy recursive addition of sections, termining with message display."""
+        report_header = get_report_header()
         self.formatted_messages.extend(
             [
                 "*" * 50,
                 "NWBInspector Report Summary",
                 "",
-                f"Timestamp: {str(datetime.now().astimezone())}",
-                f"Platform: {platform()}",
-                f"NWBInspector version: {version('nwbinspector')}",
+                f"Timestamp: {report_header['Timestamp']}",
+                f"Platform: {report_header['Platform']}",
+                f"NWBInspector version: {report_header['NWBInspector_version']}",
                 "",
                 f"Found {self.nmessages} issues over {self.nfiles} files:",
             ]
