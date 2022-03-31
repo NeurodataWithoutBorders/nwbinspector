@@ -3,18 +3,32 @@ import os
 import sys
 from typing import Dict, List, Optional, Union
 from pathlib import Path
-from natsort import natsorted
 from enum import Enum
 from dataclasses import dataclass
 from datetime import datetime
 from platform import platform
-from importlib.metadata import version
 from collections import defaultdict
+
+from natsort import natsorted
 
 import numpy as np
 
 from .register_checks import InspectorMessage, Importance
 from .utils import FilePathType
+
+try:
+    from importlib.metadata import version
+
+    inspector_version = version("nwbinspector")
+except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
+    from pkg_resources import get_distribution
+
+    inspector_version = get_distribution("nwbinspector").version
+
+
+def get_report_header():
+    """Grab basic information from system at time of report generation."""
+    return dict(Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=inspector_version)
 
 
 def get_report_header():
