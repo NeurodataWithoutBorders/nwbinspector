@@ -16,7 +16,7 @@ try:
     from importlib.metadata import version
 
     inspector_version = version("nwbinspector")
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
     from pkg_resources import get_distribution
 
     inspector_version = get_distribution("nwbinspector").version
