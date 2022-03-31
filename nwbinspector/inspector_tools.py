@@ -31,13 +31,6 @@ def get_report_header():
     return dict(Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=inspector_version)
 
 
-def get_report_header():
-    """Grab basic information from system at time of report generation."""
-    return dict(
-        Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=version("nwbinspector")
-    )
-
-
 def _sort_unique_values(unique_values: list, reverse: bool = False):
     """Technically, the 'set' method applies basic sorting to the unique contents, but natsort is more general."""
     if any(unique_values) and isinstance(unique_values[0], Enum):
@@ -123,9 +116,7 @@ class MessageFormatter:
         self.levels = levels
         self.nlevels = len(levels)
         self.free_levels = (
-            set([x for x in InspectorMessage.__annotations__])
-            - set(levels)
-            - set(["message", "object_name", "severity"])
+            set([x for x in InspectorMessage.__annotations__]) - set(levels) - set(["message", "severity"])
         )
         self.collection_levels = set([x for x in InspectorMessage.__annotations__]) - set(levels) - set(["severity"])
         self.reverse = reverse
@@ -161,8 +152,8 @@ class MessageFormatter:
             message_header += f"{message.check_function_name} - "
         if "importance" in self.free_levels:
             message_header += f"Importance level '{message.importance.name}' - "
-        if "object_type" in self.free_levels:
-            message_header += f"'{message.object_type}' named '{message.object_name}' - "
+        if any((x in self.free_levels for x in ["object_type", "object_name"])):
+            message_header += f"'{message.object_type}' object named '{message.object_name}' - "
         if "location" in self.free_levels and message.location:
             message_header += f"located in '{message.location}'"
         return message_header
@@ -244,10 +235,13 @@ class MessageFormatter:
 
 
 def format_messages(
-    messages: List[InspectorMessage], levels: List[str], reverse: Optional[List[bool]] = None
+    messages: List[InspectorMessage],
+    levels: List[str],
+    reverse: Optional[List[bool]] = None,
+    detailed: bool = False,
 ) -> List[str]:
     """Print InspectorMessages in order specified by the organization structure."""
-    message_formatter = MessageFormatter(messages=messages, levels=levels, reverse=reverse)
+    message_formatter = MessageFormatter(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
     formatted_messages = message_formatter.format_messages()
     return formatted_messages
 

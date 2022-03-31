@@ -172,6 +172,14 @@ def configure_checks(
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 @click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
+@click.option(
+    "--detailed",
+    help=(
+        "If file_path is the last of 'levels' (the default), identical checks will be aggregated in the display. "
+        "Use '--detailed' to see the complete report."
+    ),
+    is_flag=True,
+)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -186,9 +194,10 @@ def inspect_all_cli(
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    detailed: bool = False,
 ):
     """Primary CLI usage of the NWBInspector."""
-    levels = ["file_path", "importance"] if levels is None else levels.split(",")
+    levels = ["importance", "file_path"] if levels is None else levels.split(",")
     if config is not None:
         config = load_config(filepath_or_keyword=config)
     messages = list(
@@ -211,7 +220,7 @@ def inspect_all_cli(
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     if len(messages):
-        formatted_messages = format_messages(messages=messages, levels=levels)
+        formatted_messages = format_messages(messages=messages, levels=levels, detailed=detailed)
         print_to_console(formatted_messages=formatted_messages, no_color=no_color)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
