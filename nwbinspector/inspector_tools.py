@@ -3,11 +3,22 @@ import os
 import sys
 from typing import Dict, List
 from pathlib import Path
-from natsort import natsorted
 from enum import Enum
+from datetime import datetime
+from platform import platform
+from importlib.metadata import version
+
+from natsort import natsorted
 
 from .register_checks import InspectorMessage
 from .utils import FilePathType
+
+
+def get_report_header():
+    """Grab basic information from system at time of report generation."""
+    return dict(
+        Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=version("nwbinspector")
+    )
 
 
 def _sort_unique_values(unique_values: list, reverse: bool = False):
