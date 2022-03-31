@@ -89,7 +89,6 @@ class TestCheckElectricalSeries(TestCase):
             check_function_name="check_electrical_series_dims",
             object_type="ElectricalSeries",
             object_name="elec_series",
-            location="/acquisition/",
         )
 
     def test_check_electrical_series_flipped(self):
@@ -112,7 +111,6 @@ class TestCheckElectricalSeries(TestCase):
             check_function_name="check_electrical_series_dims",
             object_type="ElectricalSeries",
             object_name="elec_series",
-            location="/acquisition/",
         )
 
     def test_pass(self):
@@ -138,7 +136,6 @@ class TestCheckElectricalSeries(TestCase):
         dyn_tab.add_column("name", "desc")
         for i in range(5):
             dyn_tab.add_row(name=1)
-
         dynamic_table_region = DynamicTableRegion(
             name="electrodes", description="I am wrong", data=[0, 1, 2, 3, 4], table=dyn_tab
         )

@@ -6,6 +6,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 import h5py
+from pynwb import NWBFile
+from pynwb.file import Subject
+from pynwb.ecephys import Device, ElectrodeGroup
+
+KNOWN_LOCATIONS = {
+    NWBFile: "/",
+    Subject: "/subject",
+    Device: "/general/devices",
+    ElectrodeGroup: "/general/extracellular_ephys/",
+    # TODO: add ophys equivalents
+}
 
 
 class Importance(Enum):
@@ -71,7 +82,7 @@ class InspectorMessage:
     check_function_name: str = ""
     object_type: str = ""
     object_name: str = ""
-    location: str = ""
+    location: Optional[str] = None
     file_path: str = ""
 
 
@@ -154,7 +165,7 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
         return auto_parsed_result
 
 
-def parse_location(neurodata_object) -> str:
+def parse_location(neurodata_object) -> Optional[str]:
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
@@ -165,22 +176,4 @@ def parse_location(neurodata_object) -> str:
         for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
                 return "/".join(field.parent.name.split("/")[:-1]) + "/"
-    try:
-        # General case for nested modules not containing Datasets
-        level = neurodata_object
-        level_names = []
-        while level.parent.name != "root":
-            level_names.append(level.parent.name)
-            level = level.parent
-        # Determine which field of the NWBFile contains the previous recent level
-        invalid_field_names = ["timestamps_reference_time", "session_start_time"]
-        possible_fields = level.parent.fields
-        for field_name in invalid_field_names:
-            if field_name in possible_fields:
-                possible_fields.pop(field_name)
-        for field_name, field in possible_fields.items():
-            if level.name in field:
-                level_names.append(field_name)
-        return "/" + "/".join(level_names[::-1]) + "/"
-    except Exception:
-        return ""
+    return KNOWN_LOCATIONS.get(type(neurodata_object))
