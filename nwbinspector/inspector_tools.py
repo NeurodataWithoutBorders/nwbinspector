@@ -6,8 +6,8 @@ from pathlib import Path
 from enum import Enum
 from datetime import datetime
 from platform import platform
-from importlib.metadata import version
 
+from importlib.metadata import version
 from natsort import natsorted
 
 from .register_checks import InspectorMessage
