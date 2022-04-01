@@ -11,6 +11,7 @@ from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings
+from distutils.util import strtobool
 
 import click
 import pynwb
@@ -157,6 +158,9 @@ def configure_checks(
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
+@click.option(
+    "--reverse", help="Comma-separated booleans corresponding to reversing the order for each value of 'levels'."
+)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
 @click.option("-s", "--select", help="Comma-separated names of checks to run.")
 @click.option(
@@ -186,6 +190,7 @@ def inspect_all_cli(
     no_color: bool = False,
     report_file_path: str = None,
     levels: str = None,
+    reverse: Optional[str] = None,
     overwrite: bool = False,
     ignore: Optional[str] = None,
     select: Optional[str] = None,
@@ -198,6 +203,7 @@ def inspect_all_cli(
 ):
     """Primary CLI usage of the NWBInspector."""
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     if config is not None:
         config = load_config(filepath_or_keyword=config)
     messages = list(
@@ -220,7 +226,7 @@ def inspect_all_cli(
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     if len(messages):
-        formatted_messages = format_messages(messages=messages, levels=levels, detailed=detailed)
+        formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
         print_to_console(formatted_messages=formatted_messages, no_color=no_color)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)

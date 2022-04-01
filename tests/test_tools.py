@@ -75,14 +75,15 @@ class TestOrganization(TestCase):
         ]
 
     def test_message_level_assertion(self):
-        with self.assertRaisesWith(
-            exc_type=AssertionError,
-            exc_msg=(
-                "You must specify levels to organize by that correspond to attributes of the InspectorMessage class, "
-                "not including the text message."
-            ),
-        ):
-            organize_messages(messages=self.messages, levels=["message"])
+        for level in ["message", "object_name", "severity"]:
+            with self.assertRaisesWith(
+                exc_type=AssertionError,
+                exc_msg=(
+                    "You must specify levels to organize by that correspond to attributes of the InspectorMessage "
+                    "class, excluding the text message, object_name, and severity."
+                ),
+            ):
+                organize_messages(messages=self.messages, levels=[level])
 
     def test_file_by_importance(self):
         test_result = organize_messages(messages=self.messages, levels=["file_path", "importance"])
@@ -138,130 +139,6 @@ class TestOrganization(TestCase):
                         object_name="ts1",
                         location="/processing/ecephys/LFP/",
                         file_path="path2/path3/file3.nwb",
-                    )
-                ]
-            },
-        }
-        self.assertDictEqual(d1=test_result, d2=true_result)
-
-    def test_severity_by_object_type_by_location(self):
-        test_result = organize_messages(messages=self.messages, levels=["severity", "object_type", "location"])
-        true_result = {
-            Severity.HIGH: {
-                "NWBFile": {
-                    "/": [
-                        InspectorMessage(
-                            message="test3",
-                            importance=Importance.BEST_PRACTICE_SUGGESTION,
-                            severity=Severity.HIGH,
-                            check_function_name="fun3",
-                            object_type="NWBFile",
-                            object_name="root",
-                            location="/",
-                            file_path="path2/file2.nwb",
-                        )
-                    ]
-                }
-            },
-            Severity.LOW: {
-                "DynamicTable": {
-                    "/acquisition/": [
-                        InspectorMessage(
-                            message="test2",
-                            importance=Importance.CRITICAL,
-                            severity=Severity.LOW,
-                            check_function_name="fun2",
-                            object_type="DynamicTable",
-                            object_name="tab",
-                            location="/acquisition/",
-                            file_path="path1/file1.nwb",
-                        )
-                    ]
-                },
-                "ElectricalSeries": {
-                    "/acquisition/": [
-                        InspectorMessage(
-                            message="test1",
-                            importance=Importance.BEST_PRACTICE_SUGGESTION,
-                            severity=Severity.LOW,
-                            check_function_name="fun1",
-                            object_type="ElectricalSeries",
-                            object_name="ts1",
-                            location="/acquisition/",
-                            file_path="path1/file1.nwb",
-                        )
-                    ],
-                    "/processing/ecephys/LFP/": [
-                        InspectorMessage(
-                            message="test4",
-                            importance=Importance.CRITICAL,
-                            severity=Severity.LOW,
-                            check_function_name="fun2",
-                            object_type="ElectricalSeries",
-                            object_name="ts1",
-                            location="/processing/ecephys/LFP/",
-                            file_path="path2/path3/file3.nwb",
-                        )
-                    ],
-                },
-            },
-        }
-        self.assertDictEqual(d1=test_result, d2=true_result)
-
-    def test_check_function_name_by_object_name(self):
-        test_result = organize_messages(messages=self.messages, levels=["check_function_name", "object_name"])
-        true_result = {
-            "fun1": {
-                "ts1": [
-                    InspectorMessage(
-                        message="test1",
-                        importance=Importance.BEST_PRACTICE_SUGGESTION,
-                        severity=Severity.LOW,
-                        check_function_name="fun1",
-                        object_type="ElectricalSeries",
-                        object_name="ts1",
-                        location="/acquisition/",
-                        file_path="path1/file1.nwb",
-                    )
-                ]
-            },
-            "fun2": {
-                "tab": [
-                    InspectorMessage(
-                        message="test2",
-                        importance=Importance.CRITICAL,
-                        severity=Severity.LOW,
-                        check_function_name="fun2",
-                        object_type="DynamicTable",
-                        object_name="tab",
-                        location="/acquisition/",
-                        file_path="path1/file1.nwb",
-                    )
-                ],
-                "ts1": [
-                    InspectorMessage(
-                        message="test4",
-                        importance=Importance.CRITICAL,
-                        severity=Severity.LOW,
-                        check_function_name="fun2",
-                        object_type="ElectricalSeries",
-                        object_name="ts1",
-                        location="/processing/ecephys/LFP/",
-                        file_path="path2/path3/file3.nwb",
-                    )
-                ],
-            },
-            "fun3": {
-                "root": [
-                    InspectorMessage(
-                        message="test3",
-                        importance=Importance.BEST_PRACTICE_SUGGESTION,
-                        severity=Severity.HIGH,
-                        check_function_name="fun3",
-                        object_type="NWBFile",
-                        object_name="root",
-                        location="/",
-                        file_path="path2/file2.nwb",
                     )
                 ]
             },

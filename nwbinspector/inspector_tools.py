@@ -79,22 +79,37 @@ def organize_messages(messages: List[InspectorMessage], levels: List[str], rever
         }
 
 
-@dataclass
 class FormatterOptions:
-    """
-    Class that defines all the format paramters used by the generic MessageFormatter.
+    """Class structure for defining all free attributes for the design of a report format."""
 
-    Parameters
-    ----------
-    indent_size : int, optional
-        Defines the spacing between numerical sectioning and section name or message.
-        Defaults to 2 spaces.
-    """
+    def __init__(
+        self,
+        indent_size: int = 2,
+        indent: Optional[str] = None,
+        section_headers: List[str] = ["=", "-", "~"],
+    ):
+        # TODO
+        # Future custom options could include section break sizes, section-specific indents, etc.
+        """
+        Class that defines all the format paramters used by the generic MessageFormatter.
 
-    indent_size: int = 2
-    indent: str = " " * indent_size
-    # TODO
-    # Future custom options could include section break sizes, control over header characters, section-specific indents
+        Parameters
+        ----------
+        indent_size : int, optional
+            Defines the spacing between numerical sectioning and section name or message.
+            Defaults to 2 spaces.
+        indent : str, optional
+            Defines the specific indentation to inject between numerical sectioning and section name or message.
+            Overrides indent_size.
+            Defaults to " " * indent_size.
+        section_headers : list of strings, optional
+            List of characters that will be injected under the display of each new section of the report.
+            If levels is longer than this list, the last item will be repeated over the remaining levels.
+            If levels is shorter than this list, only the first len(levels) of items will be used.
+            Defaults to the .rst style for three sub-sections: ["=", "-", "~"]
+        """
+        self.indent = indent if indent is not None else " " * indent_size
+        self.section_headers = section_headers
 
 
 class MessageFormatter:
@@ -111,7 +126,7 @@ class MessageFormatter:
         self.nmessages = len(messages)
         self.nfiles = len(set(message.file_path for message in messages))
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
-        self.initial_organized_messages = organize_messages(messages=messages, levels=levels)
+        self.initial_organized_messages = organize_messages(messages=messages, levels=levels, reverse=reverse)
         self.detailed = detailed
         self.levels = levels
         self.nlevels = len(levels)
@@ -127,6 +142,9 @@ class MessageFormatter:
                 formatter_options, FormatterOptions
             ), "'formatter_options' is not an instance of FormatterOptions!"
             self.formatter_options = formatter_options
+        self.formatter_options.section_headers.extend(
+            [self.formatter_options.section_headers[-1]] * (self.nlevels - len(self.formatter_options.section_headers))
+        )
         self.message_counter = 0
         self.formatted_messages = []
 
@@ -178,7 +196,9 @@ class MessageFormatter:
                 increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{self.formatter_options.indent}"
                 section_name = f"{increment}{self._get_name(obj=key)}"
                 self.formatted_messages.append(section_name)
-                self.formatted_messages.extend(["-" * len(section_name), ""])
+                self.formatted_messages.extend(
+                    [f"{self.formatter_options.section_headers[len(this_level_counter) - 1]}" * len(section_name), ""]
+                )
                 self._add_subsection(organized_messages=val, levels=levels[1:], level_counter=this_level_counter)
         else:  # Final section, display message information
             if levels[0] == "file_path" and not self.detailed:
