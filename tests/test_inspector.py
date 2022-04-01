@@ -131,7 +131,7 @@ class TestInspector(TestCase):
                         str_loc = test_line.find(".nwb")
                         correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")
                         test_file_lines[line_number] = correction_str
-                self.assertEqual(first=test_file_lines[skip_first_n_lines:], second=true_file_lines)
+                self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
     def test_inspect_all(self):
         test_results = list(inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks]))
