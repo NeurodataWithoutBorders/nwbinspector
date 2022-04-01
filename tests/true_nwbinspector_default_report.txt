@@ -32,4 +32,3 @@ Found 5 issues over 2 files:
 
 2.3  ./testing0.nwb and 1 other file: check_small_dataset_compression - 'TimeSeries' object named 'test_time_series_1' - located in '/acquisition/'
        Message: data is not compressed. Consider enabling compression when writing a dataset.
-
