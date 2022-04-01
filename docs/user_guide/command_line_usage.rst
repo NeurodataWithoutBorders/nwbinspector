@@ -33,7 +33,7 @@ For example,
 ::
 
     insert example
-    
+
 however, the NWBInspector supports more general organization as defined by the `--levels` flag. To use this flag,
 you must pass a series a comma-separated words that correspond to any attributes of the
 :py:class:`~nwbinspector.register_check.InspectorMessage` in any order.
