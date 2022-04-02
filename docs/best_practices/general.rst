@@ -59,7 +59,7 @@ It is OK to name an object something like ``ElectricalSeriesFromProbe1``, howeve
 documentation of the signal source. In this case, the source of the signal will be clear from the
 :nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
 the full :nwb-schema:ref:`electrodes table <groups-general-extracellular-ephys-electrodes>`, so you would not need to
-add any explicit metadata explaining these details. 
+add any explicit metadata explaining these details.
 
 Slash characters ``'/'`` and ``'\'``  should not be used in the ``name`` of an object, because they can be
 confusing to systems that parse HDF5 files (which NWB uses as the primary backend, see the
