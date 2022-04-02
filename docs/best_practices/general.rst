@@ -58,7 +58,7 @@ official ontologies where appropriate.
 It is OK to name an object something like ``ElectricalSeriesDuringSomeEvent``, however the name alone is not sufficient
 documentation of the signal source. In this case, the source of the signal will be clear from the
 :nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
-the full :nwb-schema:ref:`ElectrodeTable <groups-general-extracellular-ephys-electrodes>`, so you would not need to
+the full :nwb-schema:ref:`electrodes table <groups-general-extracellular-ephys-electrodes>`, so you would not need to
 add any explicit metadata explaining these details. Likewise, the event itself would be specified as an independent
 component to the experiment stored under ``acquisition``, the :nwb-schema:ref:`trials <groups-intervals-trials>` or :nwb-schema:ref:`epochs <roups-intervals-epochs>` intervals, ``processing/behavior``
 (see :ref:`best_practice_processing_module_names` for more details), or using an extension such as
