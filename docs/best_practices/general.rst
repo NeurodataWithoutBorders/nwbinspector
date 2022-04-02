@@ -55,7 +55,7 @@ The ``name`` of an object is for identifying that object within the file; it is 
 metadata, be as explicit and self-contained as possible in explaining relevant details. Use
 official ontologies where appropriate.
 
-It is OK to name an object something like ``ElectricalSeriesDuringSomeEvent``, however the name alone is not sufficient
+It is OK to name an object something like ``ElectricalSeriesFromProbe1``, however the name alone is not sufficient
 documentation of the signal source. In this case, the source of the signal will be clear from the
 :nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
 the full :nwb-schema:ref:`electrodes table <groups-general-extracellular-ephys-electrodes>`, so you would not need to
