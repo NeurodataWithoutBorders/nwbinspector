@@ -11,6 +11,7 @@ from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings
+from distutils.util import strtobool
 
 import click
 import pynwb
@@ -18,8 +19,8 @@ import yaml
 
 from . import available_checks
 from .inspector_tools import (
-    organize_messages,
-    format_organized_results_output,
+    get_report_header,
+    format_messages,
     print_to_console,
     save_report,
 )
@@ -156,6 +157,10 @@ def configure_checks(
     type=click.Path(writable=True),
 )
 @click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
+@click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
+@click.option(
+    "--reverse", help="Comma-separated booleans corresponding to reversing the order for each value of 'levels'."
+)
 @click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
 @click.option("-s", "--select", help="Comma-separated names of checks to run.")
 @click.option(
@@ -171,11 +176,21 @@ def configure_checks(
 @click.option("-j", "--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 @click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
+@click.option(
+    "--detailed",
+    help=(
+        "If file_path is the last of 'levels' (the default), identical checks will be aggregated in the display. "
+        "Use '--detailed' to see the complete report."
+    ),
+    is_flag=True,
+)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
     no_color: bool = False,
     report_file_path: str = None,
+    levels: str = None,
+    reverse: Optional[str] = None,
     overwrite: bool = False,
     ignore: Optional[str] = None,
     select: Optional[str] = None,
@@ -184,31 +199,37 @@ def inspect_all_cli(
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    detailed: bool = False,
 ):
     """Primary CLI usage of the NWBInspector."""
+    levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     if config is not None:
         config = load_config(filepath_or_keyword=config)
     messages = list(
         inspect_all(
             path=path,
             modules=modules,
-            config=config,
             ignore=ignore if ignore is None else ignore.split(","),
             select=select if select is None else select.split(","),
             importance_threshold=Importance[threshold],
+            config=config,
             n_jobs=n_jobs,
             skip_validate=skip_validate,
         )
     )
     if json_file_path is not None:
+        if Path(json_file_path).exists() and not overwrite:
+            raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
         with open(file=json_file_path, mode="w") as fp:
-            json.dump(obj=messages, fp=fp, cls=InspectorOutputJSONEncoder)
+            json_report = dict(header=get_report_header(), messages=messages)
+            json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
+            print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     if len(messages):
-        organized_results = organize_messages(messages=messages, levels=["file_path", "importance"])
-        formatted_results = format_organized_results_output(organized_results=organized_results)
-        print_to_console(formatted_results=formatted_results, no_color=no_color)
+        formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
+        print_to_console(formatted_messages=formatted_messages, no_color=no_color)
         if report_file_path is not None:
-            save_report(report_file_path=report_file_path, formatted_results=formatted_results, overwrite=overwrite)
+            save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
             print(f"{os.linesep*2}Report saved to {str(Path(report_file_path).absolute())}!{os.linesep}")
 
 
@@ -271,7 +292,6 @@ def inspect_all(
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
-
     if n_jobs != 1:
 
         # max_workers for threading is a different concept to number of processes; from the documentation
@@ -343,6 +363,7 @@ def inspect_nwb(
         )
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
+    filterwarnings(action="ignore", message="Ignoring cached namespace .*")
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         if skip_validate:
             validation_errors = pynwb.validate(io=io)

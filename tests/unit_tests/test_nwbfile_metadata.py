@@ -204,7 +204,7 @@ def test_check_subject_sex():
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
-        location="",
+        location="/general/subject",
     )
 
 
@@ -217,7 +217,7 @@ def test_check_subject_sex_other_value():
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
@@ -229,7 +229,7 @@ def test_check_subject_age_missing():
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
@@ -241,7 +241,7 @@ def test_check_subject_species():
         check_function_name="check_subject_species",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
@@ -254,7 +254,7 @@ def test_check_subject_age_iso8601():
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
@@ -272,7 +272,7 @@ def test_check_subject_species_not_iso8601():
         check_function_name="check_subject_species",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
@@ -306,7 +306,7 @@ def test_check_subject_id_exists():
         check_function_name="check_subject_id_exists",
         object_type="Subject",
         object_name="subject",
-        location="/",
+        location="/general/subject",
     )
 
 
