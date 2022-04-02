@@ -143,7 +143,7 @@ class TestInspector(TestCase):
                 check_function_name="check_small_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_1",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -156,7 +156,7 @@ class TestInspector(TestCase):
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_2",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -169,7 +169,7 @@ class TestInspector(TestCase):
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/processing/behavior/Position/",
+                location="/processing/behavior/Position/my_spatial_series",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -179,7 +179,7 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_3",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -192,7 +192,7 @@ class TestInspector(TestCase):
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_2",
                 file_path=self.nwbfile_paths[1],
             ),
         ]
@@ -210,7 +210,7 @@ class TestInspector(TestCase):
                     check_function_name="check_small_dataset_compression",
                     object_type="TimeSeries",
                     object_name="test_time_series_1",
-                    location="/acquisition/",
+                    location="/acquisition/test_time_series_1",
                     file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
@@ -223,7 +223,7 @@ class TestInspector(TestCase):
                     check_function_name="check_regular_timestamps",
                     object_type="TimeSeries",
                     object_name="test_time_series_2",
-                    location="/acquisition/",
+                    location="/acquisition/test_time_series_2",
                     file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
@@ -236,7 +236,7 @@ class TestInspector(TestCase):
                     check_function_name="check_data_orientation",
                     object_type="SpatialSeries",
                     object_name="my_spatial_series",
-                    location="/processing/behavior/Position/",
+                    location="/processing/behavior/Position/my_spatial_series",
                     file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
@@ -246,7 +246,7 @@ class TestInspector(TestCase):
                     check_function_name="check_timestamps_match_first_dimension",
                     object_type="TimeSeries",
                     object_name="test_time_series_3",
-                    location="/acquisition/",
+                    location="/acquisition/test_time_series_3",
                     file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
@@ -259,7 +259,7 @@ class TestInspector(TestCase):
                     check_function_name="check_regular_timestamps",
                     object_type="TimeSeries",
                     object_name="test_time_series_2",
-                    location="/acquisition/",
+                    location="/acquisition/test_time_series_2",
                     file_path=self.nwbfile_paths[1],
                 ),
             ]
@@ -275,7 +275,7 @@ class TestInspector(TestCase):
                 check_function_name="check_small_dataset_compression",
                 object_type="TimeSeries",
                 object_name="test_time_series_1",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_1",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -288,7 +288,7 @@ class TestInspector(TestCase):
                 check_function_name="check_regular_timestamps",
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_2",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -300,7 +300,7 @@ class TestInspector(TestCase):
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/processing/behavior/Position/",
+                location="/processing/behavior/Position/my_spatial_series",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -309,7 +309,7 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_3",
                 file_path=self.nwbfile_paths[0],
             ),
         ]
@@ -331,7 +331,7 @@ class TestInspector(TestCase):
                 check_function_name="check_data_orientation",
                 object_type="SpatialSeries",
                 object_name="my_spatial_series",
-                location="/processing/behavior/Position/",
+                location="/processing/behavior/Position/my_spatial_series",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -340,7 +340,7 @@ class TestInspector(TestCase):
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
                 object_name="test_time_series_3",
-                location="/acquisition/",
+                location="/acquisition/test_time_series_3",
                 file_path=self.nwbfile_paths[0],
             ),
         ]
@@ -447,7 +447,7 @@ class TestInspector(TestCase):
             check_function_name="check_small_dataset_compression",
             object_type="TimeSeries",
             object_name="test_time_series_1",
-            location="/acquisition/",
+            location="/acquisition/test_time_series_1",
             file_path=self.nwbfile_paths[0],
         )
         self.assertEqual(message, true_result)

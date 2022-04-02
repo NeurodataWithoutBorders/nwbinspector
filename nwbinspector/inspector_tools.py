@@ -4,7 +4,6 @@ import sys
 from typing import Dict, List, Optional, Union
 from pathlib import Path
 from enum import Enum
-from dataclasses import dataclass
 from datetime import datetime
 from platform import platform
 from collections import defaultdict
@@ -171,9 +170,11 @@ class MessageFormatter:
         if "importance" in self.free_levels:
             message_header += f"Importance level '{message.importance.name}' - "
         if any((x in self.free_levels for x in ["object_type", "object_name"])):
-            message_header += f"'{message.object_type}' object named '{message.object_name}' - "
+            message_header += f"'{message.object_type}' object "
         if "location" in self.free_levels and message.location:
-            message_header += f"located in '{message.location}'"
+            message_header += f"at location '{message.location}'"
+        else:
+            message_header += f"with name '{message.object_name}'"
         return message_header
 
     def _get_message_increment(self, level_counter: List[int]):

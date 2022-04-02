@@ -10,13 +10,6 @@ from pynwb import NWBFile
 from pynwb.file import Subject
 from pynwb.ecephys import Device, ElectrodeGroup
 
-KNOWN_LOCATIONS = {
-    NWBFile: "/",
-    Subject: "/subject",
-    Device: "/general/devices",
-    ElectrodeGroup: "/general/extracellular_ephys/",
-    # TODO: add ophys equivalents
-}
 
 
 class Importance(Enum):
@@ -79,11 +72,11 @@ class InspectorMessage:
     message: str
     importance: Importance = Importance.BEST_PRACTICE_SUGGESTION
     severity: Severity = Severity.LOW
-    check_function_name: str = ""
-    object_type: str = ""
-    object_name: str = ""
+    check_function_name: str = None
+    object_type: str = None
+    object_name: str = None
     location: Optional[str] = None
-    file_path: str = ""
+    file_path: str = None
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
@@ -166,14 +159,26 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
 
 
 def parse_location(neurodata_object) -> Optional[str]:
+
+    known_locations = {
+        NWBFile: "/",
+        Subject: "/general/subject",
+        Device: f"/general/devices/{neurodata_object.name}",
+        ElectrodeGroup: f"/general/extracellular_ephys/{neurodata_object.name}",
+        # TODO: add ophys equivalents
+    }
+
+    for key, val in known_locations.items():
+        if isinstance(neurodata_object, key):
+            return val
+
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
     # Best solution: object is or has a HDF5 Dataset
     if isinstance(neurodata_object, h5py.Dataset):
-        return "/".join(neurodata_object.parent.name.split("/")[:-1]) + "/"
+        return neurodata_object.name
     else:
         for field in neurodata_object.fields.values():
             if isinstance(field, h5py.Dataset):
-                return "/".join(field.parent.name.split("/")[:-1]) + "/"
-    return KNOWN_LOCATIONS.get(type(neurodata_object))
+                return field.parent.name
