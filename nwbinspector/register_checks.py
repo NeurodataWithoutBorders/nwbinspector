@@ -11,7 +11,6 @@ from pynwb.file import Subject
 from pynwb.ecephys import Device, ElectrodeGroup
 
 
-
 class Importance(Enum):
     """A definition of the valid importance levels for a given check function."""
 
