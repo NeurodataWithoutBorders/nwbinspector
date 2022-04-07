@@ -216,7 +216,8 @@ class MessageFormatter:
                     increment = self._get_message_increment(level_counter=this_level_counter)
                     message_header = self._get_message_header(message=message)
                     num_same = len(same_messages)
-                    additional_file_str = "and {num_same-1} other files" if num_same > 1 else ""
+                    file_or_files = "s" if num_same > 2 else ""
+                    additional_file_str = f"and {num_same-1} other file{file_or_files}" if num_same > 1 else ""
                     self.formatted_messages.append(
                         f"{increment}{message.file_path}{additional_file_str}: " f"{message_header.rstrip(' - ')}"
                     )
