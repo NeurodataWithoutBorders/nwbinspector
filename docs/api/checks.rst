@@ -31,3 +31,7 @@ Extracellular Electrophysiology (ecephys)
 Optical Electrophysiology (ophys)
 ---------------------------------
 .. automodule:: nwbinspector.checks.ophys
+
+Optogenetics (ogen)
+-------------------
+.. automodule:: nwbinspector.checks.ogen
