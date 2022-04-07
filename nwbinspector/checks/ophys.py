@@ -1,4 +1,4 @@
-# """Authors: Cody Baker, Ben Dichter, and Ryan Ly."""
+"""Check functions specific to optical electrophysiology neurodata types."""
 from pynwb.ophys import RoiResponseSeries, PlaneSegmentation
 
 from hdmf.utils import get_data_shape
@@ -8,6 +8,7 @@ from ..register_checks import register_check, Importance, InspectorMessage
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=RoiResponseSeries)
 def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
+    """Check the dimensions of an ROI series to ensure the time axis is the correct dimension."""
     data = roi_response_series.data
     rois = roi_response_series.rois
 
@@ -26,6 +27,7 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=RoiResponseSeries)
 def check_roi_response_series_link_to_plane_segmentation(roi_response_series: RoiResponseSeries):
+    """Check that each ROI response series links to a plane segmentation."""
     if not isinstance(roi_response_series.rois.table, PlaneSegmentation):
         return InspectorMessage(message="rois field does not point to a PlaneSegmentation table.")
 
