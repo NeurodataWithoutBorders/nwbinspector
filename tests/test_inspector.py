@@ -75,6 +75,7 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
+        # cls.tempdir = Path("E:/test_inspector/output2")
         cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
