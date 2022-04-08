@@ -1,5 +1,6 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 from numbers import Real
+from typing import List
 
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
@@ -134,8 +135,15 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_single_row(table: DynamicTable):
-    """Check if DynamicTable has only a single row; may be better represented by another data type."""
+def check_single_row(table: DynamicTable, exclude_names: List[str] = ["Units", "electrodes"]):
+    """
+    Check if DynamicTable has only a single row; may be better represented by another data type.
+
+    Skips the Units table since it is OK to have only a single spiking unit.
+    Skips the Electrode table since it is OK to have only a single electrode.
+    """
+    if any((table.name == exclude_name for exclude_name in exclude_names)):
+        return
     if len(table.id) == 1:
         return InspectorMessage(
             message="This table has only a single row; it may be better represented by another data type."
