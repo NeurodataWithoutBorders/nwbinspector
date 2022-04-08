@@ -314,7 +314,7 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles:
-            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
                 yield message
 
 
