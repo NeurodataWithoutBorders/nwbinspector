@@ -308,7 +308,7 @@ def inspect_all(
         with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
             futures = []
             for nwbfile_path in nwbfiles:
-                futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
+                futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks, driver=driver))
             for future in as_completed(futures):
                 for message in future.result():
                     yield message
