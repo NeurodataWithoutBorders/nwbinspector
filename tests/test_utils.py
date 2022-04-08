@@ -41,6 +41,11 @@ def test_is_dict_in_string_false_3():
     assert is_dict_in_string(string=string) is False
 
 
+def test_is_dict_in_string_false_4():
+    string = "not a dict, {but: it sure looks like one}!"
+    assert is_dict_in_string(string=string) is False
+
+
 def test_is_dict_in_string_true_1():
     string = str(dict(a=1))
     assert is_dict_in_string(string=string) is True
