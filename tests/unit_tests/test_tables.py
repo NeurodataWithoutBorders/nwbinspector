@@ -233,6 +233,37 @@ def test_check_single_row_fail():
     )
 
 
+def check_table_values_for_dict_non_str():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=123)
+    assert check_table_values_for_dict(table=table) is None
+
+
+def check_table_values_for_dict_pass():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column="123")
+    assert check_table_values_for_dict(table=table) is None
+
+
+def check_table_values_for_dict():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=str(dict(a=1)))
+    assert check_table_values_for_dict(table=table) == InspectorMessage(
+        message=(
+            "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
+            "dictionaries as additional rows or columns of the table."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_table_values_for_dict",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+    )
+
+
 @pytest.mark.skip(reason="TODO")
 def test_check_column_data_is_not_none():
     pass

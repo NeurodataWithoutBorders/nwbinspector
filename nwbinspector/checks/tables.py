@@ -7,7 +7,7 @@ from hdmf.utils import get_data_shape
 from pynwb.file import TimeIntervals
 
 from ..register_checks import register_check, InspectorMessage, Importance
-from ..utils import format_byte_size, is_ascending_series
+from ..utils import format_byte_size, is_ascending_series, is_dict_in_string
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -140,6 +140,22 @@ def check_single_row(table: DynamicTable):
         return InspectorMessage(
             message="This table has only a single row; it may be better represented by another data type."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
+    """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
+    for column in table.columns:
+        if hasattr(column, "data") and not isinstance(column, VectorIndex):
+            if not isinstance(column.data[0], str):
+                continue
+            if any((is_dict_in_string(string=string) for string in column.data[:nelems])):
+                return InspectorMessage(
+                    message=(
+                        f"The column '{column}' contains a string value that contains a dictionary! Please unpack "
+                        "dictionaries as additional rows or columns of the table."
+                    )
+                )
 
 
 # @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
