@@ -41,7 +41,8 @@ def get_s3_urls(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int 
     else:
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
-            with ProcessPoolExecutor(max_workers=n_jobs) as executor:
+            max_workers = n_jobs if n_jobs > 0 else None
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 futures = []
                 for asset in dandiset.get_assets():
                     futures.append(executor.submit(asset.get_content_url, follow_redirects=1, strip_query=True))
