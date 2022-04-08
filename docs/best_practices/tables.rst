@@ -78,14 +78,14 @@ Timing Columns
 
 Times are always stored in seconds in NWB. This rule applies to times in :nwb-schema:ref:`sec-TimeSeries`,
 :nwb-schema:ref:`sec-TimeIntervals` and across NWB in general. *E.g.*, in :nwb-schema:ref:`sec-TimeIntervals`
-objects such as the :nwb-schema:ref:`TrialsTable <sec-groups-intervals-trials>` and
+objects such as the :nwb-schema:ref:`Trials <sec-groups-intervals-trials>` and
 :nwb-schema:ref:`EpochTable <epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the
 ``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile` (which by default is the
 ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
 
 Additional time columns in :nwb-schema:ref:`sec-TimeIntervals` tables, such as the
-:nwb-schema:ref:`TrialsTable <sec-groups-intervals-trials>` should have ``_time`` appended as a suffix to the name.
-*E.g.*, if you add more times in the :nwb-schema:ref:`TrialsTable <sec-groups-intervals-trials>`, such as a subject
+:nwb-schema:ref:`Trials <sec-groups-intervals-trials>` should have ``_time`` appended as a suffix to the name.
+*E.g.*, if you add more times in the :nwb-schema:ref:`Trials <sec-groups-intervals-trials>`, such as a subject
 response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time``
 of the :nwb-schema:ref:`sec-NWBFile`, just like ``start_time`` and ``stop_time``.
 This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events.
