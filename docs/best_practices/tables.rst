@@ -1,7 +1,7 @@
 Tables
 ======
 
-The :nwb-schema:ref:`dynamictable` data type that NWB uses allows you to define custom columns, which offer a high
+The :nwb-schema:ref:`dynamictable` data type allows you to define custom columns, which offer a high
 degree of flexibility.
 
 
