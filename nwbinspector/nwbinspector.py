@@ -25,7 +25,8 @@ from .inspector_tools import (
     save_report,
 )
 from .register_checks import InspectorMessage, Importance
-from .utils import FilePathType, PathType, OptionalListOfStrings
+from .tools import get_s3_urls
+from .utils import FilePathType, PathType, OptionalListOfStrings, get_thread_max_workers
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -241,6 +242,8 @@ def inspect_all(
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
+    driver: Optional[str] = None,
+    dandiset_version_id: Optional[str] = None,
     skip_validate: bool = False,
 ):
     """
@@ -274,34 +277,35 @@ def inspect_all(
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
         Set to 1 (also the default) to disable.
-    skip_validate : bool
+    driver : str, optional
+        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    dandiset_version_id : str, optional
+        If using driver='ros3' and path is a valid DANDISet ID, this option specifies which version of the dataset
+        to read from.
+        Common options are 'draft' or 'published'.
+        Defaults to the most recent published version, or if not published then the most recent draft version.
+    skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
     """
     modules = modules or []
-    path = Path(path)
 
-    in_path = Path(path)
-    if in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb"))
-    elif in_path.is_file():
-        nwbfiles = [in_path]
+    if driver == "ros3":
+        nwbfiles = get_s3_urls(dandiset_id=path, version_id=dandiset_version_id, n_jobs=n_jobs)
     else:
-        raise ValueError(f"{in_path} should be a directory or an NWB file.")
+        in_path = Path(path)
+        if in_path.is_dir():
+            nwbfiles = list(in_path.rglob("*.nwb"))
+        elif in_path.is_file():
+            nwbfiles = [in_path]
+        else:
+            raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
     if n_jobs != 1:
-
-        # max_workers for threading is a different concept to number of processes; from the documentation
-        # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
-        # we can multiply the specified number of jobs by 5
-        if n_jobs != -1:
-            max_workers = n_jobs * 5
-        else:
-            max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
             futures = []
             for nwbfile_path in nwbfiles:
                 futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))

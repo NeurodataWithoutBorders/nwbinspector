@@ -46,3 +46,25 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 
 def is_ascending_series(series: np.ndarray, nelems=None):
     return np.all(np.diff(series[:nelems]) > 0)
+
+
+def get_thread_max_workers(n_jobs: int = 1, workers_per_thread: int = 5):
+    """
+    Auxilliary function for determining the number of workers when using multithreading.
+
+    max_workers for threading is a different concept to number of processes; from the documentation
+    https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
+    we can multiply the specified number of jobs by 5 by default.
+
+    Parameters
+    ----------
+    n_jobs : int, optional
+        Number of jobs to use in parallel.
+    workers_per_thread : int, optional
+        Number of threads to assign to each worker.
+    """
+    if n_jobs != -1:
+        max_workers = n_jobs * workers_per_thread
+    else:
+        max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
+    return max_workers
