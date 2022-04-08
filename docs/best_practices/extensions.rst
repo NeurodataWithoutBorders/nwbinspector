@@ -32,7 +32,7 @@ Provide Documentation
 ~~~~~~~~~~~~~~~~~~~~~
 
 When creating extensions be sure to provide thorough, meaningful documentation as part of the extension specification.
-Be sure to explain all fields (groups, datasets, attributes, links etc.) and describe what they store and how they
+Explain all fields (groups, datasets, attributes, links etc.) and describe what they store and how they
 should be used.
 
 
