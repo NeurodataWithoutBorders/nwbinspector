@@ -1,7 +1,7 @@
 Extensions
 ==========
 
-Extend existing NWBFile structures only when absolutely necessary. Extensions are an essential mechanism to integrate
+Extend existing NWBFile structures only when necessary. Extensions are an essential mechanism to integrate
 data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
 with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
 to use and learn already-created extensions.
@@ -14,14 +14,15 @@ help avoid the need for custom extensions in many cases.
 If an extension is ultimately required, tutorials for the process may be found through the
 :nwb-overview:`NWB Overview for Extensions <extensions_tutorial/extensions_tutorial_home.html>`.
 
-It is also encouraged for extensions to contain their own check functions for their own best practices. See the NWBInspector Developer instructions for how to do this.  # TODO find link for that
+It is also encouraged for extensions to contain their own check functions for their own best practices.
+See the` :ref:`adding_custom_checks` section of the Developer Guide for how to do this.
 
 
 
 Use Existing Neurodata Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When possible, use existing types when creating extensions either by creating new neurodata_types that inherit from
+When possible, use existing types when creating extensions either by creating new ``neurodata_types`` that inherit from
 existing ones, or by creating ``neurodata_types`` that contain existing ones. Building on existing types facilitates the
 reuse of existing functionality and interpretation of the data. If a community extension already exists that has a
 similar scope, it is preferable to use that extension rather than creating a new one.
@@ -40,10 +41,10 @@ should be used.
 Write the Specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using pynwb, you can store the specification (core and extension) within the NWBFile through caching. Caching the specification is
-preferable, particularly if you are using a custom extension, because this ensures that anybody who receives the data
-also receives the necessary data to interpret it.
+When using :pynwb-docs:`PyNWB`, you can store the specification (core and extension) within the NWBFile through caching.
+Caching the specification is preferable, particularly if you are using a custom extension, because this ensures that
+anybody who receives the data also receives the necessary data to interpret it.
 
 .. note::
-    In PyNWB, the extension is cached automatically. This can be specified explicitly with ``io.write(filepath,
-    cache_spec=True)``
+    In :pynwb-docs:`PyNWB`, the extension is cached automatically. This can be specified explicitly with
+    ``io.write(filepath, cache_spec=True)``
