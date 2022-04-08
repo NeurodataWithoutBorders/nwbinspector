@@ -60,5 +60,4 @@ intersphinx_mapping = {
     "nwb-schema": ("https://nwb-schema.readthedocs.io/en/latest/", None),
     # "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     # "nct": ("https://nwb-conversion-tools.readthedocs.io/", None),
-    "nwb-schema": ("https://nwb-schema.readthedocs.io/en/latest/", None),
 }
