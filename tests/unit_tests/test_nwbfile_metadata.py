@@ -261,7 +261,7 @@ def test_check_subject_species_exists_missing():
     subject = Subject(subject_id="001")
     assert check_subject_species_exists(subject) == InspectorMessage(
         message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_exists",
         object_type="Subject",
         object_name="subject",
