@@ -30,7 +30,7 @@ your check function with the :py:class:`~nwbinspector.register_checks.register_c
     @register_check(importance=Importance.SOME_IMPORTANCE_LEVEL, neurodata_type=some_neurodata_type)
     def check_personal_practice(...):
         ...
-        
+
 Then, all that is needed for this to be automatically included when you run the inspector through the CLI is to specify
 the modules flag ``-m`` or ``--modules`` along with the name of your module that contains the custom check. If using
 the library instead, you need only import the ``available_checks`` global variable from your own submodules, or
