@@ -126,7 +126,7 @@ def check_subject_species_exists(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
-def check_subject_species(subject: Subject):
+def check_subject_species_latin_binomial(subject: Subject):
     """Check if the subject species follows latin binomial form."""
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
