@@ -119,11 +119,16 @@ def check_subject_sex(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
-def check_subject_species(subject: Subject):
-    """Check if the subject species has been specified and follows latin binomial form."""
+def check_subject_species_exists(subject: Subject):
+    """Check if the subject species has been specified."""
     if not subject.species:
         return InspectorMessage(message="Subject species is missing.")
-    if not re.fullmatch(species_regex, subject.species):
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
+def check_subject_species(subject: Subject):
+    """Check if the subject species follows latin binomial form."""
+    if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
             message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         )
