@@ -38,7 +38,38 @@ Use boolean values where appropriate. Although boolean values (``True``/``False`
 they are a supported data type, and we encourage the use of :nwb-schema:ref:`dynamictable` columns with boolean
 values. For instance, boolean values would be appropriate for a correct custom column to the trials table.
 
+It is also encouraged practice for boolean columns to be named ``is_condition`` where ``condition`` is whatever the
+positive state of the variable is.
+
+The reason for this practice is two-fold:
+
+(i) It allows for easier user comprehension of the information by intuitively restricting the range of possible values
+for the column; a user would otherwise have to extract all the values and calculate the unique set to see that there
+are only two values.
+
+(ii) For large amounts of data, it also saves storage space for the data within the HDF5 file by using the minimal
+number of bytes per item. This can be especially importance if the repeated values are long strings or float casts of
+``1`` and ``0`` (which can take 8 times as much space per item).
+
+An example of a violation of this practice would be for a column of strings with the following values everywhere;
+
+.. code-block:: python
+
+    hit_or_miss_col = ["Hit", "Miss", "Miss", "Hit", ...]
+
+and so on. This should instead become...
+
+.. code-block:: python
+
+    is_hit = [True, False, False, True, ...]
+
+
 Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capability`
+
+.. note::
+
+    If the two unique values in your column are ``float`` types that differ from ``1`` and ``0``, the reported values
+    are to be considered as additional contextual information for the column, and this practice does not apply.
 
 
 

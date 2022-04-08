@@ -41,10 +41,10 @@ should be used.
 Write the Specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When using :pynwb-docs:`PyNWB`, you can store the specification (core and extension) within the NWBFile through caching.
+When using :pynwb-docs:`PyNWB <>`, you can store the specification (core and extension) within the NWBFile through caching.
 Caching the specification is preferable, particularly if you are using a custom extension, because this ensures that
 anybody who receives the data also receives the necessary data to interpret it.
 
 .. note::
-    In :pynwb-docs:`PyNWB`, the extension is cached automatically. This can be specified explicitly with
+    In :pynwb-docs:`PyNWB <>`, the extension is cached automatically. This can be specified explicitly with
     ``io.write(filepath, cache_spec=True)``
