@@ -57,4 +57,5 @@ Additional time columns in :nwb-schema:ref:`sec-TimeIntervals` tables, such as t
 *E.g.*, if you add more times in the :nwb-schema:ref:`TrialsTable <sec-groups-intervals-trials>`, such as a subject
 response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time``
 of the :nwb-schema:ref:`sec-NWBFile`, just like ``start_time`` and ``stop_time``.
+This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events.
 See :ref:`best_practice_global_time_reference` for more details.
