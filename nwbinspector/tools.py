@@ -3,12 +3,10 @@ import re
 from uuid import uuid4
 from datetime import datetime
 from typing import Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from pynwb import NWBFile
 from dandi.dandiapi import DandiAPIClient
-
-from .utils import get_thread_max_workers
 
 
 def make_minimal_nwbfile():
@@ -43,9 +41,10 @@ def get_s3_urls(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int 
     else:
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
-            with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
+            with ProcessPoolExecutor(max_workers=n_jobs) as executor:
                 futures = []
                 for asset in dandiset.get_assets():
                     futures.append(executor.submit(asset.get_content_url, follow_redirects=1, strip_query=True))
-            s3_urls = list(as_completed(futures))
+                for future in as_completed(futures):
+                    s3_urls.append(future.result())
     return s3_urls
