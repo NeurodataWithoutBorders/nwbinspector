@@ -1,5 +1,6 @@
 from hdmf.testing import TestCase
 
+from nwbinspector import Importance
 from nwbinspector.utils import format_byte_size, check_regular_series, is_dict_in_string
 
 
@@ -25,26 +26,47 @@ def test_check_regular_series():
     assert not check_regular_series(series=[1, 2, 4])
 
 
-def test_is_dict_in_string_none():
+def test_is_dict_in_string_false_1():
     string = "not a dict"
     assert is_dict_in_string(string=string) is False
 
 
-def test_is_dict_in_string_1():
+def test_is_dict_in_string_false_2():
+    string = "not a dict, {but also fancy format text!}"
+    assert is_dict_in_string(string=string) is False
+
+
+def test_is_dict_in_string_false_3():
+    string = "[not] a dict, {[but] also} fancy format text!"
+    assert is_dict_in_string(string=string) is False
+
+
+def test_is_dict_in_string_true_1():
     string = str(dict(a=1))
     assert is_dict_in_string(string=string) is True
 
 
-def test_is_dict_in_string_2():
+def test_is_dict_in_string_true_2():
     string = str([dict(a=1), dict(b=2)])
     assert is_dict_in_string(string=string) is True
 
 
-def test_is_dict_in_string_3():
+def test_is_dict_in_string_true_3():
     string = str(dict(a=dict(b=2)))
     assert is_dict_in_string(string=string) is True
 
 
-def test_is_dict_in_string_4():
+def test_is_dict_in_string_true_4():
     string = "some text: {'then': 'a dict'}"
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_5():
+    string = "{'then': 'a dict'} more text"
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_6():
+    """Not a JSON encodable object."""
+    string = str({1.2: Importance.CRITICAL})
     assert is_dict_in_string(string=string) is True
