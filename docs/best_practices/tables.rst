@@ -49,7 +49,7 @@ Times are always stored in seconds in NWB. This rule applies to times in :nwb-sc
 :nwb-schema:ref:`sec-TimeIntervals` and across NWB in general. *E.g.*, in :nwb-schema:ref:`sec-TimeIntervals`
 objects such as the :nwb-schema:ref:`TrialsTable <sec-groups-intervals-trials>` and
 :nwb-schema:ref:`EpochTable <epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the
-``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile` (which by default is also set to the
+``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile` (which by default is the
 ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
 
 Additional time columns in :nwb-schema:ref:`sec-TimeIntervals` tables, such as the
