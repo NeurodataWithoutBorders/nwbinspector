@@ -78,7 +78,9 @@ class InspectorMessage:
     file_path: str = None
 
     def __repr__(self):
-        return "\n".join(["InspectorMessage("] + [f"    {k}={v.__repr__()}" for k,v in self.__dict__.items()] + [")"])
+        return ["InspectorMessage(\n"] + "\n,".join(
+            +[f"    {k}={v.__repr__()}" for k, v in self.__dict__.items()] + [")"]
+        )
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
