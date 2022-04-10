@@ -17,7 +17,7 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_sex,
     check_subject_age,
     check_subject_species_exists,
-    check_subject_species,
+    check_subject_species_latin_binomial,
     check_processing_module_name,
     check_session_start_time_old_date,
     check_session_start_time_future_date,
@@ -257,7 +257,7 @@ def test_pass_check_subject_species_exists():
     assert check_subject_species_exists(subject) is None
 
 
-def test_check_subject_species_exists_missing():
+def test_check_subject_species_missing():
     subject = Subject(subject_id="001")
     assert check_subject_species_exists(subject) == InspectorMessage(
         message="Subject species is missing.",
@@ -269,18 +269,18 @@ def test_check_subject_species_exists_missing():
     )
 
 
-def test_pass_check_subject_species():
+def check_subject_species_latin_binomial_pass():
     subject = Subject(subject_id="001", species="Homo sapiens")
-    assert check_subject_species(subject) is None
+    assert check_subject_species_latin_binomial(subject) is None
 
 
 def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
-    assert check_subject_species(subject) == InspectorMessage(
+    assert check_subject_species_latin_binomial(subject) == InspectorMessage(
         message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_subject_species",
+        check_function_name="check_subject_species_latin_binomial",
         object_type="Subject",
         object_name="subject",
         location="/general/subject",
