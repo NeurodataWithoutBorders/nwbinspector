@@ -50,3 +50,17 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries):
 def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
     if electrical_series.electrodes.table.name != "electrodes":
         return InspectorMessage(message="electrodes does not  reference an electrodes table.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_spike_times_not_in_unobserved_interval(units_table: Units, nelems: int = 200):
+    """Check if a Units table has spike times that occur outside of observed intervals."""
+    if units_table.obs_intervals:
+        for spike_time in units_table.spike_times.data[:nelems]:
+            if not any((obs_int[0] <= spike_time <= obs_int[1] for obs_int in units_table.obs_intervals.data)):
+                return InspectorMessage(
+                    message=(
+                        "This Units table contains spike times that occur during periods of time not labeled as being "
+                        "observed intervals."
+                    )
+                )

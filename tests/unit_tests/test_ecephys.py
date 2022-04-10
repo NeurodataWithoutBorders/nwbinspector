@@ -12,6 +12,7 @@ from nwbinspector.checks.ecephys import (
     check_negative_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
+    check_spike_times_not_in_unobserved_interval,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance
 
@@ -59,13 +60,7 @@ class TestCheckElectricalSeries(TestCase):
 
         for _ in range(5):
             nwbfile.add_electrode(
-                x=3.0,
-                y=3.0,
-                z=3.0,
-                imp=-1.0,
-                location="unknown",
-                filtering="unknown",
-                group=group,
+                x=3.0, y=3.0, z=3.0, imp=-1.0, location="unknown", filtering="unknown", group=group,
             )
         self.nwbfile = nwbfile
 
@@ -74,11 +69,7 @@ class TestCheckElectricalSeries(TestCase):
         electrodes = self.nwbfile.create_electrode_table_region(region=[1, 2, 3], description="three elecs")
 
         electrical_series = ElectricalSeries(
-            name="elec_series",
-            description="desc",
-            data=np.zeros((100, 10)),
-            electrodes=electrodes,
-            rate=30.0,
+            name="elec_series", description="desc", data=np.zeros((100, 10)), electrodes=electrodes, rate=30.0,
         )
 
         self.nwbfile.add_acquisition(electrical_series)
@@ -96,11 +87,7 @@ class TestCheckElectricalSeries(TestCase):
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
 
         electrical_series = ElectricalSeries(
-            name="elec_series",
-            description="desc",
-            data=np.zeros((5, 100)),
-            electrodes=electrodes,
-            rate=30.0,
+            name="elec_series", description="desc", data=np.zeros((5, 100)), electrodes=electrodes, rate=30.0,
         )
 
         self.nwbfile.add_acquisition(electrical_series)
@@ -118,11 +105,7 @@ class TestCheckElectricalSeries(TestCase):
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
 
         electrical_series = ElectricalSeries(
-            name="elec_series",
-            description="desc",
-            data=np.zeros((100, 5)),
-            electrodes=electrodes,
-            rate=30.0,
+            name="elec_series", description="desc", data=np.zeros((100, 5)), electrodes=electrodes, rate=30.0,
         )
 
         self.nwbfile.add_acquisition(electrical_series)
@@ -141,14 +124,38 @@ class TestCheckElectricalSeries(TestCase):
         )
 
         electrical_series = ElectricalSeries(
-            name="elec_series",
-            description="desc",
-            data=np.zeros((100, 5)),
-            electrodes=dynamic_table_region,
-            rate=30.0,
+            name="elec_series", description="desc", data=np.zeros((100, 5)), electrodes=dynamic_table_region, rate=30.0,
         )
 
         assert (
             check_electrical_series_reference_electrodes_table(electrical_series).message
             == "electrodes does not  reference an electrodes table."
         )
+
+
+def test_check_spike_times_not_in_unobserved_interval_pass():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3], obs_intervals=[[0, 2.5], [2.7, 3.5]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) is None
+
+
+def test_check_spike_times_not_in_unobserved_interval_pass_no_intervals():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) is None
+
+
+def test_check_spike_times_not_in_unobserved_interval():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3], obs_intervals=[[0, 2.5], [3.5, 4]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that occur during periods of time not labeled as being "
+            "observed intervals."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
