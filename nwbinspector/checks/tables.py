@@ -136,7 +136,9 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable, exclude_types: Optional[list] = None, exclude_names: Optional[List[str]] = None
+    table: DynamicTable,
+    exclude_types: Optional[list] = (Units, ),
+    exclude_names: Optional[List[str]] = ("electrodes", ),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -144,8 +146,6 @@ def check_single_row(
     Skips the Units table since it is OK to have only a single spiking unit.
     Skips the Electrode table since it is OK to have only a single electrode.
     """
-    exclude_types = [Units] if exclude_types is None else exclude_types
-    exclude_names = ["electrodes"] if exclude_names is None else exclude_names
     if any((isinstance(table, exclude_type) for exclude_type in exclude_types)):
         return
     if any((table.name == exclude_name for exclude_name in exclude_names)):
