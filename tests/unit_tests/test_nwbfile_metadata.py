@@ -16,7 +16,8 @@ from nwbinspector.checks.nwbfile_metadata import (
     check_subject_id_exists,
     check_subject_sex,
     check_subject_age,
-    check_subject_species,
+    check_subject_species_exists,
+    check_subject_species_latin_binomial,
     check_processing_module_name,
     check_session_start_time_old_date,
     check_session_start_time_future_date,
@@ -233,18 +234,6 @@ def test_check_subject_age_missing():
     )
 
 
-def test_check_subject_species():
-    subject = Subject(subject_id="001")
-    assert check_subject_species(subject) == InspectorMessage(
-        message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_subject_species",
-        object_type="Subject",
-        object_name="subject",
-        location="/general/subject",
-    )
-
-
 def test_check_subject_age_iso8601():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
@@ -263,13 +252,35 @@ def test_pass_check_subject_age_with_dob():
     assert check_subject_age(subject) is None
 
 
-def test_check_subject_species_not_iso8601():
+def test_pass_check_subject_species_exists():
+    subject = Subject(subject_id="001", species="Homo sapiens")
+    assert check_subject_species_exists(subject) is None
+
+
+def test_check_subject_species_missing():
+    subject = Subject(subject_id="001")
+    assert check_subject_species_exists(subject) == InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def check_subject_species_latin_binomial_pass():
+    subject = Subject(subject_id="001", species="Homo sapiens")
+    assert check_subject_species_latin_binomial(subject) is None
+
+
+def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
-    assert check_subject_species(subject) == InspectorMessage(
+    assert check_subject_species_latin_binomial(subject) == InspectorMessage(
         message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_subject_species",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_latin_binomial",
         object_type="Subject",
         object_name="subject",
         location="/general/subject",
@@ -310,19 +321,9 @@ def test_check_subject_id_exists():
     )
 
 
-def test_pass_check_subject_species():
-    subject = Subject(subject_id="001", species="Homo sapiens")
-    assert check_subject_species(subject) is None
-
-
 def test_pass_check_subject_id_exist():
     subject = Subject(subject_id="001", sex="Male")
     assert check_subject_id_exists(subject) is None
-
-
-@pytest.mark.skip(reason="TODO")
-def test_check_subject_species():
-    pass
 
 
 def test_check_processing_module_name():
