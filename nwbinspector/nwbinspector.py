@@ -152,7 +152,7 @@ def configure_checks(
 @click.argument(
     "path",
     help=(
-        "Relative path to either a local NWBFile, local folder containing multiple NWBFiles, a link to a dataset on "
+        "Relative path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on "
         "DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID. "
         "For links or IDs to DANDI instead of local copies of data, your version of h5py must have the Read Only S3 "
         "(ros3) driver installed."
@@ -194,7 +194,15 @@ def configure_checks(
     ),
     is_flag=True,
 )
-@click.option("--driver", help=())
+@click.option(
+    "--stream",
+    help=(
+        "Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, specifying this "
+        "flag will still force the data to be streamed instead of using the local copy. To use the local copy, simply "
+        "remove this flag."
+    ),
+    is_flag=True,
+)
 @click.option(
     "--version-id",
     help=(
@@ -217,7 +225,7 @@ def inspect_all_cli(
     n_jobs: int = 1,
     skip_validate: bool = False,
     detailed: bool = False,
-    driver: Optional[str] = None,
+    stream: bool = False,
     version_id: Optional[str] = None,
 ):
     """Primary CLI usage of the NWBInspector."""
@@ -225,17 +233,20 @@ def inspect_all_cli(
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     if config is not None:
         config = load_config(filepath_or_keyword=config)
-    url_path = path if path.startswith("https://") else None
-    if url_path or re.fullmatch(pattern="^[0-9]{6}$", string=path):
-        if Path(path).is_dir() and driver == "ros3":
-            warn(
-                f"The local DANDISet '{path}' exists, but 'driver' arg is set to 'ros3'. "
-                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--driver' flag."
-            )
+    if stream:
+        url_path = path if path.startswith("https://") else None
         if url_path:
             dandiset_id, version_id = url_path.split("/")[-2:]
         else:
             dandiset_id = path  # version_id will get set automatically to most recent version if unspecified
+        assert url_path or re.fullmatch(
+            pattern="^[0-9]{6}$", string=dandiset_id
+        ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
+        if Path(path).is_dir():
+            warn(
+                f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
+                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--driver' flag."
+            )
         messages = list(
             inspect_dandiset(
                 dandiset_id=dandiset_id,
