@@ -27,7 +27,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls
-from .utils import FilePathType, PathType, OptionalListOfStrings, get_thread_max_workers
+from .utils import FilePathType, PathType, OptionalListOfStrings
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -356,7 +356,14 @@ def inspect_all(
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
     if n_jobs != 1:
-        with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
+        # max_workers for threading is a different concept to number of processes; from the documentation
+        # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
+        # we can multiply the specified number of jobs by 5
+        if n_jobs != -1:
+            max_workers = n_jobs * 5
+        else:
+            max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for nwbfile_path in nwbfiles:
                 futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks, driver=driver))
