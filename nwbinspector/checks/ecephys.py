@@ -57,11 +57,11 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nelems: int
     """Check if a Units table has spike times that occur outside of observed intervals."""
     if not units_table.obs_intervals:
         return
-        for spike_time in units_table.spike_times.data[:nelems]:
-            if not any((obs_int[0] <= spike_time <= obs_int[1] for obs_int in units_table.obs_intervals.data)):
-                return InspectorMessage(
-                    message=(
-                        "This Units table contains spike times that occur during periods of time not labeled as being "
-                        "observed intervals."
-                    )
+    for spike_time in units_table.spike_times.data[:nelems]:
+        if not any((obs_int[0] <= spike_time <= obs_int[1] for obs_int in units_table.obs_intervals.data)):
+            return InspectorMessage(
+                message=(
+                    "This Units table contains spike times that occur during periods of time not labeled as being "
+                    "observed intervals."
                 )
+            )
