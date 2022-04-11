@@ -191,7 +191,7 @@ def configure_checks(
     help=(
         "Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, specifying this "
         "flag will still force the data to be streamed instead of using the local copy. To use the local copy, simply "
-        "remove this flag."
+        "remove this flag. Requires the Read Only S3 (ros3) driver to be installed with h5py."
     ),
     is_flag=True,
 )
@@ -226,8 +226,6 @@ def inspect_all_cli(
     path :
     Relative path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on
     DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID.
-    For links or IDs to DANDI instead of local copies of data, your version of h5py must have the Read Only S3
-    (ros3) driver installed.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
