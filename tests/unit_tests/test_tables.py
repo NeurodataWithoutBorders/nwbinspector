@@ -153,8 +153,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses floats but has binary values [0. 1.]. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 35.00B."
+                    "Column 'test_col' uses 'floats' but has binary values [0. 1.]. Consider making it boolean instead "
+                    "and renaming the column to start with 'is_'; doing so will save 35.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -175,8 +175,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
-                    f"renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
+                    "Column 'test_col' uses 'integers' but has binary values [0 1]. Consider making it boolean instead "
+                    f"and renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -193,8 +193,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses strings but has binary values ['NO' 'YES']. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 44.00B."
+                    "Column 'test_col' uses 'strings' but has binary values ['NO' 'YES']. Consider making it boolean "
+                    "instead and renaming the column to start with 'is_'; doing so will save 44.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
