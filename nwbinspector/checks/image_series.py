@@ -7,7 +7,7 @@ from ..register_checks import register_check, Importance, InspectorMessage
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ImageSeries)
-def check_image_series_external_file(image_series: ImageSeries):
+def check_image_series_external_file_valid(image_series: ImageSeries):
     """Check if the external_file specified by an ImageSeries actually exists at the relative location."""
     if image_series.external_file is None:
         return
