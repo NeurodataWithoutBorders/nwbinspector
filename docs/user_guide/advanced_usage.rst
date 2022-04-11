@@ -10,7 +10,7 @@ Yielding and Iterating
 
 Both the :py:class:`~nwbinspector.nwbinspector.inspect_all` and :py:class:`~nwbinspector.nwbinspector.inspect_nwb`
 functions return generators. That is, they do not actually run any checks on any NWBFile until the user
-performs an iteration command on them. The simplest way of doing this as simply casting the generator as a ``list``,
+performs an iteration command on them. The simplest way of doing this is to cast the generator as a ``list``,
 *i.e.*, ``list(inspect_nwb(...))`` which will automatically complete all checks.
 
 However, if a user chooses, they can harness these generators in more sophisticated ways. If you want to stop the
