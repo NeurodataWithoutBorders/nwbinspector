@@ -167,9 +167,25 @@ def test_check_spike_times_not_in_unobserved_interval_pass_no_intervals():
     assert check_spike_times_not_in_unobserved_interval(units_table=units_table) is None
 
 
-def test_check_spike_times_not_in_unobserved_interval():
+def test_check_spike_times_not_in_unobserved_interval_1():
     units_table = Units(name="TestUnits")
     units_table.add_unit(spike_times=[1, 2, 3], obs_intervals=[[0, 2.5], [3.5, 4]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that occur during periods of time not labeled as being "
+            "observed intervals."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+
+def test_check_spike_times_not_in_unobserved_interval_2():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3, 4, 5, 6], obs_intervals=[[0, 2.5], [3.5, 7]])
     assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
         message=(
             "This Units table contains spike times that occur during periods of time not labeled as being "
