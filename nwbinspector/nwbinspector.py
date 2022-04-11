@@ -224,7 +224,7 @@ def inspect_all_cli(
     Run the NWBInspector via the command line.
 
     path :
-    Path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on
+    Path to either a local NWBFile, a local folder containing NWBFiles, a link to a dataset on
     DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a Dandiset ID.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
