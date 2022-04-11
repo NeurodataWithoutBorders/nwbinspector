@@ -1,10 +1,11 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 from numbers import Real
+from typing import List, Optional
 
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import format_byte_size, is_ascending_series
@@ -136,8 +137,21 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_single_row(table: DynamicTable):
-    """Check if DynamicTable has only a single row; may be better represented by another data type."""
+def check_single_row(
+    table: DynamicTable,
+    exclude_types: Optional[list] = (Units,),
+    exclude_names: Optional[List[str]] = ("electrodes",),
+):
+    """
+    Check if DynamicTable has only a single row; may be better represented by another data type.
+
+    Skips the Units table since it is OK to have only a single spiking unit.
+    Skips the Electrode table since it is OK to have only a single electrode.
+    """
+    if any((isinstance(table, exclude_type) for exclude_type in exclude_types)):
+        return
+    if any((table.name == exclude_name for exclude_name in exclude_names)):
+        return
     if len(table.id) == 1:
         return InspectorMessage(
             message="This table has only a single row; it may be better represented by another data type."
