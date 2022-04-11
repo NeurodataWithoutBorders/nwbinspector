@@ -1,5 +1,6 @@
 """Primary functions for inspecting NWBFiles."""
 import os
+import re
 import importlib
 import traceback
 import json
@@ -10,7 +11,7 @@ from enum import Enum
 from typing import Optional, List
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 from types import FunctionType
-from warnings import filterwarnings
+from warnings import filterwarnings, warn
 from distutils.util import strtobool
 
 import click
@@ -148,7 +149,15 @@ def configure_checks(
 
 
 @click.command()
-@click.argument("path")
+@click.argument(
+    "path",
+    help=(
+        "Relative path to either a local NWBFile, local folder containing multiple NWBFiles, a link to a dataset on "
+        "DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID. "
+        "For links or IDs to DANDI instead of local copies of data, your version of h5py must have the Read Only S3 "
+        "(ros3) driver installed."
+    ),
+)
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
@@ -185,6 +194,13 @@ def configure_checks(
     ),
     is_flag=True,
 )
+@click.option("--driver", help=())
+@click.option(
+    "--version-id",
+    help=(
+        "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
+    ),
+)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -201,24 +217,51 @@ def inspect_all_cli(
     n_jobs: int = 1,
     skip_validate: bool = False,
     detailed: bool = False,
+    driver: Optional[str] = None,
+    version_id: Optional[str] = None,
 ):
     """Primary CLI usage of the NWBInspector."""
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     if config is not None:
         config = load_config(filepath_or_keyword=config)
-    messages = list(
-        inspect_all(
-            path=path,
-            modules=modules,
-            ignore=ignore if ignore is None else ignore.split(","),
-            select=select if select is None else select.split(","),
-            importance_threshold=Importance[threshold],
-            config=config,
-            n_jobs=n_jobs,
-            skip_validate=skip_validate,
+    url_path = path if path.startswith("https://") else None
+    if url_path or re.fullmatch(pattern="^[0-9]{6}$", string=path):
+        if Path(path).is_dir() and driver == "ros3":
+            warn(
+                f"The local DANDISet '{path}' exists, but 'driver' arg is set to 'ros3'. "
+                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--driver' flag."
+            )
+        if url_path:
+            dandiset_id, version_id = url_path.split("/")[-2:]
+        else:
+            dandiset_id = path  # version_id will get set automatically to most recent version if unspecified
+        messages = list(
+            inspect_dandiset(
+                dandiset_id=dandiset_id,
+                version_id=version_id,
+                modules=modules,
+                ignore=ignore if ignore is None else ignore.split(","),
+                select=select if select is None else select.split(","),
+                importance_threshold=Importance[threshold],
+                config=config,
+                n_jobs=n_jobs,
+                skip_validate=skip_validate,
+            )
         )
-    )
+    else:
+        messages = list(
+            inspect_all(
+                path=path,
+                modules=modules,
+                ignore=ignore if ignore is None else ignore.split(","),
+                select=select if select is None else select.split(","),
+                importance_threshold=Importance[threshold],
+                config=config,
+                n_jobs=n_jobs,
+                skip_validate=skip_validate,
+            )
+        )
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
             raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
@@ -422,14 +465,13 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
 
 def inspect_dandiset(
     dandiset_id: str,
+    version_id: Optional[str] = None,
     modules: OptionalListOfStrings = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
-    driver: Optional[str] = None,
-    version_id: Optional[str] = None,
     skip_validate: bool = False,
 ) -> List[InspectorMessage]:
     """
@@ -441,6 +483,8 @@ def inspect_dandiset(
     ----------
     dandiset_id : str
         DESCRIPTION.
+    dandiset_version_id : Optional[str], optional
+        DESCRIPTION. The default is None.
     modules : OptionalListOfStrings, optional
         DESCRIPTION. The default is None.
     config : Optional[dict], optional
@@ -453,27 +497,14 @@ def inspect_dandiset(
         DESCRIPTION. The default is Importance.BEST_PRACTICE_SUGGESTION.
     n_jobs : int, optional
         DESCRIPTION. The default is 1.
-    driver : Optional[str], optional
-        DESCRIPTION. The default is None.
-    dandiset_version_id : Optional[str], optional
-        DESCRIPTION. The default is None.
     skip_validate : bool, optional
         DESCRIPTION. The default is False.
     """
-
-    def _run_s3_checks(
-        s3_path: str,
-        checks: list = available_checks,
-        skip_validate: bool = False,
-    ):
-        return list(inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate))
-
     s3_paths = get_s3_urls(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
     n_jobs = n_jobs if n_jobs > 0 else None
     if n_jobs != 1:
-        # with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             futures = []
             for s3_path in s3_paths:
@@ -487,6 +518,19 @@ def inspect_dandiset(
         for s3_path in s3_paths:
             for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
                 yield message
+
+
+def _run_s3_checks(
+    s3_path: str,
+    checks: list = available_checks,
+    skip_validate: bool = False,
+):
+    """
+    Private helper function for 'inspect_dandiset'.
+
+    Required for pickling over multiple processes and cannot be defined locally.
+    """
+    return list(inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate))
 
 
 if __name__ == "__main__":

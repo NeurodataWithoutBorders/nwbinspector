@@ -23,12 +23,8 @@ def all_of_type(nwbfile: NWBFile, neurodata_type):
 
 def get_s3_urls(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1):
     """Auxilliary function for collecting S3 URLS from a DANDISet ID."""
-    assert isinstance(dandiset_id, str), (
-        "The specified 'dandiset_id' is not a string. If using a local Path to a copy "
-        "of the DANDISet, you do not need the S3 locations."
-    )
-    assert any(
-        re.findall(pattern="^[0-9]{6}$", string=dandiset_id)
+    assert re.fullmatch(
+        pattern="^[0-9]{6}$", string=dandiset_id
     ), "The specified 'path' is not a proper DANDISet ID. It should be a six-digit numeric identifier."
 
     s3_urls = []
