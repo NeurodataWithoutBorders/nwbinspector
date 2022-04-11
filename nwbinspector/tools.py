@@ -54,4 +54,4 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
 
 def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True):
     """Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'."""
-    return {asset.get_content_url: asset.path}
+    return {asset.get_content_url(follow_redirects=follow_redirects, strip_query=strip_query): asset.path}
