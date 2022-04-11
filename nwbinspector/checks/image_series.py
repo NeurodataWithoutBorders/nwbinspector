@@ -16,5 +16,8 @@ def check_image_series_external_file_valid(image_series: ImageSeries):
     for file_path in image_series.external_file:
         if not Path(file_path).is_absolute() and not (nwbfile_path / file_path).exists():
             yield InspectorMessage(
-                message=f"The external file {file_path} does not exist. Please confirm the relative location to the NWBFile."
+                message=(
+                    f"The external file '{file_path}' does not exist. Please confirm the relative location to the"
+                    " NWBFile."
+                )
             )

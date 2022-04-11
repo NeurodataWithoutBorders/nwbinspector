@@ -45,9 +45,11 @@ class TestExternalFileValid(TestCase):
         with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
             nwbfile = io.read()
             image_series = nwbfile.acquisition["TestImageSeriesBad"]
-            print(check_image_series_external_file_valid(image_series=image_series)[0])
             assert check_image_series_external_file_valid(image_series=image_series)[0] == InspectorMessage(
-                message="The external file does not exist. Please confirm the relative location to the NWBFile.",
+                message=(
+                    "The external file 'madeup_file.mp4' does not exist. Please confirm the relative location to the"
+                    " NWBFile."
+                ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_image_series_external_file_valid",
                 object_type="ImageSeries",
