@@ -257,11 +257,13 @@ class MessageFormatter:
 
 def format_messages(
     messages: List[InspectorMessage],
-    levels: List[str],
+    levels: List[str] = None,
     reverse: Optional[List[bool]] = None,
     detailed: bool = False,
 ) -> List[str]:
     """Print InspectorMessages in order specified by the organization structure."""
+    if levels is None:
+        levels = ["file_path", "importance"]
     message_formatter = MessageFormatter(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
     formatted_messages = message_formatter.format_messages()
     return formatted_messages
