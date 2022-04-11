@@ -15,3 +15,13 @@ def all_of_type(nwbfile: NWBFile, neurodata_type):
     for obj in nwbfile.objects.values():
         if isinstance(obj, neurodata_type):
             yield obj
+
+
+def get_nwbfile_path_from_internal_object(obj):
+    """Determine the file path on disk for a NWBFile given only an internal object of that file."""
+    ancestor = obj.get_ancestor()
+    if ancestor is None:
+        return
+    while ancestor.get_ancestor() is not None:
+        ancestor = ancestor.get_ancestor()
+    return ancestor.container_source
