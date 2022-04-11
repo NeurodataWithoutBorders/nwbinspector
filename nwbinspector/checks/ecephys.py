@@ -55,7 +55,8 @@ def check_electrical_series_reference_electrodes_table(electrical_series: Electr
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_spike_times_not_in_unobserved_interval(units_table: Units, nelems: int = 200):
     """Check if a Units table has spike times that occur outside of observed intervals."""
-    if units_table.obs_intervals:
+    if not units_table.obs_intervals:
+        return
         for spike_time in units_table.spike_times.data[:nelems]:
             if not any((obs_int[0] <= spike_time <= obs_int[1] for obs_int in units_table.obs_intervals.data)):
                 return InspectorMessage(
