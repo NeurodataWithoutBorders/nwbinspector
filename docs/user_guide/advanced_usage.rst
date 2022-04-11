@@ -9,11 +9,13 @@ Yielding and Iterating
 ----------------------
 
 Both the :py:class:`~nwbinspector.nwbinspector.inspect_all` and :py:class:`~nwbinspector.nwbinspector.inspect_nwb`
-functions directly return generators. That is, they do not actually run any checks on any NWBFile until the user
-performs an iteration command on them. In the basic usage, we recommend the simplest way of doing this as simply
-casting the generator as a ``list``, *i.e.*, ``list(inspect_nwb(...))`` which will automatically collapse the iteration.
+functions return generators. That is, they do not actually run any checks on any NWBFile until the user
+performs an iteration command on them. The simplest way of doing this as simply casting the generator as a ``list``,
+*i.e.*, ``list(inspect_nwb(...))`` which will automatically complete all checks.
 
-However, if a user chooses, they can harness these generators in more sophisticated ways, such as
+However, if a user chooses, they can harness these generators in more sophisticated ways. If you want to stop the
+checks early, the following will run the inspectors until the first
+:py:class:`~nwbinspector.register_checks.InspectorMessage` is returned:
 
 .. code-block:: python
 
@@ -21,9 +23,8 @@ However, if a user chooses, they can harness these generators in more sophistica
 
     first_message = next(results_generator)
 
-which will return either the first :py:class:`~nwbinspector.register_checks.InspectorMessage` for the first Best
-Practice issue detected in the file (if any), or it will raise a ``StopIteration`` error. This error can be caught in
-the following manner
+This will return either the first :py:class:`~nwbinspector.register_checks.InspectorMessage`, or it will raise a
+``StopIteration`` error. This error can be caught in the following manner
 
 .. code-block:: python
 
@@ -34,7 +35,7 @@ the following manner
     except StopIteration:
         print("There are no messages!")
 
-Of course, the generator can be treated as any other iterable as well, such as with ``for`` loops
+Of course, the generator can be treated like any other iterable as well, such as with :code:`for` loops
 
 .. code-block:: python
 
@@ -42,7 +43,6 @@ Of course, the generator can be treated as any other iterable as well, such as w
 
     for message in results_generator:
         print(message)
-
 
 
 Running on a DANDISets (ros3)
@@ -66,28 +66,28 @@ S3 path on the DANDI archive. Resolution of these paths can be performed via the
     dandiset_id = "..."  # for example, 000004
     dandiset_type = "draft"  # or "published", if it has an official doi associated
 
+    messages = []
     with DandiAPIClient() as client:
         dandiset = client.get_dandiset(dandiset_id, dandiset_type)
         for asset in dandiset.get_assets():
             asset = dandiset.get_asset_by_path(asset.path)
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
-            messages = list(inspect_nwb(nwbfile_path=s3_url, driver="ros3"))
+            messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
 
 
 
-Organization of Reports
------------------------
 
-Our organization functions are capable of arbitrary nesting based on attributes of the
-:py:class:`~nwbinspector.register_checks.InspectorMessage` class...
+Format Reports
+--------------
+
+Reports aggregate messages into a readable form.
 
 .. code-block:: python
 
-    from nwbinspector.inspector_tools import organize_messages
+    from nwbinspector.inspector_tools import format_messages
 
-    organized_messages = organized_messages(messagess=list(inspect_all(...)), levels=["file_path", "importance"])
+    print("\n".join(format_messages(messages, levels=["importance", "file_path"])))
 
-This will return a nested dictionary of the same depth as as ``levels``, with each key being the unique values within
-that nested condition. While ``levels = ["file_path", "importance"]`` is the default behavior, any combination and order
+The `levels` argument can be altered to change the nesting structure of the report. Any combination and order
 of :py:class:`~nwbinspector.register_checks.InspectorMessage` attributes can be utilized to produce a more easily
 readable structure.
