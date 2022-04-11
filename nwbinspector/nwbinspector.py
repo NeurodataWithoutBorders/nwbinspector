@@ -225,7 +225,7 @@ def inspect_all_cli(
 
     path :
     Path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on
-    DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID.
+    DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a Dandiset ID.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
