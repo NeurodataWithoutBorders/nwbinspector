@@ -129,7 +129,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                     print_dtype = f"{unique_values.dtype}"
                 yield InspectorMessage(
                     message=(
-                        f"{column.name} uses '{print_dtype}' but has binary values {unique_values}. Consider "
+                        f"Column '{column.name}' uses '{print_dtype}' but has binary values {unique_values}. Consider "
                         "making it boolean instead and renaming the column to start with 'is_'; doing so will "
                         f"save {format_byte_size(byte_size=saved_bytes)}."
                     )
