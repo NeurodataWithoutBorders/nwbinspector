@@ -26,7 +26,7 @@ from .inspector_tools import (
     save_report,
 )
 from .register_checks import InspectorMessage, Importance
-from .tools import get_s3_urls
+from .tools import get_s3_urls_and_dandi_paths
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
@@ -524,23 +524,25 @@ def inspect_dandiset(
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
     """
-    s3_paths = get_s3_urls(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
+    s3_urls_to_dandi_paths = get_s3_urls_and_dandi_paths(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
     n_jobs = n_jobs if n_jobs > 0 else None
     if n_jobs != 1:
         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             futures = []
-            for s3_path in s3_paths:
+            for s3_path, dandi_path in s3_urls_to_dandi_paths.items():
                 futures.append(
                     executor.submit(_run_s3_checks, s3_path=s3_path, checks=checks, skip_validate=skip_validate)
                 )
             for future in as_completed(futures):
                 for message in future.result():
+                    message.file_path = dandi_path
                     yield message
     else:
-        for s3_path in s3_paths:
+        for s3_path, dandi_path in s3_urls_to_dandi_paths.items():
             for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
+                message.file_path = dandi_path
                 yield message
 
 
