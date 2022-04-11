@@ -126,7 +126,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                 elif str(unique_values.dtype)[:2] == "<U":
                     print_dtype = "strings"
                 else:
-                    print_dtype = "unknown dtype"
+                    print_dtype = f"{unique_values.dtype}"
                 yield InspectorMessage(
                     message=(
                         f"{column.name} uses '{print_dtype}' but has binary values {unique_values}. Consider "
