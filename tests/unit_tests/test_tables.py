@@ -4,7 +4,7 @@ from unittest import TestCase
 import pytest
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Units, ElectrodeTable, ElectrodeGroup, Device
 
 from nwbinspector import (
     check_empty_table,
@@ -153,8 +153,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses floats but has binary values [0. 1.]. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 35.00B."
+                    "Column 'test_col' uses 'floats' but has binary values [0. 1.]. Consider making it boolean instead "
+                    "and renaming the column to start with 'is_'; doing so will save 35.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -175,8 +175,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
-                    f"renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
+                    "Column 'test_col' uses 'integers' but has binary values [0 1]. Consider making it boolean instead "
+                    f"and renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -193,8 +193,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses strings but has binary values ['NO' 'YES']. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 44.00B."
+                    "Column 'test_col' uses 'strings' but has binary values ['NO' 'YES']. Consider making it boolean "
+                    "instead and renaming the column to start with 'is_'; doing so will save 44.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -216,6 +216,31 @@ def test_check_single_row_pass():
     table.add_column(name="test_column", description="")
     table.add_row(test_column=1)
     table.add_row(test_column=2)
+    assert check_single_row(table=table) is None
+
+
+def test_check_single_row_ignore_units():
+    table = Units(
+        name="Units",  # default name when building through nwbfile
+    )
+    table.add_unit(spike_times=[1, 2, 3])
+    assert check_single_row(table=table) is None
+
+
+def test_check_single_row_ignore_electrodes():
+    table = ElectrodeTable(
+        name="electrodes",  # default name when building through nwbfile
+    )
+    table.add_row(
+        x=np.nan,
+        y=np.nan,
+        z=np.nan,
+        imp=np.nan,
+        location="unknown",
+        filtering="unknown",
+        group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
+        group_name="test_group",
+    )
     assert check_single_row(table=table) is None
 
 
