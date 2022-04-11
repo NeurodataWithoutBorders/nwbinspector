@@ -149,15 +149,7 @@ def configure_checks(
 
 
 @click.command()
-@click.argument(
-    "path",
-    help=(
-        "Relative path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on "
-        "DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID. "
-        "For links or IDs to DANDI instead of local copies of data, your version of h5py must have the Read Only S3 "
-        "(ros3) driver installed."
-    ),
-)
+@click.argument("path")
 @click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
@@ -228,7 +220,15 @@ def inspect_all_cli(
     stream: bool = False,
     version_id: Optional[str] = None,
 ):
-    """Primary CLI usage of the NWBInspector."""
+    """
+    Run the NWBInspector via the command line.
+
+    path :
+    Relative path to either a local NWBFile, a local folder containing multiple NWBFiles, a link to a dataset on
+    DANDI archive (i.e., https://dandiarchive.org/dandiset/dandiset_id/version_id), or a six-digit DANDISet ID.
+    For links or IDs to DANDI instead of local copies of data, your version of h5py must have the Read Only S3
+    (ros3) driver installed.
+    """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     if config is not None:
