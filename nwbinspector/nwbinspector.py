@@ -8,7 +8,7 @@ from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
 from typing import Optional, List
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 from types import FunctionType
 from warnings import filterwarnings
 from distutils.util import strtobool
@@ -290,16 +290,13 @@ def inspect_all(
     """
     modules = modules or []
 
-    if driver == "ros3":
-        nwbfiles = get_s3_urls(dandiset_id=path, version_id=dandiset_version_id, n_jobs=n_jobs)
+    in_path = Path(path)
+    if in_path.is_dir():
+        nwbfiles = list(in_path.rglob("*.nwb"))
+    elif in_path.is_file():
+        nwbfiles = [in_path]
     else:
-        in_path = Path(path)
-        if in_path.is_dir():
-            nwbfiles = list(in_path.rglob("*.nwb"))
-        elif in_path.is_file():
-            nwbfiles = [in_path]
-        else:
-            raise ValueError(f"{in_path} should be a directory or an NWB file.")
+        raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
@@ -421,6 +418,75 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
                             yield x
                     else:
                         yield output
+
+
+def inspect_dandiset(
+    dandiset_id: str,
+    modules: OptionalListOfStrings = None,
+    config: Optional[dict] = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    n_jobs: int = 1,
+    driver: Optional[str] = None,
+    version_id: Optional[str] = None,
+    skip_validate: bool = False,
+) -> List[InspectorMessage]:
+    """
+    Run the NWBInspector directly on a DANDISet ID (six-digit numeric identifier).
+
+    Requires the ros3 driver, which comes pre-installed with recent conda-forge versions of h5py (conda install h5py).
+
+    Parameters
+    ----------
+    dandiset_id : str
+        DESCRIPTION.
+    modules : OptionalListOfStrings, optional
+        DESCRIPTION. The default is None.
+    config : Optional[dict], optional
+        DESCRIPTION. The default is None.
+    ignore : OptionalListOfStrings, optional
+        DESCRIPTION. The default is None.
+    select : OptionalListOfStrings, optional
+        DESCRIPTION. The default is None.
+    importance_threshold : Importance, optional
+        DESCRIPTION. The default is Importance.BEST_PRACTICE_SUGGESTION.
+    n_jobs : int, optional
+        DESCRIPTION. The default is 1.
+    driver : Optional[str], optional
+        DESCRIPTION. The default is None.
+    dandiset_version_id : Optional[str], optional
+        DESCRIPTION. The default is None.
+    skip_validate : bool, optional
+        DESCRIPTION. The default is False.
+    """
+
+    def _run_s3_checks(
+        s3_path: str,
+        checks: list = available_checks,
+        skip_validate: bool = False,
+    ):
+        return list(inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate))
+
+    s3_paths = get_s3_urls(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
+    checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+
+    n_jobs = n_jobs if n_jobs > 0 else None
+    if n_jobs != 1:
+        # with ThreadPoolExecutor(max_workers=get_thread_max_workers(n_jobs=n_jobs)) as executor:
+        with ProcessPoolExecutor(max_workers=n_jobs) as executor:
+            futures = []
+            for s3_path in s3_paths:
+                futures.append(
+                    executor.submit(_run_s3_checks, s3_path=s3_path, checks=checks, skip_validate=skip_validate)
+                )
+            for future in as_completed(futures):
+                for message in future.result():
+                    yield message
+    else:
+        for s3_path in s3_paths:
+            for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
+                yield message
 
 
 if __name__ == "__main__":
