@@ -1,4 +1,5 @@
 import os
+import pytest
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
@@ -17,10 +18,23 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb
+from nwbinspector.nwbinspector import inspect_all, inspect_nwb, inspect_dandiset
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
+
+
+try:
+    with NWBHDF5IO(
+        path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/7f8/d1e/7f8d1ec3-b8bd-4fd2-8a39-9aecacb8d409",
+        mode="r",
+        load_namespaces=True,
+        driver="ros3",
+    ) as io:
+        nwbfile = io.read()
+    HAVE_ROS3 = True
+except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
+    HAVE_ROS3 = False
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -457,3 +471,8 @@ class TestInspector(TestCase):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
+
+
+@pytest.mark.skipif(condition=not HAVE_ROS3)
+def test_dandiset_streaming():
+    inspect_dandiset(path="101391", api_url="https://api-staging.dandiarchive.org/api")

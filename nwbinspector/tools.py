@@ -21,7 +21,9 @@ def all_of_type(nwbfile: NWBFile, neurodata_type):
             yield obj
 
 
-def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:
+def get_s3_urls_and_dandi_paths(
+    dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1, api_url: Optional[str] = None
+) -> Dict[str, str]:
     """
     Collect S3 URLS from a DANDISet ID.
 
@@ -33,7 +35,7 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
 
     s3_urls_to_dandi_paths = dict()
     if n_jobs != 1:
-        with DandiAPIClient() as client:
+        with DandiAPIClient(api_url=api_url) as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
             max_workers = n_jobs if n_jobs > 0 else None
             with ProcessPoolExecutor(max_workers=max_workers) as executor:

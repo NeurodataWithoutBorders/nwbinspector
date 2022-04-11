@@ -473,6 +473,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
 def inspect_dandiset(
     dandiset_id: str,
     version_id: Optional[str] = None,
+    api_url: Optional[str] = None,
     modules: OptionalListOfStrings = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
@@ -521,6 +522,10 @@ def inspect_dandiset(
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    api_url : str, optional
+        The server type to use in resolving S3 paths.
+        Mostly used by tests that use https://api-staging.dandiarchive.org/api
+        Defaults to the standard archive.
     """
     s3_urls_to_dandi_paths = get_s3_urls_and_dandi_paths(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
