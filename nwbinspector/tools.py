@@ -21,5 +21,4 @@ def get_nwbfile_path_from_internal_object(obj):
     """Determine the file path on disk for a NWBFile given only an internal object of that file."""
     if isinstance(obj, NWBFile):
         return obj.container_source
-    else:
-        return obj.get_ancestor("NWBFile").container_source
+    return obj.get_ancestor("NWBFile").container_source
