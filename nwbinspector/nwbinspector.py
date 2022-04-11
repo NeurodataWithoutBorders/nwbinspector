@@ -243,7 +243,7 @@ def inspect_all_cli(
         if Path(path).is_dir():
             warn(
                 f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
-                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--driver' flag."
+                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--stream' flag."
             )
         messages = list(
             inspect_dandiset(
