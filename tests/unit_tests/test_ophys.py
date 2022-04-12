@@ -4,12 +4,15 @@ from uuid import uuid4
 
 import numpy as np
 from pynwb import NWBFile
-from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries
+from pynwb.device import Device
+from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries, ImagingPlane
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
 from nwbinspector.checks.ophys import (
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
+    check_excitation_lambda_in_nm,
+    check_emission_lambda_in_nm,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance
 
@@ -167,3 +170,60 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
         assert check_roi_response_series_link_to_plane_segmentation(roi_resp_series) is None
+
+
+def test_check_excitation_lambda_in_nm():
+
+    device = Device(
+        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    )
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=1.0,
+        indicator="GFP",
+        location="V1",
+        grid_spacing=[0.01, 0.01],
+        grid_spacing_unit="meters",
+        origin_coords=[1.0, 2.0, 3.0],
+        origin_coords_unit="meters",
+    )
+
+    assert check_excitation_lambda_in_nm(imaging_plane).message == "excitation lambda of 1.0 should be in units of nm."
+
+
+def test_pass_check_excitation_lambda_in_nm():
+    device = Device(
+        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    )
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=300.0,
+        indicator="GFP",
+        location="V1",
+        grid_spacing=[0.01, 0.01],
+        grid_spacing_unit="meters",
+        origin_coords=[1.0, 2.0, 3.0],
+        origin_coords_unit="meters",
+    )
+
+    assert check_excitation_lambda_in_nm(imaging_plane) is None
+
+
+def test_check_emission_lambda_in_nm():
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=5.0)
+    assert check_emission_lambda_in_nm(optical_channel).message == "emission lambda of 5.0 should be in units of nm."
+
+
+def test_pass_check_emission_lambda_in_nm():
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    assert check_emission_lambda_in_nm(optical_channel) is None

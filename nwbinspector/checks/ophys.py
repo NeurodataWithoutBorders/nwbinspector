@@ -1,9 +1,11 @@
 """Check functions specific to optical electrophysiology neurodata types."""
-from pynwb.ophys import RoiResponseSeries, PlaneSegmentation
+from pynwb.ophys import RoiResponseSeries, PlaneSegmentation, OpticalChannel, ImagingPlane
 
 from hdmf.utils import get_data_shape
 
 from ..register_checks import register_check, Importance, InspectorMessage
+
+MIN_LAMBDA = 10.0  # trigger warnings for wavelength values less than this value
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=RoiResponseSeries)
@@ -32,18 +34,16 @@ def check_roi_response_series_link_to_plane_segmentation(roi_response_series: Ro
         return InspectorMessage(message="rois field does not point to a PlaneSegmentation table.")
 
 
-# @nwbinspector_check(severity=2, neurodata_type=pynwb.TimeSeries)
-# def check_ophys(nwbfile):
-#     opto_sites = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticStimulusSite))
-#     opto_series = list(all_of_type(nwbfile, pynwb.ogen.OptogeneticSeries))
-#     for site in opto_sites:
-#         if not site.description:
-#             error_code = "A101"
-#             print(
-#                 "%s: '%s' %s is missing text for attribute 'description'"
-# % (error_code, site.name, type(site).__name__)
-#             )
-#         if not site.location:
-#             error_code = "A101"
-#             print("%s: '%s' %s is missing text for attribute 'location'"
-# % (error_code, site.name, type(site).__name__))
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=OpticalChannel)
+def check_emission_lambda_in_nm(optical_channel: OpticalChannel):
+    """Check that emission lambda is in feasible range for unit nanometers."""
+    if optical_channel.emission_lambda < MIN_LAMBDA:
+        return InspectorMessage(f"emission lambda of {optical_channel.emission_lambda} should be in units of nm.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImagingPlane)
+def check_excitation_lambda_in_nm(imaging_plane: ImagingPlane):
+    """Check that emission lambda is in feasible range for unit nanometers."""
+    if imaging_plane.excitation_lambda < MIN_LAMBDA:
+        return InspectorMessage(f"excitation lambda of {imaging_plane.excitation_lambda} should be in units of nm.")
+
