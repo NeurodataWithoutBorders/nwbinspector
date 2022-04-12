@@ -473,15 +473,15 @@ class TestInspector(TestCase):
             next(generator)
 
 
-# @pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_dandiset(dandiset_id="000126", select=["check_subject_species_exists"]))
-    print(messages)
     assert messages[0] == InspectorMessage(
-        message="Subject is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_subject_exists",
-        object_type="NWBFile",
-        object_name="root",
-        location="/",
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path="sub-1/sub-1.nwb",
     )
