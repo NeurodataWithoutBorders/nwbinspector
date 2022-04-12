@@ -485,3 +485,42 @@ def test_dandiset_streaming():
         location="/general/subject",
         file_path="sub-1/sub-1.nwb",
     )
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+def test_dandiset_streaming_parallel():
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
+    assert messages[0] == InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path="sub-1/sub-1.nwb",
+    )
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+class TestStreamingCLI(TestInspector):
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+
+    def test_dandiset_streaming_cli(self):
+        console_output_file = self.tempdir / "test_console_streaming_output_1.txt"
+        os.system(
+            f"nwbinspector {str(self.nwbfile_paths[0])} --stream"
+            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_6.txt'}"
+            f"> {console_output_file}"
+        )
+        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
+
+    def test_dandiset_streaming_cli_parllel(self):
+        console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
+        os.system(
+            f"nwbinspector {str(self.nwbfile_paths[0])} --stream --n-jobs 2"
+            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_7.txt'}"
+            f"> {console_output_file}"
+        )
+        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
