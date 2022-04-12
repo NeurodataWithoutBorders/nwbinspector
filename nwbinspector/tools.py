@@ -46,11 +46,12 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 futures = []
                 for asset in dandiset.get_assets():
-                    futures.append(
-                        executor.submit(_get_content_url_and_path, asset=asset, follow_redirects=1, strip_query=True)
-                    )
-                for future in as_completed(futures):
-                    s3_urls_to_dandi_paths.update(future.result())
+                    if asset.path.split(".")[-1] == "nwb"
+                        futures.append(
+                            executor.submit(_get_content_url_and_path, asset=asset, follow_redirects=1, strip_query=True)
+                        )
+                    for future in as_completed(futures):
+                        s3_urls_to_dandi_paths.update(future.result())
     else:
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
