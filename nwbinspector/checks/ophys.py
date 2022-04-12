@@ -46,4 +46,3 @@ def check_excitation_lambda_in_nm(imaging_plane: ImagingPlane):
     """Check that emission lambda is in feasible range for unit nanometers."""
     if imaging_plane.excitation_lambda < MIN_LAMBDA:
         return InspectorMessage(f"excitation lambda of {imaging_plane.excitation_lambda} should be in units of nm.")
-
