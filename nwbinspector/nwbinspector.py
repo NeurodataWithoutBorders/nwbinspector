@@ -345,10 +345,11 @@ def inspect_all(
     """
     modules = modules or []
     if progress_bar_options is None:
+        progress_bar_options = dict(position=0, leave=False)
         if stream:
-            progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...", position=0, leave=False)
+            progress_bar_options.update(desc="Inspecting NWBFiles with ROS3...")
         else:
-            progress_bar_options = dict(desc="Inspecting NWBFiles...", position=0, leave=False)
+            progress_bar_options.update(desc="Inspecting NWBFiles...")
     if stream:
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
