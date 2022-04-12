@@ -17,10 +17,10 @@ jobs:
           conda-channels: conda-forge
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+      # - name: Setup Python ${{ matrix.python-version }}
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
       - name: Install pytest
         run: |
           pip install pytest
