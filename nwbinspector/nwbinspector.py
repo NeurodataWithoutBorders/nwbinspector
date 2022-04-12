@@ -343,13 +343,12 @@ def inspect_all(
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
     """
-    n_jobs = None if n_jobs == -1 else n_jobs  # concurrents uses None instead of -1 for 'auto' mode
     modules = modules or []
     if progress_bar_options is None:
         if stream:
-            progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...")
+            progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...", position=0, leave=False)
         else:
-            progress_bar_options = dict(desc="Inspecting NWBFiles...")
+            progress_bar_options = dict(desc="Inspecting NWBFiles...", position=0, leave=False)
     if stream:
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
@@ -376,6 +375,7 @@ def inspect_all(
     if n_jobs != 1:
         progress_bar_options.update(total=len(nwbfiles))
         futures = []
+        n_jobs = None if n_jobs == -1 else n_jobs  # concurrents uses None instead of -1 for 'auto' mode
         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             for nwbfile_path in nwbfiles:
                 futures.append(
