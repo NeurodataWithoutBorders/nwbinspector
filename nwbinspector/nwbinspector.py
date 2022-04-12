@@ -321,14 +321,12 @@ def inspect_all(
                         _pickle_inspect_nwb, nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate
                     )
                 )
+            completed_futures = as_completed(futures)
             if progress_bar:
-                for future in tqdm(as_completed(futures), **progress_bar_options):
-                    for message in future.result():
-                        yield message
-            else:
-                for future in as_completed(futures):
-                    for message in future.result():
-                        yield message
+                completed_futures = tqdm(completed_futures, **progress_bar_options)
+            for future in completed_futures:
+                for message in future.result():
+                    yield message
     else:
         if progress_bar:
             nwbfiles = tqdm(nwbfiles, **progress_bar_options)
