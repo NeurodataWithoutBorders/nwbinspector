@@ -24,7 +24,9 @@ jobs:
       - name: Install package
         run: pip install -e .
       - name: Uninstall h5py
-        run: pip uninstall h5py | Y
+        run: |
+          pip uninstall h5py
+          echo "Y"
       - name: Install ROS3
         run: conda install -c conda-forge h5py
       - name: Run pytest with coverage
