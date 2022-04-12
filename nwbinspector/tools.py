@@ -21,6 +21,13 @@ def all_of_type(nwbfile: NWBFile, neurodata_type):
             yield obj
 
 
+def get_nwbfile_path_from_internal_object(obj):
+    """Determine the file path on disk for a NWBFile given only an internal object of that file."""
+    if isinstance(obj, NWBFile):
+        return obj.container_source
+    return obj.get_ancestor("NWBFile").container_source
+
+
 def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:
     """
     Collect S3 URLS from a DANDISet ID.
