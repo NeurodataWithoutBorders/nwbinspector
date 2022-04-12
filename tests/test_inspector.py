@@ -475,4 +475,12 @@ class TestInspector(TestCase):
 
 @pytest.mark.skipif(condition=not HAVE_ROS3)
 def test_dandiset_streaming():
-    inspect_dandiset(path="000004", checks=[check_data_orientation])
+    messages = list(inspect_dandiset(dandiset_id="000126", select=["check_subject_species_exists"]))
+    assert messages[0] == InspectorMessage(
+        message="Subject is missing.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_exists",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
