@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.7", "3.10"]
+        python-version: ["3.8", "3.10"]
     steps:
       - uses: s-weigand/setup-conda@v1
       - uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
       - name: Install package
         run: pip install -e .
       - name: Install ROS3
-        run: conda install -c conda-forge "h5py>=3.2"
+        run: conda install -c conda-forge 'h5py>=3.4=mpi*'
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
