@@ -24,7 +24,7 @@ jobs:
       - name: Install package
         run: pip install -e .
       - name: Install ROS3
-        run: | 
+        run: |
           pip uninstall h5py
           conda install -c conda-forge 'h5py>=3.4=mpi*'
       - name: Run pytest with coverage
