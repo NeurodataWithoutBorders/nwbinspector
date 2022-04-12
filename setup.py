@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 setup(
     name="nwbinspector",
-    version="0.3.11",
+    version="0.3.12",
     description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
-    install_requires=["pynwb", "natsort", "click", "PyYAML", "jsonschema"],
+    install_requires=["pynwb", "natsort", "click", "PyYAML", "jsonschema", "tqdm"],
     entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
     license="BSD-3-Clause",
 )
