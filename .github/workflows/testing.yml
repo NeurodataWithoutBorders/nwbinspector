@@ -21,7 +21,9 @@ jobs:
           pip install pytest
           pip install pytest-cov
       - name: Install package
-        run: pip install -e .
+        run: |
+          pip install -e .
+          conda install h5py  # for ros3
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.9' && matrix.os == 'ubuntu-latest' }}
