@@ -9,7 +9,7 @@ from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
 from typing import Optional, List
-from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
@@ -187,6 +187,7 @@ def configure_checks(
     ),
     is_flag=True,
 )
+@click.option("--progress-bar", help="Set this flag to False to disable display of the progress bar.")
 @click.option(
     "--stream",
     help=(
@@ -202,7 +203,6 @@ def configure_checks(
         "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
     ),
 )
-@click.option("--progress-bar", help="Sett this flag to False to disable the display of the progress bar.")
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -219,9 +219,9 @@ def inspect_all_cli(
     n_jobs: int = 1,
     skip_validate: bool = False,
     detailed: bool = False,
+    progress_bar: Optional[str] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
-    progress_bar: Optional[str] = None,
 ):
     """
     Run the NWBInspector via the command line.
@@ -360,38 +360,22 @@ def inspect_all(
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
     if n_jobs != 1:
-        # max_workers for threading is a different concept to number of processes; from the documentation
-        # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
-        # we can multiply the specified number of jobs by 5
-        # if n_jobs != -1:
-        #     max_workers = n_jobs * 5
-        # else:
-        #     max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
         progress_bar_options.update(total=len(nwbfiles))
         futures = []
-        n_jobs = None if n_jobs == -1 else n_jobs
+        n_jobs = None if n_jobs == -1 else n_jobs  # concurrents uses None instead of -1 for 'auto' mode
         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             for nwbfile_path in nwbfiles:
-                futures.append(executor.submit(_run_checks, nwbfile_path=nwbfile_path, checks=checks))
+                futures.append(
+                    executor.submit(
+                        _pickle_inspect_nwb, nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate
+                    )
+                )
+            completed_futures = as_completed(futures)
             if progress_bar:
-                for future in tqdm(as_completed(futures), **progress_bar_options):
-                    for message in future.result():
-                        yield message
-            else:
-                for future in as_completed(futures):
-                    for message in future.result():
-                        yield message
-        # with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        #     for nwbfile_path in nwbfiles:
-        #         futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
-        #     if progress_bar:
-        #         for future in tqdm(as_completed(futures), **progress_bar_options):
-        #             for message in future.result():
-        #                 yield message
-        #     else:
-        #         for future in as_completed(futures):
-        #             for message in future.result():
-        #                 yield message
+                completed_futures = tqdm(completed_futures, **progress_bar_options)
+            for future in completed_futures:
+                for message in future.result():
+                    yield message
     else:
         if progress_bar:
             nwbfiles = tqdm(nwbfiles, **progress_bar_options)
@@ -400,7 +384,8 @@ def inspect_all(
                 yield message
 
 
-def _run_checks(nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False):
+def _pickle_inspect_nwb(nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False):
+    """Auxilliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
     return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
