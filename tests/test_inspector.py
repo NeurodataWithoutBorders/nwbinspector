@@ -476,6 +476,7 @@ class TestInspector(TestCase):
 # @pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_dandiset(dandiset_id="000126", select=["check_subject_species_exists"]))
+    print(messages)
     assert messages[0] == InspectorMessage(
         message="Subject is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
