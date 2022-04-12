@@ -26,7 +26,7 @@ from nwbinspector.tools import make_minimal_nwbfile
 
 try:
     with NWBHDF5IO(
-        path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/7f8/d1e/7f8d1ec3-b8bd-4fd2-8a39-9aecacb8d409",
+        path="https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991",
         mode="r",
         load_namespaces=True,
         driver="ros3",
