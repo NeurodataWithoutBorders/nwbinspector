@@ -56,7 +56,8 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
             for asset in dandiset.get_assets():
-                s3_urls_to_dandi_paths.update(_get_content_url_and_path(asset=asset))
+                if asset.path.split(".")[-1] == "nwb"
+                    s3_urls_to_dandi_paths.update(_get_content_url_and_path(asset=asset))
     return s3_urls_to_dandi_paths
 
 
