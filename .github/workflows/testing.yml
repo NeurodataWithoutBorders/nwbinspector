@@ -24,7 +24,7 @@ jobs:
       - name: Install package
         run: pip install -e .
       - name: Install ROS3
-        run: conda install 'h5py>=3.4=mpi*'
+        run: conda install -c conda-forge "h5py>=3.2"
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
