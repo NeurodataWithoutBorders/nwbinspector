@@ -475,4 +475,4 @@ class TestInspector(TestCase):
 
 @pytest.mark.skipif(condition=not HAVE_ROS3)
 def test_dandiset_streaming():
-    inspect_dandiset(path="101391", api_url="https://api-staging.dandiarchive.org/api")
+    inspect_dandiset(path="000004", checks=[check_data_orientation])

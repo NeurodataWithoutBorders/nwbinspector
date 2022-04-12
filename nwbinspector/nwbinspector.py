@@ -17,6 +17,7 @@ from distutils.util import strtobool
 import click
 import pynwb
 import yaml
+from tqdm import tqdm
 
 from . import available_checks
 from .inspector_tools import (
@@ -201,6 +202,7 @@ def configure_checks(
         "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
     ),
 )
+@click.option("--progress-bar", help="Sett this flag to False to disable the display of the progress bar.")
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -219,6 +221,7 @@ def inspect_all_cli(
     detailed: bool = False,
     stream: bool = False,
     version_id: Optional[str] = None,
+    progress_bar: Optional[str] = None,
 ):
     """
     Run the NWBInspector via the command line.
@@ -229,6 +232,7 @@ def inspect_all_cli(
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
+    progress_bar = strtobool(progress_bar) if progress_bar is not None else True
     if config is not None:
         config = load_config(filepath_or_keyword=config)
     if stream:
@@ -256,6 +260,7 @@ def inspect_all_cli(
                 config=config,
                 n_jobs=n_jobs,
                 skip_validate=skip_validate,
+                progress_bar=progress_bar,
             )
         )
     else:
@@ -269,6 +274,7 @@ def inspect_all_cli(
                 config=config,
                 n_jobs=n_jobs,
                 skip_validate=skip_validate,
+                progress_bar=progress_bar,
             )
         )
     if json_file_path is not None:
@@ -295,6 +301,8 @@ def inspect_all(
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    progress_bar: bool = True,
+    progress_bar_options: Optional[dict] = None,
 ):
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
@@ -330,9 +338,15 @@ def inspect_all(
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    progress_bar : bool, optional
+        Display a progress bar while scanning NWBFiles.
+        Defaults to True.
+    progress_bar_options : dict, optional
+        Dictionary of keyword arguments to pass directly to tqdm.
     """
     modules = modules or []
-
+    if progress_bar_options is None:
+        progress_bar_options = dict(desc="Inspecting NWBFiles...")
     in_path = Path(path)
     if in_path.is_dir():
         nwbfiles = list(in_path.rglob("*.nwb"))
@@ -344,25 +358,50 @@ def inspect_all(
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+
     if n_jobs != 1:
         # max_workers for threading is a different concept to number of processes; from the documentation
         # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
         # we can multiply the specified number of jobs by 5
-        if n_jobs != -1:
-            max_workers = n_jobs * 5
-        else:
-            max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = []
+        # if n_jobs != -1:
+        #     max_workers = n_jobs * 5
+        # else:
+        #     max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
+        progress_bar_options.update(total=len(nwbfiles))
+        futures = []
+        n_jobs = None if n_jobs == -1 else n_jobs
+        with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             for nwbfile_path in nwbfiles:
-                futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
-            for future in as_completed(futures):
-                for message in future.result():
-                    yield message
+                futures.append(executor.submit(_run_checks, nwbfile_path=nwbfile_path, checks=checks))
+            if progress_bar:
+                for future in tqdm(as_completed(futures), **progress_bar_options):
+                    for message in future.result():
+                        yield message
+            else:
+                for future in as_completed(futures):
+                    for message in future.result():
+                        yield message
+        # with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        #     for nwbfile_path in nwbfiles:
+        #         futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
+        #     if progress_bar:
+        #         for future in tqdm(as_completed(futures), **progress_bar_options):
+        #             for message in future.result():
+        #                 yield message
+        #     else:
+        #         for future in as_completed(futures):
+        #             for message in future.result():
+        #                 yield message
     else:
+        if progress_bar:
+            nwbfiles = tqdm(nwbfiles, **progress_bar_options)
         for nwbfile_path in nwbfiles:
             for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
                 yield message
+
+
+def _run_checks(nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False):
+    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 def inspect_nwb(
@@ -473,7 +512,6 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
 def inspect_dandiset(
     dandiset_id: str,
     version_id: Optional[str] = None,
-    api_url: Optional[str] = None,
     modules: OptionalListOfStrings = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
@@ -481,6 +519,8 @@ def inspect_dandiset(
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    progress_bar: bool = True,
+    progress_bar_options: Optional[dict] = None,
 ) -> List[InspectorMessage]:
     """
     Run the NWBInspector directly on a DANDISet on the DANDI archive.
@@ -522,19 +562,26 @@ def inspect_dandiset(
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
-    api_url : str, optional
-        The server type to use in resolving S3 paths.
-        Mostly used by tests that use https://api-staging.dandiarchive.org/api
-        Defaults to the standard archive.
+    progress_bar : bool, optional
+        Display a progress bar while scanning NWBFiles.
+        Defaults to True.
+    progress_bar_options : dict, optional
+        Dictionary of keyword arguments to pass directly to tqdm.
     """
     s3_urls_to_dandi_paths = get_s3_urls_and_dandi_paths(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
+    s3_iterable = s3_urls_to_dandi_paths.items()
+    if progress_bar:
+        if progress_bar_options is None:
+            progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...")
+        s3_iterable = tqdm(s3_iterable, **progress_bar_options)
     n_jobs = n_jobs if n_jobs > 0 else None
     if n_jobs != 1:
+        progress_bar_options.update(total=len(s3_urls_to_dandi_paths))
         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             futures = []
-            for s3_path, dandi_path in s3_urls_to_dandi_paths.items():
+            for s3_path, dandi_path in s3_iterable:
                 futures.append(
                     executor.submit(_run_s3_checks, s3_path=s3_path, checks=checks, skip_validate=skip_validate)
                 )
@@ -543,7 +590,7 @@ def inspect_dandiset(
                     message.file_path = dandi_path
                     yield message
     else:
-        for s3_path, dandi_path in s3_urls_to_dandi_paths.items():
+        for s3_path, dandi_path in s3_iterable:
             for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
                 message.file_path = dandi_path
                 yield message
