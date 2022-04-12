@@ -228,7 +228,7 @@ def inspect_all_cli(
 
     path :
     Path to either a local NWBFile, a local folder containing NWBFiles, a link to a dataset on
-    DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a Dandiset ID.
+    DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a six-digit Dandiset ID.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
@@ -249,34 +249,20 @@ def inspect_all_cli(
                 f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
                 "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--stream' flag."
             )
-        messages = list(
-            inspect_dandiset(
-                dandiset_id=dandiset_id,
-                version_id=version_id,
-                modules=modules,
-                ignore=ignore if ignore is None else ignore.split(","),
-                select=select if select is None else select.split(","),
-                importance_threshold=Importance[threshold],
-                config=config,
-                n_jobs=n_jobs,
-                skip_validate=skip_validate,
-                progress_bar=progress_bar,
-            )
+    messages = list(
+        inspect_all(
+            path=path,
+            modules=modules,
+            ignore=ignore if ignore is None else ignore.split(","),
+            select=select if select is None else select.split(","),
+            importance_threshold=Importance[threshold],
+            config=config,
+            n_jobs=n_jobs,
+            skip_validate=skip_validate,
+            progress_bar=progress_bar,
+            version_id=version_id,
         )
-    else:
-        messages = list(
-            inspect_all(
-                path=path,
-                modules=modules,
-                ignore=ignore if ignore is None else ignore.split(","),
-                select=select if select is None else select.split(","),
-                importance_threshold=Importance[threshold],
-                config=config,
-                n_jobs=n_jobs,
-                skip_validate=skip_validate,
-                progress_bar=progress_bar,
-            )
-        )
+    )
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
             raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
@@ -303,6 +289,7 @@ def inspect_all(
     skip_validate: bool = False,
     progress_bar: bool = True,
     progress_bar_options: Optional[dict] = None,
+    version_id: Optional[str] = None,
 ):
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
@@ -310,7 +297,8 @@ def inspect_all(
     Parameters
     ----------
     path : PathType
-        File path to an NWBFile, or folder path to iterate over recursively and scan all NWBFiles present.
+        File path to an NWBFile, folder path to iterate over recursively and scan all NWBFiles present, or a
+        six-digit identifier of the DANDISet.
     modules : list of strings, optional
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
@@ -343,15 +331,25 @@ def inspect_all(
         Defaults to True.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to tqdm.
+    version_id : str, optional
+        If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
+        Common options are 'draft' or 'published'.
+        Defaults to the most recent published version, or if not published then the most recent draft version.
     """
+    driver = "ros3" if re.fullmatch(pattern="^[0-9]{6}$", string=path) is not None else None
+
     modules = modules or []
     if progress_bar_options is None:
         progress_bar_options = dict(desc="Inspecting NWBFiles...")
+    if driver is not None:
+        progress_bar_options.update(desc="Inspecting NWBFiles with ROS3...")
     in_path = Path(path)
     if in_path.is_dir():
         nwbfiles = list(in_path.rglob("*.nwb"))
     elif in_path.is_file():
         nwbfiles = [in_path]
+    elif driver is not None:
+        nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
@@ -367,7 +365,11 @@ def inspect_all(
             for nwbfile_path in nwbfiles:
                 futures.append(
                     executor.submit(
-                        _pickle_inspect_nwb, nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate
+                        _pickle_inspect_nwb,
+                        nwbfile_path=nwbfile_path,
+                        checks=checks,
+                        skip_validate=skip_validate,
+                        driver=driver,
                     )
                 )
             completed_futures = as_completed(futures)
@@ -375,18 +377,24 @@ def inspect_all(
                 completed_futures = tqdm(completed_futures, **progress_bar_options)
             for future in completed_futures:
                 for message in future.result():
+                    if driver is not None:
+                        message.file_path = nwbfiles[message.file_path]
                     yield message
     else:
         if progress_bar:
             nwbfiles = tqdm(nwbfiles, **progress_bar_options)
         for nwbfile_path in nwbfiles:
-            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+                if driver is not None:
+                    message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
-def _pickle_inspect_nwb(nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False):
+def _pickle_inspect_nwb(
+    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+):
     """Auxilliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
+    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
 
 
 def inspect_nwb(
@@ -494,100 +502,91 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
                         yield output
 
 
-def inspect_dandiset(
-    dandiset_id: str,
-    version_id: Optional[str] = None,
-    modules: OptionalListOfStrings = None,
-    config: Optional[dict] = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    n_jobs: int = 1,
-    skip_validate: bool = False,
-    progress_bar: bool = True,
-    progress_bar_options: Optional[dict] = None,
-) -> List[InspectorMessage]:
-    """
-    Run the NWBInspector directly on a DANDISet on the DANDI archive.
+# def inspect_dandiset(
+#     dandiset_id: str,
+#     version_id: Optional[str] = None,
+#     modules: OptionalListOfStrings = None,
+#     config: Optional[dict] = None,
+#     ignore: OptionalListOfStrings = None,
+#     select: OptionalListOfStrings = None,
+#     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+#     n_jobs: int = 1,
+#     skip_validate: bool = False,
+#     progress_bar: bool = True,
+#     progress_bar_options: Optional[dict] = None,
+# ) -> List[InspectorMessage]:
+#     """
+#     Run the NWBInspector directly on a DANDISet on the DANDI archive.
 
-    Requires the ros3 driver, which comes pre-installed with recent conda-forge versions of h5py (conda install h5py).
+#     Requires the ros3 driver, which comes pre-installed with recent conda-forge versions of h5py (conda install h5py).
 
-    Parameters
-    ----------
-    dandiset_id : str
-        Six-digit identifier of the DANDISet.
-    version_id : str, optional
-        Specifies which version of the dataset to read from.
-        Common options are 'draft' or 'published'.
-        Defaults to the most recent published version, or if not published then the most recent draft version.
-    modules : list of strings, optional
-        List of external module names to load; examples would be namespace extensions.
-        These modules may also contain their own custom checks for their extensions.
-    config : dict, optional
-        If a dictionary, it must be valid against our JSON configuration schema.
-        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
-        Typically loaded via json.load from a valid .json file
-    ignore: list of strings, optional
-        Names of functions to skip.
-    select: list of strings, optional
-        Names of functions to pick out of available checks.
-    importance_threshold : string, optional
-        Ignores tests with an assigned importance below this threshold.
-        Importance has three levels:
-            CRITICAL
-                - potentially incorrect data
-            BEST_PRACTICE_VIOLATION
-                - very suboptimal data representation
-            BEST_PRACTICE_SUGGESTION
-                - improvable data representation
-        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    n_jobs : int
-        Number of jobs to use in parallel. Set to -1 to use all available resources.
-        Set to 1 (the default) to disable.
-    skip_validate : bool, optional
-        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
-        The default is False, which is also recommended.
-    progress_bar : bool, optional
-        Display a progress bar while scanning NWBFiles.
-        Defaults to True.
-    progress_bar_options : dict, optional
-        Dictionary of keyword arguments to pass directly to tqdm.
-    """
-    s3_urls_to_dandi_paths = get_s3_urls_and_dandi_paths(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
-    checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+#     Parameters
+#     ----------
+#     dandiset_id : str
+#         Six-digit identifier of the DANDISet.
+#     version_id : str, optional
+#         Specifies which version of the dataset to read from.
+#         Common options are 'draft' or 'published'.
+#         Defaults to the most recent published version, or if not published then the most recent draft version.
+#     modules : list of strings, optional
+#         List of external module names to load; examples would be namespace extensions.
+#         These modules may also contain their own custom checks for their extensions.
+#     config : dict, optional
+#         If a dictionary, it must be valid against our JSON configuration schema.
+#         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+#         Typically loaded via json.load from a valid .json file
+#     ignore: list of strings, optional
+#         Names of functions to skip.
+#     select: list of strings, optional
+#         Names of functions to pick out of available checks.
+#     importance_threshold : string, optional
+#         Ignores tests with an assigned importance below this threshold.
+#         Importance has three levels:
+#             CRITICAL
+#                 - potentially incorrect data
+#             BEST_PRACTICE_VIOLATION
+#                 - very suboptimal data representation
+#             BEST_PRACTICE_SUGGESTION
+#                 - improvable data representation
+#         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+#     n_jobs : int
+#         Number of jobs to use in parallel. Set to -1 to use all available resources.
+#         Set to 1 (the default) to disable.
+#     skip_validate : bool, optional
+#         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+#         The default is False, which is also recommended.
+#     progress_bar : bool, optional
+#         Display a progress bar while scanning NWBFiles.
+#         Defaults to True.
+#     progress_bar_options : dict, optional
+#         Dictionary of keyword arguments to pass directly to tqdm.
+#     """
+#     s3_urls_to_dandi_paths = get_s3_urls_and_dandi_paths(dandiset_id=dandiset_id, version_id=version_id, n_jobs=n_jobs)
+#     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
-    s3_iterable = s3_urls_to_dandi_paths.items()
-    if progress_bar:
-        if progress_bar_options is None:
-            progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...")
-        s3_iterable = tqdm(s3_iterable, **progress_bar_options)
-    n_jobs = n_jobs if n_jobs > 0 else None
-    if n_jobs != 1:
-        progress_bar_options.update(total=len(s3_urls_to_dandi_paths))
-        with ProcessPoolExecutor(max_workers=n_jobs) as executor:
-            futures = []
-            for s3_path, dandi_path in s3_iterable:
-                futures.append(
-                    executor.submit(_run_s3_checks, s3_path=s3_path, checks=checks, skip_validate=skip_validate)
-                )
-            for future in as_completed(futures):
-                for message in future.result():
-                    message.file_path = dandi_path
-                    yield message
-    else:
-        for s3_path, dandi_path in s3_iterable:
-            for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
-                message.file_path = dandi_path
-                yield message
-
-
-def _run_s3_checks(s3_path: str, checks: list = available_checks, skip_validate: bool = False):
-    """
-    Private helper function for 'inspect_dandiset'.
-
-    Required for pickling over multiple processes and cannot be defined locally within that function.
-    """
-    return list(inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate))
+#     s3_iterable = s3_urls_to_dandi_paths.items()
+#     if progress_bar:
+#         if progress_bar_options is None:
+#             progress_bar_options = dict(desc="Inspecting NWBFiles with ROS3...")
+#         s3_iterable = tqdm(s3_iterable, **progress_bar_options)
+#     n_jobs = n_jobs if n_jobs > 0 else None
+#     if n_jobs != 1:
+#         progress_bar_options.update(total=len(s3_urls_to_dandi_paths))
+#         with ProcessPoolExecutor(max_workers=n_jobs) as executor:
+#             futures = []
+#             for s3_path, dandi_path in s3_iterable:
+#                 futures.append(
+#                     executor.submit(_run_s3_checks, s3_path=s3_path, checks=checks, skip_validate=skip_validate)
+#                 )
+#             for future in as_completed(futures):
+#                 for message in future.result():
+#                     message.file_path = dandi_path
+#                     yield message
+#     else:
+#         for s3_path, dandi_path in s3_iterable:
+#             for message in inspect_nwb(nwbfile_path=s3_path, checks=checks, driver="ros3", skip_validate=skip_validate):
+#                 message.file_path = dandi_path
+#                 yield message
 
 
 if __name__ == "__main__":
