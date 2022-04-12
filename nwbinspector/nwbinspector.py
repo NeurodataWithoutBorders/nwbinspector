@@ -185,7 +185,7 @@ def configure_checks(
     ),
     is_flag=True,
 )
-@click.option("--progress-bar", help="Sett this flag to False to disable the display of the progress bar.")
+@click.option("--progress-bar", help="Set this flag to False to disable display of the progress bar.")
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
