@@ -18,7 +18,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb, inspect_dandiset
+from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
@@ -475,7 +475,7 @@ class TestInspector(TestCase):
 
 @pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"]))
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
     assert messages[0] == InspectorMessage(
         message="Subject species is missing.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
