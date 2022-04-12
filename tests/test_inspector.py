@@ -473,7 +473,7 @@ class TestInspector(TestCase):
             next(generator)
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(HAVE_ROS3, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_dandiset(dandiset_id="000126", select=["check_subject_species_exists"]))
     assert messages[0] == InspectorMessage(
