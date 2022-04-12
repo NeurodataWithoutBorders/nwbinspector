@@ -524,7 +524,7 @@ class TestStreamingCLI(TestCase):
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
 
-    def test_dandiset_streaming_cli_parllel(self):
+    def test_dandiset_streaming_cli_parallel(self):
         console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
         os.system(
             f"nwbinspector https://dandiarchive.org/dandiset/000126/0.210813.0327 --stream --n-jobs 2 "

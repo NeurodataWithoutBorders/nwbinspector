@@ -239,10 +239,9 @@ def inspect_all_cli(
         url_path = path if path.startswith("https://") else None
         if url_path:
             dandiset_id, version_id = url_path.split("/")[-2:]
-        else:
-            dandiset_id = path  # version_id will get set automatically to most recent version if unspecified
+            path = dandiset_id
         assert url_path or re.fullmatch(
-            pattern="^[0-9]{6}$", string=dandiset_id
+            pattern="^[0-9]{6}$", string=path
         ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
         if Path(path).is_dir():
             warn(
