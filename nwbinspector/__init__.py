@@ -7,3 +7,4 @@ from .checks.time_series import *
 from .checks.tables import *
 from .checks.ecephys import *
 from .checks.ogen import *
+from .checks.image_series import *
