@@ -1,7 +1,7 @@
 Extensions
 ==========
 
-Extend existing NWBFile structures only when necessary. Extensions are an essential mechanism to integrate
+Extend the core NWB schema only when necessary. Extensions are an essential mechanism to integrate
 data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
 with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
 to use and learn already-created extensions.
