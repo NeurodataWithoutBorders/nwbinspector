@@ -1,5 +1,6 @@
 """Primary functions for inspecting NWBFiles."""
 import os
+import re
 import importlib
 import traceback
 import json
@@ -8,14 +9,15 @@ from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
 from typing import Optional, List
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
-from warnings import filterwarnings
+from warnings import filterwarnings, warn
 from distutils.util import strtobool
 
 import click
 import pynwb
 import yaml
+from tqdm import tqdm
 
 from . import available_checks
 from .inspector_tools import (
@@ -25,6 +27,7 @@ from .inspector_tools import (
     save_report,
 )
 from .register_checks import InspectorMessage, Importance
+from .tools import get_s3_urls_and_dandi_paths
 from .utils import FilePathType, PathType, OptionalListOfStrings
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
@@ -184,6 +187,22 @@ def configure_checks(
     ),
     is_flag=True,
 )
+@click.option("--progress-bar", help="Set this flag to False to disable display of the progress bar.")
+@click.option(
+    "--stream",
+    help=(
+        "Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, specifying this "
+        "flag will still force the data to be streamed instead of using the local copy. To use the local copy, simply "
+        "remove this flag. Requires the Read Only S3 (ros3) driver to be installed with h5py."
+    ),
+    is_flag=True,
+)
+@click.option(
+    "--version-id",
+    help=(
+        "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
+    ),
+)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
@@ -200,12 +219,35 @@ def inspect_all_cli(
     n_jobs: int = 1,
     skip_validate: bool = False,
     detailed: bool = False,
+    progress_bar: Optional[str] = None,
+    stream: bool = False,
+    version_id: Optional[str] = None,
 ):
-    """Primary CLI usage of the NWBInspector."""
+    """
+    Run the NWBInspector via the command line.
+
+    path :
+    Path to either a local NWBFile, a local folder containing NWBFiles, a link to a dataset on
+    DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a six-digit Dandiset ID.
+    """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
+    progress_bar = strtobool(progress_bar) if progress_bar is not None else True
     if config is not None:
         config = load_config(filepath_or_keyword=config)
+    if stream:
+        url_path = path if path.startswith("https://") else None
+        if url_path:
+            dandiset_id, version_id = url_path.split("/")[-2:]
+            path = dandiset_id
+        assert url_path or re.fullmatch(
+            pattern="^[0-9]{6}$", string=path
+        ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
+        if Path(path).is_dir():
+            warn(
+                f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
+                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--stream' flag."
+            )
     messages = list(
         inspect_all(
             path=path,
@@ -216,6 +258,9 @@ def inspect_all_cli(
             config=config,
             n_jobs=n_jobs,
             skip_validate=skip_validate,
+            progress_bar=progress_bar,
+            stream=stream,
+            version_id=version_id,
         )
     )
     if json_file_path is not None:
@@ -242,14 +287,19 @@ def inspect_all(
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    progress_bar: bool = True,
+    progress_bar_options: Optional[dict] = None,
+    stream: bool = False,
+    version_id: Optional[str] = None,
 ):
     """
-    Inspect a NWBFile object and return suggestions for improvements according to best practices.
+    Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
 
     Parameters
     ----------
     path : PathType
-        File path to an NWBFile, or folder path to iterate over recursively and scan all NWBFiles present.
+        File path to an NWBFile, folder path to iterate over recursively and scan all NWBFiles present, or a
+        six-digit identifier of the DANDISet.
     modules : list of strings, optional
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
@@ -274,44 +324,90 @@ def inspect_all(
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
         Set to 1 (also the default) to disable.
-    skip_validate : bool
+    skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    progress_bar : bool, optional
+        Display a progress bar while scanning NWBFiles.
+        Defaults to True.
+    progress_bar_options : dict, optional
+        Dictionary of keyword arguments to pass directly to tqdm.
+    stream : bool, optional
+        Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, setting this
+        argument to True will force the data to be streamed instead of using the local copy.
+        Requires the Read Only S3 (ros3) driver to be installed with h5py.
+        Defaults to False.
+    version_id : str, optional
+        If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
+        Common options are 'draft' or 'published'.
+        Defaults to the most recent published version, or if not published then the most recent draft version.
     """
     modules = modules or []
-    path = Path(path)
-
-    in_path = Path(path)
-    if in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb"))
-    elif in_path.is_file():
-        nwbfiles = [in_path]
+    if progress_bar_options is None:
+        progress_bar_options = dict(position=0, leave=False)
+        if stream:
+            progress_bar_options.update(desc="Inspecting NWBFiles with ROS3...")
+        else:
+            progress_bar_options.update(desc="Inspecting NWBFiles...")
+    if stream:
+        assert (
+            re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
+        ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
+        driver = "ros3"
+        nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
     else:
-        raise ValueError(f"{in_path} should be a directory or an NWB file.")
+        driver = None
+        in_path = Path(path)
+        if in_path.is_dir():
+            nwbfiles = list(in_path.rglob("*.nwb"))
+        elif in_path.is_file():
+            nwbfiles = [in_path]
+        else:
+            raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
-    if n_jobs != 1:
 
-        # max_workers for threading is a different concept to number of processes; from the documentation
-        # https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
-        # we can multiply the specified number of jobs by 5
-        if n_jobs != -1:
-            max_workers = n_jobs * 5
-        else:
-            max_workers = None  # concurrents doesn't have a -1 flag like joblib; set to None to achieve this
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = []
+    nwbfiles_iterable = nwbfiles
+    if progress_bar:
+        nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+    if n_jobs != 1:
+        progress_bar_options.update(total=len(nwbfiles))
+        futures = []
+        n_jobs = None if n_jobs == -1 else n_jobs  # concurrents uses None instead of -1 for 'auto' mode
+        with ProcessPoolExecutor(max_workers=n_jobs) as executor:
             for nwbfile_path in nwbfiles:
-                futures.append(executor.submit(inspect_nwb, nwbfile_path=nwbfile_path, checks=checks))
-            for future in as_completed(futures):
+                futures.append(
+                    executor.submit(
+                        _pickle_inspect_nwb,
+                        nwbfile_path=nwbfile_path,
+                        checks=checks,
+                        skip_validate=skip_validate,
+                        driver=driver,
+                    )
+                )
+            nwbfiles_iterable = as_completed(futures)
+            if progress_bar:
+                nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+            for future in nwbfiles_iterable:
                 for message in future.result():
+                    if stream:
+                        message.file_path = nwbfiles[message.file_path]
                     yield message
     else:
-        for nwbfile_path in nwbfiles:
-            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks):
+        for nwbfile_path in nwbfiles_iterable:
+            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+                if stream:
+                    message.file_path = nwbfiles[message.file_path]
                 yield message
+
+
+def _pickle_inspect_nwb(
+    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+):
+    """Auxilliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
+    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
 
 
 def inspect_nwb(
