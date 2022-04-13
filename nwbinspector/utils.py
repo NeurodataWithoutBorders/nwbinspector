@@ -1,5 +1,6 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
 import re
+import json
 import numpy as np
 from typing import TypeVar, Optional, List
 from pathlib import Path
@@ -53,8 +54,21 @@ def is_ascending_series(series: np.ndarray, nelems=None):
 
 def is_dict_in_string(string: str):
     """
-    Determine if the string value contains an encoded dictionary, such as a JSON object.
+    Determine if the string value contains an encoded Python dictionary.
 
     Can also be the direct results of string casting a dictionary, *e.g.*, ``str(dict(a=1))``.
     """
     return any(re.findall(pattern=dict_regex, string=string))
+
+
+def is_string_json_loadable(string: str):
+    """
+    Determine if the serialized dictionary is a JSON object.
+
+    Rather than constructing a complicated regex pattern, a simple try/except of the json.load should suffice.
+    """
+    try:
+        json.loads(string)
+        return True
+    except json.JSONDecodeError:
+        return False

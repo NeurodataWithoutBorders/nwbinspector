@@ -1,4 +1,5 @@
 import platform
+import json
 from unittest import TestCase
 
 import pytest
@@ -281,6 +282,24 @@ def test_check_table_values_for_dict():
         message=(
             "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
             "dictionaries as additional rows or columns of the table."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_table_values_for_dict",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_table_values_for_dict_json_case():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=json.dumps(dict(a=1)))
+    assert check_table_values_for_dict(table=table)[0] == InspectorMessage(
+        message=(
+            "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
+            "dictionaries as additional rows or columns of the table. This string is also JSON loadable, so call "
+            "`json.loads(...)` on the string to unpack."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_table_values_for_dict",
