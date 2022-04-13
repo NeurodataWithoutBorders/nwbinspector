@@ -277,7 +277,7 @@ def test_check_table_values_for_dict():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column=str(dict(a=1)))
-    assert check_table_values_for_dict(table=table) == InspectorMessage(
+    assert check_table_values_for_dict(table=table)[0] == InspectorMessage(
         message=(
             "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
             "dictionaries as additional rows or columns of the table."

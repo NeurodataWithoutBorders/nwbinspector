@@ -168,7 +168,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
             if any((is_dict_in_string(string=string) for string in column.data[:nelems])):
                 yield InspectorMessage(
                     message=(
-                        f"The column '{column}' contains a string value that contains a dictionary! Please unpack "
+                        f"The column '{column.name}' contains a string value that contains a dictionary! Please unpack "
                         "dictionaries as additional rows or columns of the table."
                     )
                 )

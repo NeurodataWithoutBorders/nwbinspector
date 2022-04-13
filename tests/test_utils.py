@@ -41,11 +41,6 @@ def test_is_dict_in_string_false_3():
     assert is_dict_in_string(string=string) is False
 
 
-def test_is_dict_in_string_false_4():
-    string = "not a dict, {but: it sure looks like one}!"
-    assert is_dict_in_string(string=string) is False
-
-
 def test_is_dict_in_string_true_1():
     string = str(dict(a=1))
     assert is_dict_in_string(string=string) is True
@@ -74,4 +69,28 @@ def test_is_dict_in_string_true_5():
 def test_is_dict_in_string_true_6():
     """Not a JSON encodable object."""
     string = str({1.2: Importance.CRITICAL})
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_7():
+    """
+    A more aggressive demonstration of the general dictionary regex.
+
+    But it is technically possible to achieve via `str({custom_object_1: custom_object_2})` if 'custom_object_1' is
+    hashable and both custom objects have manual `__repr__` that do not include apostrophe's within their return.
+
+    Example
+    -------
+    from dataclasses import dataclass
+
+    @dataclass
+    class Test():
+        prop = 1
+
+        def __repr__(self):
+            return "This is a test"
+
+    str({1: Test()})
+    """
+    string = "example, {this is not a dict: but it sure looks like one}!"
     assert is_dict_in_string(string=string) is True

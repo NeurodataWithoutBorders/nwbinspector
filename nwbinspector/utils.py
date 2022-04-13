@@ -8,7 +8,7 @@ PathType = TypeVar("PathType", str, Path)  # For types that can be either files 
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
 
-dict_regex = r"({.*?:.*?})"
+dict_regex = r"({.+:.+})"
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
