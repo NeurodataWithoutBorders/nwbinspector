@@ -78,9 +78,7 @@ class InspectorMessage:
     file_path: str = None
 
     def __repr__(self):
-        return ["InspectorMessage(\n"] + "\n,".join(
-            +[f"    {k}={v.__repr__()}" for k, v in self.__dict__.items()] + [")"]
-        )
+        return "InspectorMessage(\n" + ",\n".join([f"    {k}={v.__repr__()}" for k, v in self.__dict__.items()]) + "\n)"
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
@@ -175,7 +173,6 @@ def parse_location(neurodata_object) -> Optional[str]:
     for key, val in known_locations.items():
         if isinstance(neurodata_object, key):
             return val
-
     """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
     if neurodata_object.parent is None:
         return "/"
