@@ -13,7 +13,7 @@ def check_regular_timestamps(
     time_series: TimeSeries, time_tolerance_decimals: int = 9, gb_severity_threshold: float = 1.0
 ):
     """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
-    if time_series.timestamps is not None and check_regular_series(
+    if time_series.timestamps is not None and len(time_series.timestamps) > 2 and check_regular_series(
         series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals
     ):
         timestamps = np.array(time_series.timestamps)
