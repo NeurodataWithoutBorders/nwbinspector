@@ -1,4 +1,5 @@
 import os
+import pytest
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
@@ -21,6 +22,19 @@ from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType
 from nwbinspector.tools import make_minimal_nwbfile
+
+
+try:
+    with NWBHDF5IO(
+        path="https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991",
+        mode="r",
+        load_namespaces=True,
+        driver="ros3",
+    ) as io:
+        nwbfile = io.read()
+    HAVE_ROS3 = True
+except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
+    HAVE_ROS3 = False
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -457,3 +471,64 @@ class TestInspector(TestCase):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+def test_dandiset_streaming():
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
+    assert messages[0] == InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path="sub-1/sub-1.nwb",
+    )
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+def test_dandiset_streaming_parallel():
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
+    assert messages[0] == InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path="sub-1/sub-1.nwb",
+    )
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+class TestStreamingCLI(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def assertFileExists(self, path: FilePathType):
+        path = Path(path)
+        assert path.exists()
+
+    def test_dandiset_streaming_cli(self):
+        console_output_file = self.tempdir / "test_console_streaming_output_1.txt"
+        os.system(
+            f"nwbinspector 000126 --stream "
+            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_6.txt'}"
+            f"> {console_output_file}"
+        )
+        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
+
+    def test_dandiset_streaming_cli_parallel(self):
+        console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
+        os.system(
+            f"nwbinspector https://dandiarchive.org/dandiset/000126/0.210813.0327 --stream --n-jobs 2 "
+            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_7.txt'}"
+            f"> {console_output_file}"
+        )
+        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
