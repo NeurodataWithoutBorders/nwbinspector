@@ -13,6 +13,7 @@ from nwbinspector import (
     check_dynamic_table_region_data_validity,
     check_column_binary_capability,
     check_single_row,
+    check_table_values_for_dict,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance
 
@@ -258,21 +259,21 @@ def test_check_single_row_fail():
     )
 
 
-def check_table_values_for_dict_non_str():
+def test_check_table_values_for_dict_non_str():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column=123)
     assert check_table_values_for_dict(table=table) is None
 
 
-def check_table_values_for_dict_pass():
+def test_check_table_values_for_dict_pass():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column="123")
     assert check_table_values_for_dict(table=table) is None
 
 
-def check_table_values_for_dict():
+def test_check_table_values_for_dict():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column=str(dict(a=1)))
