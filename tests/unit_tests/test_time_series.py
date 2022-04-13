@@ -37,14 +37,17 @@ def test_check_regular_timestamps():
 
 def test_pass_check_regular_timestamps():
     """Should pass because there are only two timestamps"""
-    assert check_regular_timestamps(
-        time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=[0, 0],
-            timestamps=[1.2, 3.2],
+    assert (
+        check_regular_timestamps(
+            time_series=pynwb.TimeSeries(
+                name="test_time_series",
+                unit="test_units",
+                data=[0, 0],
+                timestamps=[1.2, 3.2],
+            )
         )
-    ) is None
+        is None
+    )
 
 
 def test_check_data_orientation():
