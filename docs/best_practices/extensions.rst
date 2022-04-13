@@ -9,7 +9,7 @@ to use and learn already-created extensions. As such, users should attempt to us
 electrodes, or spiking output, provide the ability to dynamically add columns without the need for extensions, and can
 help avoid the need for custom extensions in many cases.
 
-If an extension is ultimately required, tutorials for the process may be found through the
+If an extension is required, tutorials for the process may be found through the
 :nwb-overview:`NWB Overview for Extensions <extensions_tutorial/extensions_tutorial_home.html>`.
 
 It is also encouraged for extensions to contain their own check functions for their own best practices.
