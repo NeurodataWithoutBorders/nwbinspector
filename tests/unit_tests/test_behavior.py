@@ -31,3 +31,16 @@ def test_pass_check_spatial_series_dims():
     )
 
     assert check_spatial_series_dims(spatial_series) is None
+
+
+def test_pass_check_spatial_series_dims_1d():
+
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)),
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+
+    assert check_spatial_series_dims(spatial_series) is None
