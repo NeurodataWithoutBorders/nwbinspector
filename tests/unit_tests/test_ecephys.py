@@ -12,6 +12,7 @@ from nwbinspector.checks.ecephys import (
     check_negative_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
+    check_spike_times_not_in_unobserved_interval,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance
 
@@ -152,3 +153,64 @@ class TestCheckElectricalSeries(TestCase):
             check_electrical_series_reference_electrodes_table(electrical_series).message
             == "electrodes does not  reference an electrodes table."
         )
+
+
+def test_check_spike_times_not_in_unobserved_interval_pass():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3], obs_intervals=[[0, 2.5], [2.7, 3.5]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) is None
+
+
+def test_check_spike_times_not_in_unobserved_interval_pass_no_intervals():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) is None
+
+
+def test_check_spike_times_not_in_unobserved_interval_1():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3], obs_intervals=[[0, 2.5], [3.5, 4]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that occur during periods of time not labeled as being "
+            "observed intervals."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+
+def test_check_spike_times_not_in_unobserved_interval_2():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3, 4, 5, 6], obs_intervals=[[0, 2.5], [3.5, 7]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that occur during periods of time not labeled as being "
+            "observed intervals."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+
+def test_check_spike_times_not_in_unobserved_interval_multiple_units():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3, 4, 5, 6], obs_intervals=[[0, 3.2], [3.5, 7]])
+    units_table.add_unit(spike_times=[6.5, 12, 13, 14, 15, 16], obs_intervals=[[10, 15.2], [15.8, 17]])
+    assert check_spike_times_not_in_unobserved_interval(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that occur during periods of time not labeled as being "
+            "observed intervals."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
