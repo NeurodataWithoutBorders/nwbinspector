@@ -172,9 +172,7 @@ def configure_checks(
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
-@click.option(
-    "--config", help="Name of config or path of config .yaml file that overwrites importance of checks."
-)
+@click.option("--config", help="Name of config or path of config .yaml file that overwrites importance of checks.")
 @click.option("--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 @click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
