@@ -152,7 +152,6 @@ def configure_checks(
 @click.command()
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
-@click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
     "--report-file-path",
     default=None,
@@ -203,7 +202,6 @@ def configure_checks(
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
-    no_color: bool = False,
     report_file_path: str = None,
     levels: str = None,
     reverse: Optional[str] = None,
@@ -269,7 +267,7 @@ def inspect_all_cli(
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     if len(messages):
         formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
-        print_to_console(formatted_messages=formatted_messages, no_color=no_color)
+        print_to_console(formatted_messages=formatted_messages)
         if report_file_path is not None:
             save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
             print(f"{os.linesep*2}Report saved to {str(Path(report_file_path).absolute())}!{os.linesep}")
