@@ -89,7 +89,7 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
-        # cls.tempdir = Path("E:/test_inspector/output2")
+        cls.tempdir = Path("E:/test_inspector/output2")
         cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
@@ -113,9 +113,9 @@ class TestInspector(TestCase):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
+    # @classmethod
+    # def tearDownClass(cls):
+    #     rmtree(cls.tempdir)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
@@ -377,8 +377,8 @@ class TestInspector(TestCase):
     def test_command_line_runs_cli_only_parallel(self):
         console_output_file = self.tempdir / "test_console_output_2.txt"
         os.system(
-            f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
-            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression --n-jobs 2"
+            f"nwbinspector {str(self.tempdir)} --n-jobs 2 --overwrite --select check_timestamps_match_first_dimension,"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -414,8 +414,8 @@ class TestInspector(TestCase):
     def test_command_line_on_directory_matches_file(self):
         console_output_file = self.tempdir / "test_console_output_5.txt"
         os.system(
-            f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,check_data_orientation,"
-            "check_regular_timestamps,check_small_dataset_compression"
+            f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
             f" --report-file-path {self.tempdir / 'test_nwbinspector_report_3.txt'}"
             f"> {console_output_file}"
         )

@@ -269,7 +269,7 @@ def format_messages(
     return formatted_messages
 
 
-def print_to_console(formatted_messages: List[str], no_color: bool = False):
+def print_to_console(formatted_messages: List[str]):
     """Print report file contents to console."""
     sys.stdout.write(os.linesep * 2)
     for line in formatted_messages:
