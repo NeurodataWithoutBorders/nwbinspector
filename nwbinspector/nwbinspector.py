@@ -151,7 +151,7 @@ def configure_checks(
 
 @click.command()
 @click.argument("path")
-@click.option("-m", "--modules", help="Modules to import prior to reading the file(s).")
+@click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option("--no-color", help="Disable coloration for console display of output.", is_flag=True)
 @click.option(
     "--report-file-path",
@@ -159,24 +159,23 @@ def configure_checks(
     help="Save path for the report file.",
     type=click.Path(writable=True),
 )
-@click.option("-o", "--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
+@click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
 @click.option(
     "--reverse", help="Comma-separated booleans corresponding to reversing the order for each value of 'levels'."
 )
-@click.option("-i", "--ignore", help="Comma-separated names of checks to skip.")
-@click.option("-s", "--select", help="Comma-separated names of checks to run.")
+@click.option("--ignore", help="Comma-separated names of checks to skip.")
+@click.option("--select", help="Comma-separated names of checks to run.")
 @click.option(
-    "-t",
     "--threshold",
     default="BEST_PRACTICE_SUGGESTION",
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
 @click.option(
-    "-c", "--config", help="Name of config or path of config .yaml file that overwrites importance of checks."
+    "--config", help="Name of config or path of config .yaml file that overwrites importance of checks."
 )
-@click.option("-j", "--json-file-path", help="Write json output to this location.")
+@click.option("--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 @click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
 @click.option(
