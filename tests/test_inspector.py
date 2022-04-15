@@ -89,7 +89,6 @@ class TestInspector(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = Path(mkdtemp())
-        cls.tempdir = Path("E:/test_inspector/output2")
         cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
@@ -113,9 +112,9 @@ class TestInspector(TestCase):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     rmtree(cls.tempdir)
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
