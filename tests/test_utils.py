@@ -1,6 +1,7 @@
 from hdmf.testing import TestCase
 
-from nwbinspector.utils import format_byte_size, check_regular_series
+from nwbinspector import Importance
+from nwbinspector.utils import format_byte_size, check_regular_series, is_dict_in_string
 
 
 def test_format_byte_size():
@@ -23,3 +24,73 @@ class TestFormatByteException(TestCase):
 def test_check_regular_series():
     assert check_regular_series(series=[1, 2, 3])
     assert not check_regular_series(series=[1, 2, 4])
+
+
+def test_is_dict_in_string_false_1():
+    string = "not a dict"
+    assert is_dict_in_string(string=string) is False
+
+
+def test_is_dict_in_string_false_2():
+    string = "not a dict, {but also fancy format text!}"
+    assert is_dict_in_string(string=string) is False
+
+
+def test_is_dict_in_string_false_3():
+    string = "[not] a dict, {[but] also} fancy format text!"
+    assert is_dict_in_string(string=string) is False
+
+
+def test_is_dict_in_string_true_1():
+    string = str(dict(a=1))
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_2():
+    string = str([dict(a=1), dict(b=2)])
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_3():
+    string = str(dict(a=dict(b=2)))
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_4():
+    string = "some text: {'then': 'a dict'}"
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_5():
+    string = "{'then': 'a dict'} more text"
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_6():
+    """Not a JSON encodable object."""
+    string = str({1.2: Importance.CRITICAL})
+    assert is_dict_in_string(string=string) is True
+
+
+def test_is_dict_in_string_true_7():
+    """
+    A more aggressive demonstration of the general dictionary regex.
+
+    But it is technically possible to achieve via `str({custom_object_1: custom_object_2})` if 'custom_object_1' is
+    hashable and both custom objects have manual `__repr__` that do not include apostrophe's within their return.
+
+    Example
+    -------
+    from dataclasses import dataclass
+
+    @dataclass
+    class Test():
+        prop = 1
+
+        def __repr__(self):
+            return "This is a test"
+
+    str({1: Test()})
+    """
+    string = "example, {this is not a dict: but it sure looks like one}!"
+    assert is_dict_in_string(string=string) is True
