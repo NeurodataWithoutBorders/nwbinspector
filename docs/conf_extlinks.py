@@ -28,7 +28,7 @@ extlinks = {
     # "nwb-widgets-docs": ("https://github.com/NeurodataWithoutBorders/nwb-jupyter-widgets", ""),
     # "nwb-widgets-src": ("https://github.com/NeurodataWithoutBorders/nwb-jupyter-widgets", ""),
     # "caiman-docs": ("https://caiman.readthedocs.io/en/master/", ""),
-    "nwb-overview": ("https://nwb-overview.readthedocs.io/en/latest/", ""),
+    "nwb-overview": ("https://nwb-overview.readthedocs.io/en/latest/%s", "%s"),
     # "nwb-overview-src": ("https://github.com/NeurodataWithoutBorders/nwb-overview", ""),
     # "nwb-main": ("https://www.nwb.org/", ""),
     "conda-install": (

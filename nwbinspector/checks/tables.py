@@ -13,6 +13,7 @@ from ..utils import format_byte_size, is_ascending_series
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
 def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems=200):
+    """Check if a DynamicTableRegion is valid."""
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
         return InspectorMessage(
             message=(
