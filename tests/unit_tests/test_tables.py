@@ -1,10 +1,11 @@
 import platform
+import json
 from unittest import TestCase
 
 import pytest
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Units, ElectrodeTable, ElectrodeGroup, Device
 
 from nwbinspector import (
     check_empty_table,
@@ -13,6 +14,7 @@ from nwbinspector import (
     check_dynamic_table_region_data_validity,
     check_column_binary_capability,
     check_single_row,
+    check_table_values_for_dict,
 )
 from nwbinspector.register_checks import InspectorMessage, Importance
 
@@ -153,8 +155,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses floats but has binary values [0. 1.]. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 35.00B."
+                    "Column 'test_col' uses 'floats' but has binary values [0. 1.]. Consider making it boolean instead "
+                    "and renaming the column to start with 'is_'; doing so will save 35.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -175,8 +177,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses integers but has binary values [0 1]. Consider making it boolean instead and "
-                    f"renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
+                    "Column 'test_col' uses 'integers' but has binary values [0 1]. Consider making it boolean instead "
+                    f"and renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -193,8 +195,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "test_col uses strings but has binary values ['NO' 'YES']. Consider making it boolean instead and "
-                    "renaming the column to start with 'is_'; doing so will save 44.00B."
+                    "Column 'test_col' uses 'strings' but has binary values ['NO' 'YES']. Consider making it boolean "
+                    "instead and renaming the column to start with 'is_'; doing so will save 44.00B."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
@@ -219,6 +221,31 @@ def test_check_single_row_pass():
     assert check_single_row(table=table) is None
 
 
+def test_check_single_row_ignore_units():
+    table = Units(
+        name="Units",  # default name when building through nwbfile
+    )
+    table.add_unit(spike_times=[1, 2, 3])
+    assert check_single_row(table=table) is None
+
+
+def test_check_single_row_ignore_electrodes():
+    table = ElectrodeTable(
+        name="electrodes",  # default name when building through nwbfile
+    )
+    table.add_row(
+        x=np.nan,
+        y=np.nan,
+        z=np.nan,
+        imp=np.nan,
+        location="unknown",
+        filtering="unknown",
+        group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
+        group_name="test_group",
+    )
+    assert check_single_row(table=table) is None
+
+
 def test_check_single_row_fail():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
@@ -227,6 +254,55 @@ def test_check_single_row_fail():
         message="This table has only a single row; it may be better represented by another data type.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_single_row",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_table_values_for_dict_non_str():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=123)
+    assert check_table_values_for_dict(table=table) is None
+
+
+def test_check_table_values_for_dict_pass():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column="123")
+    assert check_table_values_for_dict(table=table) is None
+
+
+def test_check_table_values_for_dict():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=str(dict(a=1)))
+    assert check_table_values_for_dict(table=table)[0] == InspectorMessage(
+        message=(
+            "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
+            "dictionaries as additional rows or columns of the table."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_table_values_for_dict",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_table_values_for_dict_json_case():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+    table.add_row(test_column=json.dumps(dict(a=1)))
+    assert check_table_values_for_dict(table=table)[0] == InspectorMessage(
+        message=(
+            "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
+            "dictionaries as additional rows or columns of the table. This string is also JSON loadable, so call "
+            "`json.loads(...)` on the string to unpack."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_table_values_for_dict",
         object_type="DynamicTable",
         object_name="test_table",
         location="/",

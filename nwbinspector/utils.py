@@ -1,4 +1,6 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+import re
+import json
 import numpy as np
 from typing import TypeVar, Optional, List
 from pathlib import Path
@@ -6,6 +8,8 @@ from pathlib import Path
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
+
+dict_regex = r"({.+:.+})"
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
@@ -46,3 +50,25 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 
 def is_ascending_series(series: np.ndarray, nelems=None):
     return np.all(np.diff(series[:nelems]) > 0)
+
+
+def is_dict_in_string(string: str):
+    """
+    Determine if the string value contains an encoded Python dictionary.
+
+    Can also be the direct results of string casting a dictionary, *e.g.*, ``str(dict(a=1))``.
+    """
+    return any(re.findall(pattern=dict_regex, string=string))
+
+
+def is_string_json_loadable(string: str):
+    """
+    Determine if the serialized dictionary is a JSON object.
+
+    Rather than constructing a complicated regex pattern, a simple try/except of the json.load should suffice.
+    """
+    try:
+        json.loads(string)
+        return True
+    except json.JSONDecodeError:
+        return False

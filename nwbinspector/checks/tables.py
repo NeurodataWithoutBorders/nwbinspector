@@ -1,17 +1,19 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 from numbers import Real
+from typing import List, Optional
 
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
-from ..utils import format_byte_size, is_ascending_series
+from ..utils import format_byte_size, is_ascending_series, is_dict_in_string, is_string_json_loadable
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
 def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems=200):
+    """Check if a DynamicTableRegion is valid."""
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
         return InspectorMessage(
             message=(
@@ -124,9 +126,11 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
                     print_dtype = "integers"
                 elif str(unique_values.dtype)[:2] == "<U":
                     print_dtype = "strings"
+                else:
+                    print_dtype = f"{unique_values.dtype}"
                 yield InspectorMessage(
                     message=(
-                        f"{column.name} uses {print_dtype} but has binary values {unique_values}. Consider "
+                        f"Column '{column.name}' uses '{print_dtype}' but has binary values {unique_values}. Consider "
                         "making it boolean instead and renaming the column to start with 'is_'; doing so will "
                         f"save {format_byte_size(byte_size=saved_bytes)}."
                     )
@@ -134,12 +138,42 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_single_row(table: DynamicTable):
-    """Check if DynamicTable has only a single row; may be better represented by another data type."""
+def check_single_row(
+    table: DynamicTable,
+    exclude_types: Optional[list] = (Units,),
+    exclude_names: Optional[List[str]] = ("electrodes",),
+):
+    """
+    Check if DynamicTable has only a single row; may be better represented by another data type.
+
+    Skips the Units table since it is OK to have only a single spiking unit.
+    Skips the Electrode table since it is OK to have only a single electrode.
+    """
+    if any((isinstance(table, exclude_type) for exclude_type in exclude_types)):
+        return
+    if any((table.name == exclude_name for exclude_name in exclude_names)):
+        return
     if len(table.id) == 1:
         return InspectorMessage(
             message="This table has only a single row; it may be better represented by another data type."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
+    """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
+    for column in table.columns:
+        if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
+            continue
+        for string in column.data[:nelems]:
+            if is_dict_in_string(string=string):
+                message = (
+                    f"The column '{column.name}' contains a string value that contains a dictionary! Please "
+                    "unpack dictionaries as additional rows or columns of the table."
+                )
+                if is_string_json_loadable(string=string):
+                    message += " This string is also JSON loadable, so call `json.loads(...)` on the string to unpack."
+                yield InspectorMessage(message=message)
 
 
 # @register_check(importance="Best Practice Violation", neurodata_type=pynwb.core.DynamicTable)
