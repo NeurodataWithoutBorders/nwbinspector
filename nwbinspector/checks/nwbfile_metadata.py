@@ -95,8 +95,8 @@ def check_subject_age(subject: Subject):
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
     elif not re.fullmatch(duration_regex, subject.age):
         return InspectorMessage(
-            message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
-            "weeks."
+            message=f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            f"or 'P23W' for 23 weeks."
         )
 
 
@@ -130,7 +130,8 @@ def check_subject_species_latin_binomial(subject: Subject):
     """Check if the subject species follows latin binomial form."""
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
-            message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+            message=f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
+            f"'Homo sapiens'",
         )
 
 

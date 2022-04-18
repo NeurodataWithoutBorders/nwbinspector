@@ -237,8 +237,8 @@ def test_check_subject_age_missing():
 def test_check_subject_age_iso8601():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
-        message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
-        "weeks.",
+        message="Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
+        "for 23 weeks.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
         object_type="Subject",
@@ -278,7 +278,7 @@ def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
     assert check_subject_species_latin_binomial(subject) == InspectorMessage(
-        message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_latin_binomial",
         object_type="Subject",
