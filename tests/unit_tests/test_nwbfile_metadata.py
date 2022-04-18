@@ -237,8 +237,8 @@ def test_check_subject_age_missing():
 def test_check_subject_age_iso8601():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
-        message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
-        "weeks.",
+        message="Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
+        "for 23 weeks.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
         object_type="Subject",
