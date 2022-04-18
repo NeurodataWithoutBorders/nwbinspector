@@ -37,7 +37,11 @@ class TestExternalFileValid(TestCase):
             )
         )
         self.nwbfile.add_acquisition(
-            ImageSeries(name="TestImageSeriesBad1", rate=1.0, external_file=["madeup_file.mp4"],)
+            ImageSeries(
+                name="TestImageSeriesBad1",
+                rate=1.0,
+                external_file=["madeup_file.mp4"],
+            )
         )
         self.absolute_file_path = str(Path("madeup_file.mp4").absolute())
         self.nwbfile.add_acquisition(
