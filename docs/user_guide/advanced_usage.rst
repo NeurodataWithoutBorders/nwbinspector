@@ -70,7 +70,6 @@ S3 path on the DANDI archive. Resolution of these paths can be performed via the
     with DandiAPIClient() as client:
         dandiset = client.get_dandiset(dandiset_id, dandiset_type)
         for asset in dandiset.get_assets():
-            asset = dandiset.get_asset_by_path(asset.path)
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
 
