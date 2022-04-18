@@ -95,8 +95,8 @@ def check_subject_age(subject: Subject):
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
     elif not re.fullmatch(duration_regex, subject.age):
         return InspectorMessage(
-            message="Subject age does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' for 23 "
-            "weeks."
+            message=f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+                    f"or 'P23W' for 23 weeks."
         )
 
 
