@@ -8,7 +8,10 @@ from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
 from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.checks.image_series import check_image_series_external_file_valid
+from nwbinspector.checks.image_series import (
+    check_image_series_external_file_valid,
+    check_image_series_external_file_relative,
+)
 from nwbinspector.register_checks import InspectorMessage, Importance
 
 
@@ -19,14 +22,30 @@ class TestExternalFileValid(TestCase):
         self.nested_tempdir_2 = self.tempdir / "nested_dir"
         self.nested_tempdir_2.mkdir(parents=True)
         self.tempfile2 = self.nested_tempdir_2 / "tempfile2.avi"
-        with open(file=self.tempfile, mode="w") as fp:
-            fp.write("Not a movie file, but at least it exists.")
+        for file in [self.tempfile, self.tempfile2]:
+            with open(file=file, mode="w") as fp:
+                fp.write("Not a movie file, but at least it exists.")
         self.nwbfile = make_minimal_nwbfile()
         self.nwbfile.add_acquisition(
-            ImageSeries(name="TestImageSeries", rate=1.0, external_file=[self.tempfile, self.tempfile2])
+            ImageSeries(
+                name="TestImageSeries",
+                rate=1.0,
+                external_file=[
+                    "/".join([".", self.tempfile.name]),
+                    "/".join([".", self.tempfile2.parent.stem, self.tempfile2.name]),
+                ],
+            )
         )
         self.nwbfile.add_acquisition(
-            ImageSeries(name="TestImageSeriesBad", rate=1.0, external_file=["madeup_file.mp4"])
+            ImageSeries(
+                name="TestImageSeriesBad1",
+                rate=1.0,
+                external_file=["madeup_file.mp4"],
+            )
+        )
+        self.absolute_file_path = str(Path("madeup_file.mp4").absolute())
+        self.nwbfile.add_acquisition(
+            ImageSeries(name="TestImageSeriesBad2", rate=1.0, external_file=[self.absolute_file_path])
         )
         image_module = self.nwbfile.create_processing_module(name="behavior", description="testing imageseries")
         image_module.add(ImageSeries(name="TestImageSeries2", rate=1.0, external_file=[self.tempfile, self.tempfile2]))
@@ -44,7 +63,7 @@ class TestExternalFileValid(TestCase):
     def test_check_image_series_external_file_valid(self):
         with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
             nwbfile = io.read()
-            image_series = nwbfile.acquisition["TestImageSeriesBad"]
+            image_series = nwbfile.acquisition["TestImageSeriesBad1"]
             assert check_image_series_external_file_valid(image_series=image_series)[0] == InspectorMessage(
                 message=(
                     "The external file 'madeup_file.mp4' does not exist. Please confirm the relative location to the"
@@ -53,8 +72,32 @@ class TestExternalFileValid(TestCase):
                 importance=Importance.CRITICAL,
                 check_function_name="check_image_series_external_file_valid",
                 object_type="ImageSeries",
-                object_name="TestImageSeriesBad",
-                location="/acquisition/TestImageSeriesBad",
+                object_name="TestImageSeriesBad1",
+                location="/acquisition/TestImageSeriesBad1",
+            )
+
+    def test_check_image_series_external_file_relative_pass(self):
+        with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
+            nwbfile = io.read()
+            assert (
+                check_image_series_external_file_relative(image_series=nwbfile.acquisition["TestImageSeries"]) is None
+            )
+
+    def test_check_image_series_external_file_relative(self):
+        with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
+            nwbfile = io.read()
+            image_series = nwbfile.acquisition["TestImageSeriesBad2"]
+            print(check_image_series_external_file_relative(image_series=image_series)[0])
+            assert check_image_series_external_file_relative(image_series=image_series)[0] == InspectorMessage(
+                message=(
+                    f"The external file '{self.absolute_file_path}' is not a relative path. "
+                    "Please adjust the absolute path to be relative to the location of the NWBFile."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_image_series_external_file_relative",
+                object_type="ImageSeries",
+                object_name="TestImageSeriesBad2",
+                location="/acquisition/TestImageSeriesBad2",
             )
 
 

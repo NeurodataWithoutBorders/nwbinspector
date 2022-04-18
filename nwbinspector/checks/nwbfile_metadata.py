@@ -130,7 +130,8 @@ def check_subject_species_latin_binomial(subject: Subject):
     """Check if the subject species follows latin binomial form."""
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
-            message="Species should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+            message=f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
+            f"'Homo sapiens'",
         )
 
 
