@@ -96,7 +96,7 @@ def check_subject_age(subject: Subject):
     elif not re.fullmatch(duration_regex, subject.age):
         return InspectorMessage(
             message=f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
-                    f"or 'P23W' for 23 weeks."
+            f"or 'P23W' for 23 weeks."
         )
 
 
