@@ -144,7 +144,7 @@ def test_check_doi_publications_fail():
     assert check_doi_publications(nwbfile) == [
         InspectorMessage(
             message=(
-                "Metadata /general/related_publications 'wrong' does not start with 'doi: ###' or is not an external "
+                "Metadata /general/related_publications 'wrong' does not start with 'doi: ###' and is not an external "
                 "'doi' link."
             ),
             importance=Importance.BEST_PRACTICE_SUGGESTION,
