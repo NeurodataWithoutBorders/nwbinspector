@@ -120,7 +120,7 @@ def configure_checks(
     """
     if ignore is not None and select is not None:
         raise ValueError("Options 'ignore' and 'select' cannot both be used.")
-    if importance_threshold not in Importance.__members__:
+    if importance_threshold not in Importance:
         raise ValueError(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
@@ -447,6 +447,13 @@ def inspect_nwb(
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
     """
+    # Check importance_threshold passed as string
+    if isinstance(importance_threshold, str):
+        if importance_threshold in Importance.__members__:
+            importance_threshold = getattr(Importance, importance_threshold)
+        else:
+            raise ValueError(f"'{importance_threshold}' is not a valid importance_threshold value.")
+
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
