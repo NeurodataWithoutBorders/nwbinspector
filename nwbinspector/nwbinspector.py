@@ -120,7 +120,7 @@ def configure_checks(
     """
     if ignore is not None and select is not None:
         raise ValueError("Options 'ignore' and 'select' cannot both be used.")
-    if importance_threshold not in Importance:
+    if importance_threshold not in Importance.__members__:
         raise ValueError(
             f"Indicated importance_threshold ({importance_threshold}) is not a valid importance level! Please choose "
             "from [CRITICAL_IMPORTANCE, BEST_PRACTICE_VIOLATION, BEST_PRACTICE_SUGGESTION]."
