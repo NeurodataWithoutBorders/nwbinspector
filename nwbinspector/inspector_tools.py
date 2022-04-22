@@ -269,74 +269,8 @@ def format_messages(
     return formatted_messages
 
 
-def supports_color():  # pragma: no cover
-    """
-    Return True if the running system's terminal supports color, and False otherwise.
-
-    From https://github.com/django/django/blob/main/django/core/management/color.py
-    """
-
-    def vt_codes_enabled_in_windows_registry():
-        """Check the Windows Registry to see if VT code handling has been enabled by default."""
-        try:
-            # winreg is only available on Windows.
-            import winreg
-        except ImportError:
-            return False
-        else:
-            reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Console")
-            try:
-                reg_key_value, _ = winreg.QueryValueEx(reg_key, "VirtualTerminalLevel")
-            except FileNotFoundError:
-                return False
-            else:
-                return reg_key_value == 1
-
-    # isatty is not always implemented, #6223.
-    is_a_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
-
-    return is_a_tty and (
-        sys.platform != "win32"
-        or "ANSICON" in os.environ
-        or "WT_SESSION" in os.environ  # Windows Terminal supports VT codes.
-        or os.environ.get("TERM_PROGRAM") == "vscode"  # Microsoft Visual Studio Code's built-in terminal.
-        or vt_codes_enabled_in_windows_registry()
-    )
-
-
-def wrap_color(formatted_messages: List[str], no_color: bool = False):  # pragma: no cover
-    """Wrap the file output with colors for console output."""
-    if not supports_color():
-        return formatted_messages
-    reset_color = "\x1b[0m"
-    color_map = {
-        "CRITICAL IMPORTANCE": "\x1b[31m",
-        "BEST PRACTICE VIOLATION": "\x1b[33m",
-        "BEST PRACTICE SUGGESTION": reset_color,
-        "NWBFile": reset_color,
-    }
-
-    color_shift_points = dict()
-    for line_index, line in enumerate(formatted_messages):
-        for color_trigger in color_map:
-            if color_trigger in line:
-                color_shift_points.update(
-                    {line_index: color_map[color_trigger], line_index + 1: color_map[color_trigger]}
-                )
-    colored_output = list()
-    current_color = None
-    for line in formatted_messages:
-        transition_point = line_index in color_shift_points
-        if transition_point:
-            current_color = color_shift_points[line_index]
-            colored_output.append(f"{current_color}{line}{reset_color}")
-        if current_color is not None and not transition_point:
-            colored_output.append(f"{current_color}{line[:6]}{reset_color}{line[6:]}")
-
-
-def print_to_console(formatted_messages: List[str], no_color: bool = False):
+def print_to_console(formatted_messages: List[str]):
     """Print report file contents to console."""
-    wrap_color(formatted_messages=formatted_messages, no_color=no_color)
     sys.stdout.write(os.linesep * 2)
     for line in formatted_messages:
         sys.stdout.write(line + "\n")
