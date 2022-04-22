@@ -76,15 +76,20 @@ def check_subject_exists(nwbfile: NWBFile):
 def check_doi_publications(nwbfile: NWBFile):
     """Check if related_publications has been properly added as 'doi: ###' or an external 'doi' link."""
     valid_starts = ["doi:", "http://dx.doi.org/", "https://doi.org/"]
-    if nwbfile.related_publications:
-        for publication in nwbfile.related_publications:
-            if not any((publication.startswith(valid_start) for valid_start in valid_starts)):
-                yield InspectorMessage(
-                    message=(
-                        f"Metadata /general/related_publications '{publication}' does not start with 'doi: ###' or is "
-                        "not an external 'doi' link."
-                    )
+
+    if not nwbfile.related_publications:
+        return
+
+    for publication in nwbfile.related_publications:
+        if isinstance(publication, bytes):
+            publication = publication.decode()
+        if not any((publication.startswith(valid_start) for valid_start in valid_starts)):
+            yield InspectorMessage(
+                message=(
+                    f"Metadata /general/related_publications '{publication}' does not start with 'doi: ###' and is "
+                    "not an external 'doi' link."
                 )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)

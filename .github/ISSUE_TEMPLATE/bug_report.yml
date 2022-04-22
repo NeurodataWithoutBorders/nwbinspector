@@ -63,6 +63,25 @@ body:
         - 3.9
     validations:
       required: true
+  - type: dropdown
+    id: usage
+    attributes:
+      label: Usage
+      options:
+        - Command Line Interface
+        - Library (Python code)
+    validations:
+      required: true
+  - type: dropdown
+    id: streaming
+    attributes:
+      label: Were you streaming with ROS3?
+      options:
+        - 'Yes'
+        - 'No'
+        - I'm not sure what that is
+    validations:
+      required: true
   - type: textarea
     id: package_versions
     attributes:
