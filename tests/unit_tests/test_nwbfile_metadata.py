@@ -134,6 +134,16 @@ def test_check_doi_publications_pass():
     assert check_doi_publications(nwbfile) is None
 
 
+def test_check_doi_publications_bytestring_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=[b"doi:", b"http://dx.doi.org/", b"https://doi.org/"],
+    )
+    assert check_doi_publications(nwbfile) is None
+
+
 def test_check_doi_publications_fail():
     nwbfile = NWBFile(
         session_description="",
