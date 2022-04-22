@@ -61,6 +61,18 @@ class TestExternalFileValid(TestCase):
             nwbfile = io.read()
             assert check_image_series_external_file_valid(image_series=nwbfile.acquisition["TestImageSeries"]) is None
 
+    def test_check_image_series_external_file_valid_bytestring_pass(self):
+        """Can't call the io.write() step in setUp as that decodes the bytes with our version of h5py."""
+        nwbfile = make_minimal_nwbfile()
+        nwbfile.add_acquisition(
+            ImageSeries(
+                name="TestImageSeries",
+                rate=1.0,
+                external_file=[bytes("/".join([".", self.tempfile.name]), "utf-8")],
+            )
+        )
+        assert check_image_series_external_file_relative(image_series=nwbfile.acquisition["TestImageSeries"]) is None
+
     def test_check_image_series_external_file_valid(self):
         with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
             nwbfile = io.read()
