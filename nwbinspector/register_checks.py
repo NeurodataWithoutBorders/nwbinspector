@@ -78,6 +78,7 @@ class InspectorMessage:
     file_path: str = None
 
     def __repr__(self):
+        """Representation for InspectorMessage objects according to black format."""
         return "InspectorMessage(\n" + ",\n".join([f"    {k}={v.__repr__()}" for k, v in self.__dict__.items()]) + "\n)"
 
 
@@ -161,7 +162,7 @@ def auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
 
 
 def parse_location(neurodata_object) -> Optional[str]:
-
+    """Grab the object location from a h5py.Dataset or a container content that is an h5py.Dataset object."""
     known_locations = {
         NWBFile: "/",
         Subject: "/general/subject",

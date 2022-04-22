@@ -67,16 +67,15 @@ class TestCheckConfiguration(TestCase):
 
     def test_load_config(self):
         config = load_config(filepath_or_keyword="dandi")
-        print(config)
         self.assertDictEqual(
             d1=config,
-            d2={
-                "CRITICAL": ["check_subject_exists", "check_subject_id_exists"],
-                "BEST_PRACTICE_VIOLATION": [
+            d2=dict(
+                CRITICAL=["check_subject_exists", "check_subject_id_exists"],
+                BEST_PRACTICE_VIOLATION=[
                     "check_subject_sex",
                     "check_subject_species",
                     "check_subject_age",
                     "check_data_orientation",
                 ],
-            },
+            ),
         )

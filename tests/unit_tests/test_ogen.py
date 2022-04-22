@@ -5,7 +5,7 @@ from pynwb.ogen import OptogeneticSeries
 from pynwb.device import Device
 from pynwb.file import NWBFile
 
-from nwbinspector.checks.ogen import check_optogenetic_stimulus_site_has_optogenetic_series
+from nwbinspector import check_optogenetic_stimulus_site_has_optogenetic_series
 
 
 class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
