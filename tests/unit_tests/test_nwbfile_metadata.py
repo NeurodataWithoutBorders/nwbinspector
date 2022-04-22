@@ -5,8 +5,9 @@ from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 import pytest
 
-from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.nwbfile_metadata import (
+from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_experimenter,
     check_experiment_description,
     check_institution,
@@ -134,6 +135,16 @@ def test_check_doi_publications_pass():
     assert check_doi_publications(nwbfile) is None
 
 
+def test_check_doi_publications_bytestring_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=[b"doi:", b"http://dx.doi.org/", b"https://doi.org/"],
+    )
+    assert check_doi_publications(nwbfile) is None
+
+
 def test_check_doi_publications_fail():
     nwbfile = NWBFile(
         session_description="",
@@ -189,11 +200,6 @@ def test_check_doi_publications_multiple_fail():
     ]
 
 
-@pytest.mark.skip(reason="TODO")
-def test_check_keywords():
-    pass
-
-
 def test_check_subject_sex():
 
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
@@ -237,8 +243,10 @@ def test_check_subject_age_missing():
 def test_check_subject_age_iso8601():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
-        message="Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
-        "for 23 weeks.",
+        message=(
+            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
+            "for 23 weeks."
+        ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
         object_type="Subject",
@@ -329,8 +337,10 @@ def test_pass_check_subject_id_exist():
 def test_check_processing_module_name():
     processing_module = ProcessingModule("test", "desc")
     assert check_processing_module_name(processing_module) == InspectorMessage(
-        message=f"Processing module is named test. It is recommended to use the schema "
-        f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}",
+        message=(
+            f"Processing module is named test. It is recommended to use the schema "
+            f"module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+        ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_processing_module_name",
         object_type="ProcessingModule",

@@ -79,7 +79,6 @@ def check_doi_publications(nwbfile: NWBFile):
 
     if not nwbfile.related_publications:
         return
-
     for publication in nwbfile.related_publications:
         if isinstance(publication, bytes):
             publication = publication.decode()
@@ -100,8 +99,10 @@ def check_subject_age(subject: Subject):
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
     elif not re.fullmatch(duration_regex, subject.age):
         return InspectorMessage(
-            message=f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
-            f"or 'P23W' for 23 weeks."
+            message=(
+                f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+                "or 'P23W' for 23 weeks."
+            )
         )
 
 
@@ -135,8 +136,10 @@ def check_subject_species_latin_binomial(subject: Subject):
     """Check if the subject species follows latin binomial form."""
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
-            message=f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
-            f"'Homo sapiens'",
+            message=(
+                f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
+                "'Homo sapiens'"
+            ),
         )
 
 
@@ -145,6 +148,8 @@ def check_processing_module_name(processing_module: ProcessingModule):
     """Check if the name of a processing module is of a valid modality."""
     if processing_module.name not in PROCESSING_MODULE_CONFIG:
         return InspectorMessage(
-            f"Processing module is named {processing_module.name}. It is recommended to use the "
-            f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+            message=(
+                f"Processing module is named {processing_module.name}. It is recommended to use the "
+                f"schema module names: {', '.join(PROCESSING_MODULE_CONFIG)}"
+            )
         )
