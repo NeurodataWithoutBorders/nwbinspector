@@ -8,13 +8,14 @@ from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ecephys import (
+from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_negative_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_spike_times_not_in_unobserved_interval,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 def test_check_negative_spike_times_all_positive():
@@ -85,7 +86,9 @@ class TestCheckElectricalSeries(TestCase):
         self.nwbfile.add_acquisition(electrical_series)
 
         assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) == InspectorMessage(
-            message="The second dimension of data does not match the length of electrodes. Your data may be transposed.",
+            message=(
+                "The second dimension of data does not match the length of electrodes. Your data may be transposed."
+            ),
             importance=Importance.CRITICAL,
             check_function_name="check_electrical_series_dims",
             object_type="ElectricalSeries",
@@ -107,7 +110,10 @@ class TestCheckElectricalSeries(TestCase):
         self.nwbfile.add_acquisition(electrical_series)
 
         assert check_electrical_series_dims(self.nwbfile.acquisition["elec_series"]) == InspectorMessage(
-            message="The second dimension of data does not match the length of electrodes, but instead the first does. Data is oriented incorrectly and should be transposed.",
+            message=(
+                "The second dimension of data does not match the length of electrodes, but instead the first does. "
+                "Data is oriented incorrectly and should be transposed."
+            ),
             importance=Importance.CRITICAL,
             check_function_name="check_electrical_series_dims",
             object_type="ElectricalSeries",

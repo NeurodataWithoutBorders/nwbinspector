@@ -3,15 +3,15 @@ import numpy as np
 import pynwb
 
 from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
-    Importance,
 )
-from nwbinspector import InspectorMessage
 
 
 def test_check_regular_timestamps():

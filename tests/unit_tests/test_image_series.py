@@ -7,12 +7,13 @@ import numpy as np
 from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.checks.image_series import (
+from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_image_series_external_file_valid,
     check_image_series_external_file_relative,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance
+from nwbinspector.tools import make_minimal_nwbfile
 
 
 class TestExternalFileValid(TestCase):

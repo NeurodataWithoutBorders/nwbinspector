@@ -7,8 +7,8 @@ import h5py
 import numpy as np
 from pynwb import NWBContainer
 
-from nwbinspector import Importance, check_small_dataset_compression, check_large_dataset_compression
-from nwbinspector.register_checks import Severity, InspectorMessage
+from nwbinspector import InspectorMessage, Importance, check_small_dataset_compression, check_large_dataset_compression
+from nwbinspector.register_checks import Severity
 
 
 class TestNWBContainers(TestCase):

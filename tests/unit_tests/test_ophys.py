@@ -8,13 +8,14 @@ from pynwb.device import Device
 from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries, ImagingPlane
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector.checks.ophys import (
+from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
     check_excitation_lambda_in_nm,
     check_emission_lambda_in_nm,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 class TestCheckRoiResponseSeries(TestCase):
@@ -81,8 +82,10 @@ class TestCheckRoiResponseSeries(TestCase):
         self.ophys_module.add(roi_resp_series)
 
         assert check_roi_response_series_dims(roi_resp_series) == InspectorMessage(
-            message="The second dimension of data does not match the length of rois, "
-            "but instead the first does. Data is oriented incorrectly and should be transposed.",
+            message=(
+                "The second dimension of data does not match the length of rois, "
+                "but instead the first does. Data is oriented incorrectly and should be transposed."
+            ),
             importance=Importance.CRITICAL,
             check_function_name="check_roi_response_series_dims",
             object_type="RoiResponseSeries",
