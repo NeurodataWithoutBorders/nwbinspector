@@ -84,11 +84,19 @@ class TestExternalFileValid(TestCase):
                 check_image_series_external_file_relative(image_series=nwbfile.acquisition["TestImageSeries"]) is None
             )
 
+    def test_check_image_series_external_file_relative_bytestring_pass(self):
+        """Can't call the io.write() step in setUp as that decodes the bytes with our version of h5py."""
+        image_series = ImageSeries(
+            name="TestImageSeries",
+            rate=1.0,
+            external_file=[bytes("/".join([".", self.tempfile.name]), "utf-8")],
+        )
+        assert check_image_series_external_file_relative(image_series=image_series) is None
+
     def test_check_image_series_external_file_relative(self):
         with NWBHDF5IO(path=self.tempdir / "tempnwbfile.nwb", mode="r") as io:
             nwbfile = io.read()
             image_series = nwbfile.acquisition["TestImageSeriesBad2"]
-            print(check_image_series_external_file_relative(image_series=image_series)[0])
             assert check_image_series_external_file_relative(image_series=image_series)[0] == InspectorMessage(
                 message=(
                     f"The external file '{self.absolute_file_path}' is not a relative path. "
