@@ -34,36 +34,24 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
         )
 
 
-@register_check(
-    importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=RoiResponseSeries
-)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=RoiResponseSeries)
 def check_roi_response_series_link_to_plane_segmentation(
     roi_response_series: RoiResponseSeries,
 ):
     """Check that each ROI response series links to a plane segmentation."""
     if not isinstance(roi_response_series.rois.table, PlaneSegmentation):
-        return InspectorMessage(
-            message="rois field does not point to a PlaneSegmentation table."
-        )
+        return InspectorMessage(message="rois field does not point to a PlaneSegmentation table.")
 
 
-@register_check(
-    importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=OpticalChannel
-)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=OpticalChannel)
 def check_emission_lambda_in_nm(optical_channel: OpticalChannel):
     """Check that emission lambda is in feasible range for unit nanometers."""
     if optical_channel.emission_lambda < MIN_LAMBDA:
-        return InspectorMessage(
-            f"emission lambda of {optical_channel.emission_lambda} should be in units of nm."
-        )
+        return InspectorMessage(f"emission lambda of {optical_channel.emission_lambda} should be in units of nm.")
 
 
-@register_check(
-    importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImagingPlane
-)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImagingPlane)
 def check_excitation_lambda_in_nm(imaging_plane: ImagingPlane):
     """Check that emission lambda is in feasible range for unit nanometers."""
     if imaging_plane.excitation_lambda < MIN_LAMBDA:
-        return InspectorMessage(
-            f"excitation lambda of {imaging_plane.excitation_lambda} should be in units of nm."
-        )
+        return InspectorMessage(f"excitation lambda of {imaging_plane.excitation_lambda} should be in units of nm.")
