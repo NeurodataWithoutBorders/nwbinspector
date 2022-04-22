@@ -77,7 +77,7 @@ body:
     attributes:
       label: Were you streaming with ROS3?
       options:
-        - Yes
+        - 'Yes'
         - No
         - I'm not sure what that is
     validations:
