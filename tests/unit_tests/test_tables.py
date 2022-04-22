@@ -8,6 +8,8 @@ from hdmf.common import DynamicTable, DynamicTableRegion
 from pynwb.file import TimeIntervals, Units, ElectrodeTable, ElectrodeGroup, Device
 
 from nwbinspector import (
+    InspectorMessage,
+    Importance,
     check_empty_table,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
@@ -16,7 +18,6 @@ from nwbinspector import (
     check_single_row,
     check_table_values_for_dict,
 )
-from nwbinspector.register_checks import InspectorMessage, Importance
 
 
 class TestCheckDynamicTableRegion(TestCase):
@@ -80,8 +81,10 @@ def test_check_time_interval_time_columns():
     time_intervals.add_row(start_time=1.0, stop_time=2.0)
 
     assert check_time_interval_time_columns(time_intervals) == InspectorMessage(
-        message="['start_time', 'stop_time'] are time columns but the values are not in ascending order."
-        "All times should be in seconds with respect to the session start time.",
+        message=(
+            "['start_time', 'stop_time'] are time columns but the values are not in ascending order."
+            "All times should be in seconds with respect to the session start time."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_interval_time_columns",
         object_type="TimeIntervals",
@@ -103,8 +106,10 @@ def test_check_time_intervals_stop_after_start():
     time_intervals.add_row(start_time=2.0, stop_time=1.5)
     time_intervals.add_row(start_time=3.0, stop_time=1.5)
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
-        message="stop_times should be greater than start_times. Make sure the stop times are with respect to the "
-        "session start time.",
+        message=(
+            "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
+            "session start time."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_intervals_stop_after_start",
         object_type="TimeIntervals",
@@ -307,8 +312,3 @@ def test_check_table_values_for_dict_json_case():
         object_name="test_table",
         location="/",
     )
-
-
-@pytest.mark.skip(reason="TODO")
-def test_check_column_data_is_not_none():
-    pass

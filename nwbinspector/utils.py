@@ -49,6 +49,7 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 
 
 def is_ascending_series(series: np.ndarray, nelems=None):
+    """General purpose function for determining if a series is monotonic increasing."""
     return np.all(np.diff(series[:nelems]) > 0)
 
 

@@ -37,17 +37,21 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries):
     if data_shape and len(data_shape) == 2 and data_shape[1] != len(electrodes.data):
         if data_shape[0] == len(electrodes.data):
             return InspectorMessage(
-                message="The second dimension of data does not match the length of electrodes, "
-                "but instead the first does. Data is oriented incorrectly and should be transposed."
+                message=(
+                    "The second dimension of data does not match the length of electrodes, "
+                    "but instead the first does. Data is oriented incorrectly and should be transposed."
+                )
             )
         return InspectorMessage(
-            message="The second dimension of data does not match the length of electrodes. Your "
-            "data may be transposed."
+            message=(
+                "The second dimension of data does not match the length of electrodes. Your " "data may be transposed."
+            )
         )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
 def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
+    """Check that the 'electrodes' of an ElectricalSeries references the ElectrodesTable."""
     if electrical_series.electrodes.table.name != "electrodes":
         return InspectorMessage(message="electrodes does not  reference an electrodes table.")
 
