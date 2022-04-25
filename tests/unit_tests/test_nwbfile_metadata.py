@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
-import pytest
 
 from nwbinspector import (
     InspectorMessage,
@@ -71,7 +70,27 @@ def test_check_session_start_time_future_date_fail():
     )
 
 
-def test_check_experimenter():
+def test_check_experimenter_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        experimenter=["Last, First"],
+    )
+    assert check_experimenter(nwbfile) is None
+
+
+def test_check_experimenter_bytestring_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        experimenter=[b"Last, First"],
+    )
+    assert check_experimenter(nwbfile) is None
+
+
+def test_check_experimenter_fail():
     assert check_experimenter(minimal_nwbfile) == InspectorMessage(
         message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
