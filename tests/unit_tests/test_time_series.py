@@ -1,6 +1,7 @@
 import numpy as np
 
 import pynwb
+import pytest
 
 from nwbinspector import (
     InspectorMessage,
@@ -12,6 +13,18 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
 )
+
+try:
+    with pynwb.NWBHDF5IO(
+        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
+        mode="r",
+        load_namespaces=True,
+        driver="ros3",
+    ) as io:
+        nwbfile = io.read()
+    HAVE_ROS3 = True
+except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
+    HAVE_ROS3 = False
 
 
 def test_check_regular_timestamps():
@@ -158,6 +171,19 @@ def test_check_positive_resolution_pass():
 def test_check_unknown_resolution_pass():
     for valid_unknown in [-1.0, np.nan]:
         time_series = pynwb.TimeSeries(name="test", unit="test", data=[1], timestamps=[1], resolution=valid_unknown)
+        assert check_resolution(time_series) is None
+
+
+@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+def test_check_none_matnwb_resolution_pass():
+    with pynwb.NWBHDF5IO(
+        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
+        mode="r",
+        load_namespaces=True,
+        driver="ros3",
+    ) as io:
+        nwbfile = io.read()
+        time_series = nwbfile.processing["video_files"]["video"].time_series["20170203_KIB_01_s1.1.h264"]
         assert check_resolution(time_series) is None
 
 
