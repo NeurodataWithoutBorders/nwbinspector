@@ -86,9 +86,9 @@ def check_missing_unit(time_series: TimeSeries):
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_resolution(time_series: TimeSeries):
     """Check the resolution value of a TimeSeries for proper format (-1.0 or NaN for unknown)."""
-    if time_series.resolution is None:
+    if time_series.resolution is None or time_series.resolution == -1.0:
         return
-    if time_series != -1.0 and time_series.resolution <= 0:
+    if time_series.resolution <= 0:
         return InspectorMessage(
             message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
         )
