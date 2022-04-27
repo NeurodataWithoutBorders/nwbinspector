@@ -19,6 +19,7 @@ jobs:
       - run: git fetch --prune --unshallow --tags
       - name: Install pytest
         run: |
+          pip install dandi
           pip install pytest
           pip install pytest-cov
       - name: Install package
