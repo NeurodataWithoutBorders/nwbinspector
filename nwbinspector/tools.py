@@ -6,7 +6,8 @@ from typing import Optional, Dict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from pynwb import NWBFile
-from dandi.dandiapi import DandiAPIClient
+
+from .utils import is_module_installed
 
 
 def make_minimal_nwbfile():
@@ -34,6 +35,13 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
 
     Returns dictionary that maps each S3 url to the displayed file path on the DANDI archive content page.
     """
+    assert is_module_installed(module_name="dandi"), "You must install DANDI to get S3 paths (pip install dandi)."
+    from dandi.dandiapi import DandiAPIClient
+
+    def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True) -> Dict[str, str]:
+        """Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'."""
+        return {asset.get_content_url(follow_redirects=1, strip_query=True): asset.path}
+
     assert re.fullmatch(
         pattern="^[0-9]{6}$", string=dandiset_id
     ), "The specified 'path' is not a proper DANDISet ID. It should be a six-digit numeric identifier."
@@ -61,8 +69,3 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
                 if asset.path.split(".")[-1] == "nwb":
                     s3_urls_to_dandi_paths.update(_get_content_url_and_path(asset=asset))
     return s3_urls_to_dandi_paths
-
-
-def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True) -> Dict[str, str]:
-    """Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'."""
-    return {asset.get_content_url(follow_redirects=1, strip_query=True): asset.path}
