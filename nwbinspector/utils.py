@@ -83,7 +83,7 @@ def is_module_installed(module_name: str):
     Used for lazy imports.
     """
     try:
-        import_module(name="testing123")
+        import_module(name=module_name)
         return True
     except ModuleNotFoundError:
         return False
