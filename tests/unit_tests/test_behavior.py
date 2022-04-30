@@ -68,15 +68,16 @@ def test_trigger_check_compass_direction_unit():
 
 
 def test_pass_check_compass_direction_unit():
-    obj = CompassDirection(
-        spatial_series=SpatialSeries(
-            name="SpatialSeries",
-            description="description",
-            data=np.ones((10,)),
-            rate=3.0,
-            reference_frame="reference_frame",
-            unit="radians",
+    for unit in ("radians", "degrees"):
+        obj = CompassDirection(
+            spatial_series=SpatialSeries(
+                name="SpatialSeries",
+                description="description",
+                data=np.ones((10,)),
+                rate=3.0,
+                reference_frame="reference_frame",
+                unit=unit,
+            )
         )
-    )
 
-    assert check_compass_direction_unit(obj) is None
+        assert check_compass_direction_unit(obj) is None
