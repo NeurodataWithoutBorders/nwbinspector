@@ -468,9 +468,6 @@ def inspect_nwb(
 
     try:
         nwbfile = io.read()
-        for inspector_message in run_checks(nwbfile, checks=checks):
-            inspector_message.file_path = nwbfile_path
-            yield inspector_message
     except Exception as ex:
         yield InspectorMessage(
             message=traceback.format_exc(),
@@ -478,6 +475,10 @@ def inspect_nwb(
             check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
             file_path=nwbfile_path,
         )
+    else:
+        for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+            inspector_message.file_path = nwbfile_path
+            yield inspector_message
     io.close()
 
 
