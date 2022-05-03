@@ -424,32 +424,32 @@ class TestInspector(TestCase):
             skip_first_newlines=True,
         )
 
-    def test_iterable_check_function(self):
-        @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
-        def iterable_check_function(table: DynamicTable):
-            for col in table.columns:
-                yield InspectorMessage(message=f"Column: {col.name}")
+    # def test_iterable_check_function(self):
+    #     @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+    #     def iterable_check_function(table: DynamicTable):
+    #         for col in table.columns:
+    #             yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
-        true_results = [
-            InspectorMessage(
-                message="Column: start_time",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="iterable_check_function",
-                object_type="TimeIntervals",
-                object_name="test_table",
-                file_path=self.nwbfile_paths[0],
-            ),
-            InspectorMessage(
-                message="Column: stop_time",
-                importance=Importance.BEST_PRACTICE_VIOLATION,
-                check_function_name="iterable_check_function",
-                object_type="TimeIntervals",
-                object_name="test_table",
-                file_path=self.nwbfile_paths[0],
-            ),
-        ]
-        self.assertCountEqual(first=test_results, second=true_results)
+    #     test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+    #     true_results = [
+    #         InspectorMessage(
+    #             message="Column: start_time",
+    #             importance=Importance.BEST_PRACTICE_VIOLATION,
+    #             check_function_name="iterable_check_function",
+    #             object_type="TimeIntervals",
+    #             object_name="test_table",
+    #             file_path=self.nwbfile_paths[0],
+    #         ),
+    #         InspectorMessage(
+    #             message="Column: stop_time",
+    #             importance=Importance.BEST_PRACTICE_VIOLATION,
+    #             check_function_name="iterable_check_function",
+    #             object_type="TimeIntervals",
+    #             object_name="test_table",
+    #             file_path=self.nwbfile_paths[0],
+    #         ),
+    #     ]
+    #     self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb_manual_iteration(self):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
