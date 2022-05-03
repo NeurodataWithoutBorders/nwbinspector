@@ -455,28 +455,43 @@ def inspect_nwb(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
     try:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-            if skip_validate:
-                validation_errors = pynwb.validate(io=io)
-                if any(validation_errors):
-                    for validation_error in validation_errors:
-                        yield InspectorMessage(
-                            message=validation_error.reason,
-                            importance=Importance.PYNWB_VALIDATION,
-                            check_function_name=validation_error.name,
-                            location=validation_error.location,
-                            file_path=nwbfile_path,
-                        )
-
-            nwbfile = io.read()
-            for inspector_message in run_checks(nwbfile, checks=checks):
-                inspector_message.file_path = nwbfile_path
-                yield inspector_message
+        io = pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver)
     except Exception as ex:
         yield InspectorMessage(
             message=traceback.format_exc(),
             importance=Importance.ERROR,
-            check_function_name=f"{type(ex)}: {str(ex)}",
+            check_function_name=f"During io=NWBHDF5IO(...) - {type(ex)}: {str(ex)}",
+            file_path=nwbfile_path,
+        )
+    if not skip_validate:
+        try:
+            validation_errors = pynwb.validate(io=io)
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+        except Exception as ex:  # shouldn't happen, but you never know...
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During pynwb.validate - {type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
+            )
+
+    try:
+        nwbfile = io.read()
+        for inspector_message in run_checks(nwbfile, checks=checks):
+            inspector_message.file_path = nwbfile_path
+            yield inspector_message
+    except Exception as ex:
+        yield InspectorMessage(
+            message=traceback.format_exc(),
+            importance=Importance.ERROR,
+            check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
             file_path=nwbfile_path,
         )
 
