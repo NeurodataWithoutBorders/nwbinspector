@@ -4,6 +4,7 @@ import json
 import numpy as np
 from typing import TypeVar, Optional, List
 from pathlib import Path
+from importlib import import_module
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -72,4 +73,17 @@ def is_string_json_loadable(string: str):
         json.loads(string)
         return True
     except json.JSONDecodeError:
+        return False
+
+
+def is_module_installed(module_name: str):
+    """
+    Check if the given module is installed on the system.
+
+    Used for lazy imports.
+    """
+    try:
+        import_module(name=module_name)
+        return True
+    except ModuleNotFoundError:
         return False
