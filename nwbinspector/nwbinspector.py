@@ -454,31 +454,15 @@ def inspect_nwb(
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
-    try:
-        io = pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver)
-    except Exception as ex:
-        yield InspectorMessage(
-            message=traceback.format_exc(),
-            importance=Importance.ERROR,
-            check_function_name=f"During io=NWBHDF5IO(...) - {type(ex)}: {str(ex)}",
-            file_path=nwbfile_path,
-        )
+    io = pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver)
     if not skip_validate:
-        try:
-            validation_errors = pynwb.validate(io=io)
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
-        except Exception as ex:  # shouldn't happen, but you never know...
+        validation_errors = pynwb.validate(io=io)
+        for validation_error in validation_errors:
             yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During pynwb.validate - {type(ex)}: {str(ex)}",
+                message=validation_error.reason,
+                importance=Importance.PYNWB_VALIDATION,
+                check_function_name=validation_error.name,
+                location=validation_error.location,
                 file_path=nwbfile_path,
             )
 
@@ -494,6 +478,7 @@ def inspect_nwb(
             check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
             file_path=nwbfile_path,
         )
+    io.close()
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
