@@ -86,39 +86,10 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspector(TestCase):
     maxDiff = None
 
-    # @classmethod
-    # def setUpClass(cls):
-    #     cls.tempdir = Path(mkdtemp())
-    #     cls.checks = [
-    #         check_small_dataset_compression,
-    #         check_regular_timestamps,
-    #         check_data_orientation,
-    #         check_timestamps_match_first_dimension,
-    #     ]
-    #     num_nwbfiles = 3
-    #     nwbfiles = list()
-    #     for j in range(num_nwbfiles):
-    #         nwbfiles.append(make_minimal_nwbfile())
-    #     add_big_dataset_no_compression(nwbfiles[0])
-    #     add_regular_timestamps(nwbfiles[0])
-    #     add_flipped_data_orientation_to_processing(nwbfiles[0])
-    #     add_non_matching_timestamps_dimension(nwbfiles[0])
-    #     add_simple_table(nwbfiles[0])
-    #     add_regular_timestamps(nwbfiles[1])
-    #     # Last file to be left without violations
-
-    #     cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
-    #     for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
-    #         with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
-    #             io.write(nwbfile)
-
-    # @classmethod
-    # def tearDownClass(cls):
-    #     rmtree(cls.tempdir)
-
-    def setUp(self):
-        self.tempdir = Path(mkdtemp())
-        self.checks = [
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        cls.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
             check_data_orientation,
@@ -136,13 +107,14 @@ class TestInspector(TestCase):
         add_regular_timestamps(nwbfiles[1])
         # Last file to be left without violations
 
-        self.nwbfile_paths = [str(self.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
-        for nwbfile_path, nwbfile in zip(self.nwbfile_paths, nwbfiles):
+        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
-    def tearDown(self):
-        rmtree(self.tempdir)
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
