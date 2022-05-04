@@ -454,8 +454,8 @@ def inspect_nwb(
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
-    if not skip_validate:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        if not skip_validate:
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
                 yield InspectorMessage(
@@ -466,19 +466,18 @@ def inspect_nwb(
                     file_path=nwbfile_path,
                 )
 
-    try:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        try:
             nwbfile = io.read()
             for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
                 inspector_message.file_path = nwbfile_path
                 yield inspector_message
-    except Exception as ex:
-        yield InspectorMessage(
-            message=traceback.format_exc(),
-            importance=Importance.ERROR,
-            check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
-            file_path=nwbfile_path,
-        )
+        except Exception as ex:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
+            )
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
