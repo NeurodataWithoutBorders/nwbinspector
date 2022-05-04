@@ -86,10 +86,39 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspector(TestCase):
     maxDiff = None
 
-    @classmethod
-    def setUpClass(cls):
-        cls.tempdir = Path(mkdtemp())
-        cls.checks = [
+    # @classmethod
+    # def setUpClass(cls):
+    #     cls.tempdir = Path(mkdtemp())
+    #     cls.checks = [
+    #         check_small_dataset_compression,
+    #         check_regular_timestamps,
+    #         check_data_orientation,
+    #         check_timestamps_match_first_dimension,
+    #     ]
+    #     num_nwbfiles = 3
+    #     nwbfiles = list()
+    #     for j in range(num_nwbfiles):
+    #         nwbfiles.append(make_minimal_nwbfile())
+    #     add_big_dataset_no_compression(nwbfiles[0])
+    #     add_regular_timestamps(nwbfiles[0])
+    #     add_flipped_data_orientation_to_processing(nwbfiles[0])
+    #     add_non_matching_timestamps_dimension(nwbfiles[0])
+    #     add_simple_table(nwbfiles[0])
+    #     add_regular_timestamps(nwbfiles[1])
+    #     # Last file to be left without violations
+
+    #     cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+    #     for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
+    #         with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+    #             io.write(nwbfile)
+
+    # @classmethod
+    # def tearDownClass(cls):
+    #     rmtree(cls.tempdir)
+
+    def setUp(self):
+        self.tempdir = Path(mkdtemp())
+        self.checks = [
             check_small_dataset_compression,
             check_regular_timestamps,
             check_data_orientation,
@@ -107,14 +136,13 @@ class TestInspector(TestCase):
         add_regular_timestamps(nwbfiles[1])
         # Last file to be left without violations
 
-        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
-        for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
+        self.nwbfile_paths = [str(self.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(self.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
+    def tearDown(self):
+        rmtree(self.tempdir)
 
     def assertFileExists(self, path: FilePathType):
         path = Path(path)
@@ -424,32 +452,32 @@ class TestInspector(TestCase):
             skip_first_newlines=True,
         )
 
-    # def test_iterable_check_function(self):
-    #     @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
-    #     def iterable_check_function(table: DynamicTable):
-    #         for col in table.columns:
-    #             yield InspectorMessage(message=f"Column: {col.name}")
+    def test_iterable_check_function(self):
+        @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+        def iterable_check_function(table: DynamicTable):
+            for col in table.columns:
+                yield InspectorMessage(message=f"Column: {col.name}")
 
-    #     test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
-    #     true_results = [
-    #         InspectorMessage(
-    #             message="Column: start_time",
-    #             importance=Importance.BEST_PRACTICE_VIOLATION,
-    #             check_function_name="iterable_check_function",
-    #             object_type="TimeIntervals",
-    #             object_name="test_table",
-    #             file_path=self.nwbfile_paths[0],
-    #         ),
-    #         InspectorMessage(
-    #             message="Column: stop_time",
-    #             importance=Importance.BEST_PRACTICE_VIOLATION,
-    #             check_function_name="iterable_check_function",
-    #             object_type="TimeIntervals",
-    #             object_name="test_table",
-    #             file_path=self.nwbfile_paths[0],
-    #         ),
-    #     ]
-    #     self.assertCountEqual(first=test_results, second=true_results)
+        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+        true_results = [
+            InspectorMessage(
+                message="Column: start_time",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="iterable_check_function",
+                object_type="TimeIntervals",
+                object_name="test_table",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="Column: stop_time",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="iterable_check_function",
+                object_type="TimeIntervals",
+                object_name="test_table",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwb_manual_iteration(self):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
