@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 setup(
     name="nwbinspector",
-    version="0.4.3",
+    version="0.4.4",
     description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
     long_description_content_type="text/markdown",
