@@ -20,7 +20,7 @@ from nwbinspector import (
 )
 from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
-from nwbinspector.utils import FilePathType
+from nwbinspector.utils import FilePathType, is_module_installed
 from nwbinspector.tools import make_minimal_nwbfile
 
 
@@ -35,6 +35,7 @@ try:
     HAVE_ROS3 = True
 except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
     HAVE_ROS3 = False
+HAVE_DANDI = is_module_installed("dandi")
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -472,7 +473,7 @@ class TestInspector(TestCase):
             next(generator)
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
     assert messages[0] == InspectorMessage(
@@ -486,7 +487,7 @@ def test_dandiset_streaming():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming_parallel():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
     assert messages[0] == InspectorMessage(
@@ -500,7 +501,7 @@ def test_dandiset_streaming_parallel():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 class TestStreamingCLI(TestCase):
     @classmethod
     def setUpClass(cls):
