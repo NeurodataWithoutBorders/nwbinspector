@@ -13,7 +13,7 @@ def check_spatial_series_dims(spatial_series: SpatialSeries):
         )
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=CompassDirection)
 def check_compass_direction_unit(compass_direction: CompassDirection):
     for spatial_series in compass_direction.spatial_series.values():
         if spatial_series.unit not in ("degrees", "radians"):
