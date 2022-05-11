@@ -22,7 +22,9 @@ jobs:
           pip install pytest
           pip install pytest-cov
       - name: Install package
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install dandi
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
