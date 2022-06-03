@@ -1,5 +1,6 @@
-import numpy as np
+from packaging import version
 
+import numpy as np
 import pynwb
 import pytest
 
@@ -13,10 +14,12 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
 )
+from nwbinspector.utils import get_package_version
 
 try:
+    # Test ros3 on sub-YutaMouse54/sub-YutaMouse54_ses-YutaMouse54-160630_behavior+ecephys.nwb from #3
     with pynwb.NWBHDF5IO(
-        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
+        path="https://dandiarchive.s3.amazonaws.com/blobs/f03/18e/f0318e30-4f4f-466d-a8e9-a962863e3081",
         mode="r",
         load_namespaces=True,
         driver="ros3",
@@ -174,8 +177,18 @@ def test_check_unknown_resolution_pass():
         assert check_resolution(time_series) is None
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(
+    not HAVE_ROS3 or get_package_version("hdmf") >= version.parse("3.3.1"),
+    reason="Needs h5py setup with ROS3, as well as 'hdmf<3.3.1'.",
+)
 def test_check_none_matnwb_resolution_pass():
+    """
+    Special test on the original problematic file found at
+
+    https://dandiarchive.org/dandiset/000065/draft/files?location=sub-Kibbles%2F
+
+    produced with MatNWB, when read with PyNWB~=2.0.1 and HDMF<=3.2.1 contains a resolution value of None.
+    """
     with pynwb.NWBHDF5IO(
         path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
         mode="r",
