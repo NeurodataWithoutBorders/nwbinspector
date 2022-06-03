@@ -77,7 +77,7 @@ class FormatterOptions:
     """Class structure for defining all free attributes for the design of a report format."""
 
     def __init__(
-        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"],
+        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"]
     ):
         # TODO
         # Future custom options could include section break sizes, section-specific indents, etc.
@@ -208,7 +208,6 @@ class MessageFormatter:
                     increment = self._get_message_increment(level_counter=this_level_counter)
                     message_header = self._get_message_header(message=message)
                     num_same = len(same_messages)
-                    print(num_same)
                     file_or_files = "s" if num_same > 2 else ""
                     additional_file_str = f" and {num_same-1} other file{file_or_files}" if num_same > 1 else ""
                     self.formatted_messages.append(
