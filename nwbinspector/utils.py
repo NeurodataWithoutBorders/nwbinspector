@@ -5,6 +5,7 @@ import numpy as np
 from typing import TypeVar, Optional, List
 from pathlib import Path
 from importlib import import_module
+from packaging import version
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -87,3 +88,28 @@ def is_module_installed(module_name: str):
         return True
     except ModuleNotFoundError:
         return False
+
+
+def get_package_version(name: str) -> version.Version:
+    """
+    Retrieve the version of a package regardless of if it has a __version__ attribute set.
+
+    Parameters
+    ----------
+    name : str
+        Name of package.
+
+    Returns
+    -------
+    version : Version
+        The package version as an object from packaging.version.Version, which allows comparison to other versions.
+    """
+    try:
+        from importlib.metadata import version as importlib_version
+
+        package_version = importlib_version(name)
+    except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
+        from pkg_resources import get_distribution
+
+        package_version = get_distribution(name).version
+    return version.parse(package_version)

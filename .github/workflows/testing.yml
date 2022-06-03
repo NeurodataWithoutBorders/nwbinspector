@@ -1,5 +1,9 @@
 name: Testing
-on: pull_request
+on:
+  schedule:
+    - cron: "0 0 * * *"  # daily
+  pull_request:
+
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
