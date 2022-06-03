@@ -13,21 +13,16 @@ from natsort import natsorted
 import numpy as np
 
 from .register_checks import InspectorMessage, Importance
-from .utils import FilePathType
-
-try:
-    from importlib.metadata import version
-
-    inspector_version = version("nwbinspector")
-except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
-    from pkg_resources import get_distribution
-
-    inspector_version = get_distribution("nwbinspector").version
+from .utils import FilePathType, get_package_version
 
 
 def get_report_header():
     """Grab basic information from system at time of report generation."""
-    return dict(Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=inspector_version)
+    return dict(
+        Timestamp=str(datetime.now().astimezone()),
+        Platform=platform(),
+        NWBInspector_version=get_package_version("nwbinspector"),
+    )
 
 
 def _sort_unique_values(unique_values: list, reverse: bool = False):
@@ -82,10 +77,7 @@ class FormatterOptions:
     """Class structure for defining all free attributes for the design of a report format."""
 
     def __init__(
-        self,
-        indent_size: int = 2,
-        indent: Optional[str] = None,
-        section_headers: List[str] = ["=", "-", "~"],
+        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"],
     ):
         # TODO
         # Future custom options could include section break sizes, section-specific indents, etc.
@@ -216,6 +208,7 @@ class MessageFormatter:
                     increment = self._get_message_increment(level_counter=this_level_counter)
                     message_header = self._get_message_header(message=message)
                     num_same = len(same_messages)
+                    print(num_same)
                     file_or_files = "s" if num_same > 2 else ""
                     additional_file_str = f" and {num_same-1} other file{file_or_files}" if num_same > 1 else ""
                     self.formatted_messages.append(

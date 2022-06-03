@@ -1,7 +1,9 @@
+from packaging import version
+
 from hdmf.testing import TestCase
 
 from nwbinspector import Importance
-from nwbinspector.utils import format_byte_size, check_regular_series, is_dict_in_string
+from nwbinspector.utils import format_byte_size, check_regular_series, is_dict_in_string, get_package_version
 
 
 def test_format_byte_size():
@@ -94,3 +96,11 @@ def test_is_dict_in_string_true_7():
     """
     string = "example, {this is not a dict: but it sure looks like one}!"
     assert is_dict_in_string(string=string) is True
+
+
+def test_get_package_version_type():
+    assert isinstance(get_package_version("hdmf"), version.Version)
+
+
+def test_get_package_version_value():
+    assert get_package_version("hdmf") >= version.parse("3.1.1")  # minimum supported PyNWB version
