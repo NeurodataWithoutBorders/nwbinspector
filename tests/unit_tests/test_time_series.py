@@ -33,7 +33,10 @@ except ValueError:  # ValueError: h5py was built without ROS3 support, can't use
 def test_check_regular_timestamps():
     assert check_regular_timestamps(
         time_series=pynwb.TimeSeries(
-            name="test_time_series", unit="test_units", data=np.zeros(shape=3), timestamps=[1.2, 3.2, 5.2],
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=3),
+            timestamps=[1.2, 3.2, 5.2],
         )
     ) == InspectorMessage(
         message=(
@@ -53,7 +56,10 @@ def test_pass_check_regular_timestamps():
     assert (
         check_regular_timestamps(
             time_series=pynwb.TimeSeries(
-                name="test_time_series", unit="test_units", data=[0, 0], timestamps=[1.2, 3.2],
+                name="test_time_series",
+                unit="test_units",
+                data=[0, 0],
+                timestamps=[1.2, 3.2],
             )
         )
         is None
@@ -63,7 +69,10 @@ def test_pass_check_regular_timestamps():
 def test_check_data_orientation():
     assert check_data_orientation(
         time_series=pynwb.TimeSeries(
-            name="test_time_series", unit="test_units", data=np.zeros(shape=(2, 100)), rate=1.0,
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=(2, 100)),
+            rate=1.0,
         )
     ) == InspectorMessage(
         message=(
@@ -82,7 +91,10 @@ def test_check_data_orientation():
 def test_check_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(
-            name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[1.0, 2.0, 3.0],
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=4),
+            timestamps=[1.0, 2.0, 3.0],
         )
     ) == InspectorMessage(
         message="The length of the first dimension of data does not match the length of timestamps.",
