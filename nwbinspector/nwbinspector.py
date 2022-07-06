@@ -13,6 +13,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
+from time import sleep
 
 import click
 import pynwb
@@ -153,10 +154,7 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
@@ -411,8 +409,9 @@ def inspect_nwb(
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    driver: str = None,
+    driver: Optional[str] = None,
     skip_validate: bool = False,
+    max_retries: int = 10,
 ) -> List[InspectorMessage]:
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -446,6 +445,11 @@ def inspect_nwb(
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    max_retries : int, optional
+        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
+        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
+        This sets a hard bound on the number of times to attempt to retry the collection of messages.
+        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
@@ -454,30 +458,44 @@ def inspect_nwb(
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
-            validation_errors = pynwb.validate(io=io)
-            for validation_error in validation_errors:
+
+    def _collect_all_messages(nwbfile_path: FilePathType, driver: Optional[str] = None, skip_validate: bool = False):
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+            if not skip_validate:
+                validation_errors = pynwb.validate(io=io)
+                for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
+
+            try:
+                nwbfile = io.read()
+                for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+                    inspector_message.file_path = nwbfile_path
+                    yield inspector_message
+            except Exception as ex:
                 yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
+                    message=traceback.format_exc(),
+                    importance=Importance.ERROR,
+                    check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
                     file_path=nwbfile_path,
                 )
 
-        try:
-            nwbfile = io.read()
-            for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
-                inspector_message.file_path = nwbfile_path
-                yield inspector_message
-        except Exception as ex:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
-                file_path=nwbfile_path,
-            )
+    if driver != "ros3":
+        yield _collect_all_messages(nwbfile_path=nwbfile_path, driver=driver, skip_validate=skip_validate)
+    else:
+        retries = 0
+
+        while retries < max_retries:
+            try:
+                retries += 1
+                yield _collect_all_messages(nwbfile_path=nwbfile_path, driver=driver, skip_validate=skip_validate)
+            except OSError:  # Cannot curl request
+                sleep(0.1 * 2 ** retries)
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
