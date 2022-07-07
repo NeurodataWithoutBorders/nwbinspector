@@ -4,7 +4,7 @@ from pathlib import Path
 root = Path(__file__).parent
 with open(root / "README.md", "r") as f:
     long_description = f.read()
-with open(root / "requirements-minimal.txt") as f:
+with open(root / "requirements.txt") as f:
     install_requires = f.readlines()
 setup(
     name="nwbinspector",
