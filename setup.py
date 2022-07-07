@@ -1,9 +1,10 @@
 from setuptools import setup, find_packages
+from pathlib import Path
 
-# Get the long description from the README file
-with open("README.md", "r") as f:
+root = Path(__file__).parent
+with open(root / "README.md", "r") as f:
     long_description = f.read()
-with open(os.path.join(path, "requirements.txt")) as f:
+with open(root / "requirements-minimal.txt") as f:
     install_requires = f.readlines()
 setup(
     name="nwbinspector",
