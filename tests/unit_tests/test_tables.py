@@ -238,12 +238,7 @@ def test_check_single_row_ignore_electrodes():
         name="electrodes",  # default name when building through nwbfile
     )
     table.add_row(
-        x=np.nan,
-        y=np.nan,
-        z=np.nan,
-        imp=np.nan,
         location="unknown",
-        filtering="unknown",
         group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
         group_name="test_group",
     )
