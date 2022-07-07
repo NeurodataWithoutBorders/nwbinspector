@@ -2,3 +2,6 @@ pynwb>=1.4.0,<2.1.0  # TODO, debug 2.1.0?
 PyYAML
 jsonschema
 packaging
+natsort
+click
+tqdm
