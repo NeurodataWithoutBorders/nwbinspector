@@ -36,7 +36,7 @@ INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dand
 class InspectorOutputJSONEncoder(json.JSONEncoder):
     """Custom JSONEncoder for the NWBInspector."""
 
-    def default(self, o):
+    def default(self, o):  # noqa D102
         if isinstance(o, InspectorMessage):
             return o.__dict__
         if isinstance(o, Enum):
@@ -52,22 +52,37 @@ def validate_config(config: dict):
     jsonschema.validate(instance=config, schema=schema)
 
 
-def copy_function(function):
+def _copy_function(function):
     """
-    Return a copy of a function so that internal attributes can be adjusted without changing the original function.
+    Copy the core parts of a given function, excluding wrappers, then return a new function.
+
+    Based off of
+    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
+    """
+    copied_function = FunctionType(
+        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
+    )
+
+    # in case f was given attrs (note this dict is a shallow copy)
+    copied_function.__dict__.update(function.__dict__)
+    return copied_function
+
+
+def copy_check(function):
+    """
+    Copy a check function so that internal attributes can be adjusted without changing the original function.
 
     Required to ensure our configuration of functions in the registry does not effect the registry itself.
+
+    Also copies the wrapper for auto-parsing ressults, see ???.
 
     Taken from
     https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
     if getattr(function, "__wrapped__", False):
-        function = function.__wrapped__
-    copied_function = FunctionType(
-        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
-    )
-    # in case f was given attrs (note this dict is a shallow copy):
-    copied_function.__dict__.update(function.__dict__)
+        check_function = function.__wrapped__
+    copied_function = _copy_function(function)
+    copied_function.__wrapped__ = _copy_function(check_function)
     return copied_function
 
 
@@ -130,7 +145,7 @@ def configure_checks(
         checks_out = []
         ignore = ignore or []
         for check in checks:
-            mapped_check = copy_function(check)
+            mapped_check = copy_check(check)
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":

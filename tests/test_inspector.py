@@ -17,8 +17,10 @@ from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
+    check_subject_exists,
+    load_config,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb
+from nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType, is_module_installed
 from nwbinspector.tools import make_minimal_nwbfile
@@ -144,7 +146,7 @@ class TestInspector(TestCase):
                     if ".nwb" in test_line:
                         # Transform temporary testing path and formatted to hardcoded fake path
                         str_loc = test_line.find(".nwb")
-                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")
+                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
                         test_file_lines[line_number] = correction_str
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
@@ -471,6 +473,71 @@ class TestInspector(TestCase):
         generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
+
+    def test_inspect_nwb_dandi_config(self):
+        config_checks = [check_subject_exists] + self.checks
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=config_checks,
+                config=load_config(filepath_or_keyword="dandi"),
+            )
+        )
+        true_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name=None,
+                object_type=None,
+                object_name=None,
+                location=None,
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name=None,
+                object_type=None,
+                object_name=None,
+                location=None,
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. "
+                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                ),
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name=None,
+                object_type=None,
+                object_name=None,
+                location=None,
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer."
+                ),
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name=None,
+                object_type=None,
+                object_name=None,
+                location=None,
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name=None,
+                object_type=None,
+                object_name=None,
+                location=None,
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
 
 
 @pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
