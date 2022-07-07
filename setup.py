@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 # Get the long description from the README file
 with open("README.md", "r") as f:
     long_description = f.read()
+with open(os.path.join(path, "requirements.txt")) as f:
+    install_requires = f.readlines()
 setup(
     name="nwbinspector",
     version="0.4.6",
@@ -14,7 +16,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
-    install_requires=["pynwb", "natsort", "click", "PyYAML", "jsonschema", "tqdm"],
+    install_requires=install_requires,
     extras_require=dict(dandi=["dandi>=0.39.2"]),
     entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
     license="BSD-3-Clause",
