@@ -459,7 +459,7 @@ def inspect_nwb(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    def _collect_all_messages(nwbfile_path: FilePathType, driver: Optional[str] = None, skip_validate: bool = False):
+    def _collect_all_messages(nwbfile_path: FilePathType, checks: list, driver: Optional[str] = None, skip_validate: bool = False):
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
             if not skip_validate:
                 validation_errors = pynwb.validate(io=io)
@@ -477,6 +477,8 @@ def inspect_nwb(
                 for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
                     inspector_message.file_path = nwbfile_path
                     yield inspector_message
+            except OSError as ex:
+                raise ex  # propagate outside private
             except Exception as ex:
                 yield InspectorMessage(
                     message=traceback.format_exc(),
@@ -486,14 +488,14 @@ def inspect_nwb(
                 )
 
     if driver != "ros3":
-        yield _collect_all_messages(nwbfile_path=nwbfile_path, driver=driver, skip_validate=skip_validate)
+        yield _collect_all_messages(nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate)
     else:
         retries = 0
 
         while retries < max_retries:
             try:
                 retries += 1
-                yield _collect_all_messages(nwbfile_path=nwbfile_path, driver=driver, skip_validate=skip_validate)
+                yield _collect_all_messages(nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate)
             except OSError:  # Cannot curl request
                 sleep(0.1 * 2 ** retries)
 
