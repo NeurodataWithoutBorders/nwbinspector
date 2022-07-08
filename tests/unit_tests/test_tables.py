@@ -229,14 +229,18 @@ def test_check_single_row_pass():
 
 
 def test_check_single_row_ignore_units():
-    table = Units(name="Units",)  # default name when building through nwbfile
+    table = Units(
+        name="Units",
+    )  # default name when building through nwbfile
     table.add_unit(spike_times=[1, 2, 3])
     assert check_single_row(table=table) is None
 
 
 @pytest.mark.skipif(get_package_version(name="pynwb") >= version.Version("2.1.0"))  # TODO: remove skip when fixed
 def test_check_single_row_ignore_electrodes():
-    table = ElectrodeTable(name="electrodes",)  # default name when building through nwbfile
+    table = ElectrodeTable(
+        name="electrodes",
+    )  # default name when building through nwbfile
     table.add_row(
         x=np.nan,
         y=np.nan,
