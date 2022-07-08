@@ -153,10 +153,7 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
@@ -317,6 +314,8 @@ def inspect_all(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
+        This may also be a negative integer x from -2 to -(number_of_cpus - 1) which acts like negative slicing by using
+        all available CPUs minus x.
         Set to 1 (also the default) to disable.
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).

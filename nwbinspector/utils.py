@@ -1,4 +1,5 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+import os
 import re
 import json
 import numpy as np
@@ -113,3 +114,19 @@ def get_package_version(name: str) -> version.Version:
 
         package_version = get_distribution(name).version
     return version.parse(package_version)
+
+
+def calculate_number_of_cpus(requested_cpu: int = 1) -> int:
+    """
+    Calculate the number CPUs to use with respect to negative slicing and check against maximal available resources.
+
+    Parameters
+    ----------
+    requested_cpu : int, optional
+        The desired number of CPUs to use.
+        
+        The default is 1.
+    """
+    total_cpu = os.cpu_count()
+    assert requested_cpu <= total_cpu, "Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu >= -(total_cpu - 1)
