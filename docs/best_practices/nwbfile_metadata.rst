@@ -211,7 +211,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sp
 Strain
 ~~~~~~~
 
-The ``strain`` of a :nwb-schema:ref:`sec-Subject` should be set to further indicate subspecies or breed. *E.g.*, common strains for species "Rattus norvegicus" include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6" is a common mouse strain. If no specific strain is used, simply indicate "Wild Type".
+The ``strain`` of a :nwb-schema:ref:`sec-Subject` should be set to further indicate the subspecies or breed or common genetic modification. *E.g.*, common strains for species "Rattus norvegicus" might include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6". If no specific strain is used, then simply indicate "Wild Type".
 
 
 
