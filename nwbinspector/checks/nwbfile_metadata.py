@@ -48,7 +48,7 @@ def check_experimenter_exists(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_form(nwbfile: NWBFile):
-    """Check if an experimenter has been added for the session."""
+    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
     if not is_module_installed(module_name="dandi"):
         warn(
             "It is strongly recommended to download DANDI alongside the NWB Inspector \n\n"
