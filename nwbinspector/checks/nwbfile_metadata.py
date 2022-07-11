@@ -1,11 +1,13 @@
 """Check functions that examine general NWBFile metadata."""
 import re
 from datetime import datetime
+from warnings import warn
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
+from ..utils import is_module_installed
 
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
@@ -38,10 +40,33 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_experimenter(nwbfile: NWBFile):
+def check_experimenter_exists(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter_form(nwbfile: NWBFile):
+    """Check if an experimenter has been added for the session."""
+    if not is_module_installed(module_name="dandi"):
+        warn(
+            "It is strongly recommended to download DANDI alongside the NWB Inspector \n\n"
+            "\tpip install dandi\n\nor\n\n\tpip install nwbinspector.[dandi]\n"
+        )
+        return
+
+    from dandischema.models import NAME_PATTERN
+
+    for experimenter in nwbfile.experimenter:
+        experimenter = experimenter.decode() if isinstance(experimenter, bytes) else experimenter
+        if re.match(string=experimenter, pattern=NAME_PATTERN) is None:
+            yield InspectorMessage(
+                message=(
+                    f"The name of experimenter '{experimenter}' does not match the DANDI form "
+                    "(Last, First Middle or Last, First M.)."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
