@@ -202,10 +202,16 @@ Species
 ~~~~~~~
 
 The ``species`` of a :nwb-schema:ref:`sec-Subject` should be set to the proper
-:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus". Specific subspecies
-may be further specified by a dash, *e.g.*, "Rattus norvegicus - Long Evans".
+:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
+
+
+
+Strain
+~~~~~~~
+
+The ``strain`` of a :nwb-schema:ref:`sec-Subject` should be set to further indicate subspecies or breed. *E.g.*, common strains for species "Rattus norvegicus" include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6" is a common mouse strain. If no specific strain is used, simply indicate "Wild Type".
 
 
 
