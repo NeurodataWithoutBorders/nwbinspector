@@ -1,9 +1,13 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+import os
 import re
 import json
 import numpy as np
-from typing import TypeVar, Optional, List
+from typing import TypeVar, Optional, List, Dict, Callable
 from pathlib import Path
+from importlib import import_module
+from packaging import version
+from time import sleep
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -73,3 +77,79 @@ def is_string_json_loadable(string: str):
         return True
     except json.JSONDecodeError:
         return False
+
+
+def is_module_installed(module_name: str):
+    """
+    Check if the given module is installed on the system.
+
+    Used for lazy imports.
+    """
+    try:
+        import_module(name=module_name)
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def get_package_version(name: str) -> version.Version:
+    """
+    Retrieve the version of a package regardless of if it has a __version__ attribute set.
+
+    Parameters
+    ----------
+    name : str
+        Name of package.
+
+    Returns
+    -------
+    version : Version
+        The package version as an object from packaging.version.Version, which allows comparison to other versions.
+    """
+    try:
+        from importlib.metadata import version as importlib_version
+
+        package_version = importlib_version(name)
+    except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
+        from pkg_resources import get_distribution
+
+        package_version = get_distribution(name).version
+    return version.parse(package_version)
+
+
+def robust_s3_read(
+    command: Callable, max_retries: int = 10, command_args: Optional[list] = None, command_kwargs: Optional[Dict] = None
+):
+    """Attempt the command (usually acting on an S3 IO) up to the number of max_retries using exponential backoff."""
+    command_args = command_args or []
+    command_kwargs = command_kwargs or dict()
+    for retry in range(max_retries):
+        try:
+            return command(*command_args, **command_kwargs)
+        except OSError:  # cannot curl request
+            sleep(0.1 * 2**retry)
+        except Exception as exc:
+            raise exc
+    raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
+
+
+def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
+    """
+    Calculate the number CPUs to use with respect to negative slicing and check against maximal available resources.
+
+    Parameters
+    ----------
+    requested_cpu : int, optional
+        The desired number of CPUs to use.
+
+        The default is 1.
+    """
+    total_cpu = os.cpu_count()
+    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu >= -(
+        total_cpu - 1
+    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    if requested_cpu > 0:
+        return requested_cpu
+    else:
+        return total_cpu + requested_cpu

@@ -1,5 +1,9 @@
 name: Testing
-on: pull_request
+on:
+  schedule:
+    - cron: "0 0 * * *"  # daily
+  pull_request:
+
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
@@ -22,7 +26,9 @@ jobs:
           pip install pytest
           pip install pytest-cov
       - name: Install package
-        run: pip install -e .
+        run: |
+          pip install -e .
+          pip install dandi
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3

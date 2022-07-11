@@ -20,7 +20,7 @@ from nwbinspector import (
 )
 from nwbinspector.nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
-from nwbinspector.utils import FilePathType
+from nwbinspector.utils import FilePathType, is_module_installed
 from nwbinspector.tools import make_minimal_nwbfile
 
 
@@ -35,6 +35,7 @@ try:
     HAVE_ROS3 = True
 except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
     HAVE_ROS3 = False
+HAVE_DANDI = is_module_installed("dandi")
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -329,11 +330,40 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold(self):
+    def test_inspect_nwb_importance_threshold_as_importance(self):
         test_results = list(
             inspect_nwb(
                 nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
             )
+        )
+        true_results = [
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
+                    "usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/my_spatial_series",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_importance_threshold_as_string(self):
+        test_results = list(
+            inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
         )
         true_results = [
             InspectorMessage(
@@ -472,7 +502,7 @@ class TestInspector(TestCase):
             next(generator)
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
     assert messages[0] == InspectorMessage(
@@ -486,7 +516,7 @@ def test_dandiset_streaming():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming_parallel():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
     assert messages[0] == InspectorMessage(
@@ -500,7 +530,7 @@ def test_dandiset_streaming_parallel():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 class TestStreamingCLI(TestCase):
     @classmethod
     def setUpClass(cls):

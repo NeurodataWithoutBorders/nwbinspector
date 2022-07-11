@@ -14,6 +14,7 @@ def check_image_series_external_file_valid(image_series: ImageSeries):
         return
     nwbfile_path = Path(get_nwbfile_path_from_internal_object(obj=image_series))
     for file_path in image_series.external_file:
+        file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
         if not Path(file_path).is_absolute() and not (nwbfile_path.parent / file_path).exists():
             yield InspectorMessage(
                 message=(
@@ -29,6 +30,7 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
     if image_series.external_file is None:
         return
     for file_path in image_series.external_file:
+        file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
         if Path(file_path).is_absolute():
             yield InspectorMessage(
                 message=(

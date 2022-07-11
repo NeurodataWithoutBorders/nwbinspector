@@ -80,8 +80,7 @@ def check_doi_publications(nwbfile: NWBFile):
     if not nwbfile.related_publications:
         return
     for publication in nwbfile.related_publications:
-        if isinstance(publication, bytes):
-            publication = publication.decode()
+        publication = publication.decode() if isinstance(publication, bytes) else publication
         if not any((publication.startswith(valid_start) for valid_start in valid_starts)):
             yield InspectorMessage(
                 message=(

@@ -1,8 +1,8 @@
 import platform
 import json
 from unittest import TestCase
+from packaging import version
 
-import pytest
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from pynwb.file import TimeIntervals, Units, ElectrodeTable, ElectrodeGroup, Device
@@ -18,6 +18,7 @@ from nwbinspector import (
     check_single_row,
     check_table_values_for_dict,
 )
+from nwbinspector.utils import get_package_version
 
 
 class TestCheckDynamicTableRegion(TestCase):
@@ -238,16 +239,27 @@ def test_check_single_row_ignore_electrodes():
     table = ElectrodeTable(
         name="electrodes",  # default name when building through nwbfile
     )
-    table.add_row(
-        x=np.nan,
-        y=np.nan,
-        z=np.nan,
-        imp=np.nan,
-        location="unknown",
-        filtering="unknown",
-        group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
-        group_name="test_group",
-    )
+    if get_package_version(name="pynwb") >= version.Version("2.1.0"):
+        table.add_row(
+            location="unknown",
+            group=ElectrodeGroup(
+                name="test_group", description="", device=Device(name="test_device"), location="unknown"
+            ),
+            group_name="test_group",
+        )
+    else:
+        table.add_row(
+            x=np.nan,
+            y=np.nan,
+            z=np.nan,
+            imp=np.nan,
+            location="unknown",
+            filtering="unknown",
+            group=ElectrodeGroup(
+                name="test_group", description="", device=Device(name="test_device"), location="unknown"
+            ),
+            group_name="test_group",
+        )
     assert check_single_row(table=table) is None
 
 

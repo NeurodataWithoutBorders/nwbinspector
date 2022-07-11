@@ -8,11 +8,12 @@ import jsonschema
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
-from typing import Optional, List
+from typing import Union, Optional, List
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
+from time import sleep
 
 import click
 import pynwb
@@ -28,7 +29,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings
+from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -278,7 +279,7 @@ def inspect_all(
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
@@ -305,7 +306,7 @@ def inspect_all(
         Names of functions to skip.
     select: list of strings, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -317,6 +318,8 @@ def inspect_all(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
+        This may also be a negative integer x from -2 to -(number_of_cpus - 1) which acts like negative slicing by using
+        all available CPUs minus x.
         Set to 1 (also the default) to disable.
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
@@ -336,7 +339,11 @@ def inspect_all(
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     modules = modules or []
+    n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
         if stream:
@@ -410,9 +417,10 @@ def inspect_nwb(
     config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
-    driver: str = None,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    driver: Optional[str] = None,
     skip_validate: bool = False,
+    max_retries: int = 10,
 ) -> List[InspectorMessage]:
     """
     Inspect a NWBFile object and return suggestions for improvements according to best practices.
@@ -431,7 +439,7 @@ def inspect_nwb(
         Names of functions to skip.
     select: list, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -446,7 +454,15 @@ def inspect_nwb(
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    max_retries : int, optional
+        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
+        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
+        This sets a hard bound on the number of times to attempt to retry the collection of messages.
+        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
@@ -454,30 +470,31 @@ def inspect_nwb(
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
+
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if skip_validate:
+        if not skip_validate:
             validation_errors = pynwb.validate(io=io)
-            if any(validation_errors):
-                for validation_error in validation_errors:
-                    yield InspectorMessage(
-                        message=validation_error.reason,
-                        importance=Importance.PYNWB_VALIDATION,
-                        check_function_name=validation_error.name,
-                        location=validation_error.location,
-                        file_path=nwbfile_path,
-                    )
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+
         try:
-            nwbfile = io.read()
+            nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
+            for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+                inspector_message.file_path = nwbfile_path
+                yield inspector_message
         except Exception as ex:
             yield InspectorMessage(
                 message=traceback.format_exc(),
                 importance=Importance.ERROR,
-                check_function_name=f"{type(ex)}: {str(ex)}",
+                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
                 file_path=nwbfile_path,
             )
-        for inspector_message in run_checks(nwbfile, checks=checks):
-            inspector_message.file_path = nwbfile_path
-            yield inspector_message
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
@@ -493,7 +510,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
-                    output = check_function(nwbfile_object)
+                    output = robust_s3_read(command=check_function, command_args=[nwbfile_object])
                 # if an individual check fails, include it in the report and continue with the inspection
                 except Exception:
                     output = InspectorMessage(
