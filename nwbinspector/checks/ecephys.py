@@ -2,6 +2,7 @@
 from packaging import version
 
 import numpy as np
+from pynwb.file import ElectrodeTable
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
 from hdmf.utils import get_data_shape
@@ -82,8 +83,10 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
             )
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
-def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
-    """Check that the 'electrodes' of an ElectricalSeries references the ElectrodesTable."""
-    if electrical_series.electrodes.table.name != "electrodes":
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ElectrodeTable)
+def check_optional_columns_electrode_table(electrode_table: ElectrodeTable):
+    """Check that the ElectrodeTable columns which are optional for nwb-schema>=2.5.0 are not specified as NaN."""
+    if get_package_version(name="pynwb") < version.Version("2.1.0"):
+        return
+    if any(x.isnan() in electrode_table for x in ["x", "y", "z", "imp", "filtering"]):
         return InspectorMessage(message="electrodes does not  reference an electrodes table.")
