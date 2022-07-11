@@ -55,6 +55,3 @@ def test_pass_check_order_of_images_len():
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
 
     assert check_order_of_images_len(images) is None
-
-
-
