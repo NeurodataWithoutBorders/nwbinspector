@@ -92,3 +92,21 @@ def check_resolution(time_series: TimeSeries):
         return InspectorMessage(
             message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
+def check_rows_not_nan(time_series: TimeSeries, nelems=200):
+    """Check that each row of a TimeSeries has at least one non-NaN piece of data."""
+    if len(time_series.data.shape) != 2:  # TODO: generalize to higher dimensions
+        return
+    subframe_selection = np.linspace(start=0, stop=time_series.data.shape[0], num=nelems)
+    for col in range(time_series.data.shape[1]):
+        if np.all(np.isnan(time_series.data[subframe_selection, col])):
+            continue
+        else:
+            yield InspectorMessage(
+                message=(
+                    f"Column number {col} of this TimeSeries appears to contain NaN data at each frame. "
+                    "Consider removing this column from the TimeSeries."
+                )
+            )

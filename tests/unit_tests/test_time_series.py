@@ -13,6 +13,7 @@ from nwbinspector import (
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
+    check_rows_not_nan,
 )
 from nwbinspector.utils import get_package_version
 
@@ -203,6 +204,27 @@ def test_check_none_matnwb_resolution_pass():
 def test_check_resolution_fail():
     time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=-2.0)
     assert check_resolution(time_series) == InspectorMessage(
+        message="'resolution' should use -1.0 or NaN for unknown instead of -2.0.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_resolution",
+        object_type="TimeSeries",
+        object_name="test",
+        location="/",
+    )
+
+
+def test_check_rows_not_nan_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="", data=np.array([[1, 2, np.nan], [np.nan, np.nan, 6]]), timestamps=[1, 2]
+    )
+    assert check_rows_not_nan(time_series) is None
+
+
+def test_check_rows_not_nan_fail():
+    time_series = pynwb.TimeSeries(
+        name="test", unit="test", data=np.array([[1, 2, np.nan], [4, 5, np.nan]]), timestamps=[1, 2]
+    )
+    assert check_rows_not_nan(time_series) == InspectorMessage(
         message="'resolution' should use -1.0 or NaN for unknown instead of -2.0.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_resolution",
