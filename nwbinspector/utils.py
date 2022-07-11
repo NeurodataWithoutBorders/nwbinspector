@@ -1,4 +1,5 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+import os
 import re
 import json
 import numpy as np
@@ -130,3 +131,25 @@ def robust_s3_read(
         except Exception as exc:
             raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
+
+
+def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
+    """
+    Calculate the number CPUs to use with respect to negative slicing and check against maximal available resources.
+
+    Parameters
+    ----------
+    requested_cpu : int, optional
+        The desired number of CPUs to use.
+
+        The default is 1.
+    """
+    total_cpu = os.cpu_count()
+    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu >= -(
+        total_cpu - 1
+    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    if requested_cpu > 0:
+        return requested_cpu
+    else:
+        return total_cpu + requested_cpu

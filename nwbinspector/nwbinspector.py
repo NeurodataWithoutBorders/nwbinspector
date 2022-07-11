@@ -29,7 +29,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read
+from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -318,6 +318,8 @@ def inspect_all(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
+        This may also be a negative integer x from -2 to -(number_of_cpus - 1) which acts like negative slicing by using
+        all available CPUs minus x.
         Set to 1 (also the default) to disable.
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
@@ -341,6 +343,7 @@ def inspect_all(
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
     modules = modules or []
+    n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
         if stream:
