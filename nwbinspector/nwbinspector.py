@@ -8,7 +8,7 @@ import jsonschema
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
-from typing import Optional, List
+from typing import Union, Optional, List
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -153,10 +153,7 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
@@ -278,7 +275,7 @@ def inspect_all(
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
@@ -305,7 +302,7 @@ def inspect_all(
         Names of functions to skip.
     select: list of strings, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -336,6 +333,9 @@ def inspect_all(
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     modules = modules or []
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
@@ -410,7 +410,7 @@ def inspect_nwb(
     config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     driver: str = None,
     skip_validate: bool = False,
 ) -> List[InspectorMessage]:
@@ -431,7 +431,7 @@ def inspect_nwb(
         Names of functions to skip.
     select: list, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -447,6 +447,9 @@ def inspect_nwb(
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
