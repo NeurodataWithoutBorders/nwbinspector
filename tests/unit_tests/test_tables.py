@@ -237,8 +237,8 @@ def test_check_single_row_ignore_units():
 
 def test_check_single_row_ignore_electrodes():
     table = ElectrodeTable(
-        name="electrodes",
-    )  # default name when building through nwbfile
+        name="electrodes",  # default name when building through nwbfile
+    )
     if get_package_version(name="pynwb") >= version.Version("2.1.0"):
         table.add_row(
             location="unknown",

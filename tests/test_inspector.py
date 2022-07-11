@@ -332,11 +332,40 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold(self):
+    def test_inspect_nwb_importance_threshold_as_importance(self):
         test_results = list(
             inspect_nwb(
                 nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
             )
+        )
+        true_results = [
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
+                    "usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/my_spatial_series",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_importance_threshold_as_string(self):
+        test_results = list(
+            inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
         )
         true_results = [
             InspectorMessage(
