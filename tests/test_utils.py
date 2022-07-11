@@ -133,5 +133,5 @@ class TestCalulcateNumberOfCPU(TestCase):
             calculate_number_of_cpu(requested_cpu=requested_cpu)
 
     def test_calculate_number_of_cpu_negative_value(self):
-        requested_cpu = -2
+        requested_cpu = -1  # CI only has 2 jobs available
         assert calculate_number_of_cpu(requested_cpu=requested_cpu) == requested_cpu % self.total_cpu
