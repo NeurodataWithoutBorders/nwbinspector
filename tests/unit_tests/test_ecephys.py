@@ -1,9 +1,12 @@
 from datetime import datetime
 from unittest import TestCase
 from uuid import uuid4
+from packaging import version
 
+import pytest
 import numpy as np
 from pynwb import NWBFile
+from pynwb.file import ElectrodeTable, ElectrodeGroup, Device
 from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
 from hdmf.common.table import DynamicTableRegion, DynamicTable
@@ -15,7 +18,9 @@ from nwbinspector import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_spike_times_not_in_unobserved_interval,
+    check_optional_columns_electrode_table,
 )
+from nwbinspector.utils import get_package_version
 
 
 def test_check_negative_spike_times_all_positive():
@@ -220,3 +225,43 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         object_name="TestUnits",
         location="/",
     )
+
+
+@pytest.mark.skipif(get_package_version(name="pynwb") < version.Version("2.1.0"))
+def test_check_optional_columns_electrode_table_pass():
+    electrode_table = ElectrodeTable(name="electrodes")
+    electrode_table.add_row(
+        location="unknown",
+        group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
+        group_name="test_group",
+    )
+    assert check_optional_columns_electrode_table(electrode_table=electrode_table) is None
+
+
+@pytest.mark.skip  # TODO: when fixed on PyNWB side, unskip
+def test_check_optional_columns_electrode_table_fail():
+    electrode_table = ElectrodeTable(name="electrodes")
+    electrode_table.add_row(
+        x=np.nan,
+        y=np.nan,
+        z=np.nan,
+        imp=np.nan,
+        location="unknown",
+        filtering="unknown",
+        group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
+        group_name="test_group",
+    )
+    if get_package_version(name="pynwb") >= version.Version("2.1.0"):
+        assert check_optional_columns_electrode_table(electrode_table=electrode_table) == InspectorMessage(
+            message=(
+                "The ElectrodeTable contains NaN values on optional columns - "
+                "as of nwb-schema 2.5.0, there is no need to write these columns."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_optional_columns_electrode_table",
+            object_type="ElectrodeTable",
+            object_name="electrodes",
+            location="/",
+        )
+    else:
+        assert check_optional_columns_electrode_table(electrode_table=electrode_table) is None

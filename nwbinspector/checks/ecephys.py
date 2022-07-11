@@ -89,4 +89,9 @@ def check_optional_columns_electrode_table(electrode_table: ElectrodeTable):
     if get_package_version(name="pynwb") < version.Version("2.1.0"):
         return
     if any(x.isnan() in electrode_table for x in ["x", "y", "z", "imp", "filtering"]):
-        return InspectorMessage(message="electrodes does not  reference an electrodes table.")
+        return InspectorMessage(
+            message=(
+                "The ElectrodeTable contains NaN values on optional columns - "
+                "as of nwb-schema 2.5.0, there is no need to write these columns."
+            )
+        )
