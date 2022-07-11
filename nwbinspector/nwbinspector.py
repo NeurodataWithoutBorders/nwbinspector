@@ -493,7 +493,7 @@ def inspect_nwb(
                 )
 
     if driver != "ros3":
-        yield _collect_all_messages(
+        return _collect_all_messages(
             nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
         )
     else:
@@ -502,7 +502,7 @@ def inspect_nwb(
         while retries < max_retries:
             try:
                 retries += 1
-                yield _collect_all_messages(
+                return _collect_all_messages(
                     nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
                 )
             except OSError:  # Cannot curl request
