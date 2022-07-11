@@ -128,6 +128,8 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
         The default is 1.
     """
     total_cpu = os.cpu_count()
-    assert requested_cpu <= total_cpu, "Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
-    assert requested_cpu >= -(total_cpu - 1), "Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu >= -(
+        total_cpu - 1
+    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
     return requested_cpu % total_cpu
