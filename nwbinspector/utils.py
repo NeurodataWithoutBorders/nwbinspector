@@ -1,11 +1,13 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+import os
 import re
 import json
 import numpy as np
-from typing import TypeVar, Optional, List
+from typing import TypeVar, Optional, List, Dict, Callable
 from pathlib import Path
 from importlib import import_module
 from packaging import version
+from time import sleep
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
@@ -113,3 +115,41 @@ def get_package_version(name: str) -> version.Version:
 
         package_version = get_distribution(name).version
     return version.parse(package_version)
+
+
+def robust_s3_read(
+    command: Callable, max_retries: int = 10, command_args: Optional[list] = None, command_kwargs: Optional[Dict] = None
+):
+    """Attempt the command (usually acting on an S3 IO) up to the number of max_retries using exponential backoff."""
+    command_args = command_args or []
+    command_kwargs = command_kwargs or dict()
+    for retry in range(max_retries):
+        try:
+            return command(*command_args, **command_kwargs)
+        except OSError:  # cannot curl request
+            sleep(0.1 * 2**retry)
+        except Exception as exc:
+            raise exc
+    raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
+
+
+def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
+    """
+    Calculate the number CPUs to use with respect to negative slicing and check against maximal available resources.
+
+    Parameters
+    ----------
+    requested_cpu : int, optional
+        The desired number of CPUs to use.
+
+        The default is 1.
+    """
+    total_cpu = os.cpu_count()
+    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    assert requested_cpu >= -(
+        total_cpu - 1
+    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    if requested_cpu > 0:
+        return requested_cpu
+    else:
+        return total_cpu + requested_cpu
