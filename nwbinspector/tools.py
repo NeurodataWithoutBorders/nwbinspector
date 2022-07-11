@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from pynwb import NWBFile
 
-from .utils import is_module_installed
+from .utils import is_module_installed, calculate_number_of_cpu
 
 
 def make_minimal_nwbfile():
@@ -43,6 +43,7 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
     ), "The specified 'path' is not a proper DANDISet ID. It should be a six-digit numeric identifier."
 
     s3_urls_to_dandi_paths = dict()
+    n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if n_jobs != 1:
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)

@@ -28,7 +28,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings
+from .utils import FilePathType, PathType, OptionalListOfStrings, calculate_number_of_cpu
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -153,7 +153,10 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
+    "--report-file-path",
+    default=None,
+    help="Save path for the report file.",
+    type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
@@ -336,6 +339,7 @@ def inspect_all(
         Defaults to the most recent published version, or if not published then the most recent draft version.
     """
     modules = modules or []
+    n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
         if stream:

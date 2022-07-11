@@ -116,7 +116,7 @@ def get_package_version(name: str) -> version.Version:
     return version.parse(package_version)
 
 
-def calculate_number_of_cpus(requested_cpu: int = 1) -> int:
+def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
     """
     Calculate the number CPUs to use with respect to negative slicing and check against maximal available resources.
 
@@ -124,9 +124,10 @@ def calculate_number_of_cpus(requested_cpu: int = 1) -> int:
     ----------
     requested_cpu : int, optional
         The desired number of CPUs to use.
-        
+
         The default is 1.
     """
     total_cpu = os.cpu_count()
     assert requested_cpu <= total_cpu, "Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
-    assert requested_cpu >= -(total_cpu - 1)
+    assert requested_cpu >= -(total_cpu - 1), "Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    return requested_cpu % total_cpu
