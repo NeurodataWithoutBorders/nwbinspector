@@ -74,7 +74,8 @@ def copy_check(function):
 
     Required to ensure our configuration of functions in the registry does not effect the registry itself.
 
-    Also copies the wrapper for auto-parsing ressults, see ???.
+    Also copies the wrapper for auto-parsing ressults,
+    see https://github.com/NeurodataWithoutBorders/nwbinspector/pull/218 for explanation.
 
     Taken from
     https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
@@ -168,10 +169,7 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path",
-    default=None,
-    help="Save path for the report file.",
-    type=click.Path(writable=True),
+    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
