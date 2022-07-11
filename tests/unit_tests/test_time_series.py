@@ -15,7 +15,7 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
 )
-from nwbinspector.utils import get_package_version
+from nwbinspector.utils import get_package_version, robust_s3_read
 
 try:
     # Test ros3 on sub-YutaMouse54/sub-YutaMouse54_ses-YutaMouse54-160630_behavior+ecephys.nwb from #3
@@ -190,22 +190,17 @@ def test_check_none_matnwb_resolution_pass():
 
     produced with MatNWB, when read with PyNWB~=2.0.1 and HDMF<=3.2.1 contains a resolution value of None.
     """
-    max_retries = 10
-    retries = 0
-
-    while retries < max_retries:
-        try:
-            retries += 1
-            with pynwb.NWBHDF5IO(
-                path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
-                mode="r",
-                load_namespaces=True,
-                driver="ros3",
-            ) as io:
-                nwbfile = io.read()
-                time_series = nwbfile.processing["video_files"]["video"].time_series["20170203_KIB_01_s1.1.h264"]
-        except OSError:  # Cannot curl request
-            sleep(0.1 * 2**retries)
+    with pynwb.NWBHDF5IO(
+        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
+        mode="r",
+        load_namespaces=True,
+        driver="ros3",
+    ) as io:
+        nwbfile = robust_s3_read(command=io.read)
+        time_series = robust_s3_read(
+            "20170203_KIB_01_s1.1.h264",
+            command=nwbfile.processing["video_files"]["video"].time_series.get,
+        )
     assert check_resolution(time_series) is None
 
 

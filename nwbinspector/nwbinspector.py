@@ -29,7 +29,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings
+from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -462,51 +462,30 @@ def inspect_nwb(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    def _collect_all_messages(
-        nwbfile_path: FilePathType, checks: list, driver: Optional[str] = None, skip_validate: bool = False
-    ):
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-            if not skip_validate:
-                validation_errors = pynwb.validate(io=io)
-                for validation_error in validation_errors:
-                    yield InspectorMessage(
-                        message=validation_error.reason,
-                        importance=Importance.PYNWB_VALIDATION,
-                        check_function_name=validation_error.name,
-                        location=validation_error.location,
-                        file_path=nwbfile_path,
-                    )
-
-            try:
-                nwbfile = io.read()
-                for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
-                    inspector_message.file_path = nwbfile_path
-                    yield inspector_message
-            except OSError as ex:
-                raise ex  # propagate outside private
-            except Exception as ex:
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        if not skip_validate:
+            validation_errors = pynwb.validate(io=io)
+            for validation_error in validation_errors:
                 yield InspectorMessage(
-                    message=traceback.format_exc(),
-                    importance=Importance.ERROR,
-                    check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
                     file_path=nwbfile_path,
                 )
 
-    if driver != "ros3":
-        return _collect_all_messages(
-            nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
-        )
-    else:
-        retries = 0
-
-        while retries < max_retries:
-            try:
-                retries += 1
-                return _collect_all_messages(
-                    nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
-                )
-            except OSError:  # Cannot curl request
-                sleep(0.1 * 2**retries)
+        try:
+            nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
+            for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+                inspector_message.file_path = nwbfile_path
+                yield inspector_message
+        except Exception as ex:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
+            )
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
@@ -522,7 +501,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
-                    output = check_function(nwbfile_object)
+                    output = robust_s3_read(command=check_function, command_args=[nwbfile_object])
                 # if an individual check fails, include it in the report and continue with the inspection
                 except Exception:
                     output = InspectorMessage(
