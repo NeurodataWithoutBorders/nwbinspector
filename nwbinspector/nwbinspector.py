@@ -8,7 +8,7 @@ import jsonschema
 from pathlib import Path
 from collections.abc import Iterable
 from enum import Enum
-from typing import Optional, List
+from typing import Union, Optional, List
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -279,7 +279,7 @@ def inspect_all(
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
@@ -306,7 +306,7 @@ def inspect_all(
         Names of functions to skip.
     select: list of strings, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -337,6 +337,9 @@ def inspect_all(
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     modules = modules or []
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
@@ -411,7 +414,7 @@ def inspect_nwb(
     config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
-    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     driver: Optional[str] = None,
     skip_validate: bool = False,
     max_retries: int = 10,
@@ -433,7 +436,7 @@ def inspect_nwb(
         Names of functions to skip.
     select: list, optional
         Names of functions to pick out of available checks.
-    importance_threshold : string, optional
+    importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
             CRITICAL
@@ -454,6 +457,9 @@ def inspect_nwb(
         This sets a hard bound on the number of times to attempt to retry the collection of messages.
         Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
     if any(x is not None for x in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
