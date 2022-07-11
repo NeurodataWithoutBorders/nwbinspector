@@ -134,4 +134,4 @@ class TestCalulcateNumberOfCPU(TestCase):
 
     def test_calculate_number_of_cpu_negative_value(self):
         requested_cpu = -2
-        assert calculate_number_of_cpu(requested_cpu=requested_cpu) == requested_cpu % self.total_cpu()
+        assert calculate_number_of_cpu(requested_cpu=requested_cpu) == requested_cpu % self.total_cpu
