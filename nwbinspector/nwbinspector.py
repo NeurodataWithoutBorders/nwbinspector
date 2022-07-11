@@ -154,7 +154,10 @@ def configure_checks(
 @click.argument("path")
 @click.option("--modules", help="Modules to import prior to reading the file(s).")
 @click.option(
-    "--report-file-path", default=None, help="Save path for the report file.", type=click.Path(writable=True),
+    "--report-file-path",
+    default=None,
+    help="Save path for the report file.",
+    type=click.Path(writable=True),
 )
 @click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
@@ -459,7 +462,9 @@ def inspect_nwb(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    def _collect_all_messages(nwbfile_path: FilePathType, checks: list, driver: Optional[str] = None, skip_validate: bool = False):
+    def _collect_all_messages(
+        nwbfile_path: FilePathType, checks: list, driver: Optional[str] = None, skip_validate: bool = False
+    ):
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
             if not skip_validate:
                 validation_errors = pynwb.validate(io=io)
@@ -488,16 +493,20 @@ def inspect_nwb(
                 )
 
     if driver != "ros3":
-        yield _collect_all_messages(nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate)
+        yield _collect_all_messages(
+            nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
+        )
     else:
         retries = 0
 
         while retries < max_retries:
             try:
                 retries += 1
-                yield _collect_all_messages(nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate)
+                yield _collect_all_messages(
+                    nwbfile_path=nwbfile_path, checks=checks, driver=driver, skip_validate=skip_validate
+                )
             except OSError:  # Cannot curl request
-                sleep(0.1 * 2 ** retries)
+                sleep(0.1 * 2**retries)
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list):
