@@ -1,12 +1,13 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
-import numpy as np
+from packaging import version
 
+import numpy as np
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
-
 from hdmf.utils import get_data_shape
 
 from ..register_checks import register_check, Importance, InspectorMessage
+from ..utils import get_package_version
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
@@ -79,3 +80,10 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                     "observed intervals."
                 )
             )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
+def check_electrical_series_reference_electrodes_table(electrical_series: ElectricalSeries):
+    """Check that the 'electrodes' of an ElectricalSeries references the ElectrodesTable."""
+    if electrical_series.electrodes.table.name != "electrodes":
+        return InspectorMessage(message="electrodes does not  reference an electrodes table.")
