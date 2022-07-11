@@ -135,4 +135,4 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
     if requested_cpu > 0:
         return requested_cpu
     else:
-        return requested_cpu % total_cpu
+        return total_cpu + requested_cpu
