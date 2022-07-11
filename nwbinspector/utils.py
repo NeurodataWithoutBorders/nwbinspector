@@ -132,4 +132,7 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
     assert requested_cpu >= -(
         total_cpu - 1
     ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
-    return requested_cpu % total_cpu
+    if requested_cpu > 0:
+        return requested_cpu
+    else:
+        return requested_cpu % total_cpu
