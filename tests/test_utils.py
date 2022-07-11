@@ -1,9 +1,16 @@
+import os
 from packaging import version
 
 from hdmf.testing import TestCase
 
 from nwbinspector import Importance
-from nwbinspector.utils import format_byte_size, check_regular_series, is_dict_in_string, get_package_version
+from nwbinspector.utils import (
+    format_byte_size,
+    check_regular_series,
+    is_dict_in_string,
+    get_package_version,
+    calculate_number_of_cpu,
+)
 
 
 def test_format_byte_size():
@@ -104,3 +111,27 @@ def test_get_package_version_type():
 
 def test_get_package_version_value():
     assert get_package_version("hdmf") >= version.parse("3.1.1")  # minimum supported PyNWB version
+
+
+class TestCalulcateNumberOfCPU(TestCase):
+    total_cpu = os.cpu_count()
+
+    def test_request_more_than_available_assert(self):
+        requested_cpu = 2500
+        with self.assertRaisesWith(
+            exc_type=AssertionError,
+            exc_msg=f"Requested more CPUs ({requested_cpu}) than are available ({self.total_cpu})!",
+        ):
+            calculate_number_of_cpu(requested_cpu=requested_cpu)
+
+    def test_request_fewer_than_available_assert(self):
+        requested_cpu = -2500
+        with self.assertRaisesWith(
+            exc_type=AssertionError,
+            exc_msg=f"Requested fewer CPUs ({requested_cpu}) than are available ({self.total_cpu})!",
+        ):
+            calculate_number_of_cpu(requested_cpu=requested_cpu)
+
+    def test_calculate_number_of_cpu_negative_value(self):
+        requested_cpu = -1  # CI only has 2 jobs available
+        assert calculate_number_of_cpu(requested_cpu=requested_cpu) == requested_cpu % self.total_cpu
