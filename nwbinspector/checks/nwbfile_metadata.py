@@ -52,7 +52,7 @@ def check_experimenter_form(nwbfile: NWBFile):
     if is_module_installed(module_name="dandi"):
         from dandischema.models import NAME_PATTERN  # for most up to date version of the regex
     else:
-        NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"
+        NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"  # copied on 7/12/22
 
     for experimenter in nwbfile.experimenter:
         experimenter = experimenter.decode() if isinstance(experimenter, bytes) else experimenter
