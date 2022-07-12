@@ -6,6 +6,7 @@ from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
+from ..utils import is_module_installed
 
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
@@ -38,10 +39,29 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_experimenter(nwbfile: NWBFile):
+def check_experimenter_exists(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter_form(nwbfile: NWBFile):
+    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
+    if is_module_installed(module_name="dandi"):
+        from dandischema.models import NAME_PATTERN  # for most up to date version of the regex
+    else:
+        NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"  # copied on 7/12/22
+
+    for experimenter in nwbfile.experimenter:
+        experimenter = experimenter.decode() if isinstance(experimenter, bytes) else experimenter
+        if re.match(string=experimenter, pattern=NAME_PATTERN) is None:
+            yield InspectorMessage(
+                message=(
+                    f"The name of experimenter '{experimenter}' does not match the DANDI form "
+                    "(Last, First Middle or Last, First M.)."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
