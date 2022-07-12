@@ -1,7 +1,6 @@
 """Check functions that examine general NWBFile metadata."""
 import re
 from datetime import datetime
-from warnings import warn
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
