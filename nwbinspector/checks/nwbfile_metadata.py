@@ -49,14 +49,10 @@ def check_experimenter_exists(nwbfile: NWBFile):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_form(nwbfile: NWBFile):
     """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
-    if not is_module_installed(module_name="dandi"):
-        warn(
-            "It is strongly recommended to download DANDI alongside the NWB Inspector \n\n"
-            "\tpip install dandi\n\nor\n\n\tpip install nwbinspector.[dandi]\n"
-        )
-        return
-
-    from dandischema.models import NAME_PATTERN
+    if is_module_installed(module_name="dandi"):
+        from dandischema.models import NAME_PATTERN  # for most up to date version of the regex
+    else:
+        NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"
 
     for experimenter in nwbfile.experimenter:
         experimenter = experimenter.decode() if isinstance(experimenter, bytes) else experimenter
