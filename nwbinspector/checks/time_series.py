@@ -97,16 +97,27 @@ def check_resolution(time_series: TimeSeries):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
 def check_rows_not_nan(time_series: TimeSeries, nelems=200):
     """Check that each row of a TimeSeries has at least one non-NaN piece of data."""
-    if len(time_series.data.shape) != 2:  # TODO: generalize to higher dimensions
+    n_dims = len(time_series.data.shape)
+    if n_dims > 2:
         return
-    subframe_selection = np.linspace(start=0, stop=time_series.data.shape[0], num=nelems)
-    for col in range(time_series.data.shape[1]):
-        if np.all(np.isnan(time_series.data[subframe_selection, col])):
-            continue
-        else:
-            yield InspectorMessage(
-                message=(
-                    f"Column number {col} of this TimeSeries appears to contain NaN data at each frame. "
-                    "Consider removing this column from the TimeSeries."
-                )
+    subframe_selection = np.unique(
+        np.round(np.linspace(start=0, stop=time_series.data.shape[0] - 1, num=nelems)).astype(int)
+    )
+    if n_dims == 1 and np.all(np.isnan(time_series.data[subframe_selection])):
+        yield InspectorMessage(
+            message=(
+                "This TimeSeries appears to contain NaN data at each frame. "
+                "Consider removing this object from the file."
             )
+        )
+    elif n_dims == 2:
+        for col in range(time_series.data.shape[1]):
+            if np.any(~np.isnan(time_series.data[subframe_selection, col])):
+                continue
+            else:
+                yield InspectorMessage(
+                    message=(
+                        f"Column index {col} of this TimeSeries appears to contain NaN data at each frame. "
+                        "Consider removing this column from the TimeSeries."
+                    )
+                )
