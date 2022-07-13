@@ -1,5 +1,4 @@
 from packaging import version
-from time import sleep
 
 import numpy as np
 import pynwb
@@ -14,7 +13,9 @@ from nwbinspector import (
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
+    check_for_shared_timestamps,
 )
+from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import get_package_version, robust_s3_read
 
 try:
@@ -34,10 +35,7 @@ except ValueError:  # ValueError: h5py was built without ROS3 support, can't use
 def test_check_regular_timestamps():
     assert check_regular_timestamps(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=3),
-            timestamps=[1.2, 3.2, 5.2],
+            name="test_time_series", unit="test_units", data=np.zeros(shape=3), timestamps=[1.2, 3.2, 5.2],
         )
     ) == InspectorMessage(
         message=(
@@ -57,10 +55,7 @@ def test_pass_check_regular_timestamps():
     assert (
         check_regular_timestamps(
             time_series=pynwb.TimeSeries(
-                name="test_time_series",
-                unit="test_units",
-                data=[0, 0],
-                timestamps=[1.2, 3.2],
+                name="test_time_series", unit="test_units", data=[0, 0], timestamps=[1.2, 3.2],
             )
         )
         is None
@@ -70,10 +65,7 @@ def test_pass_check_regular_timestamps():
 def test_check_data_orientation():
     assert check_data_orientation(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=(2, 100)),
-            rate=1.0,
+            name="test_time_series", unit="test_units", data=np.zeros(shape=(2, 100)), rate=1.0,
         )
     ) == InspectorMessage(
         message=(
@@ -92,10 +84,7 @@ def test_check_data_orientation():
 def test_check_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=4),
-            timestamps=[1.0, 2.0, 3.0],
+            name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[1.0, 2.0, 3.0],
         )
     ) == InspectorMessage(
         message="The length of the first dimension of data does not match the length of timestamps.",
@@ -198,8 +187,7 @@ def test_check_none_matnwb_resolution_pass():
     ) as io:
         nwbfile = robust_s3_read(command=io.read)
         time_series = robust_s3_read(
-            "20170203_KIB_01_s1.1.h264",
-            command=nwbfile.processing["video_files"]["video"].time_series.get,
+            "20170203_KIB_01_s1.1.h264", command=nwbfile.processing["video_files"]["video"].time_series.get,
         )
     assert check_resolution(time_series) is None
 
@@ -212,5 +200,52 @@ def test_check_resolution_fail():
         check_function_name="check_resolution",
         object_type="TimeSeries",
         object_name="test",
+        location="/",
+    )
+
+
+def test_check_for_shared_timestamps_pass():
+    nwbfile = make_minimal_nwbfile()
+    time_series_1 = pynwb.TimeSeries(
+        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+    )
+    time_series_2 = pynwb.TimeSeries(
+        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=time_series_1.timestamps
+    )
+    nwbfile.add_acquisition(time_series_1)
+    nwbfile.add_acquisition(time_series_2)
+    assert check_for_shared_timestamps(time_series=time_series_1) is None
+
+
+def test_check_for_shared_timestamps_symmetry_pass():
+    nwbfile = make_minimal_nwbfile()
+    time_series_1 = pynwb.TimeSeries(
+        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+    )
+    time_series_2 = pynwb.TimeSeries(
+        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=time_series_1.timestamps
+    )
+    nwbfile.add_acquisition(time_series_1)
+    nwbfile.add_acquisition(time_series_2)
+    assert check_for_shared_timestamps(time_series=time_series_2) is None
+
+
+def test_check_for_shared_timestamps_fail():
+    nwbfile = make_minimal_nwbfile()
+    time_series_1 = pynwb.TimeSeries(
+        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+    )
+    time_series_2 = pynwb.TimeSeries(
+        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+    )
+    nwbfile.add_acquisition(time_series_1)
+    nwbfile.add_acquisition(time_series_2)
+    print(check_for_shared_timestamps(time_series=time_series_1))
+    assert check_for_shared_timestamps(time_series=time_series_1) == InspectorMessage(
+        message="Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_missing_unit",
+        object_type="TimeSeries",
+        object_name="test_time_series",
         location="/",
     )

@@ -1,11 +1,11 @@
 """Check functions that can apply to any descendant of TimeSeries."""
-import numpy as np
+from typing import Optional
 
+import numpy as np
 from pynwb import TimeSeries
 
-# from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
-from ..utils import check_regular_series, is_ascending_series
+from ..utils import check_regular_series, is_ascending_series, get_uniform_indexes
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -92,3 +92,32 @@ def check_resolution(time_series: TimeSeries):
         return InspectorMessage(
             message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
+def check_for_shared_timestamps(time_series: TimeSeries, nelems: Optional[int] = 200):
+    """
+    Check if any of the timestamps of other TimeSeries in the NWBFile are equivalent to this one.
+
+    Technically, the check as implemented now does not leverage summetry across independent calls over the objects.
+    """
+    if time_series.timestamps is None:
+        return
+
+    nwbfile = time_series.get_ancestor("NWBFile")
+    for nwbfile_object in nwbfile.objects.values():
+        if nwbfile_object == time_series or not issubclass(type(nwbfile_object), TimeSeries):
+            continue
+        if nwbfile_object.timestamps is None or time_series.timestamps.shape != nwbfile_object.timestamps.shape:
+            continue
+        if np.array_equal(time_series.timestamps[:nelems], nwbfile_object.timestamps[:nelems]):
+            continue
+
+        subsample_indexes = get_uniform_indexes(length=time_series.timestamps.shape[0], nelems=nelems)
+        if time_series.timestamps[subsample_indexes] == nwbfile_object.timestamps[subsample_indexes]:
+            return InspectorMessage(
+                message=(
+                    "The timestamps of this TimeSeries appear to be equivalent to the timestamps of "
+                    f"{nwbfile_object.name}! You can save file space by linking one to the other."
+                )
+            )
