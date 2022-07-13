@@ -100,8 +100,6 @@ def check_rows_not_nan(time_series: TimeSeries, nelems=200):
     n_dims = len(time_series.data.shape)
     if n_dims > 2:
         yield
-    if not all(np.isnan(time_series.data[:nelems])):
-        yield
 
     subframe_selection = np.unique(
         np.round(np.linspace(start=0, stop=time_series.data.shape[0] - 1, num=nelems)).astype(int)
@@ -119,10 +117,10 @@ def check_rows_not_nan(time_series: TimeSeries, nelems=200):
             )
     elif n_dims == 2:
         for col in range(time_series.data.shape[1]):
-            if not all(np.isnan(time_series.data[:nelems])):
+            if not all(np.isnan(time_series.data[:nelems, col]).flatten()):
                 continue
 
-            if all(np.isnan(time_series.data[subframe_selection, col])):
+            if all(np.isnan(time_series.data[subframe_selection, col]).flatten()):
                 yield InspectorMessage(
                     message=(
                         f"Column index {col} of this TimeSeries appears to contain NaN data at each frame. "
