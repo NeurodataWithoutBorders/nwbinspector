@@ -148,9 +148,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -191,6 +189,9 @@ def check_col_not_nan(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
             continue
+        if not all(np.isnan(column[:nelems])):
+            continue
+
         subindex_selection = np.unique(np.round(np.linspace(start=0, stop=column.shape[0] - 1, num=nelems)).astype(int))
         if all(np.isnan(column[subindex_selection])):
             yield InspectorMessage(
