@@ -1,6 +1,7 @@
 """Check functions that can apply to any descendant of TimeSeries."""
 from typing import Optional
 
+import h5py
 import numpy as np
 from pynwb import TimeSeries
 
@@ -109,6 +110,12 @@ def check_for_shared_timestamps(time_series: TimeSeries, nelems: Optional[int] =
         if nwbfile_object == time_series or not issubclass(type(nwbfile_object), TimeSeries):
             continue
         if nwbfile_object.timestamps is None or time_series.timestamps.shape != nwbfile_object.timestamps.shape:
+            continue
+        if (
+            isinstance(time_series.timestamps, h5py.Dataset)
+            and isinstance(nwbfile_object.timestamps, h5py.Dataset)
+            and time_series.timestamps == nwbfile_object.timestamps
+        ):
             continue
         if np.array_equal(time_series.timestamps[:nelems], nwbfile_object.timestamps[:nelems]):
             continue
