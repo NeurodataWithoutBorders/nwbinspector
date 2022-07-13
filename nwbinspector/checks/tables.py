@@ -189,7 +189,7 @@ def check_col_not_nan(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
             continue
-        if not all(np.isnan(column[:nelems])):
+        if not all(np.isnan(column[:nelems]).flatten()):
             continue
 
         subindex_selection = np.unique(np.round(np.linspace(start=0, stop=column.shape[0] - 1, num=nelems)).astype(int))
