@@ -11,6 +11,7 @@ from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import TimeIntervals
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
+from natsort import natsorted
 
 from nwbinspector import (
     Importance,
@@ -617,12 +618,11 @@ class TestCheckUniqueIdentifiersFail(TestCase):
         rmtree(cls.tempdir)
 
     def test_check_unique_identifiers_fail(self):
-        print(list(inspect_all(path=self.tempdir, select=["check_data_orientation"])))
         assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == [
             InspectorMessage(
                 message=(
                     "The identifier 'not a unique identifier!' is used across the .nwb files: "
-                    f"{[str(x) for x in self.non_unique_id_nwbfile_paths]}\n"
+                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
                     "The identifier of any NWBFile should be a completely unique value - "
                     "we recommend using uuid4 to achieve this."
                 ),
@@ -631,6 +631,6 @@ class TestCheckUniqueIdentifiersFail(TestCase):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                file_path=str(Path(self.non_unique_id_nwbfile_paths[0]).parent),
+                file_path=str(self.tempdir),
             )
         ]

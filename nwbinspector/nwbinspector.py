@@ -19,6 +19,7 @@ import click
 import pynwb
 import yaml
 from tqdm import tqdm
+from natsort import natsorted
 
 from . import available_checks
 from .inspector_tools import (
@@ -379,7 +380,7 @@ def inspect_all(
                 yield InspectorMessage(
                     message=(
                         f"The identifier '{identifier}' is used across the .nwb files: "
-                        f"{[str(x) for x in nwbfiles_with_identifier]}\n"
+                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
                         "The identifier of any NWBFile should be a completely unique value - "
                         "we recommend using uuid4 to achieve this."
                     ),
@@ -388,7 +389,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(Path(nwbfiles_with_identifier[0]).parent),
+                    file_path=str(nwbfiles_with_identifier[0].parent),
                 )
 
     nwbfiles_iterable = nwbfiles
