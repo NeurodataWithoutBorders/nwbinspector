@@ -13,6 +13,7 @@ from ..utils import (
     is_ascending_series,
     is_dict_in_string,
     is_string_json_loadable,
+    get_uniform_indexes,
 )
 
 
@@ -148,9 +149,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -186,15 +185,15 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_col_not_nan(table: DynamicTable, nelems: int = 200):
+def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
     """Check if all of the values in a single column of a table are NaN."""
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
             continue
-        if not all(np.isnan(column[:nelems]).flatten()):
+        if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
             continue
 
-        subindex_selection = np.unique(np.round(np.linspace(start=0, stop=column.shape[0] - 1, num=nelems)).astype(int))
+        subindex_selection = get_uniform_indexes(length=column.shape[0], nelems=nelems)
         if all(np.isnan(column[subindex_selection])):
             yield InspectorMessage(
                 message=f"Column {column.name} has all NaN values. Consider removing it from the table."

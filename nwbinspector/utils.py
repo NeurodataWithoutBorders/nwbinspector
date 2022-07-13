@@ -57,6 +57,15 @@ def is_ascending_series(series: np.ndarray, nelems=None):
     return np.all(np.diff(series[:nelems]) > 0)
 
 
+def get_uniform_indexes(length: int, nelems: Optional[int] = 200):
+    """General purpose function for generating nelems indices from 0 to length-1 with approximately equal gaps."""
+    indexes = np.round(np.linspace(start=0, stop=length - 1, num=nelems)).astype(int)
+    if nelems is None or nelems >= length - 1:
+        return slice(0, None)
+    else:
+        return indexes
+
+
 def is_dict_in_string(string: str):
     """
     Determine if the string value contains an encoded Python dictionary.
@@ -127,7 +136,7 @@ def robust_s3_read(
         try:
             return command(*command_args, **command_kwargs)
         except OSError:  # cannot curl request
-            sleep(0.1 * 2**retry)
+            sleep(0.1 * 2 ** retry)
         except Exception as exc:
             raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
