@@ -34,10 +34,7 @@ except ValueError:  # ValueError: h5py was built without ROS3 support, can't use
 def test_check_regular_timestamps():
     assert check_regular_timestamps(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=3),
-            timestamps=[1.2, 3.2, 5.2],
+            name="test_time_series", unit="test_units", data=np.zeros(shape=3), timestamps=[1.2, 3.2, 5.2],
         )
     ) == InspectorMessage(
         message=(
@@ -57,10 +54,7 @@ def test_pass_check_regular_timestamps():
     assert (
         check_regular_timestamps(
             time_series=pynwb.TimeSeries(
-                name="test_time_series",
-                unit="test_units",
-                data=[0, 0],
-                timestamps=[1.2, 3.2],
+                name="test_time_series", unit="test_units", data=[0, 0], timestamps=[1.2, 3.2],
             )
         )
         is None
@@ -70,10 +64,7 @@ def test_pass_check_regular_timestamps():
 def test_check_data_orientation():
     assert check_data_orientation(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=(2, 100)),
-            rate=1.0,
+            name="test_time_series", unit="test_units", data=np.zeros(shape=(2, 100)), rate=1.0,
         )
     ) == InspectorMessage(
         message=(
@@ -92,10 +83,7 @@ def test_check_data_orientation():
 def test_check_timestamps():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.zeros(shape=4),
-            timestamps=[1.0, 2.0, 3.0],
+            name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[1.0, 2.0, 3.0],
         )
     ) == InspectorMessage(
         message="The length of the first dimension of data does not match the length of timestamps.",
@@ -133,8 +121,23 @@ def test_check_timestamps_empty_timestamps():
     )
 
 
-def test_check_timestamps_ascending():
-    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
+def test_pass_check_timestamps_ascending_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=[1, 2, 3],
+        timestamps=tuple([1, 2, 3]),  # must be tuple in-memory for caching
+    )
+    assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_timestamps_ascending_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=[1, 2, 3],
+        timestamps=tuple([1, 3, 2]),  # must be tuple in-memory for caching
+    )
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         message="test_time_series timestamps are not ascending.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -143,11 +146,6 @@ def test_check_timestamps_ascending():
         object_name="test_time_series",
         location="/",
     )
-
-
-def test_pass_check_timestamps_ascending():
-    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
-    assert check_timestamps_ascending(time_series) is None
 
 
 def test_check_missing_unit_pass():
@@ -169,7 +167,7 @@ def test_check_missing_unit_fail():
 
 def test_check_positive_resolution_pass():
     time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=3.4)
-    assert check_timestamps_ascending(time_series) is None
+    assert check_resolution(time_series) is None
 
 
 def test_check_unknown_resolution_pass():
@@ -198,8 +196,7 @@ def test_check_none_matnwb_resolution_pass():
     ) as io:
         nwbfile = robust_s3_read(command=io.read)
         time_series = robust_s3_read(
-            "20170203_KIB_01_s1.1.h264",
-            command=nwbfile.processing["video_files"]["video"].time_series.get,
+            "20170203_KIB_01_s1.1.h264", command=nwbfile.processing["video_files"]["video"].time_series.get,
         )
     assert check_resolution(time_series) is None
 

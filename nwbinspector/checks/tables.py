@@ -111,7 +111,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
             try:
-                unique_values = np.unique(_subsample_data(data=column.data, nelems=nelems))
+                unique_values = np.unique(_subsample_data(data=column, nelems=nelems))
             except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue
             if unique_values.size != 2:
@@ -153,9 +153,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -179,7 +177,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
-        for string in _subsample_data(data=column.data, nelems=nelems):
+        for string in _subsample_data(data=column, nelems=nelems):
             if is_dict_in_string(string=string):
                 message = (
                     f"The column '{column.name}' contains a string value that contains a dictionary! Please "
