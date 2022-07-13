@@ -117,11 +117,13 @@ def check_for_shared_timestamps(time_series: TimeSeries, nelems: Optional[int] =
             and time_series.timestamps == nwbfile_object.timestamps
         ):
             continue
-        if np.array_equal(time_series.timestamps[:nelems], nwbfile_object.timestamps[:nelems]):
+        if nelems is not None and not np.array_equal(
+            time_series.timestamps[:nelems], nwbfile_object.timestamps[:nelems]
+        ):
             continue
 
         subsample_indexes = get_uniform_indexes(length=time_series.timestamps.shape[0], nelems=nelems)
-        if time_series.timestamps[subsample_indexes] == nwbfile_object.timestamps[subsample_indexes]:
+        if np.array_equal(time_series.timestamps[subsample_indexes], nwbfile_object.timestamps[subsample_indexes]):
             return InspectorMessage(
                 message=(
                     "The timestamps of this TimeSeries appear to be equivalent to the timestamps of "

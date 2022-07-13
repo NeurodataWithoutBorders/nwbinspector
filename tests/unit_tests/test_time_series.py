@@ -1,8 +1,12 @@
 from packaging import version
+from pathlib import Path
+from tempfile import mkdtemp
+from shutil import rmtree
 
 import numpy as np
 import pynwb
 import pytest
+from hdmf.testing import TestCase
 
 from nwbinspector import (
     InspectorMessage,
@@ -204,48 +208,64 @@ def test_check_resolution_fail():
     )
 
 
-def test_check_for_shared_timestamps_pass():
-    nwbfile = make_minimal_nwbfile()
-    time_series_1 = pynwb.TimeSeries(
-        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
-    )
-    time_series_2 = pynwb.TimeSeries(
-        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=time_series_1.timestamps
-    )
-    nwbfile.add_acquisition(time_series_1)
-    nwbfile.add_acquisition(time_series_2)
-    assert check_for_shared_timestamps(time_series=time_series_1) is None
+class TestCheckSharedTimestamps(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
 
+        matching_timestamps_nwbfile = make_minimal_nwbfile()
+        time_series_1 = pynwb.TimeSeries(
+            name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+        )
+        time_series_2 = pynwb.TimeSeries(
+            name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=time_series_1.timestamps
+        )
+        matching_timestamps_nwbfile.add_acquisition(time_series_1)
+        matching_timestamps_nwbfile.add_acquisition(time_series_2)
 
-def test_check_for_shared_timestamps_symmetry_pass():
-    nwbfile = make_minimal_nwbfile()
-    time_series_1 = pynwb.TimeSeries(
-        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
-    )
-    time_series_2 = pynwb.TimeSeries(
-        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=time_series_1.timestamps
-    )
-    nwbfile.add_acquisition(time_series_1)
-    nwbfile.add_acquisition(time_series_2)
-    assert check_for_shared_timestamps(time_series=time_series_2) is None
+        cls.matching_timestamps_nwbfile_path = cls.tempdir / "matching_timestamps.nwb"
+        with pynwb.NWBHDF5IO(path=cls.matching_timestamps_nwbfile_path, mode="w") as io:
+            io.write(matching_timestamps_nwbfile)
 
+        non_matching_but_equal_timestamps_nwbfile = make_minimal_nwbfile()
+        time_series_1 = pynwb.TimeSeries(
+            name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+        )
+        time_series_2 = pynwb.TimeSeries(
+            name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
+        )
+        non_matching_but_equal_timestamps_nwbfile.add_acquisition(time_series_1)
+        non_matching_but_equal_timestamps_nwbfile.add_acquisition(time_series_2)
 
-def test_check_for_shared_timestamps_fail():
-    nwbfile = make_minimal_nwbfile()
-    time_series_1 = pynwb.TimeSeries(
-        name="test_time_series_1", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
-    )
-    time_series_2 = pynwb.TimeSeries(
-        name="test_time_series_2", unit="test_units", data=[1, 2, 3], timestamps=np.array([1, 2, 3])
-    )
-    nwbfile.add_acquisition(time_series_1)
-    nwbfile.add_acquisition(time_series_2)
-    print(check_for_shared_timestamps(time_series=time_series_1))
-    assert check_for_shared_timestamps(time_series=time_series_1) == InspectorMessage(
-        message="Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_missing_unit",
-        object_type="TimeSeries",
-        object_name="test_time_series",
-        location="/",
-    )
+        cls.non_matching_but_equal_timestamps_nwbfile_path = cls.tempdir / "non_matching_but_equal_timestamps.nwb"
+        with pynwb.NWBHDF5IO(path=cls.non_matching_but_equal_timestamps_nwbfile_path, mode="w") as io:
+            io.write(non_matching_but_equal_timestamps_nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_for_shared_timestamps_pass(self):
+        with pynwb.NWBHDF5IO(path=self.matching_timestamps_nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            assert check_for_shared_timestamps(time_series=nwbfile.acquisition["test_time_series_1"]) is None
+
+    def test_check_for_shared_timestamps_symmetry_pass(self):
+        with pynwb.NWBHDF5IO(path=self.matching_timestamps_nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            assert check_for_shared_timestamps(time_series=nwbfile.acquisition["test_time_series_2"]) is None
+
+    def test_check_for_shared_timestamps_fail(self):
+        with pynwb.NWBHDF5IO(path=self.non_matching_but_equal_timestamps_nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            print(check_for_shared_timestamps(time_series=nwbfile.acquisition["test_time_series_1"]))
+            assert check_for_shared_timestamps(
+                time_series=nwbfile.acquisition["test_time_series_1"]
+            ) == InspectorMessage(
+                message="Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.",
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_missing_unit",
+                object_type="TimeSeries",
+                object_name="test_time_series",
+                location="/",
+            )

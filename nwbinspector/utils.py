@@ -57,11 +57,11 @@ def is_ascending_series(series: np.ndarray, nelems=None):
     return np.all(np.diff(series[:nelems]) > 0)
 
 
-def get_uniform_indexes(length: int, nelems: int = 200):
+def get_uniform_indexes(length: int, nelems: Optional[int] = 200):
     """General purpose function for generating nelems indices from 0 to length-1 with approximately equal gaps."""
     indexes = np.round(np.linspace(start=0, stop=length - 1, num=nelems)).astype(int)
-    if nelems > length - 1:
-        return np.unique(indexes)
+    if nelems is None or nelems > length - 1:
+        return slice(0, None)
     else:
         return indexes
 
