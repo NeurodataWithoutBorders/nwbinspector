@@ -190,9 +190,7 @@ def check_col_not_nan(table: DynamicTable, nelems: int = 200):
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
             continue
         subindex_selection = np.unique(np.round(np.linspace(start=0, stop=column.shape[0] - 1, num=nelems)).astype(int))
-        if np.any(~np.isnan(column[subindex_selection])):
-            continue
-        else:
+        if all(np.isnan(column[subindex_selection])):
             yield InspectorMessage(
                 message=f"Column {column.name} has all NaN values. Consider removing it from the table."
             )
