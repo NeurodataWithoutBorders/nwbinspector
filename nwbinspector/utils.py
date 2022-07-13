@@ -2,18 +2,28 @@
 import os
 import re
 import json
-import numpy as np
 from typing import TypeVar, Optional, List, Dict, Callable
 from pathlib import Path
 from importlib import import_module
 from packaging import version
 from time import sleep
+from functools import lru_cache
+
+import numpy as np
+
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
 
 dict_regex = r"({.+:.+})"
+MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/output, but might need more to get use here
+
+
+@lru_cache(maxsize=MAX_CACHE_ITEMS)
+def _subsample_data(data: np.ndarray, nelems: Optional[int] = 200):
+    """Slice the first nelems items from a lazy data object for efficient caching (most beneficial during streaming)."""
+    return data[:nelems]
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
@@ -54,7 +64,7 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 
 def is_ascending_series(series: np.ndarray, nelems=None):
     """General purpose function for determining if a series is monotonic increasing."""
-    return np.all(np.diff(series[:nelems]) > 0)
+    return np.all(np.diff(_subsample_data(data=series, nelems=nelems)) > 0)
 
 
 def is_dict_in_string(string: str):
@@ -127,7 +137,7 @@ def robust_s3_read(
         try:
             return command(*command_args, **command_kwargs)
         except OSError:  # cannot curl request
-            sleep(0.1 * 2**retry)
+            sleep(0.1 * 2 ** retry)
         except Exception as exc:
             raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")

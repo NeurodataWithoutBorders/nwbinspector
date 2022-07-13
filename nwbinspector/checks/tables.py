@@ -9,6 +9,7 @@ from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import (
+    _subsample_data,
     format_byte_size,
     is_ascending_series,
     is_dict_in_string,
@@ -79,7 +80,11 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
     """
-    if np.any(np.asarray(time_intervals["stop_time"][:nelems]) - np.asarray(time_intervals["start_time"][:nelems]) < 0):
+    if np.any(
+        np.asarray(_subsample_data(data=time_intervals["stop_time"], nelems=nelems))
+        - np.asarray(_subsample_data(data=time_intervals["start_time"], nelems=nelems))
+        < 0
+    ):
         return InspectorMessage(
             message=(
                 "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
@@ -106,7 +111,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
             try:
-                unique_values = np.unique(column.data[:nelems])
+                unique_values = np.unique(_subsample_data(data=column.data, nelems=nelems))
             except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue
             if unique_values.size != 2:
@@ -148,9 +153,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -174,7 +177,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
-        for string in column.data[:nelems]:
+        for string in _subsample_data(data=column.data, nelems=nelems):
             if is_dict_in_string(string=string):
                 message = (
                     f"The column '{column.name}' contains a string value that contains a dictionary! Please "
