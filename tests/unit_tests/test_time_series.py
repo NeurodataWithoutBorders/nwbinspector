@@ -122,22 +122,12 @@ def test_check_timestamps_empty_timestamps():
 
 
 def test_pass_check_timestamps_ascending_pass():
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=[1, 2, 3],
-        timestamps=tuple([1, 2, 3]),  # must be tuple in-memory for caching
-    )
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
     assert check_timestamps_ascending(time_series) is None
 
 
 def test_check_timestamps_ascending_fail():
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=[1, 2, 3],
-        timestamps=tuple([1, 3, 2]),  # must be tuple in-memory for caching
-    )
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         message="test_time_series timestamps are not ascending.",
         importance=Importance.BEST_PRACTICE_VIOLATION,

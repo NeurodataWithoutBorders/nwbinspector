@@ -2,7 +2,7 @@
 import os
 import re
 import json
-from typing import TypeVar, Optional, List, Dict, Callable
+from typing import TypeVar, Union, Optional, List, Dict, Callable
 from pathlib import Path
 from importlib import import_module
 from packaging import version
@@ -10,6 +10,8 @@ from time import sleep
 from functools import lru_cache
 
 import numpy as np
+from numpy.typing import ArrayLike
+from hdmf.common import VectorData
 
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
@@ -62,9 +64,12 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
     return len(uniq_diff_ts) == 1
 
 
-def is_ascending_series(series: np.ndarray, nelems=None):
+def is_ascending_series(series: Union[VectorData, ArrayLike], nelems=None):
     """General purpose function for determining if a series is monotonic increasing."""
-    return np.all(np.diff(_subsample_data(data=series, nelems=nelems)) > 0)
+    if isinstance(series, VectorData):
+        return np.all(np.diff(_subsample_data(data=series, nelems=nelems)) > 0)
+    else:
+        return np.all(np.diff(series[:nelems]) > 0)  # already in memory, no need to cache
 
 
 def is_dict_in_string(string: str):
@@ -137,7 +142,7 @@ def robust_s3_read(
         try:
             return command(*command_args, **command_kwargs)
         except OSError:  # cannot curl request
-            sleep(0.1 * 2**retry)
+            sleep(0.1 * 2 ** retry)
         except Exception as exc:
             raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
