@@ -142,7 +142,7 @@ def robust_s3_read(
         try:
             return command(*command_args, **command_kwargs)
         except OSError:  # cannot curl request
-            sleep(0.1 * 2 ** retry)
+            sleep(0.1 * 2**retry)
         except Exception as exc:
             raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
