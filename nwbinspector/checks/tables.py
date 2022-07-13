@@ -148,9 +148,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
@@ -183,3 +181,9 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
                 if is_string_json_loadable(string=string):
                     message += " This string is also JSON loadable, so call `json.loads(...)` on the string to unpack."
                 yield InspectorMessage(message=message)
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
+def check_col_not_nan(table: DynamicTable, nelems: int = 200):
+    """Check if all of the values in a single column of a table are NaN."""
+    pass  # TODO
