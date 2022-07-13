@@ -186,4 +186,13 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_col_not_nan(table: DynamicTable, nelems: int = 200):
     """Check if all of the values in a single column of a table are NaN."""
-    pass  # TODO
+    for column in table.columns:
+        if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
+            continue
+        subindex_selection = np.unique(np.round(np.linspace(start=0, stop=column.shape[0] - 1, num=nelems)).astype(int))
+        if np.any(~np.isnan(column[subindex_selection])):
+            continue
+        else:
+            yield InspectorMessage(
+                message=f"Column {column.name} has all NaN values. Consider removing it from the table."
+            )

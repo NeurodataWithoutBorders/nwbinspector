@@ -17,6 +17,7 @@ from nwbinspector import (
     check_column_binary_capability,
     check_single_row,
     check_table_values_for_dict,
+    check_col_not_nan,
 )
 from nwbinspector.utils import get_package_version
 
@@ -228,17 +229,13 @@ def test_check_single_row_pass():
 
 
 def test_check_single_row_ignore_units():
-    table = Units(
-        name="Units",  # default name when building through nwbfile
-    )
+    table = Units(name="Units",)  # default name when building through nwbfile
     table.add_unit(spike_times=[1, 2, 3])
     assert check_single_row(table=table) is None
 
 
 def test_check_single_row_ignore_electrodes():
-    table = ElectrodeTable(
-        name="electrodes",  # default name when building through nwbfile
-    )
+    table = ElectrodeTable(name="electrodes",)  # default name when building through nwbfile
     if get_package_version(name="pynwb") >= version.Version("2.1.0"):
         table.add_row(
             location="unknown",
@@ -291,7 +288,7 @@ def test_check_table_values_for_dict_pass():
     assert check_table_values_for_dict(table=table) is None
 
 
-def test_check_table_values_for_dict():
+def test_check_table_values_for_dict_fail():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column=str(dict(a=1)))
@@ -308,19 +305,59 @@ def test_check_table_values_for_dict():
     )
 
 
-def test_check_table_values_for_dict_json_case():
+def test_check_table_values_for_dict_json_case_fail():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
     table.add_row(test_column=json.dumps(dict(a=1)))
-    assert check_table_values_for_dict(table=table)[0] == InspectorMessage(
-        message=(
-            "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
-            "dictionaries as additional rows or columns of the table. This string is also JSON loadable, so call "
-            "`json.loads(...)` on the string to unpack."
+    assert check_table_values_for_dict(table=table) == [
+        InspectorMessage(
+            message=(
+                "The column 'test_column' contains a string value that contains a dictionary! Please unpack "
+                "dictionaries as additional rows or columns of the table. This string is also JSON loadable, so call "
+                "`json.loads(...)` on the string to unpack."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_table_values_for_dict",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        )
+    ]
+
+
+def test_check_col_not_nan_pass():
+    table = DynamicTable(name="test_table", description="")
+    for name in ["test_column_not_nan", "test_column_string"]:
+        table.add_column(name=name, description="")
+    table.add_row(test_column_not_nan=1.0, test_column_string="abc")
+    assert check_col_not_nan(table=table) is None
+
+
+def test_check_col_not_nan_fail():
+    table = DynamicTable(name="test_table", description="")
+    for name in ["test_column_not_nan_1", "test_column_nan_1", "test_column_not_nan_2", "test_column_nan_2"]:
+        table.add_column(name=name, description="")
+    for _ in range(400):
+        table.add_row(
+            test_column_not_nan_1=1.0, test_column_nan_1=np.nan, test_column_not_nan_2=1.0, test_column_nan_2=np.nan
+        )
+    assert check_col_not_nan(table=table) == [
+        InspectorMessage(
+            message="Column test_column_nan_1 has all NaN values. Consider removing it from the table.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_col_not_nan",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+            file_path=None,
         ),
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_table_values_for_dict",
-        object_type="DynamicTable",
-        object_name="test_table",
-        location="/",
-    )
+        InspectorMessage(
+            message="Column test_column_nan_2 has all NaN values. Consider removing it from the table.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_col_not_nan",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+            file_path=None,
+        ),
+    ]
