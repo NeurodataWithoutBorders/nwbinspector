@@ -2,7 +2,12 @@ from pynwb.behavior import SpatialSeries, CompassDirection
 import numpy as np
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.behavior import check_compass_direction_unit, check_spatial_series_dims
+from nwbinspector.checks.behavior import (
+    check_compass_direction_unit,
+    check_spatial_series_dims,
+    check_spatial_series_degrees_magnitude,
+    check_spatial_series_radians_magnitude,
+)
 
 
 def test_check_spatial_series_dims():
@@ -81,3 +86,65 @@ def test_pass_check_compass_direction_unit():
         )
 
         assert check_compass_direction_unit(obj) is None
+
+
+def test_pass_check_spatial_series_degrees_magnitude():
+
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)),
+        rate=3.0,
+        reference_frame="reference_frame",
+        unit="degrees",
+    )
+
+    assert check_spatial_series_degrees_magnitude(spatial_series) is None
+
+
+def test_check_spatial_series_degrees_magnitude():
+
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)) * 400,
+        rate=3.0,
+        reference_frame="reference_frame",
+        unit="degrees",
+    )
+
+    assert (
+        check_spatial_series_degrees_magnitude(spatial_series).message
+        == "SpatialSeries with units of degrees must have values between -360 and 360."
+    )
+
+
+def test_pass_check_spatial_series_radians_magnitude():
+
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)),
+        rate=3.0,
+        reference_frame="reference_frame",
+        unit="radians",
+    )
+
+    assert check_spatial_series_radians_magnitude(spatial_series) is None
+
+
+def test_check_spatial_series_radians_magnitude():
+
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)) * 400,
+        rate=3.0,
+        reference_frame="reference_frame",
+        unit="radians",
+    )
+
+    assert (
+        check_spatial_series_radians_magnitude(spatial_series).message == "SpatialSeries with units of radians "
+        "must have values between -2pi and 2pi."
+    )
