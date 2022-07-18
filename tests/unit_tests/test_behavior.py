@@ -113,9 +113,13 @@ def test_check_spatial_series_degrees_magnitude():
         unit="degrees",
     )
 
-    assert (
-        check_spatial_series_degrees_magnitude(spatial_series).message
-        == "SpatialSeries with units of degrees must have values between -360 and 360."
+    assert check_spatial_series_degrees_magnitude(spatial_series) == InspectorMessage(
+        check_function_name="check_spatial_series_degrees_magnitude",
+        message="SpatialSeries with units of degrees must have values between -360 and 360.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        object_name="SpatialSeries",
+        location="/",
+        object_type="SpatialSeries",
     )
 
 
@@ -144,7 +148,11 @@ def test_check_spatial_series_radians_magnitude():
         unit="radians",
     )
 
-    assert (
-        check_spatial_series_radians_magnitude(spatial_series).message == "SpatialSeries with units of radians "
-        "must have values between -2pi and 2pi."
+    assert check_spatial_series_radians_magnitude(spatial_series) == InspectorMessage(
+        check_function_name="check_spatial_series_radians_magnitude",
+        message="SpatialSeries with units of radians must have values between -2pi and 2pi.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        object_name="SpatialSeries",
+        location="/",
+        object_type="SpatialSeries",
     )
