@@ -13,12 +13,13 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
-from time import sleep
+from collections import defaultdict
 
 import click
 import pynwb
 import yaml
 from tqdm import tqdm
+from natsort import natsorted
 
 from . import available_checks
 from .inspector_tools import (
@@ -385,6 +386,30 @@ def inspect_all(
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+
+    # Manual identifier check over all files in the folder path
+    identifiers = defaultdict(list)
+    for nwbfile_path in nwbfiles:
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", driver=driver) as io:
+            nwbfile = robust_s3_read(io.read)
+            identifiers[nwbfile.identifier].append(nwbfile_path)
+    if len(identifiers) != len(nwbfiles):
+        for identifier, nwbfiles_with_identifier in identifiers.items():
+            if len(nwbfiles_with_identifier) > 1:
+                yield InspectorMessage(
+                    message=(
+                        f"The identifier '{identifier}' is used across the .nwb files: "
+                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        "The identifier of any NWBFile should be a completely unique value - "
+                        "we recommend using uuid4 to achieve this."
+                    ),
+                    importance=Importance.CRITICAL,
+                    check_function_name="check_unique_identifiers",
+                    object_type="NWBFile",
+                    object_name="root",
+                    location="/",
+                    file_path=str(path),
+                )
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:
