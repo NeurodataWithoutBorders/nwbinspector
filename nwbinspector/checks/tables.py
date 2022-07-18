@@ -9,7 +9,7 @@ from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import (
-    _subsample_data,
+    _cache_data_selection,
     format_byte_size,
     is_ascending_series,
     is_dict_in_string,
@@ -56,7 +56,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
     unsorted_cols = []
     for column in time_intervals.columns:
         if column.name[-5:] == "_time":
-            if not is_ascending_series(column, nelems):
+            if not is_ascending_series(column.data, nelems):
                 unsorted_cols.append(column.name)
     if unsorted_cols:
         return InspectorMessage(
@@ -81,8 +81,8 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
         load the entire arrays.
     """
     if np.any(
-        np.asarray(_subsample_data(data=time_intervals["stop_time"], nelems=nelems))
-        - np.asarray(_subsample_data(data=time_intervals["start_time"], nelems=nelems))
+        np.asarray(_cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
+        - np.asarray(_cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
         < 0
     ):
         return InspectorMessage(
@@ -111,7 +111,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
             try:
-                unique_values = np.unique(_subsample_data(data=column, nelems=nelems))
+                unique_values = np.unique(_cache_data_selection(data=column.data, selection=slice(nelems)))
             except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue
             if unique_values.size != 2:
@@ -179,7 +179,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
-        for string in _subsample_data(data=column, nelems=nelems):
+        for string in _cache_data_selection(data=column.data, selection=slice(nelems)):
             if is_dict_in_string(string=string):
                 message = (
                     f"The column '{column.name}' contains a string value that contains a dictionary! Please "

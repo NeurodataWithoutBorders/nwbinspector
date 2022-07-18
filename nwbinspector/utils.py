@@ -2,16 +2,16 @@
 import os
 import re
 import json
-from typing import TypeVar, Union, Optional, List, Dict, Callable
+from typing import TypeVar, Union, Optional, List, Dict, Callable, Tuple
 from pathlib import Path
 from importlib import import_module
 from packaging import version
 from time import sleep
 from functools import lru_cache
 
+import h5py
 import numpy as np
 from numpy.typing import ArrayLike
-from hdmf.common import VectorData
 
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
@@ -23,9 +23,9 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
-def _subsample_data(data: np.ndarray, nelems: Optional[int] = 200):
-    """Slice the first nelems items from a lazy data object for efficient caching (most beneficial during streaming)."""
-    return data[:nelems]
+def _cache_data_selection(data: h5py.Dataset, selection: Union[slice, Tuple[slice]]) -> np.array:
+    """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
+    return data[selection]
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
@@ -64,10 +64,10 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
     return len(uniq_diff_ts) == 1
 
 
-def is_ascending_series(series: Union[VectorData, ArrayLike], nelems=None):
+def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems=None):
     """General purpose function for determining if a series is monotonic increasing."""
-    if isinstance(series, VectorData):
-        return np.all(np.diff(_subsample_data(data=series, nelems=nelems)) > 0)
+    if isinstance(series, h5py.Dataset):
+        return np.all(np.diff(_cache_data_selection(data=series, selection=slice(nelems))) > 0)
     else:
         return np.all(np.diff(series[:nelems]) > 0)  # already in memory, no need to cache
 
