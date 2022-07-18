@@ -13,12 +13,13 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
-from time import sleep
+from collections import defaultdict
 
 import click
 import pynwb
 import yaml
 from tqdm import tqdm
+from natsort import natsorted
 
 from . import available_checks
 from .inspector_tools import (
@@ -37,7 +38,7 @@ INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dand
 class InspectorOutputJSONEncoder(json.JSONEncoder):
     """Custom JSONEncoder for the NWBInspector."""
 
-    def default(self, o):
+    def default(self, o):  # noqa D102
         if isinstance(o, InspectorMessage):
             return o.__dict__
         if isinstance(o, Enum):
@@ -53,22 +54,38 @@ def validate_config(config: dict):
     jsonschema.validate(instance=config, schema=schema)
 
 
-def copy_function(function):
+def _copy_function(function):
     """
-    Return a copy of a function so that internal attributes can be adjusted without changing the original function.
+    Copy the core parts of a given function, excluding wrappers, then return a new function.
+
+    Based off of
+    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
+    """
+    copied_function = FunctionType(
+        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
+    )
+
+    # in case f was given attrs (note this dict is a shallow copy)
+    copied_function.__dict__.update(function.__dict__)
+    return copied_function
+
+
+def copy_check(function):
+    """
+    Copy a check function so that internal attributes can be adjusted without changing the original function.
 
     Required to ensure our configuration of functions in the registry does not effect the registry itself.
+
+    Also copies the wrapper for auto-parsing ressults,
+    see https://github.com/NeurodataWithoutBorders/nwbinspector/pull/218 for explanation.
 
     Taken from
     https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
     if getattr(function, "__wrapped__", False):
-        function = function.__wrapped__
-    copied_function = FunctionType(
-        function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
-    )
-    # in case f was given attrs (note this dict is a shallow copy):
-    copied_function.__dict__.update(function.__dict__)
+        check_function = function.__wrapped__
+    copied_function = _copy_function(function)
+    copied_function.__wrapped__ = _copy_function(check_function)
     return copied_function
 
 
@@ -131,7 +148,7 @@ def configure_checks(
         checks_out = []
         ignore = ignore or []
         for check in checks:
-            mapped_check = copy_function(check)
+            mapped_check = copy_check(check)
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
@@ -369,6 +386,30 @@ def inspect_all(
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+
+    # Manual identifier check over all files in the folder path
+    identifiers = defaultdict(list)
+    for nwbfile_path in nwbfiles:
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", driver=driver) as io:
+            nwbfile = robust_s3_read(io.read)
+            identifiers[nwbfile.identifier].append(nwbfile_path)
+    if len(identifiers) != len(nwbfiles):
+        for identifier, nwbfiles_with_identifier in identifiers.items():
+            if len(nwbfiles_with_identifier) > 1:
+                yield InspectorMessage(
+                    message=(
+                        f"The identifier '{identifier}' is used across the .nwb files: "
+                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        "The identifier of any NWBFile should be a completely unique value - "
+                        "we recommend using uuid4 to achieve this."
+                    ),
+                    importance=Importance.CRITICAL,
+                    check_function_name="check_unique_identifiers",
+                    object_type="NWBFile",
+                    object_name="root",
+                    location="/",
+                    file_path=str(path),
+                )
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:
