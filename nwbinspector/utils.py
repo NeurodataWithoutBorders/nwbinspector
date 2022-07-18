@@ -126,10 +126,11 @@ def robust_s3_read(
     for retry in range(max_retries):
         try:
             return command(*command_args, **command_kwargs)
-        except OSError:  # cannot curl request
-            sleep(0.1 * 2**retry)
         except Exception as exc:
-            raise exc
+            if "curl" in str(exc):  # 'cannot curl request' can show up in potentially many different return error types
+                sleep(0.1 * 2**retry)
+            else:
+                raise exc
     raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
 
 
