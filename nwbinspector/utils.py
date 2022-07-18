@@ -25,6 +25,7 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
 def _cache_data_selection(data: h5py.Dataset, selection: Union[slice, Tuple[slice]]) -> np.array:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
+    data = np.asarray(data) if isinstance(data, list) else data
     return data[selection]
 
 
