@@ -23,16 +23,24 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
-def _cache_data_retrieval(data: Union[h5py.Dataset, tuple], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+def _cache_data_retrieval_command(
+    data: Union[h5py.Dataset, tuple], reduced_selection: Tuple[Tuple[Optional[int], Optional[int], Optional[int]]]
+) -> np.ndarray:
     """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
-    data = np.array(data) if not isinstance(data, h5py.Dataset) else data  # to support the array slicing below
+    data = np.array(data) if isinstance(data, tuple) else data  # to support the array slicing below
+    selection = [slice(*reduced_slice) for reduced_slice in reduced_selection]  # reconstitute the slices
     return data[selection]
 
 
-def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+def _cache_data_selection(data: Union[h5py.Dataset, list, tuple], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
-    data = tuple(data) if isinstance(data, ArrayLike) else data
-    return _cache_data_retrieval(data=data, selection=selection)
+    data = tuple(data) if isinstance(data, list) else data  # lists are unhashable
+    # slices also aren't hashable, but their reduced representation is
+    if isinstance(selection, slice):  # if a single slice
+        reduced_selection = tuple([selection.__reduce__()[1]])  # if a single slice
+    else:  # slices also aren't hashable, but their reduced representation is
+        reduced_selection = tuple([selection_slice.__reduce__()[1] for selection_slice in selection])
+    return _cache_data_retrieval_command(data=data, reduced_selection=reduced_selection)
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
