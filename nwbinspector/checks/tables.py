@@ -13,7 +13,7 @@ from ..utils import (
     is_ascending_series,
     is_dict_in_string,
     is_string_json_loadable,
-    get_uniform_indexes,
+    safe_uniform_selection,
 )
 
 
@@ -195,7 +195,7 @@ def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
         if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
             continue
 
-        subindex_selection = get_uniform_indexes(length=column.shape[0], nelems=nelems)
+        subindex_selection = safe_uniform_selection(length=column.shape[0], nelems=nelems)
         if all(np.isnan(column[subindex_selection])):
             yield InspectorMessage(
                 message=f"Column {column.name} has all NaN values. Consider removing it from the table."

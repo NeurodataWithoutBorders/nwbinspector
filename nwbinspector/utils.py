@@ -57,13 +57,11 @@ def is_ascending_series(series: np.ndarray, nelems=None):
     return np.all(np.diff(series[:nelems]) > 0)
 
 
-def get_uniform_indexes(length: int, nelems: Optional[int] = 200):
-    """General purpose function for generating nelems indices from 0 to length-1 with approximately equal gaps."""
-    indexes = np.round(np.linspace(start=0, stop=length - 1, num=nelems)).astype(int)
-    if nelems is None or nelems >= length - 1:
+def safe_uniform_selection(length: int, nelems: Optional[int] = 200) -> slice:
+    """General purpose function for safely generating an evenly spaced slice ."""
+    if nelems is None:
         return slice(0, None)
-    else:
-        return indexes
+    return slice(0, length, np.ceil(length/nelems).astype(int))
 
 
 def is_dict_in_string(string: str):
