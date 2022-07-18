@@ -229,8 +229,8 @@ def test_check_single_row_pass():
 
 def test_check_single_row_ignore_units():
     table = Units(
-        name="Units",  # default name when building through nwbfile
-    )
+        name="Units",
+    )  # default name when building through nwbfile
     table.add_unit(spike_times=[1, 2, 3])
     assert check_single_row(table=table) is None
 
