@@ -1,4 +1,5 @@
 """Checks for types belonging to the pynwb.behavior module."""
+import numpy as np
 from pynwb.behavior import SpatialSeries, CompassDirection
 
 from ..register_checks import register_check, Importance, InspectorMessage
@@ -20,4 +21,24 @@ def check_compass_direction_unit(compass_direction: CompassDirection):
             yield InspectorMessage(
                 message=f"SpatialSeries objects inside a CompassDirection object should be angular and should have a "
                 f"unit of 'degrees' or 'radians', but '{spatial_series.name}' has units '{spatial_series.unit}'."
+            )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
+def check_spatial_series_radians_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
+    if spatial_series.unit in ("radian", "radians"):
+        data = spatial_series.data[:nelems]
+        if np.any(data > (2 * np.pi)) or np.any(data < (-2 * np.pi)):
+            return InspectorMessage(
+                message="SpatialSeries with units of radians must have values between -2pi and 2pi."
+            )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
+def check_spatial_series_degrees_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
+    if spatial_series.unit in ("degree", "degrees"):
+        data = spatial_series.data[:nelems]
+        if np.any(data > 360) or np.any(data < -360):
+            return InspectorMessage(
+                message="SpatialSeries with units of degrees must have values between -360 and 360."
             )
