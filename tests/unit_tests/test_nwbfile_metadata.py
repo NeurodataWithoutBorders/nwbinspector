@@ -7,7 +7,8 @@ from pynwb.file import Subject
 from nwbinspector import (
     InspectorMessage,
     Importance,
-    check_experimenter,
+    check_experimenter_exists,
+    check_experimenter_form,
     check_experiment_description,
     check_institution,
     check_keywords,
@@ -70,35 +71,77 @@ def test_check_session_start_time_future_date_fail():
     )
 
 
-def test_check_experimenter_pass():
+def test_check_experimenter_exists_pass():
     nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
         experimenter=["Last, First"],
     )
-    assert check_experimenter(nwbfile) is None
+    assert check_experimenter_exists(nwbfile) is None
 
 
-def test_check_experimenter_bytestring_pass():
+def test_check_experimenter_exists_bytestring_pass():
     nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
         experimenter=[b"Last, First"],
     )
-    assert check_experimenter(nwbfile) is None
+    assert check_experimenter_exists(nwbfile) is None
 
 
-def test_check_experimenter_fail():
-    assert check_experimenter(minimal_nwbfile) == InspectorMessage(
+def test_check_experimenter_exists_fail():
+    assert check_experimenter_exists(minimal_nwbfile) == InspectorMessage(
         message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_experimenter",
+        check_function_name="check_experimenter_exists",
         object_type="NWBFile",
         object_name="root",
         location="/",
     )
+
+
+def test_check_experimenter_form_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        experimenter=["Last, First"],
+    )
+    assert check_experimenter_form(nwbfile=nwbfile) is None
+
+
+def test_check_experimenter_form_bytestring_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        experimenter=[b"Last, First"],
+    )
+    assert check_experimenter_form(nwbfile=nwbfile) is None
+
+
+def test_check_experimenter_form_fail():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        experimenter=["First Middle Last"],
+    )
+    assert check_experimenter_form(nwbfile=nwbfile) == [
+        InspectorMessage(
+            message=(
+                "The name of experimenter 'First Middle Last' does not match the DANDI form "
+                "(Last, First Middle or Last, First M.)."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_experimenter_form",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
+    ]
 
 
 def test_check_experiment_description():
