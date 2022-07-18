@@ -392,7 +392,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(nwbfiles_with_identifier[0].parent),
+                    file_path=str(path),
                 )
 
     nwbfiles_iterable = nwbfiles
