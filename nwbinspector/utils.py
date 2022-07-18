@@ -2,18 +2,48 @@
 import os
 import re
 import json
-import numpy as np
-from typing import TypeVar, Optional, List, Dict, Callable
+from typing import TypeVar, Union, Optional, List, Dict, Callable, Tuple
 from pathlib import Path
 from importlib import import_module
 from packaging import version
 from time import sleep
+from functools import lru_cache
+
+import h5py
+import numpy as np
+from numpy.typing import ArrayLike
+
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
 
 dict_regex = r"({.+:.+})"
+MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/output, but might need more to get use here
+
+
+@lru_cache(maxsize=MAX_CACHE_ITEMS)
+def _cache_data_retrieval_command(
+    data: h5py.Dataset, reduced_selection: Tuple[Tuple[Optional[int], Optional[int], Optional[int]]]
+) -> np.ndarray:
+    """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
+    selection = tuple([slice(*reduced_slice) for reduced_slice in reduced_selection])  # reconstitute the slices
+    return data[selection]
+
+
+def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+    """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
+    if isinstance(data, np.memmap):  # Technically np.memmap should be able to support this type of behavior as well
+        return data[selection]  # But they aren't natively hashable either...
+    if not isinstance(data, h5py.Dataset):  # No need to attempt to cache if already an in-memory object
+        return np.array(data)[selection]
+
+    # slices also aren't hashable, but their reduced representation is
+    if isinstance(selection, slice):  # If a single slice
+        reduced_selection = tuple([selection.__reduce__()[1]])  # if a single slice
+    else:
+        reduced_selection = tuple([selection_slice.__reduce__()[1] for selection_slice in selection])
+    return _cache_data_retrieval_command(data=data, reduced_selection=reduced_selection)
 
 
 def format_byte_size(byte_size: int, units: str = "SI"):
@@ -52,9 +82,12 @@ def check_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
     return len(uniq_diff_ts) == 1
 
 
-def is_ascending_series(series: np.ndarray, nelems=None):
+def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems=None):
     """General purpose function for determining if a series is monotonic increasing."""
-    return np.all(np.diff(series[:nelems]) > 0)
+    if isinstance(series, h5py.Dataset):
+        return np.all(np.diff(_cache_data_selection(data=series, selection=slice(nelems))) > 0)
+    else:
+        return np.all(np.diff(series[:nelems]) > 0)  # already in memory, no need to cache
 
 
 def is_dict_in_string(string: str):
