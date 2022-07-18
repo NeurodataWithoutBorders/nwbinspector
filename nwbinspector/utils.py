@@ -59,9 +59,7 @@ def is_ascending_series(series: np.ndarray, nelems=None):
 
 def safe_uniform_selection(length: int, nelems: Optional[int] = 200) -> slice:
     """General purpose function for safely generating an evenly spaced slice ."""
-    if nelems is None:
-        return slice(0, None)
-    return slice(0, length, np.ceil(length / nelems).astype(int))
+    return slice(0, None, np.ceil(length / nelems).astype(int) if nelems else None)
 
 
 def is_dict_in_string(string: str):
