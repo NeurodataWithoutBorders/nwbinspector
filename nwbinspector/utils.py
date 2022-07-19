@@ -90,11 +90,6 @@ def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems=None):
         return np.all(np.diff(series[:nelems]) > 0)  # already in memory, no need to cache
 
 
-def safe_uniform_selection(length: int, nelems: Optional[int] = 200) -> slice:
-    """General purpose function for safely generating an evenly spaced slice ."""
-    return slice(0, None, np.ceil(length / nelems).astype(int) if nelems else None)
-
-
 def is_dict_in_string(string: str):
     """
     Determine if the string value contains an encoded Python dictionary.
