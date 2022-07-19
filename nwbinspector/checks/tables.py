@@ -14,7 +14,6 @@ from ..utils import (
     is_ascending_series,
     is_dict_in_string,
     is_string_json_loadable,
-    safe_uniform_selection,
 )
 
 
