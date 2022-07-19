@@ -184,8 +184,8 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) == [
             InspectorMessage(
                 message=(
-                    "Column 'test_col' uses 'integers' but has binary values [0 1]. Consider making it boolean instead "
-                    f"and renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
+                    "Column 'test_col' uses 'integers' but has binary values [0 1]. Consider making it boolean "
+                    f"instead and renaming the column to start with 'is_'; doing so will save {platform_saved_bytes}."
                 ),
                 importance=Importance.BEST_PRACTICE_SUGGESTION,
                 check_function_name="check_column_binary_capability",
