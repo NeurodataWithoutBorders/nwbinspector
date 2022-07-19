@@ -199,7 +199,11 @@ def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
         if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
             continue
 
-        if all(np.isnan(column[slice(0, None, np.ceil(length / nelems).astype(int) if nelems else None)])):
+        if all(
+            np.isnan(
+                column[slice(0, None, np.ceil(len(column.data) / nelems).astype(int) if nelems else None)]
+            ).flatten()
+        ):
             yield InspectorMessage(
                 message=f"Column {column.name} has all NaN values. Consider removing it from the table."
             )
