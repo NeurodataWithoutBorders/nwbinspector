@@ -4,12 +4,14 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
+from datetime import datetime
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import TimeIntervals
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
+from natsort import natsorted
 
 from nwbinspector import (
     Importance,
@@ -628,3 +630,74 @@ class TestStreamingCLI(TestCase):
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
+
+
+class TestCheckUniqueIdentifiersPass(TestCase):
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        num_nwbfiles = 3
+        unique_id_nwbfiles = list()
+        for j in range(num_nwbfiles):
+            unique_id_nwbfiles.append(make_minimal_nwbfile())
+
+        cls.unique_id_nwbfile_paths = [str(cls.tempdir / f"unique_id_testing{j}.nwb") for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(cls.unique_id_nwbfile_paths, unique_id_nwbfiles):
+            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+                io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_unique_identifiers_pass(self):
+        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == []
+
+
+class TestCheckUniqueIdentifiersFail(TestCase):
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        num_nwbfiles = 3
+        non_unique_id_nwbfiles = list()
+        for j in range(num_nwbfiles):
+            non_unique_id_nwbfiles.append(
+                NWBFile(
+                    session_description="",
+                    identifier="not a unique identifier!",
+                    session_start_time=datetime.now().astimezone(),
+                )
+            )
+
+        cls.non_unique_id_nwbfile_paths = [
+            str(cls.tempdir / f"non_unique_id_testing{j}.nwb") for j in range(num_nwbfiles)
+        ]
+        for nwbfile_path, nwbfile in zip(cls.non_unique_id_nwbfile_paths, non_unique_id_nwbfiles):
+            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+                io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_unique_identifiers_fail(self):
+        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == [
+            InspectorMessage(
+                message=(
+                    "The identifier 'not a unique identifier!' is used across the .nwb files: "
+                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
+                    "The identifier of any NWBFile should be a completely unique value - "
+                    "we recommend using uuid4 to achieve this."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_unique_identifiers",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=str(self.tempdir),
+            )
+        ]
