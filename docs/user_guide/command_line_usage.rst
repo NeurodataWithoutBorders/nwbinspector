@@ -28,13 +28,7 @@ Formatting the Report
 The basic report layout organizes by :py:attr:`~nwbinspector.register_check.InspectorMessage.importance` first and
 :py:attr:`~nwbinspector.register_check.InspectorMessage.file_path` last.
 
-For example,
-
-::
-
-    insert example
-
-however, the NWBInspector supports more general organization as defined by the `--levels` flag. To use this flag,
+However, the NWBInspector supports more general organization as defined by the `--levels` flag. To use this flag,
 you must pass a series a comma-separated words that correspond to any attributes of the
 :py:class:`~nwbinspector.register_check.InspectorMessage` in any order.
 
@@ -63,13 +57,17 @@ For example,
     numbers like ``"0, 1"``.
 
 
-The defalt report also aggregates identical outputs into a summary over multiple files;
+The defalt report also aggregates identical outputs into a summary over multiple files; running
 
 ::
 
-    insert example
+    nwbinspector 000017 --stream
 
-and it will do this any time the last value of the ``--levels`` list is ``file_path``. To see the full report of every
+gives an output containing
+
+.. image:: images/example_file_path_aggregation.png
+
+as an example. It will do this any time the last value of the ``--levels`` list is ``file_path``. To see the full report of every
 issue over all files, use the ``--detailed`` flag.
 
 
