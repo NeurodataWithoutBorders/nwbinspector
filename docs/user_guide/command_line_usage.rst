@@ -65,7 +65,7 @@ The defalt report also aggregates identical outputs into a summary over multiple
 
 gives an output containing
 
-.. image:: images/example_file_path_aggregation.png
+.. image:: ../images/example_file_path_aggregation.png
 
 as an example. It will do this any time the last value of the ``--levels`` list is ``file_path``. To see the full report of every
 issue over all files, use the ``--detailed`` flag.
