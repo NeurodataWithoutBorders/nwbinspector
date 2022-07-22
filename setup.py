@@ -8,7 +8,7 @@ with open(root / "requirements.txt") as f:
     install_requires = f.readlines()
 setup(
     name="nwbinspector",
-    version="0.4.10",
+    version="0.4.11",
     description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
     long_description_content_type="text/markdown",
