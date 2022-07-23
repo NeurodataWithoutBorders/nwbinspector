@@ -8,6 +8,7 @@ from nwbinspector.checks.images import check_order_of_images_unique, check_order
 
 try:
     from pynwb.base import Images
+
     HAVE_IMAGES = True
 except ImportError:
     HAVE_IMAGES = False
