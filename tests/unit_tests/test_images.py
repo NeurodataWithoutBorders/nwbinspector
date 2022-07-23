@@ -7,7 +7,7 @@ from nwbinspector import InspectorMessage, Importance
 from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len
 
 try:
-    from pynwb.base import Images
+    from pynwb.base import Images, ImageReferences
 
     HAVE_IMAGES = True
 except ImportError:
