@@ -5,3 +5,4 @@ packaging
 natsort
 click
 tqdm
+numpy >= 1.20
