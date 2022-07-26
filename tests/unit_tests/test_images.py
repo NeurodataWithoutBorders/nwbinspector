@@ -1,12 +1,21 @@
-import numpy as np
+import pytest
 
-from pynwb.base import Images, ImageReferences
+import numpy as np
 from pynwb.image import GrayscaleImage
 
 from nwbinspector import InspectorMessage, Importance
 from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len
 
+try:
+    from pynwb.base import Images, ImageReferences
 
+    HAVE_IMAGES = True
+except ImportError:
+    HAVE_IMAGES = False
+skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
+
+
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_unique():
 
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
@@ -23,6 +32,7 @@ def test_check_order_of_images_unique():
     )
 
 
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_pass_check_order_of_images_unique():
 
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
@@ -32,6 +42,7 @@ def test_pass_check_order_of_images_unique():
     assert check_order_of_images_unique(images) is None
 
 
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_len():
 
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
@@ -48,6 +59,7 @@ def test_check_order_of_images_len():
     )
 
 
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_pass_check_order_of_images_len():
 
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]

@@ -4,6 +4,7 @@ from .checks.behavior import *
 from .checks.ecephys import *
 from .checks.general import *
 from .checks.image_series import *
+from .checks.images import *
 from .checks.nwb_containers import *
 from .checks.nwbfile_metadata import *
 from .checks.ogen import *
