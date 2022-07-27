@@ -194,7 +194,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
     """Check if all of the values in a single column of a table are NaN."""
     for column in table.columns:
-        if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
+        if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column[0], Real):
             continue
         if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
             continue
