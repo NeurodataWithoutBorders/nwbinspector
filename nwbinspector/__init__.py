@@ -1,3 +1,4 @@
+from .version import __version__
 from .register_checks import available_checks, Importance
 from .nwbinspector import inspect_nwb, inspect_all, load_config
 from .checks.behavior import *
