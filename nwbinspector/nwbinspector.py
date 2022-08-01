@@ -76,7 +76,7 @@ def copy_check(function):
 
     Required to ensure our configuration of functions in the registry does not effect the registry itself.
 
-    Also copies the wrapper for auto-parsing ressults,
+    Also copies the wrapper for auto-parsing results,
     see https://github.com/NeurodataWithoutBorders/nwbinspector/pull/218 for explanation.
 
     Taken from
@@ -448,7 +448,7 @@ def inspect_all(
 def _pickle_inspect_nwb(
     nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
 ):
-    """Auxilliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
+    """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
     return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
 
 
