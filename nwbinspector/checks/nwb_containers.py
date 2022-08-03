@@ -67,8 +67,8 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     ----------
     nwb_container: NWBContainer
     """
-    docval = type(nwb_container).__init__.__docval__["args"]
-    optional_attrs = [_d["name"] for _d in docval if "default" in _d and _d["default"] is None]
+    docval_args = type(nwb_container).__init__.__docval__["args"]
+    optional_attrs = [arg["name"] for arg in docval_args if "default" in arg and arg["default"] is None]
     fields = [attr for attr in optional_attrs if getattr(nwb_container, attr) == ""]
     for field in fields:
         yield InspectorMessage(
