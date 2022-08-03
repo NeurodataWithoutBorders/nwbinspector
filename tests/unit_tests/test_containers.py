@@ -109,4 +109,4 @@ def test_hit_check_empty_string_for_optional_attribute():
 
 def test_miss_check_empty_string_for_optional_attribute():
     nwb = NWBFile("aa", "aa", datetime.now())
-    assert check_empty_string_for_optional_attribute(nwb) == None
+    assert check_empty_string_for_optional_attribute(nwb) is None
