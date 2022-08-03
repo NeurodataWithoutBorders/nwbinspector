@@ -4,12 +4,14 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
+from datetime import datetime
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import TimeIntervals
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
+from natsort import natsorted
 
 from nwbinspector import (
     Importance,
@@ -17,8 +19,10 @@ from nwbinspector import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
+    check_subject_exists,
+    load_config,
 )
-from nwbinspector.nwbinspector import inspect_all, inspect_nwb
+from nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.utils import FilePathType, is_module_installed
 from nwbinspector.tools import make_minimal_nwbfile
@@ -144,7 +148,7 @@ class TestInspector(TestCase):
                     if ".nwb" in test_line:
                         # Transform temporary testing path and formatted to hardcoded fake path
                         str_loc = test_line.find(".nwb")
-                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")
+                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
                         test_file_lines[line_number] = correction_str
                 self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
@@ -330,11 +334,40 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold(self):
+    def test_inspect_nwb_importance_threshold_as_importance(self):
         test_results = list(
             inspect_nwb(
                 nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
             )
+        )
+        true_results = [
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
+                    "usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/my_spatial_series",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_importance_threshold_as_string(self):
+        test_results = list(
+            inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
         )
         true_results = [
             InspectorMessage(
@@ -472,6 +505,71 @@ class TestInspector(TestCase):
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
 
+    def test_inspect_nwb_dandi_config(self):
+        config_checks = [check_subject_exists] + self.checks
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=config_checks,
+                config=load_config(filepath_or_keyword="dandi"),
+            )
+        )
+        true_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="data is not compressed. Consider enabling compression when writing a dataset.",
+                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                check_function_name="check_small_dataset_compression",
+                object_type="TimeSeries",
+                object_name="test_time_series_1",
+                location="/acquisition/test_time_series_1",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "TimeSeries appears to have a constant sampling rate. "
+                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                check_function_name="check_regular_timestamps",
+                object_type="TimeSeries",
+                object_name="test_time_series_2",
+                location="/acquisition/test_time_series_2",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/my_spatial_series",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data does not match the length of timestamps.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
 
 @pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
@@ -532,3 +630,74 @@ class TestStreamingCLI(TestCase):
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
+
+
+class TestCheckUniqueIdentifiersPass(TestCase):
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        num_nwbfiles = 3
+        unique_id_nwbfiles = list()
+        for j in range(num_nwbfiles):
+            unique_id_nwbfiles.append(make_minimal_nwbfile())
+
+        cls.unique_id_nwbfile_paths = [str(cls.tempdir / f"unique_id_testing{j}.nwb") for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(cls.unique_id_nwbfile_paths, unique_id_nwbfiles):
+            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+                io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_unique_identifiers_pass(self):
+        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == []
+
+
+class TestCheckUniqueIdentifiersFail(TestCase):
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        num_nwbfiles = 3
+        non_unique_id_nwbfiles = list()
+        for j in range(num_nwbfiles):
+            non_unique_id_nwbfiles.append(
+                NWBFile(
+                    session_description="",
+                    identifier="not a unique identifier!",
+                    session_start_time=datetime.now().astimezone(),
+                )
+            )
+
+        cls.non_unique_id_nwbfile_paths = [
+            str(cls.tempdir / f"non_unique_id_testing{j}.nwb") for j in range(num_nwbfiles)
+        ]
+        for nwbfile_path, nwbfile in zip(cls.non_unique_id_nwbfile_paths, non_unique_id_nwbfiles):
+            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+                io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
+    def test_check_unique_identifiers_fail(self):
+        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == [
+            InspectorMessage(
+                message=(
+                    "The identifier 'not a unique identifier!' is used across the .nwb files: "
+                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
+                    "The identifier of any NWBFile should be a completely unique value - "
+                    "we recommend using uuid4 to achieve this."
+                ),
+                importance=Importance.CRITICAL,
+                check_function_name="check_unique_identifiers",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=str(self.tempdir),
+            )
+        ]
