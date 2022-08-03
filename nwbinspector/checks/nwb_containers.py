@@ -73,5 +73,5 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     for field in fields:
         yield InspectorMessage(
             message=f'The attribute "{field}" is optional and you have supplied an empty string. Improve my omitting '
-            f"this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
+            "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
         )
