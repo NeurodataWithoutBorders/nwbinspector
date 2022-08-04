@@ -57,7 +57,7 @@ def check_small_dataset_compression(
             )
 
 
-@ register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     """
     Check if any NWBContainer has optional fields that are written as an empty string. These values should just be
@@ -67,11 +67,11 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     ----------
     nwb_container: NWBContainer
     """
-    docval = type(nwb_container).__init__.__docval__["args"]
-    optional_attrs = [_d["name"] for _d in docval if "default" in _d and _d["default"] is None]
+    docval_args = type(nwb_container).__init__.__docval__["args"]
+    optional_attrs = [arg["name"] for arg in docval_args if "default" in arg and arg["default"] is None]
     fields = [attr for attr in optional_attrs if getattr(nwb_container, attr) == ""]
     for field in fields:
         yield InspectorMessage(
             message=f'The attribute "{field}" is optional and you have supplied an empty string. Improve my omitting '
-                    f'this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)'
+            "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
         )
