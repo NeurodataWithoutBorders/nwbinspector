@@ -2,12 +2,19 @@ from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
 from unittest import TestCase
+from datetime import datetime
 
 import h5py
 import numpy as np
-from pynwb import NWBContainer
+from pynwb import NWBContainer, NWBFile
 
-from nwbinspector import InspectorMessage, Importance, check_small_dataset_compression, check_large_dataset_compression
+from nwbinspector import (
+    InspectorMessage,
+    Importance,
+    check_small_dataset_compression,
+    check_large_dataset_compression,
+    check_empty_string_for_optional_attribute,
+)
 from nwbinspector.register_checks import Severity
 
 
@@ -84,3 +91,22 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.001)
             self.assertIsNone(obj=check_large_dataset_compression(nwb_container=nwb_container))
+
+
+def test_hit_check_empty_string_for_optional_attribute():
+    nwb = NWBFile("aa", "aa", datetime.now(), pharmacology="")
+
+    assert check_empty_string_for_optional_attribute(nwb)[0] == InspectorMessage(
+        message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve my omitting '
+        "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        location="/",
+        object_type="NWBFile",
+        object_name="root",
+        check_function_name="check_empty_string_for_optional_attribute",
+    )
+
+
+def test_miss_check_empty_string_for_optional_attribute():
+    nwb = NWBFile("aa", "aa", datetime.now())
+    assert check_empty_string_for_optional_attribute(nwb) is None
