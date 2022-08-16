@@ -1,6 +1,6 @@
 """Check functions that examine general NWBFile metadata."""
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from pandas import Timedelta
 from pynwb import NWBFile, ProcessingModule
@@ -13,7 +13,6 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
-duration_interval_regex = rf"^{duration_regex[1:-1]}/(\*\* | {duration_regex[1:-1]})$"
 species_regex = r"[A-Z][a-z]* [a-z]+"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
