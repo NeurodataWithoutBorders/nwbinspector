@@ -6,9 +6,12 @@ with open(root / "README.md", "r") as f:
     long_description = f.read()
 with open(root / "requirements.txt") as f:
     install_requires = f.readlines()
+with open(root / "nwbinspector" / "version.py") as f:
+    exec(f.read())
+
 setup(
     name="nwbinspector",
-    version="0.4.12",
+    version=__version__,
     description="Tool to inspect NWB files for best practices compliance.",
     long_description=long_description,
     long_description_content_type="text/markdown",
