@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -302,12 +302,78 @@ def test_check_subject_age_missing():
     )
 
 
-def test_check_subject_age_iso8601():
+def test_check_subject_age_iso8601_pass():
+    subject = Subject(subject_id="001", sex="Male", age="P1D")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_fail():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
         message=(
             "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
-            "for 23 weeks."
+            "for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
+            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_iso8601_range_pass_1():
+    subject = Subject(subject_id="001", sex="Male", age="P1D/P3D")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_pass_2():
+    subject = Subject(subject_id="001", sex="Male", age="P1D/**")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_fail_1():
+    subject = Subject(subject_id="001", sex="Male", age="9 months/12 months")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
+            "for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
+            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_iso8601_range_fail_2():
+    subject = Subject(subject_id="001", sex="Male", age="9 months/**")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
+            "for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
+            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_iso8601_range_fail_3():
+    subject = Subject(subject_id="001", sex="Male", age="P3D/P1D")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
+            "The upper (right) bound should be a longer duration than the lower (left) bound."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",

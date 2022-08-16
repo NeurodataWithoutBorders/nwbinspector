@@ -1,7 +1,8 @@
 """Check functions that examine general NWBFile metadata."""
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from pandas import Timedelta
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
@@ -12,6 +13,7 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
+duration_interval_regex = rf"^{duration_regex[1:-1]}/(\*\* | {duration_regex[1:-1]})$"
 species_regex = r"[A-Z][a-z]* [a-z]+"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
@@ -114,17 +116,37 @@ def check_doi_publications(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
-    """Check if the Subject age is in ISO 8601."""
+    """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None:
         if subject.date_of_birth is None:
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
-    elif not re.fullmatch(duration_regex, subject.age):
-        return InspectorMessage(
-            message=(
-                f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
-                "or 'P23W' for 23 weeks."
+    if re.fullmatch(pattern=duration_regex, string=subject.age):
+        return
+
+    message = (
+        f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+        "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+        "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
+        "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+    )
+    if "/" in subject.age:
+        subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
+        if not re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound):
+            return InspectorMessage(message=message)
+        if not (
+            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == "**"
+        ):
+            return InspectorMessage(message=message)
+
+        if subject_upper_age_bound != "**" and Timedelta(subject_lower_age_bound) >= Timedelta(subject_upper_age_bound):
+            return InspectorMessage(
+                message=(
+                    f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
+                    "The upper (right) bound should be a longer duration than the lower (left) bound."
+                )
             )
-        )
+
+    return InspectorMessage(message=message)
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
