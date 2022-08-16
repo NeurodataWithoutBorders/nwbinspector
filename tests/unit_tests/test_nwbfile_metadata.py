@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -17,6 +17,7 @@ from nwbinspector import (
     check_subject_id_exists,
     check_subject_sex,
     check_subject_age,
+    check_subject_proper_age_range,
     check_subject_species_exists,
     check_subject_species_latin_binomial,
     check_processing_module_name,
@@ -290,6 +291,11 @@ def test_check_subject_sex_other_value():
     )
 
 
+def test_pass_check_subject_age_with_dob():
+    subject = Subject(subject_id="001", sex="Male", date_of_birth=datetime.now())
+    assert check_subject_age(subject) is None
+
+
 def test_check_subject_age_missing():
     subject = Subject(subject_id="001", sex="Male")
     assert check_subject_age(subject) == InspectorMessage(
@@ -368,24 +374,24 @@ def test_check_subject_age_iso8601_range_fail_2():
     )
 
 
-def test_check_subject_age_iso8601_range_fail_3():
+def test_check_subject_proper_age_range_pass():
+    subject = Subject(subject_id="001", sex="Male", age="P1D/P3D")
+    assert check_subject_proper_age_range(subject) is None
+
+
+def test_check_subject_proper_age_range_fail():
     subject = Subject(subject_id="001", sex="Male", age="P3D/P1D")
-    assert check_subject_age(subject) == InspectorMessage(
+    assert check_subject_proper_age_range(subject) == InspectorMessage(
         message=(
             f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
             "The upper (right) bound should be a longer duration than the lower (left) bound."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
-        check_function_name="check_subject_age",
+        check_function_name="check_subject_proper_age_range",
         object_type="Subject",
         object_name="subject",
         location="/general/subject",
     )
-
-
-def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="Male", date_of_birth=datetime.now())
-    assert check_subject_age(subject) is None
 
 
 def test_pass_check_subject_species_exists():

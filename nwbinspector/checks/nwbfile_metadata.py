@@ -119,33 +119,46 @@ def check_subject_age(subject: Subject):
     if subject.age is None:
         if subject.date_of_birth is None:
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
+        else:
+            return
     if re.fullmatch(pattern=duration_regex, string=subject.age):
         return
 
-    message = (
-        f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
-        "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
-        "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
-        "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
-    )
     if "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
-        if not re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound):
-            return InspectorMessage(message=message)
-        if not (
+
+        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and (
             re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == "**"
         ):
-            return InspectorMessage(message=message)
+            return
 
-        if subject_upper_age_bound != "**" and Timedelta(subject_lower_age_bound) >= Timedelta(subject_upper_age_bound):
+    return InspectorMessage(
+        message=(
+            f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
+            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+        )
+    )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_proper_age_range(subject: Subject):
+    """Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds."""
+    if subject.age is not None and "/" in subject.age:
+        subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
+
+        if (
+            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound)
+            and re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound)
+            and Timedelta(subject_lower_age_bound) >= Timedelta(subject_upper_age_bound)
+        ):
             return InspectorMessage(
                 message=(
                     f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
                     "The upper (right) bound should be a longer duration than the lower (left) bound."
                 )
             )
-
-    return InspectorMessage(message=message)
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
