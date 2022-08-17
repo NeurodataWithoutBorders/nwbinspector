@@ -292,7 +292,7 @@ def test_check_subject_sex_other_value():
 
 
 def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="Male", date_of_birth=datetime.now())
+    subject = Subject(subject_id="001", sex="M", date_of_birth=datetime.now())
     assert check_subject_age(subject) is None
 
 
