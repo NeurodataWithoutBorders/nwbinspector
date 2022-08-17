@@ -136,8 +136,8 @@ def check_subject_age(subject: Subject):
         message=(
             f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
             "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
-            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
-            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         )
     )
 
