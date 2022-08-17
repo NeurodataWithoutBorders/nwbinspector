@@ -383,7 +383,7 @@ def test_check_subject_proper_age_range_fail():
     subject = Subject(subject_id="001", sex="Male", age="P3D/P1D")
     assert check_subject_proper_age_range(subject) == InspectorMessage(
         message=(
-            f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
+            "The durations of the Subject age range, 'P3D/P1D', are not strictly increasing. "
             "The upper (right) bound should be a longer duration than the lower (left) bound."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
