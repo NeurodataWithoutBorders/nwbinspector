@@ -317,10 +317,10 @@ def test_check_subject_age_iso8601_fail():
     subject = Subject(subject_id="001", sex="Male", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
         message=(
-            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
-            "for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
-            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
-            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
@@ -336,7 +336,7 @@ def test_check_subject_age_iso8601_range_pass_1():
 
 
 def test_check_subject_age_iso8601_range_pass_2():
-    subject = Subject(subject_id="001", sex="Male", age="P1D/**")
+    subject = Subject(subject_id="001", sex="Male", age="P1D/")
     assert check_subject_age(subject) is None
 
 
@@ -344,10 +344,10 @@ def test_check_subject_age_iso8601_range_fail_1():
     subject = Subject(subject_id="001", sex="Male", age="9 months/12 months")
     assert check_subject_age(subject) == InspectorMessage(
         message=(
-            "Subject age, '9 months/12 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or "
-            "'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
-            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
-            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+            "Subject age, '9 months/12 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
@@ -358,13 +358,13 @@ def test_check_subject_age_iso8601_range_fail_1():
 
 
 def test_check_subject_age_iso8601_range_fail_2():
-    subject = Subject(subject_id="001", sex="Male", age="9 months/**")
+    subject = Subject(subject_id="001", sex="Male", age="9 months/")
     assert check_subject_age(subject) == InspectorMessage(
         message=(
-            "Subject age, '9 months/**', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
-            "for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
-            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range due to HIPAA "
-            "requirements, use '**' to leave it unspecified, e.g., 'P70Y/**' to mean an age greater than 70 years."
+            "Subject age, '9 months/', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
