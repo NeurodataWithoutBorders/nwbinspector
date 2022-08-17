@@ -309,7 +309,7 @@ def test_check_subject_age_missing():
 
 
 def test_check_subject_age_iso8601_pass():
-    subject = Subject(subject_id="001", sex="Male", age="P1D")
+    subject = Subject(subject_id="001", sex="M", age="P1D")
     assert check_subject_age(subject) is None
 
 
