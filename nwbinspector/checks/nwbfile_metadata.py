@@ -128,7 +128,7 @@ def check_subject_age(subject: Subject):
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
         if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and (
-            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == "**"
+            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
         ):
             return
 
