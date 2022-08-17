@@ -297,7 +297,7 @@ def test_pass_check_subject_age_with_dob():
 
 
 def test_check_subject_age_missing():
-    subject = Subject(subject_id="001", sex="Male")
+    subject = Subject(subject_id="001", sex="M")
     assert check_subject_age(subject) == InspectorMessage(
         message="Subject is missing age and date_of_birth.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
