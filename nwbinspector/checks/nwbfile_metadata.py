@@ -131,10 +131,10 @@ def check_subject_age(subject: Subject):
 def check_subject_age_reference(subject: Subject):
     """Check if the Subject age reference is one of supported options."""
     valid_options = ["birth", "gestational", None]
-    if subject.age.reference not in valid_options:
+    if subject.age__reference not in valid_options:
         return InspectorMessage(
             message=(
-                f"Subject age reference, '{subject.age.reference}', is not one of the valid options ({valid_options})."
+                f"Subject age reference, '{subject.age__reference}', is not one of the valid options ({valid_options})."
             )
         )
 
