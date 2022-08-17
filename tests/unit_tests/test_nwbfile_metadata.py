@@ -132,7 +132,7 @@ def test_check_experimenter_form_fail():
     assert check_experimenter_form(nwbfile=nwbfile) == [
         InspectorMessage(
             message=(
-                "The name of experimenter 'First Middle Last' does not match the DANDI form: "
+                "The name of experimenter 'First Middle Last' does not match any of the accepted DANDI form: "
                 "'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName, MiddleName'."
             ),
             importance=Importance.BEST_PRACTICE_SUGGESTION,

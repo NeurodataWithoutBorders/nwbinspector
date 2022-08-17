@@ -60,7 +60,7 @@ def check_experimenter_form(nwbfile: NWBFile):
         if re.match(string=experimenter, pattern=NAME_PATTERN) is None:
             yield InspectorMessage(
                 message=(
-                    f"The name of experimenter '{experimenter}' does not match the DANDI form: "
+                    f"The name of experimenter '{experimenter}' does not match any of the accepted DANDI form: "
                     "'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName, MiddleName'."
                 )
             )
