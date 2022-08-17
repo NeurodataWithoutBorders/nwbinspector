@@ -226,7 +226,7 @@ format. For instance indicating an age of 90 days would be 'P90D'. It is not nec
 
 If the precise age is unknown, an age range can be given by "[lower bound]/[upper bound]" e.g. "P10D/P20D" would mean
 that the age is in between 10 and 20 days. If only the lower or upper bound is known, "**" can be used to indicate a
-missing bound. For instance, "P90Y/**" would indicate that the age is 90 years or older.
+missing bound. For instance, "P90Y/" would indicate that the age is 90 years or older.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_age`
 
