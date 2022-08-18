@@ -76,7 +76,7 @@ class TestCheckConfiguration(TestCase):
                     "check_subject_sex",
                     "check_subject_species",
                     "check_subject_age",
-                    "check_subject_proper_age_range"
+                    "check_subject_proper_age_range",
                 ],
                 BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
