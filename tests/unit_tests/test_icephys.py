@@ -1,11 +1,7 @@
 from pynwb.icephys import IntracellularElectrode
 from pynwb.device import Device
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_intracellular_electrode_cell_id_exists
-)
+from nwbinspector import InspectorMessage, Importance, check_intracellular_electrode_cell_id_exists
 
 
 def test_pass_check_intracellular_electrode_cell_id_exists():
