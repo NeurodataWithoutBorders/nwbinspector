@@ -222,7 +222,11 @@ Age
 
 The ``age`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>`
 format. For instance indicating an age of 90 days would be 'P90D'. It is not necessary to include both ``age`` and
-``date_of_birth``, but at least one of them is recommended.
+``date_of_birth``, but at least one of them is required by the DANDI Archive and recommended in general.
+
+If the precise age is unknown, an age range can be given by "[lower bound]/[upper bound]" e.g. "P10D/P20D" would mean
+that the age is in between 10 and 20 days. If only the lower bound is known, then including only the slash after that lower bound can be used to indicate a
+missing bound. For instance, "P90Y/" would indicate that the age is 90 years or older.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_age`
 

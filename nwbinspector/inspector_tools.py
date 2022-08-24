@@ -82,7 +82,7 @@ class FormatterOptions:
         # TODO
         # Future custom options could include section break sizes, section-specific indents, etc.
         """
-        Class that defines all the format paramters used by the generic MessageFormatter.
+        Class that defines all the format parameters used by the generic MessageFormatter.
 
         Parameters
         ----------
@@ -104,7 +104,7 @@ class FormatterOptions:
 
 
 class MessageFormatter:
-    """For full customization of all format paramters, use this class instead of the 'format_messages' function."""
+    """For full customization of all format parameters, use this class instead of the 'format_messages' function."""
 
     def __init__(
         self,
@@ -225,7 +225,7 @@ class MessageFormatter:
                         self.message_counter += 1
 
     def format_messages(self) -> List[str]:
-        """Deploy recursive addition of sections, termining with message display."""
+        """Deploy recursive addition of sections, terminating with message display."""
         report_header = get_report_header()
         self.formatted_messages.extend(
             [

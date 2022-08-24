@@ -48,7 +48,7 @@ def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union
 
 def format_byte_size(byte_size: int, units: str = "SI"):
     """
-    Format a number representing a total number of bytes into a conveneient unit.
+    Format a number representing a total number of bytes into a convenient unit.
 
     Parameters
     ----------

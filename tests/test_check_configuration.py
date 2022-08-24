@@ -70,11 +70,15 @@ class TestCheckConfiguration(TestCase):
         self.assertDictEqual(
             d1=config,
             d2=dict(
-                CRITICAL=["check_subject_exists", "check_subject_id_exists"],
-                BEST_PRACTICE_VIOLATION=[
+                CRITICAL=[
+                    "check_subject_exists",
+                    "check_subject_id_exists",
                     "check_subject_sex",
                     "check_subject_species",
                     "check_subject_age",
+                    "check_subject_proper_age_range",
+                ],
+                BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
                 ],
             ),
