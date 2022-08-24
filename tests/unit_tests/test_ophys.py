@@ -5,7 +5,7 @@ from uuid import uuid4
 import numpy as np
 from pynwb import NWBFile
 from pynwb.device import Device
-from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries, ImagingPlane
+from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries, ImagingPlane, PlaneSegmentation, TwoPhotonSeries
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
 from nwbinspector import (
@@ -15,6 +15,7 @@ from nwbinspector import (
     check_roi_response_series_link_to_plane_segmentation,
     check_excitation_lambda_in_nm,
     check_emission_lambda_in_nm,
+    check_plane_segmentation_image_mask_shape_against_ref_images,
 )
 
 
@@ -230,3 +231,90 @@ def test_check_emission_lambda_in_nm():
 def test_pass_check_emission_lambda_in_nm():
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     assert check_emission_lambda_in_nm(optical_channel) is None
+
+
+def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
+
+    device = Device(
+        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    )
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=300.0,
+        indicator="GFP",
+        location="V1",
+        grid_spacing=[0.01, 0.01],
+        grid_spacing_unit="meters",
+        origin_coords=[1.0, 2.0, 3.0],
+        origin_coords_unit="meters",
+    )
+
+    two_photon_series = TwoPhotonSeries(
+        name="TwoPhotonSeries",
+        imaging_plane=imaging_plane,
+        data=np.ones((20,10,10)),
+        unit='n.a.',
+        rate=30.,
+    )
+
+    plane_segmentation = PlaneSegmentation(
+        description="my plane segmentation",
+        imaging_plane=imaging_plane,
+        reference_images=two_photon_series,
+    )
+
+    plane_segmentation.add_roi(image_mask=np.ones((10, 10)))
+
+    assert check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation) is None
+
+
+def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
+
+    device = Device(
+        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    )
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=300.0,
+        indicator="GFP",
+        location="V1",
+        grid_spacing=[0.01, 0.01],
+        grid_spacing_unit="meters",
+        origin_coords=[1.0, 2.0, 3.0],
+        origin_coords_unit="meters",
+    )
+
+    two_photon_series = TwoPhotonSeries(
+        name="TwoPhotonSeries",
+        imaging_plane=imaging_plane,
+        data=np.ones((20,10,10)),
+        unit='n.a.',
+        rate=30.,
+    )
+
+    plane_segmentation = PlaneSegmentation(
+        description="my plane segmentation",
+        imaging_plane=imaging_plane,
+        reference_images=two_photon_series,
+    )
+
+    plane_segmentation.add_roi(image_mask=np.ones((9, 10)))
+
+    assert check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation) == [InspectorMessage(
+        message="image_mask of shape (9, 10) does not match reference image TwoPhotonSeries with shape (10, 10).",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_plane_segmentation_image_mask_shape_against_ref_images",
+        object_type="PlaneSegmentation",
+        object_name="ImagingPlane",
+        location="/",
+    )]
