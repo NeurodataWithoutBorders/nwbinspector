@@ -5,7 +5,14 @@ from uuid import uuid4
 import numpy as np
 from pynwb import NWBFile
 from pynwb.device import Device
-from pynwb.ophys import OpticalChannel, ImageSegmentation, RoiResponseSeries, ImagingPlane, PlaneSegmentation, TwoPhotonSeries
+from pynwb.ophys import (
+    OpticalChannel,
+    ImageSegmentation,
+    RoiResponseSeries,
+    ImagingPlane,
+    PlaneSegmentation,
+    TwoPhotonSeries,
+)
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
 from nwbinspector import (
@@ -257,9 +264,9 @@ def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
     two_photon_series = TwoPhotonSeries(
         name="TwoPhotonSeries",
         imaging_plane=imaging_plane,
-        data=np.ones((20,10,10)),
-        unit='n.a.',
-        rate=30.,
+        data=np.ones((20, 10, 10)),
+        unit="n.a.",
+        rate=30.0,
     )
 
     plane_segmentation = PlaneSegmentation(
@@ -297,9 +304,9 @@ def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
     two_photon_series = TwoPhotonSeries(
         name="TwoPhotonSeries",
         imaging_plane=imaging_plane,
-        data=np.ones((20,10,10)),
-        unit='n.a.',
-        rate=30.,
+        data=np.ones((20, 10, 10)),
+        unit="n.a.",
+        rate=30.0,
     )
 
     plane_segmentation = PlaneSegmentation(
@@ -310,11 +317,13 @@ def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
 
     plane_segmentation.add_roi(image_mask=np.ones((9, 10)))
 
-    assert check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation) == [InspectorMessage(
-        message="image_mask of shape (9, 10) does not match reference image TwoPhotonSeries with shape (10, 10).",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_plane_segmentation_image_mask_shape_against_ref_images",
-        object_type="PlaneSegmentation",
-        object_name="ImagingPlane",
-        location="/",
-    )]
+    assert check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation) == [
+        InspectorMessage(
+            message="image_mask of shape (9, 10) does not match reference image TwoPhotonSeries with shape (10, 10).",
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_plane_segmentation_image_mask_shape_against_ref_images",
+            object_type="PlaneSegmentation",
+            object_name="ImagingPlane",
+            location="/",
+        )
+    ]
