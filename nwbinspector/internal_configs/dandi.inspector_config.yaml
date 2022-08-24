@@ -1,8 +1,9 @@
 CRITICAL:  # All the fields under CRITICAL will be required for dandi validate to pass
   - check_subject_exists
   - check_subject_id_exists
+  - check_subject_sex
+  - check_subject_species
+  - check_subject_age
+  - check_subject_proper_age_range
 BEST_PRACTICE_VIOLATION:
-  - check_subject_sex # these are planned to be elevated to CRITICAL when required for DANDI validate
-  - check_subject_species # these are planned to be elevated to CRITICAL when required for DANDI validate
-  - check_subject_age # these are planned to be elevated to CRITICAL when required for DANDI validate
   - check_data_orientation  # not 100% accurate, so need to deelevate from CRITICAL to skip it in dandi validate

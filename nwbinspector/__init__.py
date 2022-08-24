@@ -12,3 +12,4 @@ from .checks.ogen import *
 from .checks.ophys import *
 from .checks.tables import *
 from .checks.time_series import *
+from .checks.icephys import *
