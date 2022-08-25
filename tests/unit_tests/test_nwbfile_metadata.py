@@ -17,6 +17,7 @@ from nwbinspector import (
     check_subject_id_exists,
     check_subject_sex,
     check_subject_age,
+    check_subject_proper_age_range,
     check_subject_species_exists,
     check_subject_species_latin_binomial,
     check_processing_module_name,
@@ -132,8 +133,8 @@ def test_check_experimenter_form_fail():
     assert check_experimenter_form(nwbfile=nwbfile) == [
         InspectorMessage(
             message=(
-                "The name of experimenter 'First Middle Last' does not match the DANDI form "
-                "(Last, First Middle or Last, First M.)."
+                "The name of experimenter 'First Middle Last' does not match any of the accepted DANDI forms: "
+                "'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName, MiddleName'."
             ),
             importance=Importance.BEST_PRACTICE_SUGGESTION,
             check_function_name="check_experimenter_form",
@@ -278,7 +279,7 @@ def test_check_subject_sex():
 
 
 def test_check_subject_sex_other_value():
-    subject = Subject(subject_id="001", sex="Male")
+    subject = Subject(subject_id="001", sex="Female")
 
     assert check_subject_sex(subject) == InspectorMessage(
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
@@ -290,8 +291,13 @@ def test_check_subject_sex_other_value():
     )
 
 
+def test_pass_check_subject_age_with_dob():
+    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now())
+    assert check_subject_age(subject) is None
+
+
 def test_check_subject_age_missing():
-    subject = Subject(subject_id="001", sex="Male")
+    subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
         message="Subject is missing age and date_of_birth.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -302,12 +308,19 @@ def test_check_subject_age_missing():
     )
 
 
-def test_check_subject_age_iso8601():
-    subject = Subject(subject_id="001", sex="Male", age="9 months")
+def test_check_subject_age_iso8601_pass():
+    subject = Subject(subject_id="001", age="P1D")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_fail():
+    subject = Subject(subject_id="001", age="9 months")
     assert check_subject_age(subject) == InspectorMessage(
         message=(
-            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years or 'P23W' "
-            "for 23 weeks."
+            "Subject age, '9 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
@@ -317,9 +330,68 @@ def test_check_subject_age_iso8601():
     )
 
 
-def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="Male", date_of_birth=datetime.now())
+def test_check_subject_age_iso8601_range_pass_1():
+    subject = Subject(subject_id="001", age="P1D/P3D")
     assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_pass_2():
+    subject = Subject(subject_id="001", age="P1D/")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_fail_1():
+    subject = Subject(subject_id="001", age="9 months/12 months")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            "Subject age, '9 months/12 months', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_iso8601_range_fail_2():
+    subject = Subject(subject_id="001", age="9 months/")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            "Subject age, '9 months/', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_proper_age_range_pass():
+    subject = Subject(subject_id="001", age="P1D/P3D")
+    assert check_subject_proper_age_range(subject) is None
+
+
+def test_check_subject_proper_age_range_fail():
+    subject = Subject(subject_id="001", age="P3D/P1D")
+    assert check_subject_proper_age_range(subject) == InspectorMessage(
+        message=(
+            "The durations of the Subject age range, 'P3D/P1D', are not strictly increasing. "
+            "The upper (right) bound should be a longer duration than the lower (left) bound."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_proper_age_range",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
 
 
 def test_pass_check_subject_species_exists():
@@ -358,7 +430,7 @@ def test_check_subject_species_not_binomial():
 
 
 def test_pass_check_subject_age():
-    subject = Subject(subject_id="001", sex="Male", age="P9M")
+    subject = Subject(subject_id="001", age="P9M")
     assert check_subject_age(subject) is None
 
 
@@ -375,12 +447,12 @@ def test_check_subject_exists():
 
 def test_pass_check_subject_exists():
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-    nwbfile.subject = Subject(subject_id="001", sex="Male")
+    nwbfile.subject = Subject(subject_id="001")
     assert check_subject_exists(nwbfile) is None
 
 
 def test_check_subject_id_exists():
-    subject = Subject(sex="Male")
+    subject = Subject(sex="F")
     assert check_subject_id_exists(subject) == InspectorMessage(
         message="subject_id is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,

@@ -55,3 +55,15 @@ def check_excitation_lambda_in_nm(imaging_plane: ImagingPlane):
     """Check that emission lambda is in feasible range for unit nanometers."""
     if imaging_plane.excitation_lambda < MIN_LAMBDA:
         return InspectorMessage(f"excitation lambda of {imaging_plane.excitation_lambda} should be in units of nm.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=PlaneSegmentation)
+def check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation: PlaneSegmentation):
+    if plane_segmentation.reference_images and "image_mask" in plane_segmentation.colnames:
+        mask_shape = plane_segmentation["image_mask"].shape[1:]
+        for ref_image in plane_segmentation.reference_images:
+            if mask_shape != ref_image.data.shape[1:]:
+                yield InspectorMessage(
+                    f"image_mask of shape {mask_shape} does not match reference image {ref_image.name} with shape"
+                    f" {ref_image.data.shape[1:]}."
+                )
