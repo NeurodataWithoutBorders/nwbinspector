@@ -194,16 +194,17 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
     """Check if all of the values in a single column of a table are NaN."""
     for column in table.columns:
-        if not hasattr(column, "data") or isinstance(column, VectorIndex) or isinstance(column.data[0], str):
+        if (
+            not hasattr(column, "data")
+            or isinstance(column, VectorIndex)
+            or not np.issubdtype(np.array(column[0]).dtype, np.floating)
+        ):
             continue
         if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
             continue
 
-        if all(
-            np.isnan(
-                column[slice(0, None, np.ceil(len(column.data) / nelems).astype(int) if nelems else None)]
-            ).flatten()
-        ):
-            yield InspectorMessage(
-                message=f"Column {column.name} has all NaN values. Consider removing it from the table."
-            )
+        slice_by = np.ceil(len(column.data) / nelems).astype(int) if nelems else None
+        message = f"Column '{column.name}' might have all NaN values. Consider removing it from the table."
+        message = message.replace("might have", "has") if nelems is None or slice_by == 1 else message
+        if all(np.isnan(column[slice(0, None, slice_by)]).flatten()):
+            yield InspectorMessage(message=message)
