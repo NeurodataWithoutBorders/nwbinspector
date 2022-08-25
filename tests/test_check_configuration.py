@@ -9,7 +9,7 @@ from nwbinspector import (
     check_timestamps_match_first_dimension,
     available_checks,
 )
-from nwbinspector.nwbinspector import validate_config, configure_checks, copy_function, load_config
+from nwbinspector.nwbinspector import validate_config, configure_checks, _copy_function, load_config
 
 
 class TestCheckConfiguration(TestCase):
@@ -24,7 +24,7 @@ class TestCheckConfiguration(TestCase):
 
     def test_safe_check_copy(self):
         initial_importance = available_checks[0].importance
-        changed_check = copy_function(function=available_checks[0])
+        changed_check = _copy_function(function=available_checks[0])
         if initial_importance is Importance.CRITICAL:
             changed_importance = Importance.BEST_PRACTICE_SUGGESTION
         else:
@@ -70,11 +70,15 @@ class TestCheckConfiguration(TestCase):
         self.assertDictEqual(
             d1=config,
             d2=dict(
-                CRITICAL=["check_subject_exists", "check_subject_id_exists"],
-                BEST_PRACTICE_VIOLATION=[
+                CRITICAL=[
+                    "check_subject_exists",
+                    "check_subject_id_exists",
                     "check_subject_sex",
                     "check_subject_species",
                     "check_subject_age",
+                    "check_subject_proper_age_range",
+                ],
+                BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
                 ],
             ),

@@ -133,7 +133,12 @@ def test_check_timestamps_empty_timestamps():
     )
 
 
-def test_check_timestamps_ascending():
+def test_pass_check_timestamps_ascending_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_timestamps_ascending_fail():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         message="test_time_series timestamps are not ascending.",
@@ -143,11 +148,6 @@ def test_check_timestamps_ascending():
         object_name="test_time_series",
         location="/",
     )
-
-
-def test_pass_check_timestamps_ascending():
-    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
-    assert check_timestamps_ascending(time_series) is None
 
 
 def test_check_missing_unit_pass():
@@ -169,7 +169,7 @@ def test_check_missing_unit_fail():
 
 def test_check_positive_resolution_pass():
     time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=3.4)
-    assert check_timestamps_ascending(time_series) is None
+    assert check_resolution(time_series) is None
 
 
 def test_check_unknown_resolution_pass():
