@@ -4,6 +4,7 @@ from time import sleep
 import numpy as np
 import pynwb
 import pytest
+from hdmf.testing import TestCase
 
 from nwbinspector import (
     InspectorMessage,
@@ -14,6 +15,7 @@ from nwbinspector import (
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
+    check_rows_not_nan,
 )
 from nwbinspector.utils import get_package_version, robust_s3_read
 
@@ -214,3 +216,75 @@ def test_check_resolution_fail():
         object_name="test",
         location="/",
     )
+
+
+def test_check_rows_not_nan_1d_pass():
+    data = np.zeros(shape=400)
+    data[0] = np.nan
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="", data=data, rate=1.0)
+    assert check_rows_not_nan(time_series) is None
+
+
+def test_check_rows_not_nan_1d_fail():
+    data = np.zeros(shape=400)
+    data[:] = np.nan
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=data, rate=1.0)
+    assert check_rows_not_nan(time_series) == [
+        InspectorMessage(
+            message=(
+                "This TimeSeries appears to contain NaN data at each frame. "
+                "Consider removing this object from the file."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_rows_not_nan",
+            object_type="TimeSeries",
+            object_name="test",
+            location="/",
+        )
+    ]
+
+
+def test_check_rows_not_nan_2d_pass():
+    data = np.zeros(shape=(2, 3))
+    data[0, 0] = np.nan
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="", data=data, rate=1.0)
+    assert check_rows_not_nan(time_series) is None
+
+
+def test_check_rows_not_nan_2d_fail():
+    data = np.zeros(shape=(2, 5))
+    data[:, [1, 4]] = np.nan
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=data, rate=1.0)
+    assert check_rows_not_nan(time_series) == [
+        InspectorMessage(
+            message=(
+                "Column index 1 of this TimeSeries appears to contain NaN data at each frame. "
+                "Consider removing this column from the TimeSeries."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_rows_not_nan",
+            object_type="TimeSeries",
+            object_name="test",
+            location="/",
+            file_path=None,
+        ),
+        InspectorMessage(
+            message=(
+                "Column index 4 of this TimeSeries appears to contain NaN data at each frame. "
+                "Consider removing this column from the TimeSeries."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_rows_not_nan",
+            object_type="TimeSeries",
+            object_name="test",
+            location="/",
+            file_path=None,
+        ),
+    ]
+
+
+def test_check_rows_not_nan_higher_dim_skip():
+    data = np.empty(shape=(2, 3, 4))
+    data[:, 0, 0] = np.nan
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=data, rate=1.0)
+    assert check_rows_not_nan(time_series) is None
