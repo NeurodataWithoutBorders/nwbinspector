@@ -47,5 +47,5 @@ a linux system, run
 
 .. code-block::
     export DANDI_TESTS_NONETWORK=1
-    
+
 in your environment before running ``pytest``.
