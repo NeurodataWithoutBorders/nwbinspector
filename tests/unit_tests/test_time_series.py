@@ -1,9 +1,10 @@
-from packaging import version
-from time import sleep
+import os
+from distutils.util import strtobool
 
 import numpy as np
 import pynwb
 import pytest
+from packaging import version
 
 from nwbinspector import (
     InspectorMessage,
@@ -15,20 +16,25 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
 )
-from nwbinspector.utils import get_package_version, robust_s3_read
+from nwbinspector.utils import get_package_version, robust_s3_read, is_module_installed
 
-try:
-    # Test ros3 on sub-YutaMouse54/sub-YutaMouse54_ses-YutaMouse54-160630_behavior+ecephys.nwb from #3
-    with pynwb.NWBHDF5IO(
-        path="https://dandiarchive.s3.amazonaws.com/blobs/f03/18e/f0318e30-4f4f-466d-a8e9-a962863e3081",
-        mode="r",
-        load_namespaces=True,
-        driver="ros3",
-    ) as io:
-        nwbfile = io.read()
-    HAVE_ROS3 = True
-except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
-    HAVE_ROS3 = False
+DANDI_TESTS_NONETWORK = os.environ.get("DANDI_TESTS_NONETWORK", "")
+NO_NETWORK = strtobool(DANDI_TESTS_NONETWORK) if DANDI_TESTS_NONETWORK != "" else False
+if not NO_NETWORK:
+    try:
+        # Test ros3 on sub-YutaMouse54/sub-YutaMouse54_ses-YutaMouse54-160630_behavior+ecephys.nwb from #3
+        with pynwb.NWBHDF5IO(
+            path="https://dandiarchive.s3.amazonaws.com/blobs/f03/18e/f0318e30-4f4f-466d-a8e9-a962863e3081",
+            mode="r",
+            load_namespaces=True,
+            driver="ros3",
+        ) as io:
+            nwbfile = io.read()
+        HAVE_ROS3 = True
+    except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
+        HAVE_ROS3 = False
+HAVE_DANDI = is_module_installed("dandi")
+DISABLE_STREAMING_TESTS = NO_NETWORK or not HAVE_ROS3 or not HAVE_DANDI
 
 
 def test_check_regular_timestamps():
@@ -179,7 +185,7 @@ def test_check_unknown_resolution_pass():
 
 
 @pytest.mark.skipif(
-    not HAVE_ROS3 or get_package_version("hdmf") >= version.parse("3.3.1"),
+    DISABLE_STREAMING_TESTS or get_package_version("hdmf") >= version.parse("3.3.1"),
     reason="Needs h5py setup with ROS3, as well as 'hdmf<3.3.1'.",
 )
 def test_check_none_matnwb_resolution_pass():

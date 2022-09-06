@@ -5,6 +5,7 @@ from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
 from datetime import datetime
+from distutils.util import strtobool
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -27,19 +28,22 @@ from nwbinspector.register_checks import Severity, InspectorMessage, register_ch
 from nwbinspector.utils import FilePathType, is_module_installed
 from nwbinspector.tools import make_minimal_nwbfile
 
-
-try:
-    with NWBHDF5IO(
-        path="https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991",
-        mode="r",
-        load_namespaces=True,
-        driver="ros3",
-    ) as io:
-        nwbfile = io.read()
-    HAVE_ROS3 = True
-except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
-    HAVE_ROS3 = False
+DANDI_TESTS_NONETWORK = os.environ.get("DANDI_TESTS_NONETWORK", "")
+NO_NETWORK = strtobool(DANDI_TESTS_NONETWORK) if DANDI_TESTS_NONETWORK != "" else False
+if not NO_NETWORK:
+    try:
+        with NWBHDF5IO(
+            path="https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991",
+            mode="r",
+            load_namespaces=True,
+            driver="ros3",
+        ) as io:
+            nwbfile = io.read()
+        HAVE_ROS3 = True
+    except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
+        HAVE_ROS3 = False
 HAVE_DANDI = is_module_installed("dandi")
+DISABLE_STREAMING_TESTS = NO_NETWORK or not HAVE_ROS3 or not HAVE_DANDI
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -571,7 +575,7 @@ class TestInspector(TestCase):
         self.assertCountEqual(first=test_results, second=true_results)
 
 
-@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
     assert messages[0] == InspectorMessage(
@@ -585,7 +589,7 @@ def test_dandiset_streaming():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
 def test_dandiset_streaming_parallel():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
     assert messages[0] == InspectorMessage(
@@ -599,7 +603,7 @@ def test_dandiset_streaming_parallel():
     )
 
 
-@pytest.mark.skipif(not HAVE_ROS3 or not HAVE_DANDI, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
 class TestStreamingCLI(TestCase):
     @classmethod
     def setUpClass(cls):
