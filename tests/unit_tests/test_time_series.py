@@ -16,7 +16,7 @@ from nwbinspector import (
 from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.utils import get_package_version, robust_s3_read
 
-DISABLE_STREAMING_TESTS, DISABLE_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
+STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 def test_check_regular_timestamps():
@@ -167,8 +167,8 @@ def test_check_unknown_resolution_pass():
 
 
 @pytest.mark.skipif(
-    DISABLE_STREAMING_TESTS or get_package_version("hdmf") >= version.parse("3.3.1"),
-    reason=f"{DISABLE_STREAMING_TESTS_REASON}. Also needs 'hdmf<3.3.1'.",
+    not STREAMING_TESTS_ENABLED or get_package_version("hdmf") >= version.parse("3.3.1"),
+    reason=f"{DISABLED_STREAMING_TESTS_REASON or ''}. Also needs 'hdmf<3.3.1'.",
 )
 def test_check_none_matnwb_resolution_pass():
     """
@@ -186,8 +186,8 @@ def test_check_none_matnwb_resolution_pass():
     ) as io:
         nwbfile = robust_s3_read(command=io.read)
         time_series = robust_s3_read(
-            "20170203_KIB_01_s1.1.h264",
             command=nwbfile.processing["video_files"]["video"].time_series.get,
+            command_args=["20170203_KIB_01_s1.1.h264"],
         )
     assert check_resolution(time_series) is None
 

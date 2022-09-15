@@ -28,7 +28,7 @@ from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
 
-DISABLE_STREAMING_TESTS, DISABLE_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
+STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -560,7 +560,7 @@ class TestInspector(TestCase):
         self.assertCountEqual(first=test_results, second=true_results)
 
 
-@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_dandiset_streaming():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
     assert messages[0] == InspectorMessage(
@@ -574,7 +574,7 @@ def test_dandiset_streaming():
     )
 
 
-@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_dandiset_streaming_parallel():
     messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
     assert messages[0] == InspectorMessage(
@@ -588,7 +588,7 @@ def test_dandiset_streaming_parallel():
     )
 
 
-@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason=DISABLE_STREAMING_TESTS_REASON or "")
+@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 class TestStreamingCLI(TestCase):
     @classmethod
     def setUpClass(cls):
