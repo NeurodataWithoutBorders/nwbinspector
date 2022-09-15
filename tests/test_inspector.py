@@ -5,7 +5,6 @@ from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
 from datetime import datetime
-from distutils.util import strtobool
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
@@ -25,25 +24,11 @@ from nwbinspector import (
 )
 from nwbinspector import inspect_all, inspect_nwb
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
-from nwbinspector.utils import FilePathType, is_module_installed
+from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.tools import make_minimal_nwbfile
+from nwbinspector.utils import FilePathType
 
-DANDI_TESTS_NONETWORK = os.environ.get("DANDI_TESTS_NONETWORK", "")
-NO_NETWORK = strtobool(DANDI_TESTS_NONETWORK) if DANDI_TESTS_NONETWORK != "" else False
-if not NO_NETWORK:
-    try:
-        with NWBHDF5IO(
-            path="https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991",
-            mode="r",
-            load_namespaces=True,
-            driver="ros3",
-        ) as io:
-            nwbfile = io.read()
-        HAVE_ROS3 = True
-    except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
-        HAVE_ROS3 = False
-HAVE_DANDI = is_module_installed("dandi")
-DISABLE_STREAMING_TESTS = NO_NETWORK or not HAVE_ROS3 or not HAVE_DANDI
+DISABLE_STREAMING_TESTS, DISABLE_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -603,7 +588,7 @@ def test_dandiset_streaming_parallel():
     )
 
 
-@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(DISABLE_STREAMING_TESTS, reason=DISABLE_STREAMING_TESTS_REASON or "")
 class TestStreamingCLI(TestCase):
     @classmethod
     def setUpClass(cls):
