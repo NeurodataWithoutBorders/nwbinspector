@@ -574,7 +574,7 @@ def inspect_nwb(
                     "but the system does not have PyNWB>=2.1.0 - using global namespaces."
                 )
             with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-                validation_errors, _ = pynwb.validate(io=io)
+                validation_errors = pynwb.validate(io=io)
                 for validation_error in validation_errors:
                     yield InspectorMessage(
                         message=validation_error.reason,
