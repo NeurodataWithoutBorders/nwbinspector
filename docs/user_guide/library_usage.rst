@@ -60,13 +60,12 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 Inspect a DANDI set (ROS3)
 --------------------------
 
-It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
-uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDI set and
-use the NWB Inspector as normal, there is another, less expensive possibility in terms of bandwith. This is especially
-useful when the underlying dataset is quite large and thus impractical to download - some DANDI sets can even be on the
-terabyte (TB) scale!
+It is a common use case to want to inspect and review entire datasets of NWB files that have already been
+uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire DANDI set to your local computer and
+run the NWB Inspector as usual, there is an alternative which is less expensive in terms of bandwith. This can be especially
+useful when the DANDI set is large and impractical to download in full, such as one that is multiple terabytes in total size.
 
-The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>` - however, the NWB Inspector has implemented automatic resolution of asset paths so that the only thing required is the DANDI set ID (six-digit identifier)...
+A general tutorial for using the :code:`ros3` driver can be found in the :ros3-tutorial:`PyNWB documentation <>` - however, the NWB Inspector has automated functionality for resolving the technical identification of assets so that the only thing needed is the six-digit DANDI set identifier...
 
 .. code-block:: python
 
@@ -86,6 +85,8 @@ If there are multiple versions of the DANDI set available (*e.g.*, separate 'dra
     version_id = "draft"  # or "published", if it has an official doi associated
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
+
+See the section on :ref:advanced_streaming_api for more customized usage of the streaming feature.
 
 
 
