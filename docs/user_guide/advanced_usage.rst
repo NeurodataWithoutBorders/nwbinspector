@@ -69,7 +69,7 @@ While the section explaining :ref:`basic steaming of a DANDI set<simple_streamin
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
 
 :: note
-    
+
     Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming:`alternative streaming methods <>` with the NWB Insector API.
 
 
