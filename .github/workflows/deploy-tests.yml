@@ -6,9 +6,9 @@ on:
 
 jobs:
   assess-file-changes:
-    uses: catalystneuro/neuroconv/.github/workflows/assess-file-changes.yml@main
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@add_ci_deployment
 
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@main
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@add_ci_deployment
