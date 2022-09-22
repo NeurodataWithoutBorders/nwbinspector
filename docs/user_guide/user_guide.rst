@@ -18,5 +18,5 @@ to adhere more strictly to the officially encouraged Best Practices.
 
     installation
     command_line_usage
-    library_usage
-    advanced_usage
+    using_the_library
+    using_the_library_advanced
