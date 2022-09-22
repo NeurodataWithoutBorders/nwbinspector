@@ -57,8 +57,26 @@ terabyte (TB) scale!
 
 The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
 directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
-S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
+S3 path on the DANDI archive. Resolution of these paths can be performed via the following code...
 
+.. code-block:: python
+
+    from nwbinspector import inspect_all
+
+    dandiset_id = "..."  # for example, 000004
+
+    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
+
+If there are multiple versions of the DANDI set available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the `version_id` argument...
+
+.. code-block:: python
+
+    from nwbinspector import inspect_all
+
+    dandiset_id = "..."  # for example, 000004
+    version_id = "draft"  # or "published", if it has an official doi associated
+
+    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
 
 
 .. fetch_and_inspect_dandi_assets:
@@ -82,7 +100,6 @@ While the previous section covered the most basic and convenient usage of the st
         for asset in dandiset.get_assets():
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
-
 
 
 
