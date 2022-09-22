@@ -42,6 +42,7 @@ extlinks = {
     ),
     "dandi-archive": ("https://dandiarchive.org", ""),
     "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html", ""),
+    "alternative-streaming-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-nwb-files", ""),
     "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
     "uuid": ("https://docs.python.org/3/library/uuid.html", ""),
