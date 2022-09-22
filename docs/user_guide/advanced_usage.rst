@@ -45,7 +45,7 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-Running on a DANDISets (ros3)
+Running on DANDISets (ROS3)
 -----------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
