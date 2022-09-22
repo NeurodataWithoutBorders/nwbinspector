@@ -45,18 +45,28 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-Running on a DANDISets (ros3)
------------------------------
+
+Running inspection on a entire DANDI set (ROS3)
+-----------------------------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
-uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDISet and
-use the NWBInspector as normal, there is another, less expensive possibility in terms of bandwith. This is especially
-useful when the underlying dataset is quite large and thus impractical to download - some DANDISets can even be on the
-TB scale!
+uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDI set and
+use the NWB Inspector as normal, there is another, less expensive possibility in terms of bandwith. This is especially
+useful when the underlying dataset is quite large and thus impractical to download - some DANDI sets can even be on the
+terabyte (TB) scale!
 
 The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
 directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
 S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
+
+
+
+.. fetch_and_inspect_dandi_assets:
+
+Fetching and inspecting individual DANDI assets (ROS3)
+------------------------------------------------------
+
+While the previous section covered the most basic and convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :code:`driver` keyword argument of the :pynwb:`~NWBHDF5IO` can be passed directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the S3 path on the DANDI archive (or more generally, any S3 bucket to which you have proper access credentials). Resolution of these paths can be performed via the following code...
 
 .. code-block:: python
 
