@@ -46,7 +46,7 @@ Of course, the generator can be treated like any other iterable as well, such as
 
 
 
-.. advanced_streaming_api:
+.. _advanced_streaming_api:
 
 Fetching and inspecting individual DANDI assets (ROS3)
 ------------------------------------------------------
