@@ -45,39 +45,6 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-.. simple_streaming_api:
-
-Running inspection on a entire DANDI set (ROS3)
------------------------------------------------
-
-It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
-uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDI set and
-use the NWB Inspector as normal, there is another, less expensive possibility in terms of bandwith. This is especially
-useful when the underlying dataset is quite large and thus impractical to download - some DANDI sets can even be on the
-terabyte (TB) scale!
-
-The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>` - however, the NWB Inspector has implemented automatic resolution of asset paths so that the only thing required is the DANDI set ID (six-digit identifier)...
-
-.. code-block:: python
-
-    from nwbinspector import inspect_all
-
-    dandiset_id = "..."  # for example, 000004
-
-    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
-
-If there are multiple versions of the DANDI set available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the `version_id` argument...
-
-.. code-block:: python
-
-    from nwbinspector import inspect_all
-
-    dandiset_id = "..."  # for example, 000004
-    version_id = "draft"  # or "published", if it has an official doi associated
-
-    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
-
-
 
 .. advanced_streaming_api:
 
