@@ -57,8 +57,8 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 
 .. simple_streaming_api:
 
-Running inspection on a entire DANDI set (ROS3)
------------------------------------------------
+Inspect a DANDI set (ROS3)
+--------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
 uploaded to the :dandi-archive:`DANDI Archive <>`. While one could technically just download the DANDI set and
@@ -76,7 +76,7 @@ The general tutorial for using the :code:`ros3` driver can be found :ros3-tutori
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
 
-If there are multiple versions of the DANDI set available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the `version_id` argument...
+If there are multiple versions of the DANDI set available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the ``version_id`` argument...
 
 .. code-block:: python
 
