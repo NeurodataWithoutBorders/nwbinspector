@@ -1,4 +1,3 @@
-
 name: Deploy tests
 
 on:
@@ -6,9 +5,9 @@ on:
 
 jobs:
   assess-file-changes:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@add_ci_deployment
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
 
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@add_ci_deployment
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
