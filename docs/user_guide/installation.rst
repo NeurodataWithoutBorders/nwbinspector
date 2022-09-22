@@ -21,7 +21,7 @@ To install the package in any generic Python v3.7-v3.9 environment, simply type
 .. note::
 
     If the `pip` installation pathway is not working on your system, you can also try accessing it from the conda-forge release.
-    
+
     ::
 
         conda install -c conda-forge nwbinspector
