@@ -55,7 +55,7 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 
 
 
-.. simple_streaming_api:
+.. _simple_streaming_api:
 
 Inspect a DANDI set (ROS3)
 --------------------------
@@ -86,7 +86,7 @@ If there are multiple versions of the DANDI set available (*e.g.*, separate 'dra
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
 
-See the section on :ref:`advanced_streaming_api` for more customized usage of the streaming feature.
+See the section on :ref:`<advanced_streaming_api>` for more customized usage of the streaming feature.
 
 
 
