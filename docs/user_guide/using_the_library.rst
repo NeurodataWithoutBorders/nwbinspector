@@ -82,7 +82,7 @@ If there are multiple versions of the DANDI set available (*e.g.*, separate 'dra
     from nwbinspector import inspect_all
 
     dandiset_id = "..."  # for example, 000004
-    version_id = "draft"  # or "published", if it has an official doi associated
+    version_id = "draft"  # or "published", or can also set this to the exact DOI value
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
 
