@@ -16,3 +16,12 @@ To install the package in any generic Python v3.7-v3.9 environment, simply type
 
     If you are a :matnwb-src:`MatNWB <>` user, please follow the :conda-install:`Conda installation instructions<>` to
     gain access to a Conda/Python terminal and base environment.
+
+
+.. note::
+
+    If the `pip` installation pathway is not working on your system, you can also try accessing it from the conda-forge release.
+    
+    ::
+
+        conda install -c conda-forge nwbinspector
