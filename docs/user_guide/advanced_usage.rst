@@ -45,6 +45,7 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
+.. simple_streaming_api:
 
 Running inspection on a entire DANDI set (ROS3)
 -----------------------------------------------
@@ -55,9 +56,7 @@ use the NWB Inspector as normal, there is another, less expensive possibility in
 useful when the underlying dataset is quite large and thus impractical to download - some DANDI sets can even be on the
 terabyte (TB) scale!
 
-The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
-directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
-S3 path on the DANDI archive. Resolution of these paths can be performed via the following code...
+The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>` - however, the NWB Inspector has implemented automatic resolution of asset paths so that the only thing required is the DANDI set ID (six-digit identifier)...
 
 .. code-block:: python
 
@@ -79,12 +78,13 @@ If there are multiple versions of the DANDI set available (*e.g.*, separate 'dra
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
 
 
-.. fetch_and_inspect_dandi_assets:
+
+.. advanced_streaming_api:
 
 Fetching and inspecting individual DANDI assets (ROS3)
 ------------------------------------------------------
 
-While the previous section covered the most basic and convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :code:`driver` keyword argument of the :pynwb:`~NWBHDF5IO` can be passed directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the S3 path on the DANDI archive (or more generally, any S3 bucket to which you have proper access credentials). Resolution of these paths can be performed via the following code...
+While the section explaining :ref:`basic steaming of a DANDI set<simple_streaming_api>` covered the simplest and convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :code:`driver` argument of the :pynwb:`~NWBHDF5IO` can be passed directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the S3 path on the DANDI archive (or more generally, any S3 bucket to which you have proper access credentials). Resolution of these paths can be performed via the following code...
 
 .. code-block:: python
 
@@ -100,6 +100,10 @@ While the previous section covered the most basic and convenient usage of the st
         for asset in dandiset.get_assets():
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
+
+:: note
+    
+    Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming:`alternative streaming methods <>` with the NWB Insector API.
 
 
 
