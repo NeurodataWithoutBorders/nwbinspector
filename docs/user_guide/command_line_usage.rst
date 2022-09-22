@@ -25,14 +25,13 @@ the most useful of these options.
 Streaming
 ---------
 
-If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it by specfying the DANDI set ID (six-digit identifier) as the path and setting the ``--stream`` flag.
-
-This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`api_streaming` for a more advanced tutorial using the API functions.
+If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it. All that is needed is to specfy the DANDI set ID (six-digit identifier) as the path and add the ``--stream`` flag.
 
 ::
 
     nwbinspector 000017 --stream
 
+This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`api_streaming` for a more advanced tutorial using the API functions.
 
 .. note::
 
