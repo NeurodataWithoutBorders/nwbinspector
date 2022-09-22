@@ -1,7 +1,7 @@
 Using the Command Line Interface (CLI)
 ======================================
 
-The NWBInspector tool offers convenient command-line usage via any standard Conda or IPython terminal.
+The NWBInspector tool offers convenient command-line usage via any standard Conda or Python terminal.
 
 You may then run the NWBInspector via the command line via the following usages
 
@@ -19,6 +19,24 @@ which should quickly display a basic report to your console window.
 
 All available options for the CLI may be viewed by calling :code:`nwbinspector --help`. We will now highlight some of
 the most useful of these options.
+
+
+
+Streaming
+---------
+
+If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it by specfying the DANDI set ID (six-digit identifier) as the path and setting the ``--stream`` flag.
+
+This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`api_streaming` for a more advanced tutorial using the API functions.
+
+::
+
+    nwbinspector 000017 --stream
+
+
+:: note
+
+    You can also specify the exact S3 path instead of the DANDI set ID if known - when specifying the DANDI set ID, all S3 paths of NWB assets are automatically fetched for your convenience.
 
 
 
