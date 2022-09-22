@@ -25,7 +25,7 @@ the most useful of these options.
 Streaming
 ---------
 
-If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it by specfying the DANDI set ID (six-digit identifier) as the path and setting the ``--stream`` (compare to :code:`--stream` flag.
+If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it by specfying the DANDI set ID (six-digit identifier) as the path and setting the ``--stream`` flag.
 
 This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`api_streaming` for a more advanced tutorial using the API functions.
 
@@ -47,7 +47,7 @@ Formatting the Report
 The basic report layout organizes by :py:attr:`~nwbinspector.register_check.InspectorMessage.importance` first and
 :py:attr:`~nwbinspector.register_check.InspectorMessage.file_path` last.
 
-However, the NWBInspector supports more general organization as defined by the `--levels` flag. To use this flag,
+However, the NWBInspector supports more general organization as defined by the ``--levels`` flag. To use this flag,
 you must pass a series a comma-separated words that correspond to any attributes of the
 :py:class:`~nwbinspector.register_check.InspectorMessage` in any order.
 
@@ -61,7 +61,7 @@ For example,
 
     The :py:attr:`~nwbinspector.register_check.InspectorMessage.message` itself cannot be used in organization.
 
-The ascending or descending order of each of these levels may be additionally controlled with the `--reverse` flag,
+The ascending or descending order of each of these levels may be additionally controlled with the ``--reverse`` flag,
 which is likewise a comma-separated series of boolean words.
 
 For example,
