@@ -110,7 +110,7 @@ External Modules
 ----------------
 
 If the NWBFiles being inspected require an external module to parse, or have externally defined check registries (such
-as those specific to an :nwb-schema:ref:`NWB Extension<extending-the-format>`), these can be specified with the ``-m``
+as those specific to an :ref:`:ref: NWB Extension <nwb-schema:sec-extending-the-format>`), these can be specified with the ``-m``
 or ``--modules`` flag.
 
 For example,

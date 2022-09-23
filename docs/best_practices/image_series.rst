@@ -10,7 +10,7 @@ Use external model when file is too large
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-When storing commmon multimedia formats using the :nwb-schema:ref:`sec-ImageSeries` the file should be stored as
+When storing commmon multimedia formats using the :ref:`nwb-schema:sec-ImageSeries` the file should be stored as
 an external file. That is, the file should be packaged together with the nwb file instead of stored inside the format.
 This can be accomplished by using  the ``external_file`` file option to store the path instead.
 
