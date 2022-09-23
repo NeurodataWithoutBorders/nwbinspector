@@ -1,10 +1,10 @@
 ImageSeries
 ===========
 
-
-
 Storage of ImageSeries
 ----------------------
+
+.. _best_practice_image_series_file_too_large:
 
 Use external model when file is too large
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,6 +16,7 @@ This can be accomplished by using  the ``external_file`` file option to store th
 
 Check function: :py:meth:`~nwbinspector.checks.check_image_series_too_large`
 
+.. _best_practice_image_series_external_mode_path:
 
 Use relative path for external mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
