@@ -35,3 +35,7 @@ Optical Electrophysiology (ophys)
 Optogenetics (ogen)
 -------------------
 .. automodule:: nwbinspector.checks.ogen
+
+ImageSeries 
+-----------
+.. automodule:: nwbinspector.checks.image_series

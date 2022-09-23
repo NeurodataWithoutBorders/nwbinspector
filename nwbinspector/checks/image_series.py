@@ -3,7 +3,7 @@ from pathlib import Path
 
 from pynwb.image import ImageSeries
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import register_check, Importance, InspectorMessage, Severity
 from ..tools import get_nwbfile_path_from_internal_object
 
 
@@ -37,4 +37,15 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
                     f"The external file '{file_path}' is not a relative path. "
                     "Please adjust the absolute path to be relative to the location of the NWBFile."
                 )
+            )
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+def check_image_series_too_large(image_series: ImageSeries, gb_lower_bound: float = 20.0):
+    """Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file."""
+    data = image_series.data
+    data_size_gb = data.size * data.dtype.itemsize  // 1e9
+    if data_size_gb > gb_lower_bound:
+            return InspectorMessage(
+                severity=Severity.HIGH,
+                message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
             )

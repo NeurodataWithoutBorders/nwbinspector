@@ -28,3 +28,6 @@ dist/
 
 # MacOS
 .DS_store
+
+# Doc build
+/docs/_build/*
