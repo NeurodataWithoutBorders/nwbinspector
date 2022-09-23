@@ -1,5 +1,12 @@
 # Upcoming
 
+# v0.4.14
+
+### Fixes
+* Fixed an error with attribute retrieval specific to the `cell_id` of the `IntracellularElectrode` neurodata type that occured with respect to older versions of PyNWB. [PR #264](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/264)
+
+
+
 # v0.4.13
 
 ### DANDI Configuration
