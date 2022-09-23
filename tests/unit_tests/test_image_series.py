@@ -150,7 +150,7 @@ def test_check_large_image_series_stored_internally():
     expected_message = InspectorMessage(
         importance=Importance.BEST_PRACTICE_VIOLATION,
         message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
-        check_function_name="check_image_series_too_large",
+        check_function_name="check_image_series_data_size",
         object_type="ImageSeries",
         object_name="ImageSeriesLarge",
         location="/",
