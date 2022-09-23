@@ -20,7 +20,11 @@ PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time_old_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
             message=(
@@ -32,7 +36,11 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_session_start_time_future_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time >= datetime.now().astimezone():
         return InspectorMessage(
             message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
@@ -144,7 +152,11 @@ def check_subject_age(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_proper_age_range(subject: Subject):
-    """Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds."""
+    """
+    Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds.
+
+    Best Practice: :ref:`best_practice_subject_age`
+    """
     if subject.age is not None and "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
@@ -181,14 +193,22 @@ def check_subject_sex(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_exists(subject: Subject):
-    """Check if the subject species has been specified."""
+    """
+    Check if the subject species has been specified.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
     if not subject.species:
         return InspectorMessage(message="Subject species is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_latin_binomial(subject: Subject):
-    """Check if the subject species follows latin binomial form."""
+    """
+    Check if the subject species follows latin binomial form.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
             message=(
