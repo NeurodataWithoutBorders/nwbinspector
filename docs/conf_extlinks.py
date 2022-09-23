@@ -7,16 +7,16 @@ extlinks = {
         "https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation%s",
         "%s",
     ),
-    "nwbinspector-issues": ("https://github.com/NeurodataWithoutBorders/nwbinspector/issues/%s", "%s"),
+    "nwbinspector-issues": ("https://github.com/NeurodataWithoutBorders/nwbinspector/issues/%s", None),
     "nwbinspector-contributing": (
-        "https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/.github/CONTRIBUTING.md/%s",
-        "%s",
+        "https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/.github/CONTRIBUTING.md%s",
+        None,
     ),
     "dandi-archive": ("https://dandiarchive.org/%s", "%s"),
-    "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html%s", "%s"),
+    "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html%s", None),
     "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
-    "uuid": ("https://docs.python.org/3/library/uuid.html%s", "%s"),
+    "uuid": ("https://docs.python.org/3/library/uuid.html%s", None),
     "orcid": ("https://orcid.org/%s", "%s"),
 }
 
