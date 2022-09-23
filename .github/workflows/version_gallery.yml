@@ -1,0 +1,32 @@
+name: Past PyNWB Version
+on:
+  schedule:
+    - cron: "0 0 * * *"  # daily
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Testing against past PyNWB versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pynwb-version: ["2.1.0", "2.0.0"]
+    steps:
+      - uses: s-weigand/setup-conda@v1
+        with:
+          update-conda: true
+          python-version: 3.9
+          conda-channels: conda-forge
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow --tags
+      - name: Install pytest
+        run: |
+          pip install pytest
+          pip install pytest-cov
+      - name: Install package
+        run: |
+          pip install -e .
+          pip install pynwb==${{ matrix.pynwb-version }}
+      - name: Run pytest with coverage
+        run: pytest -rsx
