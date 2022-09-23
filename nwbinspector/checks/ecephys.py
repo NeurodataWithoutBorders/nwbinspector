@@ -1,12 +1,14 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
-import numpy as np
+from packaging import version
 
+import numpy as np
+from pynwb.file import ElectrodeTable
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
-
 from hdmf.utils import get_data_shape
 
 from ..register_checks import register_check, Importance, InspectorMessage
+from ..utils import get_package_version
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
@@ -79,3 +81,17 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                     "observed intervals."
                 )
             )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ElectrodeTable)
+def check_optional_columns_electrode_table(electrode_table: ElectrodeTable):
+    """Check that the ElectrodeTable columns which are optional for nwb-schema>=2.5.0 are not specified as NaN."""
+    if get_package_version(name="pynwb") < version.Version("2.1.0"):
+        return
+    if any(x.isnan() in electrode_table for x in ["x", "y", "z", "imp", "filtering"]):
+        return InspectorMessage(
+            message=(
+                "The ElectrodeTable contains NaN values on optional columns - "
+                "as of nwb-schema 2.5.0, there is no need to write these columns."
+            )
+        )
