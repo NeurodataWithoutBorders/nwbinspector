@@ -133,7 +133,7 @@ For more information about how to enable chunking and compression on your data, 
 
 
 
-.. _best_practice_large_dataset_compression:
+.. _best_practice_compression:
 
 Compress Data
 ~~~~~~~~~~~~~

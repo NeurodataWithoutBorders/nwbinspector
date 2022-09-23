@@ -4,11 +4,10 @@ ImageSeries
 Storage of ImageSeries
 ----------------------
 
-.. _best_practice_image_series_file_too_large:
+.. _best_practice_use_external_mode:
 
-Use external model when file is too large
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Use external mode to save disk space
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When storing commmon multimedia formats using the :ref:`nwb-schema:sec-ImageSeries` the file should be stored as
 an external file. That is, the file should be packaged together with the nwb file instead of stored inside the format.
@@ -16,7 +15,9 @@ This can be accomplished by using  the ``external_file`` file option to store th
 
 Check function: :py:meth:`~nwbinspector.checks.check_image_series_too_large`
 
-.. _best_practice_image_series_external_mode_path:
+
+
+.. _best_practice_image_series_external_file_relative:
 
 Use relative path for external mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

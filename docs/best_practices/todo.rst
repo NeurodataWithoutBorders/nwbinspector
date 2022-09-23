@@ -10,20 +10,12 @@ When all of these are done, this page will be removed.
 TODO
 ----
 
-.. _best_practice_small_dataset_compression:
-
-TODO
-----
 
 .. _best_practice_empty_string_for_optional_attribute:
 
 TODO
 ----
 
-.. _best_practice_timestamps_match_first_dimension:
-
-TODO
-----
 
 .. _best_practice_missing_unit:
 
@@ -75,42 +67,7 @@ TODO
 TODO
 ----
 
-.. _best_practice_roi_response_series_dims:
-
-TODO
-----
-
 .. _best_practice_roi_response_series_link_to_plane_segmentation:
-
-TODO
-----
-
-.. _best_practice_excitation_lambda_in_nm:
-
-TODO
-----
-
-.. _best_practice_emission_lambda_in_nm:
-
-TODO
-----
-
-.. _best_practice_image_series_external_file_valid:
-
-TODO
-----
-
-.. _best_practice_image_series_external_file_relative:
-
-TODO
-----
-
-.. _best_practice_image_series_too_large:
-
-TODO
-----
-
-.. _best_practice_regular_series:
 
 TODO
 ----

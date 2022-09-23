@@ -6,7 +6,7 @@ from hdmf.testing import TestCase
 from nwbinspector import Importance
 from nwbinspector.utils import (
     format_byte_size,
-    check_regular_series,
+    is_regular_series,
     is_dict_in_string,
     get_package_version,
     calculate_number_of_cpu,
@@ -30,9 +30,9 @@ class TestFormatByteException(TestCase):
             format_byte_size(byte_size=12345, units="test")
 
 
-def test_check_regular_series():
-    assert check_regular_series(series=[1, 2, 3])
-    assert not check_regular_series(series=[1, 2, 4])
+def test_is_regular_series():
+    assert is_regular_series(series=[1, 2, 3])
+    assert not is_regular_series(series=[1, 2, 4])
 
 
 def test_is_dict_in_string_false_1():
