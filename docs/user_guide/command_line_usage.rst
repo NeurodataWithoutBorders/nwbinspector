@@ -35,7 +35,7 @@ This usage will require you to install the ROS3 driver - the general tutorial fo
 
 .. note::
 
-    You can also specify the exact S3 path instead of the DANDI set ID if known. When specifying only the DANDI set ID, the S3 paths of all NWB assets are automatically fetched for your convenience.
+    You can also specify the exact S3 path instead of the DANDI set ID, if known. When specifying only the DANDI set ID, the S3 paths of all NWB assets are automatically fetched for your convenience.
 
 
 
