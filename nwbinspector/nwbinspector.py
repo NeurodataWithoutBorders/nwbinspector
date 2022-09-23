@@ -390,7 +390,7 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", driver=driver) as io:
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
             nwbfile = robust_s3_read(io.read)
             identifiers[nwbfile.identifier].append(nwbfile_path)
     if len(identifiers) != len(nwbfiles):

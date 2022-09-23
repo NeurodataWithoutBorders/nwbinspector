@@ -338,16 +338,17 @@ def test_check_col_not_nan_pass():
 
 
 def test_check_col_not_nan_fail():
+    """Addition of test_integer_type included from issue 241."""
     table = DynamicTable(name="test_table", description="")
-    for name in ["test_column_not_nan_1", "test_column_nan_1", "test_column_not_nan_2", "test_column_nan_2"]:
+    for name in ["test_column_not_nan_1", "test_column_nan_1", "test_integer_type", "test_column_nan_2"]:
         table.add_column(name=name, description="")
     for _ in range(400):
         table.add_row(
-            test_column_not_nan_1=1.0, test_column_nan_1=np.nan, test_column_not_nan_2=1.0, test_column_nan_2=np.nan
+            test_column_not_nan_1=1.0, test_column_nan_1=np.nan, test_integer_type=1, test_column_nan_2=np.nan
         )
     assert check_col_not_nan(table=table) == [
         InspectorMessage(
-            message="Column test_column_nan_1 has all NaN values. Consider removing it from the table.",
+            message="Column 'test_column_nan_1' might have all NaN values. Consider removing it from the table.",
             importance=Importance.BEST_PRACTICE_SUGGESTION,
             check_function_name="check_col_not_nan",
             object_type="DynamicTable",
@@ -356,7 +357,38 @@ def test_check_col_not_nan_fail():
             file_path=None,
         ),
         InspectorMessage(
-            message="Column test_column_nan_2 has all NaN values. Consider removing it from the table.",
+            message="Column 'test_column_nan_2' might have all NaN values. Consider removing it from the table.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_col_not_nan",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+            file_path=None,
+        ),
+    ]
+
+
+def test_check_col_not_nan_fail_span_all_data():
+    """Addition of test_integer_type included from issue 241."""
+    table = DynamicTable(name="test_table", description="")
+    for name in ["test_column_not_nan_1", "test_column_nan_1", "test_integer_type", "test_column_nan_2"]:
+        table.add_column(name=name, description="")
+    for _ in range(180):
+        table.add_row(
+            test_column_not_nan_1=1.0, test_column_nan_1=np.nan, test_integer_type=1, test_column_nan_2=np.nan
+        )
+    assert check_col_not_nan(table=table) == [
+        InspectorMessage(
+            message="Column 'test_column_nan_1' has all NaN values. Consider removing it from the table.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_col_not_nan",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+            file_path=None,
+        ),
+        InspectorMessage(
+            message="Column 'test_column_nan_2' has all NaN values. Consider removing it from the table.",
             importance=Importance.BEST_PRACTICE_SUGGESTION,
             check_function_name="check_col_not_nan",
             object_type="DynamicTable",

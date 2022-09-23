@@ -2,7 +2,7 @@ name: Testing
 on:
   schedule:
     - cron: "0 0 * * *"  # daily
-  pull_request:
+  workflow_call:
 
 jobs:
   build-and-test:
@@ -34,7 +34,7 @@ jobs:
       - name: Install ROS3
         run: conda install -c conda-forge h5py
       - name: Run pytest with coverage
-        run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+        run: pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

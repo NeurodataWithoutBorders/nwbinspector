@@ -6,4 +6,4 @@ natsort
 click
 tqdm
 numpy>=1.20.0,<1.21.0;python_version<'3.8'
-numpy>=1.20.0,<1.23.0;python_version>='3.8'
+numpy>=1.22.0,<1.23.0;python_version>='3.8'  # <1.23 bound is from PyNWB
