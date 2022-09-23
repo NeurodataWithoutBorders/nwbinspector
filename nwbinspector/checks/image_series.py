@@ -39,13 +39,14 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
                 )
             )
 
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_too_large(image_series: ImageSeries, gb_lower_bound: float = 20.0):
     """Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file."""
     data = image_series.data
-    data_size_gb = data.size * data.dtype.itemsize  // 1e9
+    data_size_gb = data.size * data.dtype.itemsize // 1e9
     if data_size_gb > gb_lower_bound:
-            return InspectorMessage(
-                severity=Severity.HIGH,
-                message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
-            )
+        return InspectorMessage(
+            severity=Severity.HIGH,
+            message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
+        )

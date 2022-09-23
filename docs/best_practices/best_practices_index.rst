@@ -29,4 +29,3 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    image_series
    simulated_data
    extensions
-
