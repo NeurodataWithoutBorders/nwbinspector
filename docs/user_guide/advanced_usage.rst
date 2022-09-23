@@ -45,7 +45,7 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-.. api_streaming:
+.. _api_streaming:
 
 Running on a DANDISets (ros3)
 -----------------------------
