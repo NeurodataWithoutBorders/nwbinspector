@@ -51,7 +51,7 @@ Of course, the generator can be treated like any other iterable as well, such as
 Fetching and inspecting individual DANDI assets (ROS3)
 ------------------------------------------------------
 
-While the section explaining :ref:`basic steaming of a DANDI set<simple_streaming_api>` covered the simplest and most convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :param driver: argument of the :py:class:`~pynwb.NWBHDF5IO` can be passed directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the S3 path on the DANDI archive (or more generally, any S3 bucket to which you have proper access credentials). Resolution of these paths can be performed via the following code...
+While the section explaining :ref:`basic steaming of a DANDI set<simple_streaming_api>` covered the simplest and most convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :param driver: argument of the :py:class:`~pynwb.NWBHDF5IO` can be passed directly into our core inspection functions [1]_. In this case, the ``path`` or ``nwbfile_path`` arguments become the full S3 path on the DANDI archive [2]_. Resolution of these paths can be performed via the following code...
 
 .. code-block:: python
 
@@ -68,9 +68,10 @@ While the section explaining :ref:`basic steaming of a DANDI set<simple_streamin
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
 
-:: note
+.. rubric:: Footnotes
 
-    Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming:`alternative streaming methods <>` with the NWB Insector API.
+.. [1] Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming:`alternative streaming methods <>` with the NWB Insector API.
+.. [2] More generally, you are able to specify any S3 path to any bucket to which you have the proper AWS access credentials for.
 
 
 
