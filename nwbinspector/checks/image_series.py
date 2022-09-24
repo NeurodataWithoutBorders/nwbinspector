@@ -50,7 +50,11 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: float = 20.0):
-    """Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file."""
+    """
+    Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file.
+
+    Best Practice: :ref:`best_practice_use_external_mode`
+    """
     data = image_series.data
     data_size_gb = data.size * data.dtype.itemsize / 1e9
     if data_size_gb > gb_lower_bound:
