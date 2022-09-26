@@ -10,27 +10,25 @@ When all of these are done, this page will be removed.
 TODO
 ----
 
+Need to write section about DANDI regex pattern.
+
 
 .. _best_practice_empty_string_for_optional_attribute:
 
 TODO
 ----
 
+Need to add a section about this somewhere.
 
-.. _best_practice_missing_unit:
-
-TODO
-----
 
 .. _best_practice_empty_table:
 
 TODO
 ----
 
-.. _best_practice_time_interval_time_columns:
+Add small section for this.
 
-TODO
-----
+
 
 .. _best_practice_time_intervals_stop_after_start:
 

@@ -80,6 +80,8 @@ Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capabil
 
 
 
+.. _best_practice_time_interval_time_columns:
+
 Timing Columns
 ~~~~~~~~~~~~~~
 
