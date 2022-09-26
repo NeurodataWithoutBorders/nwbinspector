@@ -17,7 +17,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
-    'sphinx_copybutton',
+    "sphinx_copybutton",
 ]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -63,7 +63,7 @@ add_module_names = False
 
 
 def add_refs_to_docstrings(app, what, name, obj, options, lines):
-    if what == "function" and obj.__name__.startswith("check_"):
+    if what == "function" and obj.__name__.startswith("check_") and "Best Practice: " not in obj.__doc__:
         lines.append(f"Best Practice: :ref:`best_practice_{obj.__name__.split('check_')[1]}`")
 
 

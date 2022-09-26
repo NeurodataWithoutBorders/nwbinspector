@@ -46,6 +46,7 @@ If this is failing for some reason, you can explicitly control all related tests
 a linux system, run
 
 .. code-block::
+
     export NWBI_SKIP_NETWORK_TESTS=1
 
 in your environment before running ``pytest``.

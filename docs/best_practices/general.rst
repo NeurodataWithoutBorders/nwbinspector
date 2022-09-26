@@ -14,14 +14,14 @@ Naming Conventions
 ~~~~~~~~~~~~~~~~~~
 
 As a default, name class instances with the same name as the class. If appropriate, simply use the name of the
-``neurodata_type`` as the name of that object. *E.g.*, if your :nwb-schema:ref:`sec-NWBFile` has only a single
-:nwb-schema:ref:`sec-ElectricalSeries` that holds voltage traces for a multichannel recording, then simply name it
+``neurodata_type`` as the name of that object. *E.g.*, if your :ref:`nwb-schema:sec-NWBFile` has only a single
+:ref:`nwb-schema:sec-ElectricalSeries` that holds voltage traces for a multichannel recording, then simply name it
 ``ElectricalSeries``.
 
 There may be cases where you have multiple instances of the same ``neurodata_type`` in the same Group. In this case,
 the instances must have unique names. An easy way to achieve this is to add an index or other minimal distinguishing
 characteristics to the end of the name of that ``neurodata_type``; an example for multiple
-:nwb-schema:ref:`sec-ElectricalSeries` (corresponding perhaps to differing segments or electrode regions) might be to
+:ref:`nwb-schema:sec-ElectricalSeries` (corresponding perhaps to differing segments or electrode regions) might be to
 distinguish them as ``ElectricalSeries1`` and ``ElectricalSeries2``, or as ``ElectricalSeries`` and
 ``ElectricalSeriesExtraElectrodes``.
 
@@ -57,8 +57,8 @@ official ontologies where appropriate.
 
 It is OK to name an object something like ``ElectricalSeriesFromProbe1``, however the name alone is not sufficient
 documentation of the signal source. In this case, the source of the signal will be clear from the
-:nwb-schema:ref:`device` linkage in the rows of the passed :nwb-schema:ref:`sec-sec-dynamictableregion` subsetting
-the full :nwb-schema:ref:`electrodes table <groups-general-extracellular-ephys-electrodes>`, so you would not need to
+:ref:`nwb-schema:devices` linkage in the rows of the passed :ref:`hdmf-schema:sec-dynamictableregion` subsetting
+the full ``ElectrodeTable``, so you would not need to
 add any explicit metadata explaining these details.
 
 Slash characters ``'/'`` and ``'\'``  should not be used in the ``name`` of an object, because they can be
