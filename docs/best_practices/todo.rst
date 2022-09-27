@@ -5,14 +5,6 @@ This is an isolated page of the documentation containing all current section ref
 When all of these are done, this page will be removed.
 
 
-.. _best_practice_experimenter_form:
-
-TODO
-----
-
-Need to write section about DANDI regex pattern.
-
-
 .. _best_practice_empty_string_for_optional_attribute:
 
 TODO
