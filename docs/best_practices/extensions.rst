@@ -5,7 +5,7 @@ Extend the core NWB schema only when necessary. Extensions are an essential mech
 data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
 with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
 to use and learn already-created extensions. As such, users should attempt to use core ``neurodata_types`` or
-pre-existing extentions before creating new ones. :nwb-schema:ref:`sec-DynamicTables`, which are used throughout the
+pre-existing extentions before creating new ones. :ref:`hdmf-schema:sec-dynamictable`, which are used throughout the
 NWB schema to store information about time intervals, electrodes, or spiking output, provide the ability to
 dynamically add columns without the need for extensions, and can help avoid the need for custom extensions in many
 cases.

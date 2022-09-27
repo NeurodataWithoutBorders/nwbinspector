@@ -12,10 +12,9 @@ from nwbinspector import (
     Importance,
     check_image_series_external_file_valid,
     check_image_series_external_file_relative,
-    check_image_series_too_large,
+    check_image_series_data_size,
 )
 from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.register_checks import Severity
 
 
 class TestExternalFileValid(TestCase):
@@ -135,7 +134,7 @@ def test_check_small_image_series_stored_internally():
     total_elements = int(gb_size * 1e9 / np.dtype("float").itemsize) // (frame_length * frame_length)
     data = np.zeros(shape=(total_elements, frame_length, frame_length, 1))
     image_series = ImageSeries(name="ImageSeriesLarge", rate=1.0, data=data, unit="TestUnit")
-    assert check_image_series_too_large(image_series=image_series) is None
+    assert check_image_series_data_size(image_series=image_series) is None
 
 
 def test_check_large_image_series_stored_internally():
@@ -146,12 +145,12 @@ def test_check_large_image_series_stored_internally():
     data = np.zeros(shape=(total_elements, frame_length, frame_length, 1))
     image_series = ImageSeries(name="ImageSeriesLarge", rate=1.0, data=data, unit="TestUnit")
     gb_lower_bound = gb_size * 0.9
-    inspector_message = check_image_series_too_large(image_series=image_series, gb_lower_bound=gb_lower_bound)
+    inspector_message = check_image_series_data_size(image_series=image_series, gb_lower_bound=gb_lower_bound)
 
     expected_message = InspectorMessage(
         importance=Importance.BEST_PRACTICE_VIOLATION,
         message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
-        check_function_name="check_image_series_too_large",
+        check_function_name="check_image_series_data_size",
         object_type="ImageSeries",
         object_name="ImageSeriesLarge",
         location="/",

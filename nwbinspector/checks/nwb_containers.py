@@ -13,7 +13,10 @@ def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound:
     """
     If the data in the Container object is a 'large' h5py.Dataset, check if it has compression enabled.
 
-    Will only return an inspector warning if the size of the h5py.Dataset is larger than 20 GB.
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than the
+    gb_lower_bound (default of 20 GB).
+
+    Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
         if not isinstance(field, h5py.Dataset):
@@ -35,7 +38,10 @@ def check_small_dataset_compression(
     """
     If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
 
-    Will only return an inspector warning if the size of the h5py.Dataset is larger than bytes_threshold.
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than mb_lower_bound (default 50 MB)
+    and smaller than gb_upper_bound (default of 20 GB).
+
+    Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
         if not isinstance(field, h5py.Dataset):
