@@ -29,43 +29,46 @@ TODO
 Add small section for this.
 
 
-
-.. _best_practice_time_intervals_stop_after_start:
-
-TODO
-----
-
 .. _best_practice_table_values_for_dict:
 
 TODO
 ----
+
+This is the JSON one for table values. Need to explain.
 
 .. _best_practice_col_not_nan:
 
 TODO
 ----
 
+Small section on this. Can maybe combine with above.
+
 .. _best_practice_intracellular_electrode_cell_id_exists:
 
 TODO
 ----
 
-.. _best_practice_electrical_series_dims:
-
-TODO
-----
+No `icephys` section yet.
 
 .. _best_practice_electrical_series_reference_electrodes_table:
 
 TODO
 ----
 
+Short section about this.
+
+
 .. _best_practice_spike_times_not_in_unobserved_interval:
 
 TODO
 ----
 
+Add a short section for this.
+
+
 .. _best_practice_roi_response_series_link_to_plane_segmentation:
 
 TODO
 ----
+
+Very similar to the electrode table one.
