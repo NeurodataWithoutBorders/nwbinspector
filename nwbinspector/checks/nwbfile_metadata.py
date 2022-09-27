@@ -49,14 +49,22 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_exists(nwbfile: NWBFile):
-    """Check if an experimenter has been added for the session."""
+    """
+    Check if an experimenter has been added for the session.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_form(nwbfile: NWBFile):
-    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
+    """
+    Check the text form of each experimenter to see if it matches the DANDI regex pattern.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if nwbfile.experimenter is None:
         return
     if is_module_installed(module_name="dandi"):
