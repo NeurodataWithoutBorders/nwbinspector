@@ -72,7 +72,7 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
 
-    Best Practice: :ref:``
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
 
     Parameters
     ----------
@@ -155,9 +155,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
-    table: DynamicTable,
-    exclude_types: Optional[list] = (Units,),
-    exclude_names: Optional[List[str]] = ("electrodes",),
+    table: DynamicTable, exclude_types: Optional[list] = (Units,), exclude_names: Optional[List[str]] = ("electrodes",),
 ):
     """
     Check if DynamicTable has only a single row; may be better represented by another data type.
