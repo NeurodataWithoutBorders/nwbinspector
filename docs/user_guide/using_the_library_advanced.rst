@@ -70,7 +70,7 @@ While the section explaining :ref:`basic steaming of a DANDI set<simple_streamin
 
 .. rubric:: Footnotes
 
-.. [1] Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming:`alternative streaming methods <>` with the NWB Insector API.
+.. [1] Since the :code:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming-tutorial:`alternative streaming methods <>` with the NWB Insector API.
 .. [2] More generally, you are able to specify any S3 path to any bucket to which you have the proper AWS access credentials for.
 
 
