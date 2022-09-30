@@ -68,10 +68,13 @@ While the section explaining :ref:`basic steaming of a DANDI set<simple_streamin
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
 
-.. rubric:: Notes
+.. note::
 
-.. [1] Since the :py:attr:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming-tutorial:`alternative streaming methods <>` with the NWB Insector API.
-.. [2] More generally, you are able to specify any S3 path to any bucket to which you have the proper AWS access credentials for.
+    Since the :py:attr:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming-tutorial:`alternative streaming methods <>` with the NWB Insector API.
+
+.. note::
+
+    More generally, you are able to specify any S3 path to any bucket to which you have the proper AWS access credentials for.
 
 
 
