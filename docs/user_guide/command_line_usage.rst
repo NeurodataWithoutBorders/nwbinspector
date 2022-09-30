@@ -17,7 +17,7 @@ You may then run the NWBInspector via the command line via the following usages
 which should quickly display a basic report to your console window.
 
 
-All available options for the CLI may be viewed by calling :code:`nwbinspector --help`. We will now highlight some of
+All available options for the CLI may be viewed by calling :bash:`nwbinspector --help`. We will now highlight some of
 the most useful of these options.
 
 
