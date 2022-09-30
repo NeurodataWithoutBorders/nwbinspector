@@ -1,6 +1,3 @@
-.. role:: bash(code)
-   :language: bash
-
 Using the Command Line Interface (CLI)
 ======================================
 
