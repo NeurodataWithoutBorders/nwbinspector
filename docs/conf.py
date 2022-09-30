@@ -35,6 +35,16 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
+# For in-line code highlights
+rst_prolog = """
+.. role:: python(code)
+    :language: python
+    :class: highlight
+
+.. role:: bash(code)
+   :language: bash
+"""
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------
