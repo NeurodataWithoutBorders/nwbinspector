@@ -14,4 +14,4 @@ exclude: ^docs/
     rev: 5.8.0
     hooks:
     -   id: isort
-        exclude: ^nwbinspector/__init__\.py$
+        exclude: nwbinspector/__init__.py
