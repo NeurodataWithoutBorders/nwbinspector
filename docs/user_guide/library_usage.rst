@@ -12,8 +12,7 @@ InspectorMesssage objects
 In order to understand the output of the core functions, we must first explain the most important data structure in our
 library, the :py:class:`~nwbinspector.register_checks.InspectorMessage`. This is a standalone data class that contains
 all values that could be useful or related to a detected Best Practice issue. These values include the text-based
-:paramref:`~nwbinspector.register_checks.InspectorMessage.message` displayed in the report, the ``importance`` of the check (how crucial it is to fix), the ``object_name``
-and ``object_type`` that triggered the issue, the ``location`` of that object within the NWBFile, and the ``file_path``
+:paramref:`~nwbinspector.register_checks.InspectorMessage.message` displayed in the report, the :paramref:`~nwbinspector.register_checks.InspectorMessage.importance` of the check (how crucial it is to fix), the :paramref:`~nwbinspector.register_checks.InspectorMessage.object_name` and :paramref:`~nwbinspector.register_checks.InspectorMessage.object_type` that triggered the issue, the :paramref:`~nwbinspector.register_checks.InspectorMessage.location` of that object within the NWBFile, and the :paramref:`~nwbinspector.register_checks.InspectorMessage.file_path`
 of the NWBFile relative to the directory the inspection function was called from.
 
 
