@@ -24,6 +24,7 @@ master_doc = "index"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
@@ -34,16 +35,6 @@ html_css_files = [
 html_theme_options = {
     "collapse_navigation": False,
 }
-
-# For in-line code highlights
-rst_prolog = """
-.. role:: python(code)
-    :language: python
-    :class: highlight
-
-.. role:: bash(code)
-   :language: bash
-"""
 
 # --------------------------------------------------
 # Extension configuration
