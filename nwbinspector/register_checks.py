@@ -43,7 +43,7 @@ class InspectorMessage:
     Parameters
     ----------
     :param message: A message that informs the user of the violation.
-    :type: str
+    :type message: str
     severity : Severity, optional
         If a check of non-CRITICAL importance has some basis of comparison, such as magnitude of affected data, then
         the developer of the check may set the severity as Severity.HIGH or Severity.LOW by calling
