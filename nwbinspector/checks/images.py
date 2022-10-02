@@ -1,3 +1,4 @@
+"""Checks specific to the Images neurodata type."""
 from hdmf.utils import get_data_shape
 
 from pynwb.base import Images
