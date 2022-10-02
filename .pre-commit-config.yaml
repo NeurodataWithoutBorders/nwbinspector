@@ -9,4 +9,9 @@ repos:
     rev: 22.8.0
     hooks:
     -   id: black
-        exclude: ^docs/
+        exclude: ^docs/*$
+-   repo: https://github.com/PyCQA/isort
+    rev: 5.8.0
+    hooks:
+    -   id: isort
+        exclude: ^docs/*$
