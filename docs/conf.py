@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
     "sphinx_copybutton",
+    "sphinx_paramlinks",
 ]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -60,6 +61,9 @@ autodoc_default_options = {
     "toctree": True,
 }
 add_module_names = False
+
+# Parameter links
+paramlinks_hyperlink_param = "name"
 
 
 def add_refs_to_docstrings(app, what, name, obj, options, lines):
