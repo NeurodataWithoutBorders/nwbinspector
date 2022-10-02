@@ -1,13 +1,10 @@
-from pynwb.behavior import SpatialSeries, CompassDirection
 import numpy as np
+from pynwb.behavior import CompassDirection, SpatialSeries
 
-from nwbinspector import InspectorMessage, Importance
+from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks.behavior import (
-    check_compass_direction_unit,
-    check_spatial_series_dims,
-    check_spatial_series_degrees_magnitude,
-    check_spatial_series_radians_magnitude,
-)
+    check_compass_direction_unit, check_spatial_series_degrees_magnitude,
+    check_spatial_series_dims, check_spatial_series_radians_magnitude)
 
 
 def test_check_spatial_series_dims():

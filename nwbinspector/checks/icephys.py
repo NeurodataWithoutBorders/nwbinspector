@@ -1,6 +1,6 @@
 from pynwb.icephys import IntracellularElectrode
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=IntracellularElectrode)

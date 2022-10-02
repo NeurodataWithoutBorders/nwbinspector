@@ -1,18 +1,17 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 import os
 import sys
-from typing import Dict, List, Optional, Union
-from pathlib import Path
-from enum import Enum
-from datetime import datetime
-from platform import platform
 from collections import defaultdict
-
-from natsort import natsorted
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from platform import platform
+from typing import Dict, List, Optional, Union
 
 import numpy as np
+from natsort import natsorted
 
-from .register_checks import InspectorMessage, Importance
+from .register_checks import Importance, InspectorMessage
 from .utils import FilePathType, get_package_version
 
 

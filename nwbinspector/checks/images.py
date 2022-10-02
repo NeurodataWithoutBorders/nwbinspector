@@ -1,8 +1,7 @@
 from hdmf.utils import get_data_shape
-
 from pynwb.base import Images
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 
 try:
     from pynwb.base import Images

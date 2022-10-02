@@ -1,15 +1,13 @@
-from jsonschema import ValidationError
 from unittest import TestCase
 
-from nwbinspector import (
-    Importance,
-    check_small_dataset_compression,
-    check_regular_timestamps,
-    check_data_orientation,
-    check_timestamps_match_first_dimension,
-    available_checks,
-)
-from nwbinspector.nwbinspector import validate_config, configure_checks, _copy_function, load_config
+from jsonschema import ValidationError
+
+from nwbinspector import (Importance, available_checks, check_data_orientation,
+                          check_regular_timestamps,
+                          check_small_dataset_compression,
+                          check_timestamps_match_first_dimension)
+from nwbinspector.nwbinspector import (_copy_function, configure_checks,
+                                       load_config, validate_config)
 
 
 class TestCheckConfiguration(TestCase):

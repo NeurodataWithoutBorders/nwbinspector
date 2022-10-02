@@ -3,7 +3,7 @@ from pathlib import Path
 
 from pynwb.image import ImageSeries
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 from ..tools import get_nwbfile_path_from_internal_object
 
 

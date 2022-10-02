@@ -1,32 +1,22 @@
-from uuid import uuid4
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_experimenter_exists,
-    check_experimenter_form,
-    check_experiment_description,
-    check_institution,
-    check_keywords,
-    check_doi_publications,
-    check_subject_exists,
-    check_subject_id_exists,
-    check_subject_sex,
-    check_subject_age,
-    check_subject_proper_age_range,
-    check_subject_species_exists,
-    check_subject_species_latin_binomial,
-    check_processing_module_name,
-    check_session_start_time_old_date,
-    check_session_start_time_future_date,
-    PROCESSING_MODULE_CONFIG,
-)
+from nwbinspector import (PROCESSING_MODULE_CONFIG, Importance,
+                          InspectorMessage, check_doi_publications,
+                          check_experiment_description,
+                          check_experimenter_exists, check_experimenter_form,
+                          check_institution, check_keywords,
+                          check_processing_module_name,
+                          check_session_start_time_future_date,
+                          check_session_start_time_old_date, check_subject_age,
+                          check_subject_exists, check_subject_id_exists,
+                          check_subject_proper_age_range, check_subject_sex,
+                          check_subject_species_exists,
+                          check_subject_species_latin_binomial)
 from nwbinspector.tools import make_minimal_nwbfile
-
 
 minimal_nwbfile = make_minimal_nwbfile()
 

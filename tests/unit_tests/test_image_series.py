@@ -1,19 +1,16 @@
-from unittest import TestCase
-from tempfile import mkdtemp
-from shutil import rmtree
 from pathlib import Path
+from shutil import rmtree
+from tempfile import mkdtemp
+from unittest import TestCase
 
 import numpy as np
 from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_image_series_external_file_valid,
-    check_image_series_external_file_relative,
-    check_image_series_data_size,
-)
+from nwbinspector import (Importance, InspectorMessage,
+                          check_image_series_data_size,
+                          check_image_series_external_file_relative,
+                          check_image_series_external_file_valid)
 from nwbinspector.tools import make_minimal_nwbfile
 
 

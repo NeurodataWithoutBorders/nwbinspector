@@ -1,7 +1,7 @@
 """Helper functions for internal use across the testing suite."""
 import os
 from distutils.util import strtobool
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 from .tools import check_streaming_enabled
 from .utils import is_module_installed

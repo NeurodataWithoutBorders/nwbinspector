@@ -1,12 +1,10 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 import numpy as np
-
-from pynwb.misc import Units
-from pynwb.ecephys import ElectricalSeries
-
 from hdmf.utils import get_data_shape
+from pynwb.ecephys import ElectricalSeries
+from pynwb.misc import Units
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)

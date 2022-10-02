@@ -1,16 +1,16 @@
 """Helper functions for internal use that rely on external dependencies (i.e., pynwb)."""
 import re
-from uuid import uuid4
-from datetime import datetime
-from typing import Optional, Dict, Tuple
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
+from typing import Dict, Optional, Tuple
 from urllib import request
+from uuid import uuid4
 from warnings import warn
 
 import h5py
 from pynwb import NWBFile
 
-from .utils import is_module_installed, calculate_number_of_cpu
+from .utils import calculate_number_of_cpu, is_module_installed
 
 
 def make_minimal_nwbfile():
