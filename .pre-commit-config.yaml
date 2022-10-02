@@ -20,5 +20,8 @@ repos:
                 docs/|
                 tests/|
                 pyproject.toml$|
-                /__init__.py$
+                nwbinspector/__init__.py$|
+                nwbinspector/checks/__init__.py$
+                nwbinspector/version.py$|
+                setup.py$
             )
