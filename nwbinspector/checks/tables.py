@@ -2,9 +2,9 @@
 from numbers import Real
 from typing import List, Optional
 
+import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from hdmf.utils import get_data_shape
-import numpy as np
 from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import Importance, InspectorMessage, register_check

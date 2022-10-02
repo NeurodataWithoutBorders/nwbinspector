@@ -1,25 +1,25 @@
 """Primary functions for inspecting NWBFiles."""
+import importlib
+import json
+import os
+import re
+import traceback
 from collections import defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from distutils.util import strtobool
 from enum import Enum
-import importlib
-import json
-import os
 from pathlib import Path
-import re
-import traceback
 from types import FunctionType
 from typing import List, Optional, Union
 from warnings import filterwarnings, warn
 
 import click
 import jsonschema
-from natsort import natsorted
 import pynwb
-from tqdm import tqdm
 import yaml
+from natsort import natsorted
+from tqdm import tqdm
 
 from . import available_checks
 from .inspector_tools import (

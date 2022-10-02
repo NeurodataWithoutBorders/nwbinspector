@@ -1,7 +1,7 @@
 import numpy as np
-from packaging import version
 import pynwb
 import pytest
+from packaging import version
 
 from nwbinspector import (
     Importance,

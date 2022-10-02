@@ -1,7 +1,7 @@
 """Helper functions for internal use that rely on external dependencies (i.e., pynwb)."""
+import re
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
-import re
 from typing import Dict, Optional, Tuple
 from urllib import request
 from uuid import uuid4

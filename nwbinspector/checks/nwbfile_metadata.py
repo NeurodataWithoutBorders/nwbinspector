@@ -1,6 +1,6 @@
 """Check functions that examine general NWBFile metadata."""
-from datetime import datetime
 import re
+from datetime import datetime
 
 from pandas import Timedelta
 from pynwb import NWBFile, ProcessingModule

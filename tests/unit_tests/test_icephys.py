@@ -1,7 +1,7 @@
+import pytest
 from packaging.version import Version
 from pynwb.device import Device
 from pynwb.icephys import IntracellularElectrode
-import pytest
 
 from nwbinspector import (
     Importance,

@@ -1,9 +1,9 @@
 from datetime import datetime
 from uuid import uuid4
 
-from hdmf.testing import TestCase
 import numpy as np
 import pynwb
+from hdmf.testing import TestCase
 
 from nwbinspector.inspector_tools import organize_messages
 from nwbinspector.register_checks import Importance, InspectorMessage, Severity

@@ -1,6 +1,6 @@
 import numpy as np
-from pynwb.image import GrayscaleImage
 import pytest
+from pynwb.image import GrayscaleImage
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks.images import (

@@ -2,8 +2,8 @@ from datetime import datetime
 from unittest import TestCase
 from uuid import uuid4
 
-from hdmf.common.table import DynamicTable, DynamicTableRegion
 import numpy as np
+from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units

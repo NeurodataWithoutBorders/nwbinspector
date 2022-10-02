@@ -1,17 +1,17 @@
-from datetime import datetime
 import os
+from datetime import datetime
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
 from unittest import TestCase
 
+import numpy as np
+import pytest
 from hdmf.common import DynamicTable
 from natsort import natsorted
-import numpy as np
 from pynwb import NWBHDF5IO, NWBFile, TimeSeries
 from pynwb.behavior import Position, SpatialSeries
 from pynwb.file import TimeIntervals
-import pytest
 
 from nwbinspector import (
     Importance,

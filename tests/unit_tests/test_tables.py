@@ -2,8 +2,8 @@ import json
 import platform
 from unittest import TestCase
 
-from hdmf.common import DynamicTable, DynamicTableRegion
 import numpy as np
+from hdmf.common import DynamicTable, DynamicTableRegion
 from packaging import version
 from pynwb.file import Device, ElectrodeGroup, ElectrodeTable, TimeIntervals, Units
 
