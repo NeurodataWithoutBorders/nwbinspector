@@ -18,5 +18,6 @@ repos:
             (?x)^(
                 docs/|
                 tests/|
-                pyproject.toml$
+                pyproject.toml$|
+                nwbinspector/__init__.py$
             )
