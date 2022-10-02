@@ -1,3 +1,4 @@
+"""Checks specific to intracellular electrophysiology neurodata types."""
 from pynwb.icephys import IntracellularElectrode
 
 from ..register_checks import register_check, Importance, InspectorMessage
