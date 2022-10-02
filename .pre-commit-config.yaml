@@ -19,4 +19,4 @@ repos:
                 docs/|
                 tests/|
                 pyproject.toml
-            )$
+            )
