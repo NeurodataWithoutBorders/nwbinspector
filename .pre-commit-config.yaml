@@ -15,8 +15,6 @@ repos:
     hooks:
     -   id: pydocstyle
         additional_dependencies: ["toml"]
-        args:
-        - "--ignore=D401"  # D401='imperative mood'
         exclude: |
             (?x)^(
                 docs/|
