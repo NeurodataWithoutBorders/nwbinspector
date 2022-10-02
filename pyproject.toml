@@ -25,3 +25,9 @@ force-exclude = '''
    /docs/*
 )\
 '''
+
+[tool.pydocstyle]
+inherit = false
+ignore = D401
+match = .*\.py
+convention = numpy
