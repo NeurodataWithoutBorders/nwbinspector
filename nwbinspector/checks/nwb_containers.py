@@ -66,8 +66,7 @@ def check_small_dataset_compression(
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     """
-    Check if any NWBContainer has optional fields that are written as an empty string. These values should just be
-    omitted instead
+    Check if an NWBContainer has optional fields written as empty strings; these values should just be omitted instead.
 
     Parameters
     ----------

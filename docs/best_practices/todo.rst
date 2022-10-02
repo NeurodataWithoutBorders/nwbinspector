@@ -72,3 +72,19 @@ TODO
 ----
 
 Very similar to the electrode table one.
+
+
+.. _best_practice_order_of_images_unique:
+
+TODO
+----
+
+Add short section for this
+
+
+.. _best_practice_order_of_images_len:
+
+TODO
+----
+
+Can probably combine this with above.
