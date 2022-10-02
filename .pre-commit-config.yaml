@@ -18,5 +18,5 @@ repos:
             (?x)^(
                 docs/|
                 tests/|
-                pyproject.toml
+                pyproject.toml$
             )
