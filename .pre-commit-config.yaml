@@ -20,5 +20,5 @@ repos:
                 docs/|
                 tests/|
                 pyproject.toml$|
-                nwbinspector/__init__.py$
+                /__init__.py$
             )
