@@ -1,33 +1,42 @@
 """Primary functions for inspecting NWBFiles."""
-import importlib
-import json
-import os
-import re
-import traceback
 from collections import defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from distutils.util import strtobool
 from enum import Enum
+import importlib
+import json
+import os
 from pathlib import Path
+import re
+import traceback
 from types import FunctionType
 from typing import List, Optional, Union
 from warnings import filterwarnings, warn
 
 import click
 import jsonschema
-import pynwb
-import yaml
 from natsort import natsorted
+import pynwb
 from tqdm import tqdm
+import yaml
 
 from . import available_checks
-from .inspector_tools import (format_messages, get_report_header,
-                              print_to_console, save_report)
+from .inspector_tools import (
+    format_messages,
+    get_report_header,
+    print_to_console,
+    save_report,
+)
 from .register_checks import Importance, InspectorMessage
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import (FilePathType, OptionalListOfStrings, PathType,
-                    calculate_number_of_cpu, robust_s3_read)
+from .utils import (
+    FilePathType,
+    OptionalListOfStrings,
+    PathType,
+    calculate_number_of_cpu,
+    robust_s3_read,
+)
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 

@@ -1,10 +1,12 @@
 import numpy as np
-import pytest
 from pynwb.image import GrayscaleImage
+import pytest
 
 from nwbinspector import Importance, InspectorMessage
-from nwbinspector.checks.images import (check_order_of_images_len,
-                                        check_order_of_images_unique)
+from nwbinspector.checks.images import (
+    check_order_of_images_len,
+    check_order_of_images_unique,
+)
 
 try:
     from pynwb.base import ImageReferences, Images

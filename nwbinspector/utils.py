@@ -1,10 +1,10 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
-import json
-import os
-import re
 from functools import lru_cache
 from importlib import import_module
+import json
+import os
 from pathlib import Path
+import re
 from time import sleep
 from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
 

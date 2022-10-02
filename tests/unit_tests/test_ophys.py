@@ -2,19 +2,28 @@ from datetime import datetime
 from unittest import TestCase
 from uuid import uuid4
 
-import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
+import numpy as np
 from pynwb import NWBFile
 from pynwb.device import Device
-from pynwb.ophys import (ImageSegmentation, ImagingPlane, OpticalChannel,
-                         PlaneSegmentation, RoiResponseSeries, TwoPhotonSeries)
+from pynwb.ophys import (
+    ImageSegmentation,
+    ImagingPlane,
+    OpticalChannel,
+    PlaneSegmentation,
+    RoiResponseSeries,
+    TwoPhotonSeries,
+)
 
 from nwbinspector import (
-    Importance, InspectorMessage, check_emission_lambda_in_nm,
+    Importance,
+    InspectorMessage,
+    check_emission_lambda_in_nm,
     check_excitation_lambda_in_nm,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
-    check_roi_response_series_link_to_plane_segmentation)
+    check_roi_response_series_link_to_plane_segmentation,
+)
 
 
 class TestCheckRoiResponseSeries(TestCase):

@@ -1,7 +1,11 @@
 """Check functions specific to optical electrophysiology neurodata types."""
 from hdmf.utils import get_data_shape
-from pynwb.ophys import (ImagingPlane, OpticalChannel, PlaneSegmentation,
-                         RoiResponseSeries)
+from pynwb.ophys import (
+    ImagingPlane,
+    OpticalChannel,
+    PlaneSegmentation,
+    RoiResponseSeries,
+)
 
 from ..register_checks import Importance, InspectorMessage, register_check
 

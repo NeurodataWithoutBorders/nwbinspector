@@ -1,5 +1,5 @@
-import sys
 from pathlib import Path
+import sys
 
 sys.path.append(str(Path(__file__).parent))
 from conf_extlinks import extlinks, intersphinx_mapping

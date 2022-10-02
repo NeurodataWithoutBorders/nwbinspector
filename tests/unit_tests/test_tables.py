@@ -2,19 +2,23 @@ import json
 import platform
 from unittest import TestCase
 
-import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
+import numpy as np
 from packaging import version
-from pynwb.file import (Device, ElectrodeGroup, ElectrodeTable, TimeIntervals,
-                        Units)
+from pynwb.file import Device, ElectrodeGroup, ElectrodeTable, TimeIntervals, Units
 
-from nwbinspector import (Importance, InspectorMessage, check_col_not_nan,
-                          check_column_binary_capability,
-                          check_dynamic_table_region_data_validity,
-                          check_empty_table, check_single_row,
-                          check_table_values_for_dict,
-                          check_time_interval_time_columns,
-                          check_time_intervals_stop_after_start)
+from nwbinspector import (
+    Importance,
+    InspectorMessage,
+    check_col_not_nan,
+    check_column_binary_capability,
+    check_dynamic_table_region_data_validity,
+    check_empty_table,
+    check_single_row,
+    check_table_values_for_dict,
+    check_time_interval_time_columns,
+    check_time_intervals_stop_after_start,
+)
 from nwbinspector.utils import get_package_version
 
 

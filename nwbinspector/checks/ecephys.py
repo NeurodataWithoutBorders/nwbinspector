@@ -1,6 +1,6 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
-import numpy as np
 from hdmf.utils import get_data_shape
+import numpy as np
 from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
 

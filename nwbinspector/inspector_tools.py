@@ -1,15 +1,15 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
-import os
-import sys
 from collections import defaultdict
 from datetime import datetime
 from enum import Enum
+import os
 from pathlib import Path
 from platform import platform
+import sys
 from typing import Dict, List, Optional, Union
 
-import numpy as np
 from natsort import natsorted
+import numpy as np
 
 from .register_checks import Importance, InspectorMessage
 from .utils import FilePathType, get_package_version

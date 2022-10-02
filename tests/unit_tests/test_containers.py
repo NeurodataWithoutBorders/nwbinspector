@@ -8,10 +8,13 @@ import h5py
 import numpy as np
 from pynwb import NWBContainer, NWBFile
 
-from nwbinspector import (Importance, InspectorMessage,
-                          check_empty_string_for_optional_attribute,
-                          check_large_dataset_compression,
-                          check_small_dataset_compression)
+from nwbinspector import (
+    Importance,
+    InspectorMessage,
+    check_empty_string_for_optional_attribute,
+    check_large_dataset_compression,
+    check_small_dataset_compression,
+)
 from nwbinspector.register_checks import Severity
 
 
