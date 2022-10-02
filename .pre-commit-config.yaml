@@ -14,4 +14,8 @@ repos:
     rev: 6.1.1
     hooks:
     -   id: pydocstyle
-        exclude: ^docs/
+        exclude: |
+            (?x)^(
+                docs/|
+                tests/
+            )$
