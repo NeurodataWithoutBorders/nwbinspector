@@ -17,5 +17,6 @@ repos:
         exclude: |
             (?x)^(
                 docs/|
-                tests/
-            )
+                tests/|
+                pyproject.toml
+            )$
