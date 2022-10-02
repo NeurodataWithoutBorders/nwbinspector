@@ -8,6 +8,10 @@ NWBFile Metadata
 ----------------
 .. automodule:: nwbinspector.checks.nwbfile_metadata
 
+Behavior
+--------
+.. automodule:: nwbinspector.checks.behavior
+
 NWB Containers
 --------------
 .. automodule:: nwbinspector.checks.nwb_containers

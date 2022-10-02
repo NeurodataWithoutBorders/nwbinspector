@@ -1,3 +1,4 @@
+"""Checks specific to optogenetic neurodata types."""
 from pynwb.ogen import OptogeneticSeries, OptogeneticStimulusSite
 
 from ..register_checks import register_check, Importance, InspectorMessage

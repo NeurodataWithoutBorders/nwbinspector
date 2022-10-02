@@ -88,3 +88,19 @@ TODO
 ----
 
 Can probably combine this with above.
+
+
+.. _best_practice_spatial_series:
+
+TODO
+----
+
+Need to write a section about the dims and units for SpatialSeries.
+
+
+.. _best_practice_plane_segmentation_image_mask_shape_against_ref_images:
+
+TODO
+----
+
+Need to write a section (or add a line in another BP section) about consistency of image mask shape with reference images.
