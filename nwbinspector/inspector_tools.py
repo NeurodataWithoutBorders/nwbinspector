@@ -114,6 +114,7 @@ class MessageFormatter:
         detailed: bool = False,
         formatter_options: Optional[FormatterOptions] = None,
     ):
+        """Helper class for formatting a custom report."""
         self.nmessages = len(messages)
         self.nfiles = len(set(message.file_path for message in messages))
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
