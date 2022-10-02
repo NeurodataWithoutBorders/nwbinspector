@@ -35,6 +35,9 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
+# For detecting missing links on PRs
+nitpicky = True
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------
@@ -60,7 +63,6 @@ autodoc_default_options = {
     "toctree": True,
 }
 add_module_names = False
-
 
 def add_refs_to_docstrings(app, what, name, obj, options, lines):
     if what == "function" and obj.__name__.startswith("check_") and "Best Practice: " not in obj.__doc__:
