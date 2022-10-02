@@ -27,7 +27,7 @@ force-exclude = '''
 '''
 
 [tool.pydocstyle]
-inherit = false
-ignore = D401
-match = .*\.py
-convention = numpy
+inherit = 'false'
+ignore = 'D401'  # D401='imperative mood'
+match = '.*\.py'
+convention = 'numpy'
