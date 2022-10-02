@@ -1,5 +1,4 @@
 repos:
-exclude: ^docs/
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:
@@ -10,8 +9,13 @@ exclude: ^docs/
     rev: 22.8.0
     hooks:
     -   id: black
+        exclude: ^docs/
 -   repo: https://github.com/PyCQA/isort
     rev: 5.8.0
     hooks:
     -   id: isort
-        exclude: nwbinspector/__init__.py
+        exclude: |
+            (?x)^(
+                docs/|
+                nwbinspector/__init__.py
+            )$
