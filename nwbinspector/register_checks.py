@@ -42,7 +42,7 @@ class InspectorMessage:
 
     Parameters
     ----------
-    message : str
+    :param message: : str
         A message that informs the user of the violation.
     severity : Severity, optional
         If a check of non-CRITICAL importance has some basis of comparison, such as magnitude of affected data, then
