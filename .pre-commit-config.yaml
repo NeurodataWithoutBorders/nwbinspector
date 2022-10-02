@@ -14,9 +14,11 @@ repos:
     rev: 6.1.1
     hooks:
     -   id: pydocstyle
+        additional_dependencies: ["toml"]
         exclude: |
             (?x)^(
                 docs/|
                 tests/|
-                pyproject.toml
-            )$
+                pyproject.toml$|
+                /__init__.py$
+            )
