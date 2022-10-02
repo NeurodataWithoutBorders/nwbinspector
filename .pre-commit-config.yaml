@@ -14,4 +14,4 @@ repos:
     rev: 5.8.0
     hooks:
     -   id: isort
-        exclude: ^docs/*$
+        exclude: ^(docs/*|nwbinspector/__init__\.py)$
