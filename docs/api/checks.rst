@@ -36,6 +36,10 @@ Optogenetics (ogen)
 -------------------
 .. automodule:: nwbinspector.checks.ogen
 
+Images
+------
+.. automodule:: nwbinspector.checks.images
+
 ImageSeries
 -----------
 .. automodule:: nwbinspector.checks.image_series
