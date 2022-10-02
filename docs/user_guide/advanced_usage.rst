@@ -55,8 +55,7 @@ useful when the underlying dataset is quite large and thus impractical to downlo
 TB scale!
 
 The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
-directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
-S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
+directly into our core inspection functions, and the :paramref:`~nwbinspector.nwbinspector.inspect_all.path` or :paramref:`~nwbinspector.nwbinspector.inspect_nwb.nwbfile_path` arguments in this case become the S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
 
 .. code-block:: python
 
@@ -87,6 +86,4 @@ Reports aggregate messages into a readable form.
 
     print("\n".join(format_messages(messages, levels=["importance", "file_path"])))
 
-The `levels` argument can be altered to change the nesting structure of the report. Any combination and order
-of :py:class:`~nwbinspector.register_checks.InspectorMessage` attributes can be utilized to produce a more easily
-readable structure.
+The :paramref:`~nwbinspector.inspector_tools.format_messages.levels` argument can be altered to change the nesting structure of the report. Any combination and order of :py:class:`~nwbinspector.register_checks.InspectorMessage` attributes can be utilized to produce a more easily readable structure.

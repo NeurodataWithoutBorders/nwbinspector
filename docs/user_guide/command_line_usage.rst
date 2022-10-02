@@ -25,12 +25,11 @@ the most useful of these options.
 Formatting the Report
 ---------------------
 
-The basic report layout organizes by :py:attr:`~nwbinspector.register_check.InspectorMessage.importance` first and
-:py:attr:`~nwbinspector.register_check.InspectorMessage.file_path` last.
+The basic report layout organizes by :paramref:`~nwbinspector.register_check.InspectorMessage.importance` first and
+:paramref:`~nwbinspector.register_check.InspectorMessage.file_path` last.
 
 However, the NWBInspector supports more general organization as defined by the `--levels` flag. To use this flag,
-you must pass a series a comma-separated words that correspond to any attributes of the
-:py:class:`~nwbinspector.register_check.InspectorMessage` in any order.
+you must pass a series a comma-separated words that correspond to any attributes of the :py:class:`~nwbinspector.register_checks.InspectorMessage` in any order.
 
 For example,
 
