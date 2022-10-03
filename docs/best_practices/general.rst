@@ -60,7 +60,7 @@ Check function: :py:meth:`~nwbinspector.checks.general.check_description`
 
 
 
-.. _best_practice_empty_string_for_optional_attribute:
+.. _best_practice_placeholders:
 
 Empty Strings
 ~~~~~~~~~~~~~
