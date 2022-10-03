@@ -37,7 +37,10 @@ measurement for that data, using the appropriate type from the
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_missing_unit`
 
+It is recommended that the **formatting** of SI units be `CMIXF-12 <https://people.csail.mit.edu/jaffer/MIXF/CMIXF-12>`_ compliant.
+See :ref:`units` for more information.
 
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_unit_formatting`
 
 .. _best_practice_time_series_global_time_reference:
 
