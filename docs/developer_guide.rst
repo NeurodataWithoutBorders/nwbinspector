@@ -13,6 +13,12 @@ build a new data interface and a graphical overview of the object structure can 
 Otherwise feel free to raise a bug report, documentation mistake, or general feature request for our maintainers to address!
 
 
+Coding Style and pre-commit
+---------------------------
+
+We use the black coding style with parameters defined in the ``pyproject.toml`` configuration file. We use an automated pre-commit bot to enforce these on the main repo, but contributions from external forks would either have to grant bot permissions on their own fork (via :pre-commit-bot:`the pre-commit bot website <>`) or run pre-commit manually. For instructions to install pre-commit, as well as some other minor coding styles we follow, refer to the :neuroconv-coding-style:`NeuroConv style guide <>`.
+
+
 
 .. _adding_custom_checks:
 
