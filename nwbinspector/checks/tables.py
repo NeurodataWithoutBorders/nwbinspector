@@ -179,7 +179,7 @@ def check_single_row(
 def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
     """
     Check if any values in a row or column of a table contain a string casting of a Python dictionary.
-    
+
     Best Practice: :ref:`best_practice_table_values`
     """
     for column in table.columns:
@@ -200,7 +200,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
     """
     Check if all of the values in a single column of a table are NaN.
-    
+
     Best Practice: :ref:`best_practice_table_values`
     """
     for column in table.columns:
