@@ -72,3 +72,14 @@ should therefore be aligned to the ``timestamps_reference_time`` of the :ref:`nw
 ``timestamps_reference_time`` itself is not set to the earliest recording time during the session.
 
 Check function: :py:meth:`~nwbinspector.checks.ecephys.check_negative_spike_times`
+
+
+
+.. _best_practice_spike_times_not_in_unobserved_interval:
+
+Observation Intervals
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``obs_intervals`` of :ref:`nwb-schema:sec-units-src` field is used to indicate periods of time where the underlying electrical signal(s) moved outside the region of view. Therefore, there should not be any identified spike times for units matched to those electrical signal(s) occuring outside of these defined ``obs_intervals``.
+
+Check function: :py:meth:`~nwbinspector.checks.ecephys.check_spike_times_not_in_unobserved_interval`
