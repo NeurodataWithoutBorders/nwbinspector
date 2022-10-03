@@ -13,7 +13,11 @@ def check_name_slashes(obj):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
 def check_description(obj):
-    """Check if the description is a not missing or a placeholder."""
+    """
+    Check if the description is a not missing or a placeholder.
+    
+    Best Practice: :ref:`best_practice_placeholders`
+    """
     if not hasattr(obj, "description"):
         return
     if obj.description is None or obj.description.strip(" ") == "":
