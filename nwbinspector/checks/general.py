@@ -15,7 +15,7 @@ def check_name_slashes(obj):
 def check_description(obj):
     """
     Check if the description is a not missing or a placeholder.
-    
+
     Best Practice: :ref:`best_practice_placeholders`
     """
     if not hasattr(obj, "description"):
