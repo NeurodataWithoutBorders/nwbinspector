@@ -29,19 +29,6 @@ TODO
 Add small section for this.
 
 
-.. _best_practice_table_values_for_dict:
-
-TODO
-----
-
-This is the JSON one for table values. Need to explain.
-
-.. _best_practice_col_not_nan:
-
-TODO
-----
-
-Small section on this. Can maybe combine with above.
 
 .. _best_practice_intracellular_electrode_cell_id_exists:
 
