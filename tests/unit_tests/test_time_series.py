@@ -12,6 +12,7 @@ from nwbinspector import (
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
+    check_unit_formatting,
 )
 
 try:
@@ -197,3 +198,50 @@ def test_check_resolution_fail():
         object_name="test",
         location="/",
     )
+
+
+def test_check_data_unit_fail():
+    time_series = pynwb.TimeSeries(
+        name="test",
+        unit="test_unit",
+        data=[1, 2, 3],
+        timestamps=[1, 2, 3],
+    )
+    assert check_unit_formatting(time_series) == InspectorMessage(
+        message="'unit' should adhere to CMIXF-12 format instead of test_unit.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_unit_formatting",
+        object_type="TimeSeries",
+        object_name="test",
+        location="/",
+    )
+
+
+def test_check_data_unit_pass():
+    time_series = pynwb.TimeSeries(
+        name="test",
+        unit="m",
+        data=[1, 2, 3],
+        timestamps=[1, 2, 3],
+    )
+    assert check_unit_formatting(time_series) is None
+
+
+def test_check_data_unit_with_derived_unit():
+    time_series = pynwb.TimeSeries(
+        name="m/s",  # hdmf ValueError
+        unit="a.u.",
+        data=[1, 2, 3],
+        timestamps=[1, 2, 3],
+    )
+    assert check_unit_formatting(time_series) is None
+
+
+def test_check_data_unit_with_arbitrary_unit():
+    time_series = pynwb.TimeSeries(
+        name="test",
+        unit="a.u.",
+        data=[1, 2, 3],
+        timestamps=[1, 2, 3],
+    )
+    assert check_unit_formatting(time_series) is None
