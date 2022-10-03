@@ -97,8 +97,11 @@ def check_resolution(time_series: TimeSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_unit_formatting(time_series: TimeSeries):
-    """Check the unit value of a TimeSeries that it complies with CMIXF-12
-    convention for formatting the units."""
+    """
+    Check the unit value of a TimeSeries that it complies with CMIXF-12 convention for formatting the units.
+    
+    Best Practice: :ref:`best_practice_units_of_measurement`
+    """
 
     # Early return for arbitrary units that are unknown or unavailable.
     if time_series.unit == "a.u.":
@@ -107,4 +110,4 @@ def check_unit_formatting(time_series: TimeSeries):
     try:
         parse(text="1"+time_series.unit, debug=False)
     except ValueError:
-        return InspectorMessage(message=f"'unit' should adhere to CMIXF-12 format instead of {time_series.unit}.")
+        return InspectorMessage(message=f"The 'unit' should adhere to CMIXF-12 format instead of '{time_series.unit}'.")
