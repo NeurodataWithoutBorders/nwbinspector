@@ -1,7 +1,7 @@
-"""Check functions that examine any general neurodata_type with the available attrbutes."""
+"""Check functions that examine any general neurodata_type with the available attributes."""
 from ..register_checks import register_check, InspectorMessage, Importance
 
-COMMON_DESCRIPTION_PLACEHOLDERS = ["no description", "no desc", "none"]
+COMMON_DESCRIPTION_PLACEHOLDERS = ["no description", "no desc", "none", "placeholder"]
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=None)
@@ -14,10 +14,9 @@ def check_name_slashes(obj):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=None)
 def check_description(obj):
     """Check if the description is a not missing or a placeholder."""
-    common_description_placeholders = ["no description", "no desc", "none"]
     if not hasattr(obj, "description"):
         return
     if obj.description is None or obj.description.strip(" ") == "":
         return InspectorMessage(message="Description is missing.")
-    if obj.description.lower().strip(".") in common_description_placeholders:
+    if obj.description.lower().strip(".") in COMMON_DESCRIPTION_PLACEHOLDERS:
         return InspectorMessage(message=f"Description ('{obj.description}') is a placeholder.")

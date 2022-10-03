@@ -1,7 +1,7 @@
 import numpy as np
-
 import pynwb
 import pytest
+from packaging import version
 
 from nwbinspector import (
     InspectorMessage,
@@ -14,18 +14,10 @@ from nwbinspector import (
     check_resolution,
     check_unit_formatting,
 )
+from nwbinspector.testing import check_streaming_tests_enabled
+from nwbinspector.utils import get_package_version, robust_s3_read
 
-try:
-    with pynwb.NWBHDF5IO(
-        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
-        mode="r",
-        load_namespaces=True,
-        driver="ros3",
-    ) as io:
-        nwbfile = io.read()
-    HAVE_ROS3 = True
-except ValueError:  # ValueError: h5py was built without ROS3 support, can't use ros3 driver
-    HAVE_ROS3 = False
+STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 def test_check_regular_timestamps():
@@ -130,7 +122,12 @@ def test_check_timestamps_empty_timestamps():
     )
 
 
-def test_check_timestamps_ascending():
+def test_pass_check_timestamps_ascending_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_ascending(time_series) is None
+
+
+def test_check_timestamps_ascending_fail():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         message="test_time_series timestamps are not ascending.",
@@ -140,11 +137,6 @@ def test_check_timestamps_ascending():
         object_name="test_time_series",
         location="/",
     )
-
-
-def test_pass_check_timestamps_ascending():
-    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
-    assert check_timestamps_ascending(time_series) is None
 
 
 def test_check_missing_unit_pass():
@@ -166,7 +158,7 @@ def test_check_missing_unit_fail():
 
 def test_check_positive_resolution_pass():
     time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=3.4)
-    assert check_timestamps_ascending(time_series) is None
+    assert check_resolution(time_series) is None
 
 
 def test_check_unknown_resolution_pass():
@@ -175,17 +167,30 @@ def test_check_unknown_resolution_pass():
         assert check_resolution(time_series) is None
 
 
-@pytest.mark.skipif(not HAVE_ROS3, reason="Needs h5py setup with ROS3.")
+@pytest.mark.skipif(
+    not STREAMING_TESTS_ENABLED or get_package_version("hdmf") >= version.parse("3.3.1"),
+    reason=f"{DISABLED_STREAMING_TESTS_REASON or ''}. Also needs 'hdmf<3.3.1'.",
+)
 def test_check_none_matnwb_resolution_pass():
+    """
+    Special test on the original problematic file found at
+
+    https://dandiarchive.org/dandiset/000065/draft/files?location=sub-Kibbles%2F
+
+    produced with MatNWB, when read with PyNWB~=2.0.1 and HDMF<=3.2.1 contains a resolution value of None.
+    """
     with pynwb.NWBHDF5IO(
         path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
         mode="r",
         load_namespaces=True,
         driver="ros3",
     ) as io:
-        nwbfile = io.read()
-        time_series = nwbfile.processing["video_files"]["video"].time_series["20170203_KIB_01_s1.1.h264"]
-        assert check_resolution(time_series) is None
+        nwbfile = robust_s3_read(command=io.read)
+        time_series = robust_s3_read(
+            command=nwbfile.processing["video_files"]["video"].time_series.get,
+            command_args=["20170203_KIB_01_s1.1.h264"],
+        )
+    assert check_resolution(time_series) is None
 
 
 def test_check_resolution_fail():

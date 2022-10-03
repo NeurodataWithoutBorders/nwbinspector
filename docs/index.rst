@@ -7,16 +7,8 @@ Welcome to the documentation for the NWBInspector!
   :scale: 100 %
   :align: right
 
-NWBInspector is a Python-based package designed to asses the quality of Neurodata Without Borders
-files (NWBFiles) and to suggest improvements for any Best Practice violations that are found.
-
-
-.. note::
-
-    This package is in alpha development; as such, we make every effort towards
-    a stable environment but bugs are known to occur. If you use this software
-    for your own quality assurance purposes and discover any issues throughout
-    the process, please let us know by filing a ticket on our :nwbinspector-issues: page.
+NWBInspector is a Python-based package designed to asses the quality of Neurodata Without Borders (NWB)
+files and based on compliance with Best Practice. This tool is meant as a companion to the PyNWB validator, which checks for strict schema compliance. In contrast, this tool attempts to apply some commonsense rules and heuristics to find data components of a file that pass validation, but are probably incorrect, or suboptimal, or deviate from best practices. In other words, while the PyNWB validator focuses on compliance of the structure of a file with the schema, the inspector focuses on compliance of the actual data with best practices. The NWB Inspector is meant simply as a data review aid. It does not catch all best practice violations, and any warnings it does produce should be checked by a knowledgeable reviewer.
 
 .. toctree::
    :maxdepth: 2

@@ -9,6 +9,7 @@ from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
 from ..utils import (
+    _cache_data_selection,
     format_byte_size,
     is_ascending_series,
     is_dict_in_string,
@@ -55,7 +56,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
     unsorted_cols = []
     for column in time_intervals.columns:
         if column.name[-5:] == "_time":
-            if not is_ascending_series(column, nelems):
+            if not is_ascending_series(column.data, nelems):
                 unsorted_cols.append(column.name)
     if unsorted_cols:
         return InspectorMessage(
@@ -71,6 +72,8 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
 
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
     Parameters
     ----------
     time_intervals: TimeIntervals
@@ -79,7 +82,11 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
     """
-    if np.any(np.asarray(time_intervals["stop_time"][:nelems]) - np.asarray(time_intervals["start_time"][:nelems]) < 0):
+    if np.any(
+        np.asarray(_cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
+        - np.asarray(_cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
+        < 0
+    ):
         return InspectorMessage(
             message=(
                 "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
@@ -106,7 +113,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
             try:
-                unique_values = np.unique(column.data[:nelems])
+                unique_values = np.unique(_cache_data_selection(data=column.data, selection=slice(nelems)))
             except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue
             if unique_values.size != 2:
@@ -174,7 +181,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
-        for string in column.data[:nelems]:
+        for string in _cache_data_selection(data=column.data, selection=slice(nelems)):
             if is_dict_in_string(string=string):
                 message = (
                     f"The column '{column.name}' contains a string value that contains a dictionary! Please "
@@ -183,3 +190,23 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
                 if is_string_json_loadable(string=string):
                     message += " This string is also JSON loadable, so call `json.loads(...)` on the string to unpack."
                 yield InspectorMessage(message=message)
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
+def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
+    """Check if all of the values in a single column of a table are NaN."""
+    for column in table.columns:
+        if (
+            not hasattr(column, "data")
+            or isinstance(column, VectorIndex)
+            or not np.issubdtype(np.array(column[0]).dtype, np.floating)
+        ):
+            continue
+        if nelems is not None and not all(np.isnan(column[:nelems]).flatten()):
+            continue
+
+        slice_by = np.ceil(len(column.data) / nelems).astype(int) if nelems else None
+        message = f"Column '{column.name}' might have all NaN values. Consider removing it from the table."
+        message = message.replace("might have", "has") if nelems is None or slice_by == 1 else message
+        if all(np.isnan(column[slice(0, None, slice_by)]).flatten()):
+            yield InspectorMessage(message=message)

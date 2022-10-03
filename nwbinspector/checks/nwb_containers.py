@@ -13,7 +13,10 @@ def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound:
     """
     If the data in the Container object is a 'large' h5py.Dataset, check if it has compression enabled.
 
-    Will only return an inspector warning if the size of the h5py.Dataset is larger than 20 GB.
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than the
+    gb_lower_bound (default of 20 GB).
+
+    Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
         if not isinstance(field, h5py.Dataset):
@@ -35,7 +38,10 @@ def check_small_dataset_compression(
     """
     If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
 
-    Will only return an inspector warning if the size of the h5py.Dataset is larger than bytes_threshold.
+    Will only return an inspector warning if the size of the h5py.Dataset is larger than mb_lower_bound (default 50 MB)
+    and smaller than gb_upper_bound (default of 20 GB).
+
+    Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
         if not isinstance(field, h5py.Dataset):
@@ -55,3 +61,23 @@ def check_small_dataset_compression(
                     "dataset."
                 ),
             )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
+def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
+    """
+    Check if any NWBContainer has optional fields that are written as an empty string. These values should just be
+    omitted instead
+
+    Parameters
+    ----------
+    nwb_container: NWBContainer
+    """
+    docval_args = type(nwb_container).__init__.__docval__["args"]
+    optional_attrs = [arg["name"] for arg in docval_args if "default" in arg and arg["default"] is None]
+    fields = [attr for attr in optional_attrs if getattr(nwb_container, attr) == ""]
+    for field in fields:
+        yield InspectorMessage(
+            message=f'The attribute "{field}" is optional and you have supplied an empty string. Improve my omitting '
+            "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
+        )

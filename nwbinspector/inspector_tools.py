@@ -13,21 +13,16 @@ from natsort import natsorted
 import numpy as np
 
 from .register_checks import InspectorMessage, Importance
-from .utils import FilePathType
-
-try:
-    from importlib.metadata import version
-
-    inspector_version = version("nwbinspector")
-except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
-    from pkg_resources import get_distribution
-
-    inspector_version = get_distribution("nwbinspector").version
+from .utils import FilePathType, get_package_version
 
 
 def get_report_header():
     """Grab basic information from system at time of report generation."""
-    return dict(Timestamp=str(datetime.now().astimezone()), Platform=platform(), NWBInspector_version=inspector_version)
+    return dict(
+        Timestamp=str(datetime.now().astimezone()),
+        Platform=platform(),
+        NWBInspector_version=get_package_version("nwbinspector"),
+    )
 
 
 def _sort_unique_values(unique_values: list, reverse: bool = False):
@@ -82,15 +77,10 @@ class FormatterOptions:
     """Class structure for defining all free attributes for the design of a report format."""
 
     def __init__(
-        self,
-        indent_size: int = 2,
-        indent: Optional[str] = None,
-        section_headers: List[str] = ["=", "-", "~"],
+        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"]
     ):
-        # TODO
-        # Future custom options could include section break sizes, section-specific indents, etc.
         """
-        Class that defines all the format paramters used by the generic MessageFormatter.
+        Class that defines all the format parameters used by the generic MessageFormatter.
 
         Parameters
         ----------
@@ -107,12 +97,14 @@ class FormatterOptions:
             If levels is shorter than this list, only the first len(levels) of items will be used.
             Defaults to the .rst style for three sub-sections: ["=", "-", "~"]
         """
+        # TODO
+        # Future custom options could include section break sizes, section-specific indents, etc.
         self.indent = indent if indent is not None else " " * indent_size
         self.section_headers = section_headers
 
 
 class MessageFormatter:
-    """For full customization of all format paramters, use this class instead of the 'format_messages' function."""
+    """For full customization of all format parameters, use this class instead of the 'format_messages' function."""
 
     def __init__(
         self,
@@ -233,7 +225,7 @@ class MessageFormatter:
                         self.message_counter += 1
 
     def format_messages(self) -> List[str]:
-        """Deploy recursive addition of sections, termining with message display."""
+        """Deploy recursive addition of sections, terminating with message display."""
         report_header = get_report_header()
         self.formatted_messages.extend(
             [

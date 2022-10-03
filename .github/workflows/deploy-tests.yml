@@ -1,0 +1,18 @@
+name: Deploy tests
+
+on:
+  pull_request:
+
+jobs:
+  assess-file-changes:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
+
+  run-tests:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+
+  run-past-gallery:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version_gallery.yml@dev
