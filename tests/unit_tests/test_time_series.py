@@ -229,8 +229,8 @@ def test_check_data_unit_pass():
 
 def test_check_data_unit_with_derived_unit():
     time_series = pynwb.TimeSeries(
-        name="m/s",  # hdmf ValueError
-        unit="a.u.",
+        name="test",
+        unit="m/s",
         data=[1, 2, 3],
         timestamps=[1, 2, 3],
     )
