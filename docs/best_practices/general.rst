@@ -68,12 +68,3 @@ For mathematical expressions, instead of including the special character in the 
 instead. *E.g.*, instead of "Df/f" use "DfOverF".
 
 Check function: :py:meth:`~nwbinspector.checks.general.check_description`
-
-
-
-.. _best_practice_table_values:
-
-Table Values
-~~~~~~~~~~~~
-
-String-valued table entries should not contain :wikipedia:`serialized representations <Serialization>`, including :wikipedia:`JSON <JSON>`. Instead, these values should be unpacked and used as additional rows or columns of that table. In the event that this might produce a :wikipedia:`jagged array <Jagged_array>`, padding with ``NaN`` values in combination with compression is preferable for user comprehension.
