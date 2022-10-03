@@ -72,7 +72,7 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     Parameters
     ----------
     nwb_container: NWBContainer
-    
+
     Best Practice: :ref:`best_practice_placeholders`
     """
     docval_args = type(nwb_container).__init__.__docval__["args"]
