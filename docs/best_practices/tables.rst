@@ -5,6 +5,14 @@ The :ref:`hdmf-schema:sec-dynamictable` data type stores tabular data. It also a
 degree of flexibility.
 
 
+.. _best_practice_table_values:
+
+Table Values
+~~~~~~~~~~~~
+
+String-valued table entries should not contain :wikipedia:`serialized representations <Serialization>`, including :wikipedia:`JSON <JSON>`. Instead, these values should be unpacked and used as additional rows or columns of that table. In the event that this might produce a :wikipedia:`jagged array <Jagged_array>`, padding with ``NaN`` values in combination with compression is preferable for user comprehension.
+
+
 
 .. _best_practice_single_row:
 
