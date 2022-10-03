@@ -35,3 +35,18 @@ Then, all that is needed for this to be automatically included when you run the 
 the modules flag ``-m`` or ``--modules`` along with the name of your module that contains the custom check. If using
 the library instead, you need only import the ``available_checks`` global variable from your own submodules, or
 otherwise import your check functions after importing the ``nwbinspector`` in your ``__init__.py``.
+
+
+Disable Tests That Require Network Connection
+---------------------------------------------
+
+Some of the tests in the suite require internet connectivity both to and from the DANDI archive S3 bucket.
+If this is failing for some reason, you can explicitly control all related tests by setting the environment variable
+``NWBI_SKIP_NETWORK_TESTS`` to some value able to be parsed by ``distutils.util.str2tool``. For example, to disable them on
+a linux system, run
+
+.. code-block::
+
+    export NWBI_SKIP_NETWORK_TESTS=1
+
+in your environment before running ``pytest``.

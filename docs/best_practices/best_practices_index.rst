@@ -26,6 +26,7 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    tables
    ecephys
    ogen
+   image_series
    simulated_data
    extensions
    units

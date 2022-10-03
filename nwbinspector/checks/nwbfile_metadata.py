@@ -2,10 +2,12 @@
 import re
 from datetime import datetime
 
+from pandas import Timedelta
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from ..register_checks import register_check, InspectorMessage, Importance
+from ..utils import is_module_installed
 
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
@@ -18,7 +20,11 @@ PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time_old_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
             message=(
@@ -30,7 +36,11 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_session_start_time_future_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time >= datetime.now().astimezone():
         return InspectorMessage(
             message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
@@ -38,10 +48,31 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
-def check_experimenter(nwbfile: NWBFile):
+def check_experimenter_exists(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter_form(nwbfile: NWBFile):
+    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
+    if nwbfile.experimenter is None:
+        return
+    if is_module_installed(module_name="dandi"):
+        from dandischema.models import NAME_PATTERN  # for most up to date version of the regex
+    else:
+        NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"  # copied on 7/12/22
+
+    for experimenter in nwbfile.experimenter:
+        experimenter = experimenter.decode() if isinstance(experimenter, bytes) else experimenter
+        if re.match(string=experimenter, pattern=NAME_PATTERN) is None:
+            yield InspectorMessage(
+                message=(
+                    f"The name of experimenter '{experimenter}' does not match any of the accepted DANDI forms: "
+                    "'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName, MiddleName'."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
@@ -92,17 +123,54 @@ def check_doi_publications(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
-    """Check if the Subject age is in ISO 8601."""
+    """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None:
         if subject.date_of_birth is None:
             return InspectorMessage(message="Subject is missing age and date_of_birth.")
-    elif not re.fullmatch(duration_regex, subject.age):
-        return InspectorMessage(
-            message=(
-                f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
-                "or 'P23W' for 23 weeks."
-            )
+        else:
+            return
+    if re.fullmatch(pattern=duration_regex, string=subject.age):
+        return
+
+    if "/" in subject.age:
+        subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
+
+        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and (
+            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
+        ):
+            return
+
+    return InspectorMessage(
+        message=(
+            f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         )
+    )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_proper_age_range(subject: Subject):
+    """
+    Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds.
+
+    Best Practice: :ref:`best_practice_subject_age`
+    """
+    if subject.age is not None and "/" in subject.age:
+        subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
+
+        if (
+            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound)
+            and re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound)
+            and Timedelta(subject_lower_age_bound) >= Timedelta(subject_upper_age_bound)
+        ):
+            return InspectorMessage(
+                message=(
+                    f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
+                    "The upper (right) bound should be a longer duration than the lower (left) bound."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
@@ -125,14 +193,22 @@ def check_subject_sex(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_exists(subject: Subject):
-    """Check if the subject species has been specified."""
+    """
+    Check if the subject species has been specified.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
     if not subject.species:
         return InspectorMessage(message="Subject species is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_latin_binomial(subject: Subject):
-    """Check if the subject species follows latin binomial form."""
+    """
+    Check if the subject species follows latin binomial form.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
     if subject.species and not re.fullmatch(species_regex, subject.species):
         return InspectorMessage(
             message=(
