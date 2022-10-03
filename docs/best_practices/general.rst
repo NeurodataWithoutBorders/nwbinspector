@@ -68,12 +68,3 @@ For mathematical expressions, instead of including the special character in the 
 instead. *E.g.*, instead of "Df/f" use "DfOverF".
 
 Check function: :py:meth:`~nwbinspector.checks.general.check_description`
-
-
-
-.. _best_practice_empty_table:
-
-Empty Tables
-~~~~~~~~~~~~
-
-An empty :ref:`hdmf-schema:sec-dynamictable` is one that does not have any rows or columns added to it. When adding tables to an NWB file, do not write empty tables.
