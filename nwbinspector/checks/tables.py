@@ -177,11 +177,7 @@ def check_single_row(
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
 def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
-    """
-    Check if any values in a row or column of a table contain a string casting of a Python dictionary.
-
-    Best Practice: :ref:`best_practice_table_values`
-    """
+    """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
@@ -198,11 +194,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
-    """
-    Check if all of the values in a single column of a table are NaN.
-
-    Best Practice: :ref:`best_practice_table_values`
-    """
+    """Check if all of the values in a single column of a table are NaN."""
     for column in table.columns:
         if (
             not hasattr(column, "data")
