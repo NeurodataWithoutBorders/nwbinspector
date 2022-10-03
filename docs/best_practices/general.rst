@@ -65,6 +65,6 @@ Check function: :py:meth:`~nwbinspector.checks.general.check_description`
 Empty Strings
 ~~~~~~~~~~~~~
 
-Required free-text fields for certain neurodata types, such as a :py:attr:`description`, should always be specified and should not use placeholders such as empty strings or ``"no description"``.
+Required free-text fields for neurodata types should not use placeholders such as empty strings (`""`), ``"no description"``, or ``"PLACEHOLDER"``. For example, the :py:attr:`description` field should always richly describe that particular neurodata type and its interpretation within the experiment.
 
-Many attributes of neurodata types in NWB are optional details to include. It is not necessary, therefore, to use placeholders such as empty strings for these attributes. Instead, they should not be specified at all.
+Many attributes of neurodata types in NWB are optional details to include. It is not necessary, therefore, to use placeholders for these attributes. Instead, they should not be specified at all.
