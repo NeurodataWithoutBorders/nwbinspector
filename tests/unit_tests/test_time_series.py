@@ -213,7 +213,7 @@ def test_check_data_unit_fail():
         timestamps=[1, 2, 3],
     )
     assert check_unit_formatting(time_series) == InspectorMessage(
-        message="'unit' should adhere to CMIXF-12 format instead of test_unit.",
+        message="The 'unit' should adhere to CMIXF-12 format instead of 'test_unit'.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_unit_formatting",
         object_type="TimeSeries",
