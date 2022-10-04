@@ -2,7 +2,7 @@
 import numpy as np
 
 from pynwb import TimeSeries
-from cmixf.parser import parse
+from cmixf.parser import CMIXFLexer
 
 # from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
@@ -99,7 +99,7 @@ def check_resolution(time_series: TimeSeries):
 def check_unit_formatting(time_series: TimeSeries):
     """
     Check the unit value of a TimeSeries that it complies with CMIXF-12 convention for formatting the units.
-    
+
     Best Practice: :ref:`best_practice_units_of_measurement`
     """
 
@@ -107,7 +107,9 @@ def check_unit_formatting(time_series: TimeSeries):
     if time_series.unit == "a.u.":
         return
 
+    lexer = CMIXFLexer()
+    tokens = lexer.tokenize(time_series.unit)
     try:
-        parse(text="1"+time_series.unit, debug=False)
+        list(tokens)
     except ValueError:
         return InspectorMessage(message=f"The 'unit' should adhere to CMIXF-12 format instead of '{time_series.unit}'.")
