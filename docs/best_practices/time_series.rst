@@ -57,15 +57,24 @@ Examples for CMIXF-12 representation of units:
    * - Neurodata type
      - Unit in CMIXF-12
      - Unit Name
-   * - :py:class:`~pynwb.behavior.SpatialSeries`
+   * - :py:class:`pynwb.behavior.Position`
      - "m"
      - Meters (e.g. position)
+   * - :py:class:`~pynwb.behavior.PupilTracking`
+     - "m"
+     - Meters (pupil size)
    * - :py:class:`~pynwb.behavior.SpatialSeries`
      - "m/s"
      - Meters per second (speed, velocity)
    * - :py:class:`~pynwb.behavior.SpatialSeries`
      - "m/s^2"
      - Meters per second squared (acceleration)
+   * - :py:class:`pynwb.behavior.CompassDirection`
+     - "o" or "rad"
+     - Degrees or Radians (view angle)
+   * - :py:class:`pynwb.behavior.EyeTracking`
+     - "o"
+     - Degrees (gaze directions)
    * - :py:class:`~pynwb.ecephys.ElectricalSeries`
      - "V"
      - Volts
@@ -105,7 +114,9 @@ Examples for CMIXF-12 representation of units:
    * - :py:class:`~pynwb.retinotopy.AxisMap`
      - "o"
      - Degrees
-
+   * - :py:class:`~pynwb.ogen.OptogeneticSeries`
+     - "W"
+     - Watts
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_unit_formatting`
 
