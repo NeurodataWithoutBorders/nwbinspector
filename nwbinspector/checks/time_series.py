@@ -2,6 +2,7 @@
 import numpy as np
 
 from pynwb import TimeSeries
+from cmixf.parser import CMIXFLexer
 
 # from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
@@ -92,3 +93,23 @@ def check_resolution(time_series: TimeSeries):
         return InspectorMessage(
             message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
         )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_unit_formatting(time_series: TimeSeries):
+    """
+    Check the unit value of a TimeSeries that it complies with CMIXF-12 convention for formatting the units.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
+    """
+
+    # Early return for arbitrary units that are unknown or unavailable.
+    if time_series.unit == "a.u.":
+        return
+
+    lexer = CMIXFLexer()
+    tokens = lexer.tokenize(time_series.unit)
+    try:
+        list(tokens)
+    except ValueError:
+        return InspectorMessage(message=f"The 'unit' should adhere to CMIXF-12 format instead of '{time_series.unit}'.")

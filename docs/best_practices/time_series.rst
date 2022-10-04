@@ -37,7 +37,88 @@ measurement for that data, using the appropriate type from the
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_missing_unit`
 
+For **formatting** of SI units, the `CMIXF-12 <https://people.csail.mit.edu/jaffer/MIXF/CMIXF-12>`_
+convention is recommended to minimize the variability of representation of unit values.
 
+If the unit of measurement is unknown or unavailable, the unit can be declared as "a.u."
+which stands for arbitrary units.
+Please note the appropriate upper- or lower- casing when using CMIXF-12.
+
+The `cmixf <https://github.com/sensein/cmixf>`_ Python package is used to check whether
+the formatting of unit is compliant.
+
+Examples for CMIXF-12 representation of units:
+
+.. list-table::
+   :widths: 25 25 50
+   :align: center
+   :header-rows: 1
+
+   * - Neurodata type
+     - Unit in CMIXF-12
+     - Unit Name
+   * - :py:class:`pynwb.behavior.Position`
+     - "m"
+     - Meters (e.g. position)
+   * - :py:class:`~pynwb.behavior.PupilTracking`
+     - "m"
+     - Meters (pupil size)
+   * - :py:class:`~pynwb.behavior.SpatialSeries`
+     - "m/s"
+     - Meters per second (speed, velocity)
+   * - :py:class:`~pynwb.behavior.SpatialSeries`
+     - "m/s^2"
+     - Meters per second squared (acceleration)
+   * - :py:class:`pynwb.behavior.CompassDirection`
+     - "o" or "rad"
+     - Degrees or Radians (view angle)
+   * - :py:class:`pynwb.behavior.EyeTracking`
+     - "o"
+     - Degrees (gaze directions)
+   * - :py:class:`~pynwb.ecephys.ElectricalSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.ecephys.SpikeEventSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.icephys.PatchClampSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.icephys.CurrentClampSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.icephys.IZeroClampSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.icephys.CurrentClampStimulusSeries`
+     - "A"
+     - Amperes
+   * - :py:class:`~pynwb.icephys.VoltageClampSeries`
+     - "A"
+     - Amperes
+   * - :py:class:`~pynwb.icephys.VoltageClampStimulusSeries`
+     - "V"
+     - Volts
+   * - :py:class:`~pynwb.image.ImageSeries`
+     - "a.u."
+     - Arbitrary Units (unknown)
+   * - :py:class:`~pynwb.image.IndexSeries`
+     - "a.u."
+     - Arbitrary Units (unknown)
+   * - :py:class:`~pynwb.image.ImageMaskSeries`
+     - "a.u."
+     - Arbitrary Units (unknown)
+   * - :py:class:`~pynwb.image.OpticalSeries`
+     - "a.u."
+     - Arbitrary Units (unknown)
+   * - :py:class:`~pynwb.retinotopy.AxisMap`
+     - "o"
+     - Degrees
+   * - :py:class:`~pynwb.ogen.OptogeneticSeries`
+     - "W"
+     - Watts
+
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_unit_formatting`
 
 .. _best_practice_time_series_global_time_reference:
 
