@@ -174,6 +174,18 @@ def check_subject_proper_age_range(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_age_reference(subject: Subject):
+    """Check if the Subject age reference is one of supported options."""
+    valid_options = ["birth", "gestational", None]
+    if subject.age__reference not in valid_options:
+        return InspectorMessage(
+            message=(
+                f"Subject age reference, '{subject.age__reference}', is not one of the valid options ({valid_options})."
+            )
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject):
     """Check if subject_id is defined."""
     if subject.subject_id is None:
