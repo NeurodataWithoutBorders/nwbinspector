@@ -1,11 +1,15 @@
 """Helper functions for internal use across the testing suite."""
 import os
+import json
 from distutils.util import strtobool
+from pathlib import Path
 from typing import Tuple, Optional
 
 from packaging.version import Version
+from pynwb import NWBHDF5IO
+from pynwb.image import ImageSeries
 
-from .tools import check_streaming_enabled
+from .tools import check_streaming_enabled, make_minimal_nwbfile
 from .utils import is_module_installed, get_package_version
 
 
@@ -37,17 +41,66 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
     return streaming_enabled and not environment_skip_flag_bool and have_dandi, failure_reason
 
 
-def generate_testing_files():  # pragma: no cover
-    assert get_package_version(name="pynwb") == Version("2.1.0"), "Generating the testing files requires PyNWB v2.1.0!"
-    
-    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "test_config.json"
+def load_testing_config() -> dict:
+    """Helper function for loading the testing configuration file as a dictionary."""
+    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "testing_config.json"
+
+    # This error would only occur if someone installed a previous version
+    # directly from GitHub and then updated the branch/commit in-place
+    if not test_config_file_path.exists():  # pragma: no cover
+        raise FileNotFoundError(
+            "The testing configuration file not found at the location '{test_config_file_path}'! "
+            "Please try reinstalling the package."
+        )
+
     with open(file=test_config_file_path) as file:
-        test_config = json.loads(file)
-    
-    local_path = Path(test_config["LOCAL_PATH"])
-    local_path.mkdir(exist_ok=True)
-    
-    with NWBHDF5IO(path=local_path / "image_series_test_file.nwb", mode="w") as io:
-        nwbfile = make_minimal_nwbfile()
-        ## TODO
+        test_config = json.load(file)
+
+    return test_config
+
+
+def generate_testing_files():  # pragma: no cover
+    """Generate a local copy of the NWB files required for all tests."""
+    generate_image_series_testing_files()
+
+
+def generate_image_series_testing_files():  # pragma: no cover
+    """Generate a local copy of the NWB files required for the image series tests."""
+    assert get_package_version(name="pynwb") == Version("2.1.0"), "Generating the testing files requires PyNWB v2.1.0!"
+
+    testing_config = load_testing_config()
+
+    local_path = Path(testing_config["LOCAL_PATH"])
+    local_path.mkdir(exist_ok=True, parents=True)
+
+    movie_1_file_path = local_path / "temp_movie_1.mov"
+    nested_folder = local_path / "nested_folder"
+    nested_folder.mkdir(exist_ok=True)
+    movie_2_file_path = nested_folder / "temp_movie_2.avi"
+    for file_path in [movie_1_file_path, movie_2_file_path]:
+        with open(file=file_path, mode="w") as file:
+            file.write("Not a movie file, but at least it exists.")
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(
+        ImageSeries(
+            name="TestImageSeriesGoodExternalPaths",
+            rate=1.0,
+            external_file=[
+                "/".join([".", movie_1_file_path.name]),
+                "/".join([".", nested_folder.name, movie_2_file_path.name]),
+            ],
+        )
+    )
+    nwbfile.add_acquisition(
+        ImageSeries(name="TestImageSeriesExternalPathDoesNotExist", rate=1.0, external_file=["madeup_file.mp4"],)
+    )
+    absolute_file_path = str(Path("madeup_file.mp4").absolute())
+    nwbfile.add_acquisition(
+        ImageSeries(name="TestImageSeriesExternalPathIsNotRelative", rate=1.0, external_file=[absolute_file_path])
+    )
+    # image_module = nwbfile.create_processing_module(name="behavior", description="testing imageseries")
+    # image_module.add(
+    #     ImageSeries(name="TestImageSeries2", rate=1.0, external_file=[movie_1_file_path, movie_2_file_path])
+    # )
+    with NWBHDF5IO(path=local_path / "image_series_testing_file.nwb", mode="w") as io:
         io.write(nwbfile)
