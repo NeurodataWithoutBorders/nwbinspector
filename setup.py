@@ -11,8 +11,8 @@ with open(root / "nwbinspector" / "version.py") as f:
     exec(f.read())
 
 # Instantiate the testing configuration file from the base file `base_test_config.json`
-base_test_config = Path("./base_test_config.json")
-local_test_config = Path("./tests/test_config.json")
+base_test_config = Path.cwd() / "base_test_config.json"
+local_test_config = Path.cwd() / "tests" / "test_config.json"
 if not local_test_config.exists():
     copy(src=base_test_config, dst=local_test_config)
     
