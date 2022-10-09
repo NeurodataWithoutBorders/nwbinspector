@@ -23,6 +23,6 @@ jobs:
 
       - name: Test External Links
         run: sphinx-build -b linkcheck ./docs ./test_build
-        
+
       - name: Test All Internal Links
         run: sphinx-build -W --keep-going ./docs ./test_build
