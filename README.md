@@ -21,7 +21,4 @@ nwbinspector path/to/my/data.nwb
 
 # supply a path to a directory containing NWB files
 nwbinspector path/to/my/data/dir/
-
-# optional: supply modules to import before reading the file, e.g., for NWB extensions
-nwbinspector path/to/my/data.nwb -m my_extension_module1 my_extension_module2
 ```
