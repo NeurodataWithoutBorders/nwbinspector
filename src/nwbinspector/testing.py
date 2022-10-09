@@ -3,8 +3,10 @@ import os
 from distutils.util import strtobool
 from typing import Tuple, Optional
 
+from packaging.version import Version
+
 from .tools import check_streaming_enabled
-from .utils import is_module_installed
+from .utils import is_module_installed, get_package_version
 
 
 def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
@@ -33,3 +35,19 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
 
     failure_reason = None if failure_reason == "" else failure_reason
     return streaming_enabled and not environment_skip_flag_bool and have_dandi, failure_reason
+
+
+def generate_testing_files():  # pragma: no cover
+    assert get_package_version(name="pynwb") == Version("2.1.0"), "Generating the testing files requires PyNWB v2.1.0!"
+    
+    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "test_config.json"
+    with open(file=test_config_file_path) as file:
+        test_config = json.loads(file)
+    
+    local_path = Path(test_config["LOCAL_PATH"])
+    local_path.mkdir(exist_ok=True)
+    
+    with NWBHDF5IO(path=local_path / "image_series_test_file.nwb", mode="w") as io:
+        nwbfile = make_minimal_nwbfile()
+        ## TODO
+        io.write(nwbfile)
