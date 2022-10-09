@@ -106,7 +106,11 @@ def generate_image_series_testing_files():  # pragma: no cover
         )
     )
     nwbfile.add_acquisition(
-        ImageSeries(name="TestImageSeriesExternalPathDoesNotExist", rate=1.0, external_file=["madeup_file.mp4"],)
+        ImageSeries(
+            name="TestImageSeriesExternalPathDoesNotExist",
+            rate=1.0,
+            external_file=["madeup_file.mp4"],
+        )
     )
     absolute_file_path = str(Path("madeup_file.mp4").absolute())
     nwbfile.add_acquisition(
