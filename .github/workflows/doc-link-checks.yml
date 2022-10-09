@@ -1,8 +1,6 @@
 name: Testing Documentation Links
 
-on:
-  pull_request:
-  workflow_call:
+on: workflow_call
 
 jobs:
   build-and-test:
