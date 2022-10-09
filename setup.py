@@ -24,9 +24,11 @@ setup(
     long_description_content_type="text/markdown",
     author="Ryan Ly, Ben Dichter, and Cody Baker.",
     author_email="rly@lbl.gov, ben.dichter@gmail.com, cody.baker@catalystneuro.com",
-    packages=find_packages(),
+    url="https://nwbinspector.readthedocs.io/",
+    keywords="nwb",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     include_package_data=True, # Includes files described in MANIFEST.in in the installation
-    url="https://github.com/NeurodataWithoutBorders/nwbinspector",
     install_requires=install_requires,
     extras_require=dict(dandi=["dandi>=0.39.2"]),
     entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
