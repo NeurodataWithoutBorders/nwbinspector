@@ -3,6 +3,9 @@
 *.nwb
 manifest.json
 
+# Testing
+tests/test_config.json
+
 # Python byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -12,7 +15,6 @@ __pycache__/
 build/
 dist/
 *.egg-info
-*.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
