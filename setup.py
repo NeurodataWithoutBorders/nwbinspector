@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from pathlib import Path
+from shutil import copy
 
 root = Path(__file__).parent
 with open(root / "README.md", "r") as f:
@@ -9,6 +10,12 @@ with open(root / "requirements.txt") as f:
 with open(root / "nwbinspector" / "version.py") as f:
     exec(f.read())
 
+# Instantiate the testing configuration file from the base file `base_test_config.json`
+base_test_config = Path("./base_test_config.json")
+local_test_config = Path("./tests/test_on_data/test_config.json")
+if not local_test_config.exists():
+    copy(src=base_test_config, dst=local_test_config)
+    
 setup(
     name="nwbinspector",
     version=__version__,
@@ -18,7 +25,7 @@ setup(
     author="Ryan Ly, Ben Dichter, and Cody Baker.",
     author_email="rly@lbl.gov, ben.dichter@gmail.com, cody.baker@catalystneuro.com",
     packages=find_packages(),
-    include_package_data=True,
+    include_package_data=True, # Includes files described in MANIFEST.in in the installation
     url="https://github.com/NeurodataWithoutBorders/nwbinspector",
     install_requires=install_requires,
     extras_require=dict(dandi=["dandi>=0.39.2"]),
