@@ -1,4 +1,4 @@
 {
-    "LOCAL_PATH": "/shared/catalystneuro/",  # Publically available folder on DANDI Hub
+    "LOCAL_PATH": "/shared/catalystneuro/",
     "NWBI_SKIP_NETWORK_TESTS": false
 }
