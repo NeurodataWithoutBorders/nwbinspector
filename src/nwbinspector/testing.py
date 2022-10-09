@@ -59,6 +59,20 @@ def load_testing_config() -> dict:
     return test_config
 
 
+def update_testing_config(key: str, value):
+    """Update a key/value pair in the testing configuration file through the API."""
+    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "testing_config.json"
+
+    testing_config = load_testing_config()
+
+    if key not in testing_config:
+        raise KeyError("Updating the testing configuration file via the API is only possible for the pre-defined keys!")
+    testing_config[key] = value
+
+    with open(file=test_config_file_path, mode="w") as file:
+        json.dump(testing_config, file)
+
+
 def generate_testing_files():  # pragma: no cover
     """Generate a local copy of the NWB files required for all tests."""
     generate_image_series_testing_files()
