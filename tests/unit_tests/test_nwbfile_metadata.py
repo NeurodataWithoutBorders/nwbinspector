@@ -427,7 +427,7 @@ def test_check_subject_species_not_binomial():
     assert check_subject_species_form(subject) == InspectorMessage(
         message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_subject_species_latin_binomial",
+        check_function_name="check_subject_species_form",
         object_type="Subject",
         object_name="subject",
         location="/general/subject",

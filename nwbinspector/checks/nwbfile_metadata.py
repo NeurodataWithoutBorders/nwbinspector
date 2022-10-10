@@ -211,7 +211,7 @@ def check_subject_species_form(subject: Subject):
 
     Best Practice: :ref:`best_practice_subject_species`
     """
-    if subject.species and not re.fullmatch(species_regex, subject.species):
+    if subject.species and not re.fullmatch(species_form_regex, subject.species):
         return InspectorMessage(
             message=(
                 f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
