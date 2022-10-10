@@ -106,19 +106,11 @@ def generate_image_series_testing_files():  # pragma: no cover
         )
     )
     nwbfile.add_acquisition(
-        ImageSeries(
-            name="TestImageSeriesExternalPathDoesNotExist",
-            rate=1.0,
-            external_file=["madeup_file.mp4"],
-        )
+        ImageSeries(name="TestImageSeriesExternalPathDoesNotExist", rate=1.0, external_file=["madeup_file.mp4"],)
     )
     absolute_file_path = str(Path("madeup_file.mp4").absolute())
     nwbfile.add_acquisition(
         ImageSeries(name="TestImageSeriesExternalPathIsNotRelative", rate=1.0, external_file=[absolute_file_path])
     )
-    # image_module = nwbfile.create_processing_module(name="behavior", description="testing imageseries")
-    # image_module.add(
-    #     ImageSeries(name="TestImageSeries2", rate=1.0, external_file=[movie_1_file_path, movie_2_file_path])
-    # )
     with NWBHDF5IO(path=local_path / "image_series_testing_file.nwb", mode="w") as io:
         io.write(nwbfile)
