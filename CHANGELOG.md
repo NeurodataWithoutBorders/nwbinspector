@@ -1,5 +1,10 @@
 # Upcoming
 
+### Improvements
+
+* Included links to NCBI taxonomy references to allowed subject species forms. [PR #290](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/290)
+
+
 # v0.4.14
 
 ### Fixes
