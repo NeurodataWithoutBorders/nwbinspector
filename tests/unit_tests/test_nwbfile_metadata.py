@@ -19,7 +19,7 @@ from nwbinspector import (
     check_subject_age,
     check_subject_proper_age_range,
     check_subject_species_exists,
-    check_subject_species_latin_binomial,
+    check_subject_species_form,
     check_processing_module_name,
     check_session_start_time_old_date,
     check_session_start_time_future_date,
@@ -413,13 +413,18 @@ def test_check_subject_species_missing():
 
 def check_subject_species_latin_binomial_pass():
     subject = Subject(subject_id="001", species="Homo sapiens")
-    assert check_subject_species_latin_binomial(subject) is None
+    assert check_subject_species_form(subject) is None
+
+
+def check_subject_species_ncbi_pass():
+    subject = Subject(subject_id="001", species="http://purl.obolibrary.org/obo/NCBITaxon_7954")
+    assert check_subject_species_form(subject) is None
 
 
 def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
-    assert check_subject_species_latin_binomial(subject) == InspectorMessage(
+    assert check_subject_species_form(subject) == InspectorMessage(
         message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_latin_binomial",

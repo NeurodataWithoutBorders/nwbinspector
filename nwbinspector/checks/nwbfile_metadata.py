@@ -13,7 +13,7 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
-species_regex = r"[A-Z][a-z]* [a-z]+"
+species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
@@ -203,9 +203,11 @@ def check_subject_species_exists(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
-def check_subject_species_latin_binomial(subject: Subject):
+def check_subject_species_form(subject: Subject):
     """
-    Check if the subject species follows latin binomial form.
+    Check if the subject species follows latin binomial form or is a link to an NCBI taxonomy in the form of a Term IRI.
+
+    The Term IRI can be found at the https://ontobee.org/ database.
 
     Best Practice: :ref:`best_practice_subject_species`
     """

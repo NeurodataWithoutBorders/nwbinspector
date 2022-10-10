@@ -18,6 +18,8 @@ extlinks = {
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
     "uuid": ("https://docs.python.org/3/library/uuid.html%s", None),
     "orcid": ("https://orcid.org/%s", "%s"),
+    "ncbi": ("https://www.ncbi.nlm.nih.gov/taxonomy%s", None),
+    "ontobee": ("https://ontobee.org/%s", None),
 }
 
 # Use this for mapping for links to commonly used documentation
