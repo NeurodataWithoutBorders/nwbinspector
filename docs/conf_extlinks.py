@@ -21,6 +21,8 @@ extlinks = {
     "pre-commit-bot": ("https://results.pre-commit.ci/%s", None),
     "neuroconv-coding-style": ("https://neuroconv.readthedocs.io/en/main/developer_guide/style_guide.html#style-guide-and-general-conventions%s", None),
     "black-coding-style": ("https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html%s", None),
+    "ncbi": ("https://www.ncbi.nlm.nih.gov/taxonomy%s", None),
+    "ontobee": ("https://ontobee.org/%s", None),
 }
 
 # Use this for mapping for links to commonly used documentation
