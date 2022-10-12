@@ -65,7 +65,7 @@ uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simpl
 run the NWB Inspector as usual, there is an alternative which is less expensive in terms of bandwith. This can be especially
 useful when the DANDI set is large and impractical to download in full, such as one that is multiple terabytes in total size.
 
-A general tutorial for using the :code:`ros3` driver can be found in the :ros3-tutorial:`PyNWB documentation <>` - however, the NWB Inspector has automated functionality for resolving the technical identification of assets such that the only piece of information needed is the six-digit DANDI set identifier...
+A general tutorial for using the :code:`ros3` driver can be found in the :ros3-tutorial:`PyNWB documentation <>`. The NWB Inspector has also automated functionality for resolving the technical identification of assets such that the only piece of information needed is the six-digit DANDI set identifier...
 
 .. code-block:: python
 
