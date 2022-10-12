@@ -127,12 +127,10 @@ For example,
 External Modules
 ----------------
 
-If the NWBFiles being inspected require an external module to parse, or have externally defined check registries (such
-as those specific to an :ref:`NWB Extension <nwb-schema:sec-extending-the-format>`), these can be specified with the ``-m``
-or ``--modules`` flag.
+If the NWB files being inspected have externally defined check registries, such as any specific Best Practices for an :ref:`NWB Extension <nwb-schema:sec-extending-the-format>`, these can be loaded using the ``--modules`` flag along with the name of each module spelled exactly as you would normally import it in Python. If there is more than one such module, multiple modules would be comma-separated without a space.
 
 For example,
 
 ::
 
-    nwbinspector path/to/my/data.nwb -m my_extension_module1 my_extension_module2
+    nwbinspector path/to/my/data.nwb --modules my_extension_module1,my_extension_module2
