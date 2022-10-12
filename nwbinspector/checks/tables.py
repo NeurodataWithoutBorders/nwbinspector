@@ -72,6 +72,8 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
 
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
     Parameters
     ----------
     time_intervals: TimeIntervals
