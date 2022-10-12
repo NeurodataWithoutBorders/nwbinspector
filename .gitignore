@@ -4,7 +4,7 @@
 manifest.json
 
 # Testing
-tests/test_config.json
+tests/testing_config.json
 */testing_files/*
 
 # Python byte-compiled / optimized / DLL files
