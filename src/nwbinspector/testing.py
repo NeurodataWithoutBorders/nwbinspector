@@ -1,16 +1,16 @@
 """Helper functions for internal use across the testing suite."""
-import os
 import json
+import os
 from distutils.util import strtobool
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 from packaging.version import Version
 from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
 from .tools import check_streaming_enabled, make_minimal_nwbfile
-from .utils import is_module_installed, get_package_version
+from .utils import get_package_version, is_module_installed
 
 
 def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:

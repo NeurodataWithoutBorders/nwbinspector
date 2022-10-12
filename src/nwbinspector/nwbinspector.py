@@ -1,36 +1,33 @@
 """Primary functions for inspecting NWBFiles."""
+import importlib
+import json
 import os
 import re
-import importlib
 import traceback
-import json
-import jsonschema
-from pathlib import Path
-from collections.abc import Iterable
-from enum import Enum
-from typing import Union, Optional, List
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from types import FunctionType
-from warnings import filterwarnings, warn
-from distutils.util import strtobool
 from collections import defaultdict
+from collections.abc import Iterable
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from distutils.util import strtobool
+from enum import Enum
+from pathlib import Path
+from types import FunctionType
+from typing import List, Optional, Union
+from warnings import filterwarnings, warn
 
 import click
+import jsonschema
 import pynwb
 import yaml
-from tqdm import tqdm
 from natsort import natsorted
+from tqdm import tqdm
 
 from . import available_checks
-from .inspector_tools import (
-    get_report_header,
-    format_messages,
-    print_to_console,
-    save_report,
-)
-from .register_checks import InspectorMessage, Importance
+from .inspector_tools import (format_messages, get_report_header,
+                              print_to_console, save_report)
+from .register_checks import Importance, InspectorMessage
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from .utils import (FilePathType, OptionalListOfStrings, PathType,
+                    calculate_number_of_cpu, robust_s3_read)
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 

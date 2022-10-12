@@ -1,11 +1,11 @@
 """Check functions that can apply to any descendant of TimeSeries."""
 import numpy as np
-
 from pynwb import TimeSeries
 
 # from ..tools import all_of_type
-from ..register_checks import register_check, Importance, Severity, InspectorMessage
-from ..utils import is_regular_series, is_ascending_series
+from ..register_checks import (Importance, InspectorMessage, Severity,
+                               register_check)
+from ..utils import is_ascending_series, is_regular_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)

@@ -1,13 +1,13 @@
-import pytest
-
 import numpy as np
+import pytest
 from pynwb.image import GrayscaleImage
 
-from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks.images import (check_order_of_images_len,
+                                        check_order_of_images_unique)
 
 try:
-    from pynwb.base import Images, ImageReferences
+    from pynwb.base import ImageReferences, Images
 
     HAVE_IMAGES = True
 except ImportError:

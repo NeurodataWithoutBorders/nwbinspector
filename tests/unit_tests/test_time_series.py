@@ -3,16 +3,10 @@ import pynwb
 import pytest
 from packaging import version
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_regular_timestamps,
-    check_data_orientation,
-    check_timestamps_match_first_dimension,
-    check_timestamps_ascending,
-    check_missing_unit,
-    check_resolution,
-)
+from nwbinspector import (Importance, InspectorMessage, check_data_orientation,
+                          check_missing_unit, check_regular_timestamps,
+                          check_resolution, check_timestamps_ascending,
+                          check_timestamps_match_first_dimension)
 from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.utils import get_package_version, robust_s3_read
 

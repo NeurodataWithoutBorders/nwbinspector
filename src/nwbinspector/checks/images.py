@@ -1,5 +1,5 @@
 """Checks specific to the Images neurodata type."""
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 
 try:
     from pynwb.base import Images

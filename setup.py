@@ -1,6 +1,7 @@
-from setuptools import setup, find_packages
 from pathlib import Path
 from shutil import copy
+
+from setuptools import find_packages, setup
 
 root = Path(__file__).parent
 with open(root / "README.md", "r") as f:

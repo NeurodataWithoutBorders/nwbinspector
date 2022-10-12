@@ -1,14 +1,9 @@
 """Check functions specific to optical electrophysiology neurodata types."""
-from pynwb.ophys import (
-    RoiResponseSeries,
-    PlaneSegmentation,
-    OpticalChannel,
-    ImagingPlane,
-)
-
 from hdmf.utils import get_data_shape
+from pynwb.ophys import (ImagingPlane, OpticalChannel, PlaneSegmentation,
+                         RoiResponseSeries)
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from ..register_checks import Importance, InspectorMessage, register_check
 
 MIN_LAMBDA = 10.0  # trigger warnings for wavelength values less than this value
 
