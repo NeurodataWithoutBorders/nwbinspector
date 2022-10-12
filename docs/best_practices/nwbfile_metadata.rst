@@ -90,14 +90,12 @@ The ``identifier`` field does not need to be easily human-readable.
 
 
 
-.. _best_practice_experimenter_exists:
+.. _best_practice_experimenter:
 
 Experimenter
 ~~~~~~~~~~~~
 
-The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified. This allows metadata collection
-programs, such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to more easily link individual
-authors to publications and external IDs, such as :orcid:`ORCID`.
+The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified as any of the accepted forms: 'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName MiddleName'.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
 
