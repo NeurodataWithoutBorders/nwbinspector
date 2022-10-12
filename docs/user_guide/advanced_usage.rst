@@ -4,7 +4,6 @@ Using the Library: Advanced
 This is a collection of tutorials illustrating some of the more advanced uses of the NWBInspector
 
 
-
 Yielding and Iterating
 ----------------------
 
@@ -45,7 +44,9 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-Running on DANDISets (ROS3)
+.. _api_streaming:
+
+Running on a DANDISets (ros3)
 -----------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
@@ -72,8 +73,6 @@ S3 path on the DANDI archive. Resolution of these paths can be performed via the
         for asset in dandiset.get_assets():
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
-
-
 
 
 Format Reports
