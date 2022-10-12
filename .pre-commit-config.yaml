@@ -17,5 +17,5 @@ repos:
         exclude: |
             (?x)^(
                 docs/|
-                nwbinspector/__init__.py
+                /src/nwbinspector/__init__.py
             )$
