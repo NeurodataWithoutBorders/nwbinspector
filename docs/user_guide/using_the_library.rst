@@ -75,7 +75,7 @@ A general tutorial for using the :code:`ros3` driver can be found in the :ros3-t
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
 
-If there are multiple versions of the DANDI set available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the ``version_id`` argument...
+If there are multiple versions of the dandiset available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the ``version_id`` argument...
 
 .. code-block:: python
 
