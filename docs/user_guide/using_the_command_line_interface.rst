@@ -31,7 +31,7 @@ If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI 
 
     nwbinspector 000017 --stream
 
-This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`api_streaming` for a more advanced tutorial using the API functions.
+This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`simple_streaming_api` for a more advanced tutorial using the API functions.
 
 .. note::
 
