@@ -1,0 +1,13 @@
+name: Daily workflows
+
+on:
+  schedule:
+    - cron: "0 16 * * *"  # Daily at noon EST
+
+jobs:
+
+  run-daily-tests:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+
+  run-daily-doc-link-checks:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev

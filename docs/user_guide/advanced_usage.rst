@@ -4,7 +4,6 @@ Using the Library: Advanced
 This is a collection of tutorials illustrating some of the more advanced uses of the NWBInspector
 
 
-
 Yielding and Iterating
 ----------------------
 
@@ -56,7 +55,7 @@ use the NWBInspector as normal, there is another, less expensive possibility in 
 useful when the underlying dataset is quite large and thus impractical to download - some DANDISets can even be on the
 TB scale!
 
-The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
+The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`in the PyNWB docs <>`. This driver can be passed
 directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
 S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
 
@@ -74,8 +73,6 @@ S3 path on the DANDI archive. Resolution of these paths can be performed via the
         for asset in dandiset.get_assets():
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
             messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
-
-
 
 
 Format Reports
