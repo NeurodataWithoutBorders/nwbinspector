@@ -60,18 +60,16 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 Inspect a DANDI set (ROS3)
 --------------------------
 
-It is a common use case to want to inspect and review entire datasets of NWB files that have already been
-uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
-run the NWB Inspector as usual, there is an alternative which is less expensive in terms of bandwith. This can be especially
-useful when the DANDI set is large and impractical to download in full, such as one that is multiple terabytes in total size.
+It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
+run the NWB Inspector as usual, it can be more convenient to stream the data. This can be especially useful when the dandiset is large and impractical to download in full.
 
-A general tutorial for using the :code:`ros3` driver can be found in the :ros3-tutorial:`PyNWB documentation <>`. The NWB Inspector has also automated functionality for resolving the technical identification of assets such that the only piece of information needed is the six-digit DANDI set identifier...
+Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset by providing the six-digit identifier...
 
 .. code-block:: python
 
     from nwbinspector import inspect_all
 
-    dandiset_id = "..."  # for example, 000004
+    dandiset_id = "000004"  # for example
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
 
@@ -81,8 +79,8 @@ If there are multiple versions of the dandiset available (*e.g.*, separate 'draf
 
     from nwbinspector import inspect_all
 
-    dandiset_id = "..."  # for example, 000004
-    version_id = "draft"  # or "published", or can also set this to the exact DOI value
+    dandiset_id = "000004"  # for example
+    version_id = "draft"  # or "published", or this can be the exact DOI value
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
 
