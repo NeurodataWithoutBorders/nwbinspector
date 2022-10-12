@@ -36,15 +36,13 @@ jobs:
           echo "::set-output name=TESTING_CHANGED::false"
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo $file
-            if [[ $file == "src/nwbinspector/"* || $file == "requirements"* || $file == "setup.py" || $file == "tests/"* ]]
-            then
+            if [[ $file == "src/nwbinspector/"* || $file == "requirements"* || $file == "setup.py" || $file == "tests/"* ]]; then
               echo "Source changed"
               echo "::set-output name=SOURCE_CHANGED::true"
             else
               echo "Source not changed"
             fi
-            if [[ $file == "src/nwbinspector/testing.py" ]]
-            then
+            if [[ $file == "src/nwbinspector/testing.py" ]]; then
               echo "Testing changed"
               echo "::set-output name=TESTING_CHANGED::true"
             else
