@@ -14,7 +14,6 @@ Need to write section about DANDI regex pattern.
 
 
 
-
 .. _best_practice_table_values_for_dict:
 
 TODO
