@@ -45,7 +45,7 @@ Of course, the generator can be treated like any other iterable as well, such as
         print(message)
 
 
-Running on a DANDISets (ros3)
+Running on DANDISets (ROS3)
 -----------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWBFiles that have already been
@@ -54,7 +54,7 @@ use the NWBInspector as normal, there is another, less expensive possibility in 
 useful when the underlying dataset is quite large and thus impractical to download - some DANDISets can even be on the
 TB scale!
 
-The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`here <>`. This driver can be passed
+The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`in the PyNWB docs <>`. This driver can be passed
 directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
 S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
 
