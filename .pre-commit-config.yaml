@@ -16,6 +16,5 @@ repos:
     -   id: isort
         exclude: |
             (?x)^(
-                docs/|
-                /src/nwbinspector/__init__.py
+                docs/|/src/nwbinspector/__init__.py
             )$
