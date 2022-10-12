@@ -21,13 +21,6 @@ TODO
 Need to add a section about this somewhere.
 
 
-.. _best_practice_empty_table:
-
-TODO
-----
-
-Add small section for this.
-
 
 .. _best_practice_table_values_for_dict:
 
