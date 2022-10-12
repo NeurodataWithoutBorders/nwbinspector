@@ -1,4 +1,5 @@
 """Check functions specific to ImageSeries."""
+import ntpath
 from pathlib import Path
 
 from pynwb.image import ImageSeries
@@ -39,7 +40,7 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
         return
     for file_path in image_series.external_file:
         file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
-        if Path(file_path).resolve().is_absolute():  # resolve() necessary for cross-platform paths
+        if ntpath.asabs(file_path):  # ntpath required for cross-platform detection
             yield InspectorMessage(
                 message=(
                     f"The external file '{file_path}' is not a relative path. "
