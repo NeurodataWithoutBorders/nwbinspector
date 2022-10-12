@@ -30,6 +30,8 @@ jobs:
         run: |
           pip install -e .
           pip install dandi
+      - name: Download testing data
+        run: dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919'
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
