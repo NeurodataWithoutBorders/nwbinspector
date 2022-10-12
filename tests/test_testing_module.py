@@ -14,4 +14,4 @@ def test_update_testing_config():
         update_testing_config(key=test_key, value=initial_testing_config[test_key])
 
     assert updated_testing_config[test_key] != initial_testing_config[test_key]
-    assert update_testing_config[test_key] == test_value
+    assert updated_testing_config[test_key] == test_value
