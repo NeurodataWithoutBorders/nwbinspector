@@ -4,7 +4,6 @@ Using the Library: Advanced
 This is a collection of tutorials illustrating some of the more advanced uses of the NWBInspector
 
 
-
 Yielding and Iterating
 ----------------------
 
@@ -52,6 +51,11 @@ Fetching and inspecting individual DANDI assets (ROS3)
 ------------------------------------------------------
 
 While the section explaining :ref:`basic steaming of a DANDI set<simple_streaming_api>` covered the simplest and most convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :py:attr:`driver` argument of the :py:class:`~pynwb.NWBHDF5IO` can be passed directly into our core inspection functions. In this case, the :py:attr:`path` or :py:attr:`nwbfile_path` arguments become the full S3 path on the DANDI archive. Resolution of these paths can be performed via the following code...
+=======
+The general tutorial for using the :code:`ros3` driver can be found :ros3-tutorial:`in the PyNWB docs <>`. This driver can be passed
+directly into our core inspection functions, and the ``path`` or ``nwbfile_path`` arguments in this case become the
+S3 path on the DANDI archive. Resolution of these paths can be performed via the following code
+>>>>>>> dev:docs/user_guide/advanced_usage.rst
 
 .. code-block:: python
 

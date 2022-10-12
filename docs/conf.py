@@ -24,6 +24,7 @@ master_doc = "index"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
@@ -60,7 +61,6 @@ autodoc_default_options = {
     "toctree": True,
 }
 add_module_names = False
-
 
 def add_refs_to_docstrings(app, what, name, obj, options, lines):
     if what == "function" and obj.__name__.startswith("check_") and "Best Practice: " not in obj.__doc__:

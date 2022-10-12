@@ -79,8 +79,6 @@ class FormatterOptions:
     def __init__(
         self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"]
     ):
-        # TODO
-        # Future custom options could include section break sizes, section-specific indents, etc.
         """
         Class that defines all the format parameters used by the generic MessageFormatter.
 
@@ -99,6 +97,8 @@ class FormatterOptions:
             If levels is shorter than this list, only the first len(levels) of items will be used.
             Defaults to the .rst style for three sub-sections: ["=", "-", "~"]
         """
+        # TODO
+        # Future custom options could include section break sizes, section-specific indents, etc.
         self.indent = indent if indent is not None else " " * indent_size
         self.section_headers = section_headers
 
