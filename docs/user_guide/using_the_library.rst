@@ -61,7 +61,7 @@ Inspect a DANDI set (ROS3)
 --------------------------
 
 It is a common use case to want to inspect and review entire datasets of NWB files that have already been
-uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire DANDI set to your local computer and
+uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
 run the NWB Inspector as usual, there is an alternative which is less expensive in terms of bandwith. This can be especially
 useful when the DANDI set is large and impractical to download in full, such as one that is multiple terabytes in total size.
 
