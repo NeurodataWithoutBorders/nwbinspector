@@ -47,9 +47,7 @@ class TestExternalFileValid(unittest.TestCase):
         """Can't use the NWB file since the call to io.write() decodes the bytes with modern versions of h5py."""
         good_external_path = Path(self.nwbfile.acquisition["TestImageSeriesGoodExternalPaths"].external_file[0])
         image_series = ImageSeries(
-            name="TestImageSeries",
-            rate=1.0,
-            external_file=[bytes("/".join([".", good_external_path.name]), "utf-8")],
+            name="TestImageSeries", rate=1.0, external_file=[bytes("/".join([".", good_external_path.name]), "utf-8")],
         )
         assert check_image_series_external_file_relative(image_series=image_series) is None
 
@@ -57,6 +55,7 @@ class TestExternalFileValid(unittest.TestCase):
         with NWBHDF5IO(path=self.testing_file, mode="r") as io:
             nwbfile = io.read()
             image_series = nwbfile.acquisition["TestImageSeriesExternalPathDoesNotExist"]
+
             assert check_image_series_external_file_valid(image_series=image_series)[0] == InspectorMessage(
                 message=(
                     "The external file 'madeup_file.mp4' does not exist. Please confirm the relative location to the"
@@ -72,6 +71,7 @@ class TestExternalFileValid(unittest.TestCase):
     def test_check_image_series_external_file_relative_pass(self):
         with NWBHDF5IO(path=self.testing_file, mode="r") as io:
             nwbfile = io.read()
+
             assert (
                 check_image_series_external_file_relative(
                     image_series=nwbfile.acquisition["TestImageSeriesGoodExternalPaths"]

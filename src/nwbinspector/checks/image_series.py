@@ -39,7 +39,7 @@ def check_image_series_external_file_relative(image_series: ImageSeries):
         return
     for file_path in image_series.external_file:
         file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
-        if Path(file_path).is_absolute():
+        if Path(file_path).resolve().is_absolute():  # resolve() necessary for cross-platform paths
             yield InspectorMessage(
                 message=(
                     f"The external file '{file_path}' is not a relative path. "
@@ -58,6 +58,4 @@ def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: floa
     data = image_series.data
     data_size_gb = data.size * data.dtype.itemsize / 1e9
     if data_size_gb > gb_lower_bound:
-        return InspectorMessage(
-            message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
-        )
+        return InspectorMessage(message=f"ImageSeries {image_series.name} is too large. Use external mode for storage")
