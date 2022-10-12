@@ -1,8 +1,5 @@
-name: Past PyNWB Version
-on:
-  schedule:
-    - cron: "0 0 * * *"  # daily
-  workflow_call:
+name: Development Version Gallery
+on: workflow_call
 
 jobs:
   build-and-test:
@@ -10,8 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        pynwb-version: ["2.1.0", "2.0.0"]
     steps:
       - uses: s-weigand/setup-conda@v1
         with:
@@ -20,6 +15,7 @@ jobs:
           conda-channels: conda-forge
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
+
       - name: Install pytest
         run: |
           pip install pytest
@@ -27,6 +23,14 @@ jobs:
       - name: Install package
         run: |
           pip install -e .
-          pip install pynwb==${{ matrix.pynwb-version }}
+          pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
+          pip install dandi
+      - name: Download testing data
+        run: dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919'
+      - name: Uninstall h5py
+        run: pip uninstall -y h5py
+      - name: Install ROS3
+        run: conda install -c conda-forge h5py
+
       - name: Run pytest with coverage
         run: pytest -rsx
