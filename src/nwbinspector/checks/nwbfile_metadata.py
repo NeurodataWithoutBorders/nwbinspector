@@ -60,8 +60,9 @@ def check_experimenter_form(nwbfile: NWBFile):
     if nwbfile.experimenter is None:
         return
     if is_module_installed(module_name="dandi"):
-        from dandischema.models import \
-            NAME_PATTERN  # for most up to date version of the regex
+        from dandischema.models import (
+            NAME_PATTERN,  # for most up to date version of the regex
+        )
     else:
         NAME_PATTERN = r"^([\w\s\-\.']+),\s+([\w\s\-\.']+)$"  # copied on 7/12/22
 

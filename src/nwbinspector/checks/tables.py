@@ -8,9 +8,13 @@ from hdmf.utils import get_data_shape
 from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import Importance, InspectorMessage, register_check
-from ..utils import (_cache_data_selection, format_byte_size,
-                     is_ascending_series, is_dict_in_string,
-                     is_string_json_loadable)
+from ..utils import (
+    _cache_data_selection,
+    format_byte_size,
+    is_ascending_series,
+    is_dict_in_string,
+    is_string_json_loadable,
+)
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)

@@ -4,9 +4,13 @@ from hdmf.testing import TestCase
 from packaging import version
 
 from nwbinspector import Importance
-from nwbinspector.utils import (calculate_number_of_cpu, format_byte_size,
-                                get_package_version, is_dict_in_string,
-                                is_regular_series)
+from nwbinspector.utils import (
+    calculate_number_of_cpu,
+    format_byte_size,
+    get_package_version,
+    is_dict_in_string,
+    is_regular_series,
+)
 
 
 def test_format_byte_size():

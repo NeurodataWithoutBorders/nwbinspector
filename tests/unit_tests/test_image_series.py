@@ -5,10 +5,13 @@ import numpy as np
 from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
-from nwbinspector import (Importance, InspectorMessage,
-                          check_image_series_data_size,
-                          check_image_series_external_file_relative,
-                          check_image_series_external_file_valid)
+from nwbinspector import (
+    Importance,
+    InspectorMessage,
+    check_image_series_data_size,
+    check_image_series_external_file_relative,
+    check_image_series_external_file_valid,
+)
 from nwbinspector.testing import load_testing_config
 
 testing_config = load_testing_config()

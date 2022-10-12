@@ -3,8 +3,7 @@ import numpy as np
 from pynwb import TimeSeries
 
 # from ..tools import all_of_type
-from ..register_checks import (Importance, InspectorMessage, Severity,
-                               register_check)
+from ..register_checks import Importance, InspectorMessage, Severity, register_check
 from ..utils import is_ascending_series, is_regular_series
 
 

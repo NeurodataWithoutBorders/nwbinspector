@@ -22,12 +22,21 @@ from natsort import natsorted
 from tqdm import tqdm
 
 from . import available_checks
-from .inspector_tools import (format_messages, get_report_header,
-                              print_to_console, save_report)
+from .inspector_tools import (
+    format_messages,
+    get_report_header,
+    print_to_console,
+    save_report,
+)
 from .register_checks import Importance, InspectorMessage
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import (FilePathType, OptionalListOfStrings, PathType,
-                    calculate_number_of_cpu, robust_s3_read)
+from .utils import (
+    FilePathType,
+    OptionalListOfStrings,
+    PathType,
+    calculate_number_of_cpu,
+    robust_s3_read,
+)
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 

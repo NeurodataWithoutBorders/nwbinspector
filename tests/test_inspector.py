@@ -13,14 +13,18 @@ from pynwb import NWBHDF5IO, NWBFile, TimeSeries
 from pynwb.behavior import Position, SpatialSeries
 from pynwb.file import TimeIntervals
 
-from nwbinspector import (Importance, check_data_orientation,
-                          check_regular_timestamps,
-                          check_small_dataset_compression,
-                          check_subject_exists,
-                          check_timestamps_match_first_dimension, inspect_all,
-                          inspect_nwb, load_config)
-from nwbinspector.register_checks import (InspectorMessage, Severity,
-                                          register_check)
+from nwbinspector import (
+    Importance,
+    check_data_orientation,
+    check_regular_timestamps,
+    check_small_dataset_compression,
+    check_subject_exists,
+    check_timestamps_match_first_dimension,
+    inspect_all,
+    inspect_nwb,
+    load_config,
+)
+from nwbinspector.register_checks import InspectorMessage, Severity, register_check
 from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
