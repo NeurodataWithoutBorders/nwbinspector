@@ -31,7 +31,7 @@ jobs:
         run: python -c "from nwbinspector.testing import generate_testing_files; generate_testing_files()"
       - name: Upload to DANDI
         run: |
-          dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919'
+          dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919' --download dandiset.yaml
           cd 204919
           mv ../testing_files .
           dandi upload -i dandi-staging --validation skip  # These are purposefully invalid files
