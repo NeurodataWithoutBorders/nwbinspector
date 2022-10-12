@@ -109,7 +109,7 @@ For example,
 External Modules
 ----------------
 
-If the NWB files being inspected have externally defined check registries, such as any specific Best Practices for an :nwb-schema:ref:`NWB Extension<extending-the-format>`, these can be loaded using the ``--modules`` flag along with the name of each module spelled exactly as you would normally import it in Python. If there is more than one such module, multiple modules would be comma-separated without a space.
+If the NWB files being inspected have externally defined check registries, such as any specific Best Practices for an :nwb-schema:ref:`NWB Extension <extending-the-format>`, these can be loaded using the ``--modules`` flag along with the name of each module spelled exactly as you would normally import it in Python. If there is more than one such module, multiple modules would be comma-separated without a space.
 
 For example,
 
