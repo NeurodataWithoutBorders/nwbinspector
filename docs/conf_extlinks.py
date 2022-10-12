@@ -12,7 +12,7 @@ extlinks = {
         "https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/.github/CONTRIBUTING.md%s",
         None,
     ),
-    "dandi-archive": ("https://dandiarchive.org", ""),
+    "dandi-archive": ("https://dandiarchive.org%s", None),
     "ros3-tutorial": ("https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-1-ros3%s", None),
     "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
     "allen-brain-map": ("https://%s.brain-map.org/", "%s"),
