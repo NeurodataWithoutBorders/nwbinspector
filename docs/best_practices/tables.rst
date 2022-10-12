@@ -5,6 +5,16 @@ The :ref:`hdmf-schema:sec-dynamictable` data type stores tabular data. It also a
 degree of flexibility.
 
 
+.. _best_practice_table_values_for_dict:
+
+Table Values
+~~~~~~~~~~~~
+
+String-valued table entries should not contain :wikipedia:`JSON <JSON>`. Instead, these values should be unpacked and used as additional columns of that table.
+
+Check function: :py:meth:`~nwbinspector.checks.tables.check_table_values_for_dict`
+
+
 
 .. _best_practice_empty_table:
 
@@ -23,6 +33,18 @@ Tables With Only a Single Row
 It is not common to save a table with only a single row entry. Consider other ``neurodata_types``, such as a one-dimensional :ref:`nwb-schema:sec-TimeSeries`.
 
 Check function: :py:meth:`~nwbinspector.checks.tables.check_single_row`
+
+
+
+.. _best_practice_col_not_nan:
+
+Tables With an Entire Column as ``NaN``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an entire column of a :ref:`hdmf-schema:sec-dynamictable` would be filled with ``NaN`` values, then it should not be written.
+
+
+Check function: :py:meth:`~nwbinspector.checks.tables.check_col_not_nan`
 
 
 
