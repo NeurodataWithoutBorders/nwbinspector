@@ -18,6 +18,7 @@ jobs:
           conda-channels: conda-forge
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
+
       - name: Install pytest
         run: |
           pip install pytest

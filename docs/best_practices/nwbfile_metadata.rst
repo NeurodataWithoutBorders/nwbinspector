@@ -199,8 +199,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 Species
 ~~~~~~~
 
-The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper
-:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus".
+The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
 
