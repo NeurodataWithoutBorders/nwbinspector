@@ -40,14 +40,11 @@ jobs:
             then
               echo "Source changed"
               echo "::set-output name=SOURCE_CHANGED::true"
-            else
-              echo "Source not changed"
-            fi &
-            if [[ $file == "src/nwbinspector/testing.py" ]]
+            elif [[ $file == "src/nwbinspector/testing.py" ]]
             then
               echo "Testing changed"
               echo "::set-output name=TESTING_CHANGED::true"
             else
-              echo "Testing not changed"
+              echo "Neither Source nor Testing changed"
             fi
           done
