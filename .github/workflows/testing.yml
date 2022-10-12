@@ -34,8 +34,6 @@ jobs:
         run: pip uninstall -y h5py
       - name: Install ROS3
         run: conda install -c conda-forge h5py
-      - name: temporary-pynwb-pin
-        run: pip install pynwb==2.1.0
 
       - name: Run pytest with coverage
         run: pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
