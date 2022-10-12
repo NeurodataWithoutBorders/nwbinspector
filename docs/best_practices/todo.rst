@@ -51,13 +51,6 @@ TODO
 Short section about this.
 
 
-.. _best_practice_spike_times_not_in_unobserved_interval:
-
-TODO
-----
-
-Add a short section for this.
-
 
 .. _best_practice_roi_response_series_link_to_plane_segmentation:
 
