@@ -5,20 +5,13 @@ This is an isolated page of the documentation containing all current section ref
 When all of these are done, this page will be removed.
 
 
-.. _best_practice_empty_string_for_optional_attribute:
+.. _best_practice_experimenter_form:
 
 TODO
 ----
 
-Need to add a section about this somewhere.
+Need to write section about DANDI regex pattern.
 
-
-.. _best_practice_empty_table:
-
-TODO
-----
-
-Add small section for this.
 
 
 .. _best_practice_table_values_for_dict:
@@ -49,13 +42,6 @@ TODO
 
 Short section about this.
 
-
-.. _best_practice_spike_times_not_in_unobserved_interval:
-
-TODO
-----
-
-Add a short section for this.
 
 
 .. _best_practice_roi_response_series_link_to_plane_segmentation:
