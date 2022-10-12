@@ -13,13 +13,6 @@ TODO
 Need to write section about DANDI regex pattern.
 
 
-.. _best_practice_empty_string_for_optional_attribute:
-
-TODO
-----
-
-Need to add a section about this somewhere.
-
 
 
 .. _best_practice_table_values_for_dict:
