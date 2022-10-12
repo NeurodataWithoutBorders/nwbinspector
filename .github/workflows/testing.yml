@@ -30,8 +30,10 @@ jobs:
         run: |
           pip install -e .
           pip install dandi
-      - name: Download testing data
-        run: dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919'
+      - name: Download testing data and set config path
+        run: |
+          dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
+          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919')"
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
