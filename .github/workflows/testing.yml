@@ -1,8 +1,5 @@
 name: Testing
-on:
-  schedule:
-    - cron: "0 0 * * *"  # daily
-  workflow_call:
+on: workflow_call
 
 jobs:
   build-and-test:
