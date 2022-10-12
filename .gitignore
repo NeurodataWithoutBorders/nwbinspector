@@ -3,6 +3,10 @@
 *.nwb
 manifest.json
 
+# Testing
+tests/testing_config.json
+*/testing_files/*
+
 # Python byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

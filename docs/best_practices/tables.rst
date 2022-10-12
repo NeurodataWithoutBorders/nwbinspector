@@ -16,6 +16,15 @@ Check function: :py:meth:`~nwbinspector.checks.tables.check_table_values_for_dic
 
 
 
+.. _best_practice_empty_table:
+
+Empty Tables
+~~~~~~~~~~~~
+
+An empty :ref:`hdmf-schema:sec-dynamictable` is one that does not have any rows. When adding tables to an NWB file, do not write empty tables.
+
+
+
 .. _best_practice_single_row:
 
 Tables With Only a Single Row
