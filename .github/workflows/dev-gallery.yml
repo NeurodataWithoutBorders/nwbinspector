@@ -3,7 +3,7 @@ on: workflow_call
 
 jobs:
   build-and-test:
-    name: Testing against past PyNWB versions
+    name: Testing against dev PyNWB version
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
