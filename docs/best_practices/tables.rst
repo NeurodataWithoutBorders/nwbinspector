@@ -11,7 +11,7 @@ degree of flexibility.
 Empty Tables
 ~~~~~~~~~~~~
 
-An empty :ref:`hdmf-schema:sec-dynamictable` is one that does not have any rows or columns added to it. When adding tables to an NWB file, do not write empty tables.
+An empty :ref:`hdmf-schema:sec-dynamictable` is one that does not have any rows. When adding tables to an NWB file, do not write empty tables.
 
 
 
