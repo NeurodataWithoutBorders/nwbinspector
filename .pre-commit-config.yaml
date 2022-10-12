@@ -10,3 +10,12 @@ repos:
     hooks:
     -   id: black
         exclude: ^docs/
+-   repo: https://github.com/PyCQA/isort
+    rev: 5.8.0
+    hooks:
+    -   id: isort
+        exclude: |
+            (?x)^(
+                docs/|
+                nwbinspector/__init__.py
+            )$
