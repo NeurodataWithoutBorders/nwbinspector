@@ -21,6 +21,7 @@ jobs:
           conda-channels: conda-forge
       - uses: actions/checkout@v2
       - run: git fetch --prune --unshallow --tags
+
       - name: Install pytest
         run: |
           pip install pytest
@@ -33,6 +34,9 @@ jobs:
         run: pip uninstall -y h5py
       - name: Install ROS3
         run: conda install -c conda-forge h5py
+      - name: temporary-pynwb-pin
+        run: pip install pynwb==2.1.0
+  
       - name: Run pytest with coverage
         run: pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
