@@ -3,7 +3,7 @@ on: workflow_call
 
 jobs:
   build-and-test:
-    name: Testing against past PyNWB versions
+    name: Testing against dev PyNWB version
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -28,7 +28,7 @@ jobs:
       - name: Download testing data and set config path
         run: |
           dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
-          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919')"
+          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919/testing_files/')"
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
