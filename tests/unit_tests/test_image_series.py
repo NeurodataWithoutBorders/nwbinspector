@@ -14,12 +14,17 @@ from nwbinspector import (
 )
 from nwbinspector.testing import load_testing_config
 
-testing_config = load_testing_config()
-testing_file = Path(testing_config["LOCAL_PATH"]) / "image_series_testing_file.nwb"
+try:
+    testing_config = load_testing_config()
+    testing_file = Path(testing_config["LOCAL_PATH"]) / "image_series_testing_file.nwb"
+    NO_CONFIG = False  # Depending on the method of installation, a config may not have generated
+except FileNotFoundError:
+    testing_file = "Not found"
+    NO_CONFIG = True
 
 
 @unittest.skipIf(
-    not testing_file.exists(),
+    NO_CONFIG or not testing_file.exists(),
     reason=f"The ImageSeries unit tests were skipped because the required file ({testing_file}) was not found!",
 )
 class TestExternalFileValid(unittest.TestCase):
@@ -47,9 +52,7 @@ class TestExternalFileValid(unittest.TestCase):
         """Can't use the NWB file since the call to io.write() decodes the bytes with modern versions of h5py."""
         good_external_path = Path(self.nwbfile.acquisition["TestImageSeriesGoodExternalPaths"].external_file[0])
         image_series = ImageSeries(
-            name="TestImageSeries",
-            rate=1.0,
-            external_file=[bytes("/".join([".", good_external_path.name]), "utf-8")],
+            name="TestImageSeries", rate=1.0, external_file=[bytes("/".join([".", good_external_path.name]), "utf-8")],
         )
         assert check_image_series_external_file_relative(image_series=image_series) is None
 
