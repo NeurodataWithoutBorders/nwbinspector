@@ -1,5 +1,13 @@
 # Upcoming
 
+# v0.4.17
+
+### Hotfix
+
+* Fix to skip certain tests if optional testing config path was not specified (mostly for conda-forge).
+
+
+
 # v0.4.16
 
 ### Improvements
