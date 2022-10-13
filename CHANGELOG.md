@@ -1,5 +1,7 @@
 # Upcoming
 
+# v0.4.15
+
 ### Improvements
 
 * Allow NCBI taxonomy references for Subject.species. [PR #290](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/290)
