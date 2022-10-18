@@ -4,6 +4,12 @@ on:
   pull_request:
 
 jobs:
+  cancel-previous-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@v0.11.0
+
   assess-file-changes:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
 
