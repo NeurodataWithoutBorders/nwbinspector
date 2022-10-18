@@ -11,22 +11,22 @@ jobs:
         uses: styfle/cancel-workflow-action@0.11.0
 
   assess-file-changes:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@updating_node16
 
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@updating_node16
 
   run-past-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version_gallery.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version-gallery.yml@updating_node16
 
   run-dev-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dev-gallery.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dev-gallery.yml@updating_node16
 
   update-testing-files:
     needs: assess-file-changes
