@@ -31,6 +31,6 @@ jobs:
   update-testing-files:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.TESTING_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@updating_node16
     secrets:
       DANDI_API_KEY: ${{ secrets.DANDI_API_KEY }}
