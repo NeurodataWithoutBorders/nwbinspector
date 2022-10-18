@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@v0.11.0
+        uses: styfle/cancel-workflow-action@v0.10.1
 
   assess-file-changes:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
