@@ -12,6 +12,7 @@ from functools import lru_cache
 import h5py
 import numpy as np
 from numpy.typing import ArrayLike
+from hdmf.backends.hdf5.h5_utils import H5Dataset
 
 
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
@@ -35,7 +36,10 @@ def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # Technically np.memmap should be able to support this type of behavior as well
         return data[selection]  # But they aren't natively hashable either...
-    if not isinstance(data, h5py.Dataset):  # No need to attempt to cache if already an in-memory object
+    print(type(data))
+    print(isinstance(data, h5py.Dataset))
+    print(isinstance(data, H5Dataset))
+    if not (isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)):  # No need to attempt to cache if already an in-memory object
         return np.array(data)[selection]
 
     # slices also aren't hashable, but their reduced representation is

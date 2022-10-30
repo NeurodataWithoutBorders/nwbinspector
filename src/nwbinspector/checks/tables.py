@@ -113,6 +113,8 @@ def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
             try:
+                print(column.name)
+                print(column.data.shape)
                 unique_values = np.unique(_cache_data_selection(data=column.data, selection=slice(nelems)))
             except TypeError:  # some contained objects are unhashable or have no comparison defined
                 continue

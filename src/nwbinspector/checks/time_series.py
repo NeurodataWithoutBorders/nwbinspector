@@ -3,7 +3,6 @@ import numpy as np
 
 from pynwb import TimeSeries
 
-# from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
 from ..utils import is_regular_series, is_ascending_series
 
@@ -56,10 +55,10 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
     if (
         time_series.data is not None
         and time_series.timestamps is not None
-        and np.array(time_series.data).shape[:1] != np.array(time_series.timestamps).shape
+        and time_series.data.shape[:1] != time_series.timestamps.shape
     ):
         return InspectorMessage(
-            message="The length of the first dimension of data does not match the length of timestamps.",
+            message=f"The length of the first dimension of data ({time_series.data.shape[:1]}) does not match the length of timestamps ({time_series.timestamps.shape}).",
         )
 
 
