@@ -554,7 +554,6 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
     checks : list
     """
     for check_function in checks:
-        print(check_function)
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:

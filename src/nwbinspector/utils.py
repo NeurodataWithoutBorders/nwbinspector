@@ -36,9 +36,6 @@ def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # Technically np.memmap should be able to support this type of behavior as well
         return data[selection]  # But they aren't natively hashable either...
-    print(type(data))
-    print(isinstance(data, h5py.Dataset))
-    print(isinstance(data, H5Dataset))
     if not (
         isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)
     ):  # No need to attempt to cache if already an in-memory object
