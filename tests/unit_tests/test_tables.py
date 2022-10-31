@@ -84,7 +84,7 @@ def test_check_time_interval_time_columns():
 
     assert check_time_interval_time_columns(time_intervals) == InspectorMessage(
         message=(
-            "['start_time', 'stop_time'] are time columns but the values are not in ascending order."
+            "['start_time', 'stop_time'] are time columns but the values are not in ascending order. "
             "All times should be in seconds with respect to the session start time."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
