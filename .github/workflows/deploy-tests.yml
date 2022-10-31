@@ -11,26 +11,26 @@ jobs:
         uses: styfle/cancel-workflow-action@0.11.0
 
   assess-file-changes:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@updating_node16
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
 
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@updating_node16
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
 
   run-past-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version-gallery.yml@updating_node16
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version-gallery.yml@dev
 
   run-dev-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dev-gallery.yml@updating_node16
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dev-gallery.yml@dev
 
   update-testing-files:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.TESTING_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@updating_node16
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@dev
     secrets:
       DANDI_API_KEY: ${{ secrets.DANDI_API_KEY }}
