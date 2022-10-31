@@ -39,7 +39,9 @@ def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union
     print(type(data))
     print(isinstance(data, h5py.Dataset))
     print(isinstance(data, H5Dataset))
-    if not (isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)):  # No need to attempt to cache if already an in-memory object
+    if not (
+        isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)
+    ):  # No need to attempt to cache if already an in-memory object
         return np.array(data)[selection]
 
     # slices also aren't hashable, but their reduced representation is
