@@ -39,7 +39,7 @@ If you have an ``NWBFile`` object in memory, you can run:
     from nwbinspector import available_checks, run_checks
     from pynwb import NWBHDF5IO
 
-    with NWBHDF5IO(...) as io:
+    with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
         nwbfile = io.read()
         messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))  # if you don't want to use it as a generator
 
