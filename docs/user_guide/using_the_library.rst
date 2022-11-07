@@ -35,6 +35,7 @@ This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMes
 If you have an ``NWBFile`` object in memory, you can run:
 
 .. code-block:: python
+
     from neuroconv import available_checks, run_checks
     from pynwb import NWBHDF5IO
 
