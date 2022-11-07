@@ -32,6 +32,16 @@ The most basic function to use when inspecting a single NWBFile is the
 
 This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMessage` objects.
 
+If you have an ``NWBFile`` object in memory, you can run:
+
+.. code-block:: python
+
+    from nwbinspector import available_checks, run_checks
+    from pynwb import NWBHDF5IO
+
+    with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
+        nwbfile = io.read()
+        messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))
 
 
 Inspect a Directory or List of Paths to NWBFiles
