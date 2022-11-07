@@ -36,7 +36,7 @@ If you have an ``NWBFile`` object in memory, you can run:
 
 .. code-block:: python
 
-    from neuroconv import available_checks, run_checks
+    from nwbinspector import available_checks, run_checks
     from pynwb import NWBHDF5IO
 
     with NWBHDF5IO(...) as io:
