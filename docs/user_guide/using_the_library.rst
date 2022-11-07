@@ -41,7 +41,7 @@ If you have an ``NWBFile`` object in memory, you can run:
 
     with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
         nwbfile = io.read()
-        messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))  # if you don't want to use it as a generator
+        messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))
 
 
 Inspect a Directory or List of Paths to NWBFiles
