@@ -555,7 +555,7 @@ def inspect_nwb(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
     if not skip_validate:
         # For back-compatability, the original io usage does not use cached namespaces
-        if get_package_version(name="pynwb") > Version("2.1.0"):
+        if get_package_version(name="pynwb") >= Version("2.2.0"):
             validation_errors, _ = pynwb.validate(
                 paths=[nwbfile_path], use_cached_namespaces=use_cached_namespaces or True
             )
@@ -571,7 +571,7 @@ def inspect_nwb(
             if use_cached_namespaces is not None:
                 warn(
                     "Validation option 'use_cached_namespaces' was specified, "
-                    "but the system does not have PyNWB>=2.1.0 - using global namespaces."
+                    "but the system does not have PyNWB>=2.2.0 - using only the global namespaces."
                 )
             with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
                 validation_errors = pynwb.validate(io=io)
