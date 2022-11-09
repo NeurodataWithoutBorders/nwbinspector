@@ -13,7 +13,7 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
-species_regex = r"[A-Z][a-z]* [a-z]+"
+species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
@@ -49,14 +49,22 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_exists(nwbfile: NWBFile):
-    """Check if an experimenter has been added for the session."""
+    """
+    Check if an experimenter has been added for the session.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_form(nwbfile: NWBFile):
-    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
+    """
+    Check the text form of each experimenter to see if it matches the DANDI regex pattern.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if nwbfile.experimenter is None:
         return
     if is_module_installed(module_name="dandi"):
@@ -203,13 +211,15 @@ def check_subject_species_exists(subject: Subject):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
-def check_subject_species_latin_binomial(subject: Subject):
+def check_subject_species_form(subject: Subject):
     """
-    Check if the subject species follows latin binomial form.
+    Check if the subject species follows latin binomial form or is a link to an NCBI taxonomy in the form of a Term IRI.
+
+    The Term IRI can be found at the https://ontobee.org/ database.
 
     Best Practice: :ref:`best_practice_subject_species`
     """
-    if subject.species and not re.fullmatch(species_regex, subject.species):
+    if subject.species and not re.fullmatch(species_form_regex, subject.species):
         return InspectorMessage(
             message=(
                 f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "

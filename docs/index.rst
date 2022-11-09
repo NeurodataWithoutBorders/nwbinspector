@@ -14,7 +14,7 @@ files and based on compliance with Best Practice. This tool is meant as a compan
    :maxdepth: 2
 
    best_practices/best_practices_index
-   user_guide/user_guide
+   user_guide/user_guide_index
    developer_guide
 
 

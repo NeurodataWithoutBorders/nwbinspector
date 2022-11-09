@@ -90,14 +90,12 @@ The ``identifier`` field does not need to be easily human-readable.
 
 
 
-.. _best_practice_experimenter_exists:
+.. _best_practice_experimenter:
 
 Experimenter
 ~~~~~~~~~~~~
 
-The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified. This allows metadata collection
-programs, such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to more easily link individual
-authors to publications and external IDs, such as :orcid:`ORCID`.
+The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified as any of the accepted forms: 'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName MiddleName'.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
 
@@ -201,8 +199,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 Species
 ~~~~~~~
 
-The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper
-:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus".
+The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
 

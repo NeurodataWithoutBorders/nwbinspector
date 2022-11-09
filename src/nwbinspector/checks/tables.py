@@ -61,7 +61,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
     if unsorted_cols:
         return InspectorMessage(
             message=(
-                f"{unsorted_cols} are time columns but the values are not in ascending order."
+                f"{unsorted_cols} are time columns but the values are not in ascending order. "
                 "All times should be in seconds with respect to the session start time."
             )
         )

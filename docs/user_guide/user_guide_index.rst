@@ -17,6 +17,6 @@ to adhere more strictly to the officially encouraged Best Practices.
     :maxdepth: 2
 
     installation
-    command_line_usage
-    library_usage
-    advanced_usage
+    using_the_command_line_interface
+    using_the_library
+    using_the_library_advanced

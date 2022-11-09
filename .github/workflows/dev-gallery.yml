@@ -1,20 +1,17 @@
-name: Testing
+name: Development Version Gallery
 on: workflow_call
 
 jobs:
   build-and-test:
-    name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
+    name: Testing against dev PyNWB version
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.7", "3.10"]
     steps:
       - uses: s-weigand/setup-conda@v1
         with:
           update-conda: true
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
           conda-channels: conda-forge
       - uses: actions/checkout@v3
       - run: git fetch --prune --unshallow --tags
@@ -23,10 +20,10 @@ jobs:
         run: |
           pip install pytest
           pip install pytest-cov
-
       - name: Install package
         run: |
           pip install -e .
+          pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
           pip install dandi
       - name: Download testing data and set config path
         run: |
@@ -38,13 +35,4 @@ jobs:
         run: conda install -c conda-forge h5py
 
       - name: Run pytest with coverage
-        run: pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
-      - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
-        name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          version: "v0.1.15"
-          fail_ci_if_error: true
-          file: ./nwbinspector/nwbinspector/coverage.xml
-          flags: unittests
+        run: pytest -rsx

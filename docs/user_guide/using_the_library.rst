@@ -32,6 +32,16 @@ The most basic function to use when inspecting a single NWBFile is the
 
 This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMessage` objects.
 
+If you have an ``NWBFile`` object in memory, you can run:
+
+.. code-block:: python
+
+    from nwbinspector import available_checks, run_checks
+    from pynwb import NWBHDF5IO
+
+    with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
+        nwbfile = io.read()
+        messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))
 
 
 Inspect a Directory or List of Paths to NWBFiles
@@ -52,6 +62,39 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 .. note::
 
     For convenience, all path-based arguments in the NWBInspector library support both ``str`` and ``pathlib.Path`` types.
+
+
+
+.. _simple_streaming_api:
+
+Inspect a DANDI set (ROS3)
+--------------------------
+
+It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
+run the NWB Inspector as usual, it can be more convenient to stream the data. This can be especially useful when the dandiset is large and impractical to download in full.
+
+Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset by providing the six-digit identifier...
+
+.. code-block:: python
+
+    from nwbinspector import inspect_all
+
+    dandiset_id = "000004"  # for example
+
+    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
+
+If there are multiple versions of the dandiset available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the ``version_id`` argument...
+
+.. code-block:: python
+
+    from nwbinspector import inspect_all
+
+    dandiset_id = "000004"  # for example
+    version_id = "draft"  # or "published", or this can be the exact DOI value
+
+    messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True, version=version_id))
+
+See the section on :ref:`advanced_streaming_api` for more customized usage of the streaming feature.
 
 
 
