@@ -1,6 +1,6 @@
 from .version import __version__
 from .register_checks import available_checks, Importance
-from .nwbinspector import inspect_nwb, inspect_all, load_config
+from .nwbinspector import inspect_nwb, inspect_all, run_checks, load_config
 from .checks.behavior import *
 from .checks.ecephys import *
 from .checks.general import *
