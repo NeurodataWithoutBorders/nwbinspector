@@ -1,4 +1,5 @@
 """Primary functions for inspecting NWBFiles."""
+import os
 import re
 import importlib
 import traceback
@@ -286,10 +287,12 @@ def inspect_all_cli(
         with open(file=json_file_path, mode="w") as fp:
             json_report = dict(header=get_report_header(), messages=messages)
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
+            print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
     formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:
         save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
+        print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
 
 
 def inspect_all(
