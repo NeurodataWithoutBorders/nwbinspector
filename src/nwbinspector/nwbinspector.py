@@ -358,7 +358,7 @@ def inspect_all(
         The default is False, which is also recommended.
     use_cached_namespaces : bool
         If not skipping validation, this determines whether to use global namespaces or those cached within the file.
-        Only available when using PyNWB version 2.1.0 or greater.
+        Only available when using PyNWB version 2.2.0 or greater.
         Defaults to True.
     progress_bar : bool, optional
         Display a progress bar while scanning NWBFiles.
@@ -540,7 +540,7 @@ def inspect_nwb(
         The default is False, which is also recommended.
     use_cached_namespaces : bool
         If not skipping validation, this determines whether to use global namespaces or those cached within the file.
-        Only available when using PyNWB version 2.1.0 or greater.
+        Only available when using PyNWB version 2.2.0 or greater.
         Defaults to True.
     max_retries : int, optional
         When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
