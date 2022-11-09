@@ -355,7 +355,7 @@ def test_false_positive_skip_check_image_series_data_size():
         name="TwoPhotonSeries",
         imaging_plane=imaging_plane,
         data=np.empty(
-            shape=(int(21**9 / 8), 1, 1)
+            shape=(int(21e9 / 8), 1, 1)
         ),  # Empty data, but of shape+dtype that would be more than default GB threshold
         unit="n.a.",
         rate=30.0,
