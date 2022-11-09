@@ -1,7 +1,7 @@
 NWBFile Metadata
 ================
 
-An :nwb-schema:ref:`sec-NWBFile` object generally contains data from a single experimental session.
+An :ref:`nwb-schema:sec-NWBFile` object generally contains data from a single experimental session.
 
 
 
@@ -14,15 +14,15 @@ File Organization
 Global Date and Time Reference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An :nwb-schema:ref:`sec-NWBFile` can have two primary time references. The global date and time reference for all
-objects in the :nwb-schema:ref:`sec-NWBFile` is the ``timestamps_reference_time``. By default, this is set to the
+An :ref:`nwb-schema:sec-NWBFile` can have two primary time references. The global date and time reference for all
+objects in the :ref:`nwb-schema:sec-NWBFile` is the ``timestamps_reference_time``. By default, this is set to the
 ``session_start_time``, but when writing multiple NWBFiles that are all designed to align to the same time reference,
 the ``timestamp_reference_time`` used across all of the NWBFiles may be set separately from the ``session_start_time``.
 
 All time-related data in the NWBFile should be synchronized to the ``timestamps_reference_time`` so that future users
 are able to understand the timing of all events contained within the NWBFile.
 
-Given the importance of this field within an :nwb-schema:ref:`sec-NWBFile`, is it critical that it be set to a proper
+Given the importance of this field within an :ref:`nwb-schema:sec-NWBFile`, is it critical that it be set to a proper
 value. Default values should generally not be used for this field. If the true date is unknown, use your
 best guess. If the exact start time is unknown, then it is fine to simply set it to midnight on that date.
 
@@ -38,7 +38,7 @@ Acquisition & Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The 'acquisition' group is specifically for time series measurements that are acquired from an acquisition system,
-*e.g.*, an :nwb-schema:ref:`sec-ElectricalSeries` with the voltages from the recording systems or the raw output of
+*e.g.*, an :ref:`nwb-schema:sec-ElectricalSeries` with the voltages from the recording systems or the raw output of
 any other environmental sensors.
 
 The 'processing' modules are for intermediate data, *e.g.*, if you derive the position of the animal from sensors or
@@ -73,7 +73,7 @@ File Metadata
 File Identifiers
 ~~~~~~~~~~~~~~~~
 
-An :nwb-schema:ref:`sec-NWBFile` has two distinct places for identifiers: ``NWBFile.session_id`` and ``identifier``.
+An :ref:`nwb-schema:sec-NWBFile` has two distinct places for identifiers: ``NWBFile.session_id`` and ``identifier``.
 
 The ``session_id`` field marks unique experimental sessions. The ``session_id`` should have a one-to-one relationship
 with a recording session. Sometimes you may find yourself having multiple NWBFiles that correspond to the same session.
@@ -82,7 +82,7 @@ different processing outputs. In this case, the ``session_id`` should be the sam
 a standard structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily
 human-readable.
 
-The ``identifier`` tag should be a globally unique value for the :nwb-schema:ref:`sec-NWBFile`. Two different NWBFiles
+The ``identifier`` tag should be a globally unique value for the :ref:`nwb-schema:sec-NWBFile`. Two different NWBFiles
 from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
 use a well-established algorithmic generator such as ``uuid`` to ensure uniqueness. ``uuid`` can be
 :uuid:`used in PyNWB <>`, and MatNWB will automatically set the field using ``java.util.UUID.randomUUID().toString()``.
@@ -95,9 +95,7 @@ The ``identifier`` field does not need to be easily human-readable.
 Experimenter
 ~~~~~~~~~~~~
 
-The ``experimenter`` field of an :nwb-schema:ref:`sec-NWBFile` should be specified. This allows metadata collection
-programs, such as those on the :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to more easily link individual
-authors to publications and external IDs, such as :orcid:`ORCID`.
+The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified as any of the accepted forms: 'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName MiddleName'.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
 
@@ -108,7 +106,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment
 Experiment Description
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The ``experiment_description`` field of an :nwb-schema:ref:`sec-NWBFile` should be specified. This helps provide
+The ``experiment_description`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified. This helps provide
 context for understanding the contents of the file.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experiment_description`
@@ -177,7 +175,7 @@ ID
 ~~
 
 A ``subject_id`` is required for upload to the :dandi-archive:`DANDI archive <>`. Even if the goal of a given NWBFile is
-not intended for DANDI upload, if the :nwb-schema:ref:`sec-Subject` is specified at all it should be given a
+not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified at all it should be given a
 ``subject_id`` for reference.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id_exists`
@@ -189,7 +187,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id
 Sex
 ~~~
 
-The ``sex`` of the :nwb-schema:ref:`sec-Subject` should be specified as a single upper-case character among the
+The ``sex`` of the :ref:`nwb-schema:sec-Subject` should be specified as a single upper-case character among the
 following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sex`
@@ -201,8 +199,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 Species
 ~~~~~~~
 
-The ``species`` of a :nwb-schema:ref:`sec-Subject` should be set to the proper
-:wikipedia:`Latin binomial <Binomial_nomenclature>`. *E.g.*, a rat would be "Rattus norvegicus".
+The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
 
@@ -211,7 +208,7 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sp
 Strain
 ~~~~~~~
 
-The ``strain`` of a :nwb-schema:ref:`sec-Subject` should be set to further indicate the subspecies or breed or common genetic modification. *E.g.*, common strains for species "Rattus norvegicus" might include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6". If no specific strain is used, then simply indicate "Wild Type".
+The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indicate the subspecies or breed or common genetic modification. *E.g.*, common strains for species "Rattus norvegicus" might include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6". If no specific strain is used, then simply indicate "Wild Type".
 
 
 
@@ -220,7 +217,7 @@ The ``strain`` of a :nwb-schema:ref:`sec-Subject` should be set to further indic
 Age
 ~~~
 
-The ``age`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>`
+The ``age`` of a :ref:`nwb-schema:sec-Subject` should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>`
 format. For instance indicating an age of 90 days would be 'P90D'. It is not necessary to include both ``age`` and
 ``date_of_birth``, but at least one of them is required by the DANDI Archive and recommended in general.
 
@@ -237,6 +234,6 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_ag
 Date of Birth
 ~~~~~~~~~~~~~
 
-The ``date_of_birth`` of a :nwb-schema:ref:`sec-Subject` should use the :wikipedia:`ISO 8601 <ISO_8601>` format. For
+The ``date_of_birth`` of a :ref:`nwb-schema:sec-Subject` should use the :wikipedia:`ISO 8601 <ISO_8601>` format. For
 instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30". It is not necessary to
 include both ``age`` and ``date_of_birth``, but at least one of them is recommended.

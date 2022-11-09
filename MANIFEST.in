@@ -1,5 +1,5 @@
 graft tests
 global-exclude *.py[cod]
-include nwbinspector/internal_configs/dandi.inspector_config.yaml
-include nwbinspector/config.schema.json
+include src/nwbinspector/internal_configs/dandi.inspector_config.yaml
+include src/nwbinspector/config.schema.json
 include requirements.txt

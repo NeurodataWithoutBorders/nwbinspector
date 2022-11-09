@@ -1,0 +1,53 @@
+name: Assess file changes
+
+on:
+  workflow_call:
+    # Map the workflow outputs to job outputs
+    outputs:
+      SOURCE_CHANGED:
+        description: "Whether or not the files under /src/ were changed."
+        value: ${{ jobs.build.outputs.SOURCE_CHANGED }}
+      TESTING_CHANGED:
+        description: "Whether or not to regenerate the testing files and reupload them to DANI staging."
+        value: ${{ jobs.build.outputs.TESTING_CHANGED }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Map the job outputs to step outputs
+    outputs:
+      SOURCE_CHANGED: ${{ steps.flagged-changes.outputs.SOURCE_CHANGED }}
+      TESTING_CHANGED: ${{ steps.flagged-changes.outputs.TESTING_CHANGED }}
+
+    name: Test changed-files
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v32.1.2
+
+      - name: Assess Source Code Changes
+        id: flagged-changes
+        run: |
+          echo "::set-output name=SOURCE_CHANGED::false"
+          echo "::set-output name=TESTING_CHANGED::false"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo $file
+            if [[ $file == "src/nwbinspector/"* || $file == "requirements"* || $file == "setup.py" || $file == "tests/"* ]]
+            then
+              echo "Source changed"
+              echo "::set-output name=SOURCE_CHANGED::true"
+            else
+              echo "Source not changed"
+            fi
+            if [[ $file == "src/nwbinspector/testing.py" ]]
+            then
+              echo "Testing changed"
+              echo "::set-output name=TESTING_CHANGED::true"
+            else
+              echo "Testing not changed"
+            fi
+          done

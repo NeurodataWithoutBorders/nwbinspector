@@ -5,7 +5,7 @@ from pynwb import TimeSeries
 
 # from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
-from ..utils import check_regular_series, is_ascending_series
+from ..utils import is_regular_series, is_ascending_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -16,7 +16,7 @@ def check_regular_timestamps(
     if (
         time_series.timestamps is not None
         and len(time_series.timestamps) > 2
-        and check_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
+        and is_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:

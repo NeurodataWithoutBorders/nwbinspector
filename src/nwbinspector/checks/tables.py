@@ -61,7 +61,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
     if unsorted_cols:
         return InspectorMessage(
             message=(
-                f"{unsorted_cols} are time columns but the values are not in ascending order."
+                f"{unsorted_cols} are time columns but the values are not in ascending order. "
                 "All times should be in seconds with respect to the session start time."
             )
         )
@@ -71,6 +71,8 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
 def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems: int = 200):
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
 
     Parameters
     ----------

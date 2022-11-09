@@ -136,12 +136,14 @@ def configure_checks(
     importance_threshold : string, optional
         Ignores all tests with an post-configuration assigned importance below this threshold.
         Importance has three levels:
+
             CRITICAL
                 - potentially incorrect data
             BEST_PRACTICE_VIOLATION
                 - very suboptimal data representation
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
+
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
     if ignore is not None and select is not None:
@@ -337,12 +339,14 @@ def inspect_all(
     importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
+
             CRITICAL
                 - potentially incorrect data
             BEST_PRACTICE_VIOLATION
                 - very suboptimal data representation
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
+
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     n_jobs : int
         Number of jobs to use in parallel. Set to -1 to use all available resources.
@@ -520,12 +524,14 @@ def inspect_nwb(
     importance_threshold : string or Importance, optional
         Ignores tests with an assigned importance below this threshold.
         Importance has three levels:
+
             CRITICAL
                 - potentially incorrect data
             BEST_PRACTICE_VIOLATION
                 - very suboptimal data representation
             BEST_PRACTICE_SUGGESTION
                 - improvable data representation
+
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     driver: str, optional
         Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.

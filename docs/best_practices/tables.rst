@@ -1,8 +1,27 @@
 Tables
 ======
 
-The :nwb-schema:ref:`dynamictable` data type stores tabular data. It also allows you to define custom columns, which offer a high
+The :ref:`hdmf-schema:sec-dynamictable` data type stores tabular data. It also allows you to define custom columns, which offer a high
 degree of flexibility.
+
+
+.. _best_practice_table_values_for_dict:
+
+Table Values
+~~~~~~~~~~~~
+
+String-valued table entries should not contain :wikipedia:`JSON <JSON>`. Instead, these values should be unpacked and used as additional columns of that table.
+
+Check function: :py:meth:`~nwbinspector.checks.tables.check_table_values_for_dict`
+
+
+
+.. _best_practice_empty_table:
+
+Empty Tables
+~~~~~~~~~~~~
+
+An empty :ref:`hdmf-schema:sec-dynamictable` is one that does not have any rows. When adding tables to an NWB file, do not write empty tables.
 
 
 
@@ -11,9 +30,21 @@ degree of flexibility.
 Tables With Only a Single Row
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is not common to save a table with only a single row entry. Consider other ``neurodata_types``, such as a one-dimensional :nwb-schema:ref:`sec-TimeSeries`.
+It is not common to save a table with only a single row entry. Consider other ``neurodata_types``, such as a one-dimensional :ref:`nwb-schema:sec-TimeSeries`.
 
 Check function: :py:meth:`~nwbinspector.checks.tables.check_single_row`
+
+
+
+.. _best_practice_col_not_nan:
+
+Tables With an Entire Column as ``NaN``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an entire column of a :ref:`hdmf-schema:sec-dynamictable` would be filled with ``NaN`` values, then it should not be written.
+
+
+Check function: :py:meth:`~nwbinspector.checks.tables.check_col_not_nan`
 
 
 
@@ -35,7 +66,7 @@ Boolean Columns
 ~~~~~~~~~~~~~~~
 
 Use boolean values where appropriate. Although boolean values (``True``/``False``) are not used in the core schema,
-they are a supported data type, and we encourage the use of :nwb-schema:ref:`dynamictable` columns with boolean
+they are a supported data type, and we encourage the use of :ref:`hdmf-schema:sec-dynamictable` columns with boolean
 values. It is also encouraged practice for boolean columns to be named ``is_condition`` where ``condition`` is
 whatever the positive state of the variable is, e.g. you might create a column called ``is_correct`` that has boolean
 values.
@@ -80,20 +111,11 @@ Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capabil
 
 
 
+.. _best_practice_time_interval_time_columns:
+
 Timing Columns
 ~~~~~~~~~~~~~~
 
-Times are always stored in seconds in NWB. In :nwb-schema:ref:`sec-TimeIntervals` tables such as the
-:nwb-schema:ref:`trials <sec-groups-intervals-trials>` and
-:nwb-schema:ref:`epochs <epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the
-``timestamps_reference_time`` of the :nwb-schema:ref:`sec-NWBFile` (which by default is the
-``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
+Times are always stored in seconds in NWB. In :ref:`nwb-schema:sec-TimeIntervals` tables such as the ``TrialsTable`` and :ref:`EpochsTable <nwb-schema:epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile` (which by default is the ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
 
-Additional time columns in :nwb-schema:ref:`sec-TimeIntervals` tables, such as the
-:nwb-schema:ref:`Trials <sec-groups-intervals-trials>` should have ``_time`` as a suffix to the name.
-*E.g.*, if you add more times in :nwb-schema:ref:`trials <sec-groups-intervals-trials>`, such as a subject
-response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time``
-of the :nwb-schema:ref:`sec-NWBFile`, just like ``start_time`` and ``stop_time``.
-This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create
-peri-stimulus time histograms relating spiking activity to trial events. See
-:ref:`best_practice_global_time_reference` for more details.
+Additional time columns in :ref:`nwb-schema:sec-TimeIntervals` tables, such as the ``TrialsTable`` should have ``_time`` as a suffix to the name. *E.g.*, if you add more times in ``TrialsTable``, such as a subject response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`, just like ``start_time`` and ``stop_time``. This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events. See :ref:`best_practice_global_time_reference` for more details.

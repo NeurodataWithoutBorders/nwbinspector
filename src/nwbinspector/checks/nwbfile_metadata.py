@@ -13,14 +13,18 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
-species_regex = r"[A-Z][a-z]* [a-z]+"
+species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time_old_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
         return InspectorMessage(
             message=(
@@ -32,7 +36,11 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_session_start_time_future_date(nwbfile: NWBFile):
-    """Check if the session_start_time was set to an appropriate value."""
+    """
+    Check if the session_start_time was set to an appropriate value.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
     if nwbfile.session_start_time >= datetime.now().astimezone():
         return InspectorMessage(
             message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
@@ -41,14 +49,22 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_exists(nwbfile: NWBFile):
-    """Check if an experimenter has been added for the session."""
+    """
+    Check if an experimenter has been added for the session.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_experimenter_form(nwbfile: NWBFile):
-    """Check the text form of each experimenter to see if it matches the DANDI regex pattern."""
+    """
+    Check the text form of each experimenter to see if it matches the DANDI regex pattern.
+
+    Best Practice: :ref:`best_practice_experimenter`
+    """
     if nwbfile.experimenter is None:
         return
     if is_module_installed(module_name="dandi"):
@@ -144,7 +160,11 @@ def check_subject_age(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_proper_age_range(subject: Subject):
-    """Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds."""
+    """
+    Check if the Subject age, if specified as duration range (e.g., 'P1D/P3D'), has properly increasing bounds.
+
+    Best Practice: :ref:`best_practice_subject_age`
+    """
     if subject.age is not None and "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
@@ -181,15 +201,25 @@ def check_subject_sex(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_exists(subject: Subject):
-    """Check if the subject species has been specified."""
+    """
+    Check if the subject species has been specified.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
     if not subject.species:
         return InspectorMessage(message="Subject species is missing.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
-def check_subject_species_latin_binomial(subject: Subject):
-    """Check if the subject species follows latin binomial form."""
-    if subject.species and not re.fullmatch(species_regex, subject.species):
+def check_subject_species_form(subject: Subject):
+    """
+    Check if the subject species follows latin binomial form or is a link to an NCBI taxonomy in the form of a Term IRI.
+
+    The Term IRI can be found at the https://ontobee.org/ database.
+
+    Best Practice: :ref:`best_practice_subject_species`
+    """
+    if subject.species and not re.fullmatch(species_form_regex, subject.species):
         return InspectorMessage(
             message=(
                 f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
