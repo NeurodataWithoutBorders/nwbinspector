@@ -57,10 +57,8 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
     if time_series.data is None or time_series.timestamps is None:
         return
 
-    if (
-        any(isinstance(time_series.data, lazy_type) for lazy_type in [np.memmap, h5py.Dataset, H5Dataset])
-        and time_series.data.shape[0] != time_series.timestamps.shape[0]
-    ):
+    is_lazy_type = any(isinstance(time_series.data, lazy_type) for lazy_type in [np.memmap, h5py.Dataset, H5Dataset])
+    if is_lazy_type and time_series.data.shape[0] != time_series.timestamps.shape[0]:
         return InspectorMessage(
             message=(
                 f"The length of the first dimension of data ({time_series.data.shape[0]}) "
@@ -69,15 +67,16 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
         )
 
     # object data is already loaded into memory - cast as numpy array to infer shaping
-    data_shape = np.array(time_series.data).shape[0]
-    timestamps_shape = np.array(time_series.timestamps).shape[0]
-    if data_shape != timestamps_shape:
-        return InspectorMessage(
-            message=(
-                f"The length of the first dimension of data ({data_shape}) "
-                f"does not match the length of timestamps ({timestamps_shape})."
+    if not is_lazy_type:
+        data_shape = np.array(time_series.data).shape[0]
+        timestamps_shape = np.array(time_series.timestamps).shape[0]
+        if data_shape != timestamps_shape:
+            return InspectorMessage(
+                message=(
+                    f"The length of the first dimension of data ({data_shape}) "
+                    f"does not match the length of timestamps ({timestamps_shape})."
+                )
             )
-        )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
