@@ -19,7 +19,7 @@ Found 5 issues over 2 files:
        Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
 
 0.1  ./testing0.nwb: check_timestamps_match_first_dimension - 'TimeSeries' object at location '/acquisition/test_time_series_3'
-       Message: The length of the first dimension of data does not match the length of timestamps.
+       Message: The length of the first dimension of data (4) does not match the length of timestamps (3).
 
 1  BEST_PRACTICE_VIOLATION
 ==========================

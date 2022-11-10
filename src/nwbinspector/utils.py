@@ -34,17 +34,19 @@ def _cache_data_retrieval_command(
 
 def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
-    if isinstance(data, np.memmap):  # Technically np.memmap should be able to support this type of behavior as well
-        return data[selection]  # But they aren't natively hashable either...
+    if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
+        return data[selection]
     if not (
         isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)
-    ):  # No need to attempt to cache if already an in-memory object
+    ):  # No need to attempt to cache if data is already in-memory
+        # Cast as numpy array for efficient fancy indexing
+        # Note that this technically copies the entire data, so could use more than 2x RAM for that object
         return np.array(data)[selection]
 
-    # slices also aren't hashable, but their reduced representation is
-    if isinstance(selection, slice):  # If a single slice
-        reduced_selection = tuple([selection.__reduce__()[1]])  # if a single slice
-    else:
+    # Slices aren't hashable, but their reduced representation is
+    if isinstance(selection, slice):  # A single slice
+        reduced_selection = tuple([selection.__reduce__()[1]])
+    else:  # Iterable of slices
         reduced_selection = tuple([selection_slice.__reduce__()[1] for selection_slice in selection])
     return _cache_data_retrieval_command(data=data, reduced_selection=reduced_selection)
 

@@ -181,7 +181,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data does not match the length of timestamps.",
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
                 check_function_name="check_timestamps_match_first_dimension",
@@ -248,7 +248,9 @@ class TestInspector(TestCase):
                     file_path=self.nwbfile_paths[0],
                 ),
                 InspectorMessage(
-                    message="The length of the first dimension of data does not match the length of timestamps.",
+                    message=(
+                        "The length of the first dimension of data (4) does not match the length of timestamps (3)."
+                    ),
                     importance=Importance.CRITICAL,
                     severity=Severity.LOW,
                     check_function_name="check_timestamps_match_first_dimension",
@@ -312,7 +314,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data does not match the length of timestamps.",
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
@@ -343,7 +345,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data does not match the length of timestamps.",
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
@@ -372,7 +374,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data does not match the length of timestamps.",
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
@@ -548,7 +550,7 @@ class TestInspector(TestCase):
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data does not match the length of timestamps.",
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
                 importance=Importance.CRITICAL,
                 check_function_name="check_timestamps_match_first_dimension",
                 object_type="TimeSeries",
