@@ -6,7 +6,6 @@ import traceback
 import json
 import jsonschema
 from pathlib import Path
-from collections.abc import Iterable
 from enum import Enum
 from typing import Union, Optional, List
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -70,7 +69,7 @@ def _copy_function(function):
     return copied_function
 
 
-def copy_check(function):
+def copy_check(check):
     """
     Copy a check function so that internal attributes can be adjusted without changing the original function.
 
@@ -82,11 +81,9 @@ def copy_check(function):
     Taken from
     https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
-    if getattr(function, "__wrapped__", False):
-        check_function = function.__wrapped__
-    copied_function = _copy_function(function)
-    copied_function.__wrapped__ = _copy_function(check_function)
-    return copied_function
+    copied_check = _copy_function(function=check)
+    copied_check.__wrapped__ = _copy_function(function=check.__wrapped__)
+    return copied_check
 
 
 def load_config(filepath_or_keyword: PathType) -> dict:
@@ -150,13 +147,19 @@ def configure_checks(
         checks_out = []
         ignore = ignore or []
         for check in checks:
-            mapped_check = copy_check(check)
+            mapped_check = copy_check(check=check)
             for importance_name, func_names in config.items():
                 if check.__name__ in func_names:
                     if importance_name == "SKIP":
                         ignore.append(check.__name__)
                         continue
                     mapped_check.importance = Importance[importance_name]
+                    # Output wrappers are apparently parsed at time of wrapping not of time of output return...
+                    # Attempting to re-wrap the copied function if the importance level is being adjusted...
+                    # From https://github.com/NeurodataWithoutBorders/nwbinspector/issues/302
+                    # new_check_wrapper = _copy_function(function=mapped_check.__wrapped__)
+                    # new_check_wrapper.importance = Importance[importance_name]
+                    # mapped_check.__wrapped__ = new_check_wrapper
             checks_out.append(mapped_check)
     else:
         checks_out = checks
@@ -178,11 +181,11 @@ def configure_checks(
     help="Save path for the report file.",
     type=click.Path(writable=True),
 )
-@click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
 @click.option(
     "--reverse", help="Comma-separated booleans corresponding to reversing the order for each value of 'levels'."
 )
+@click.option("--overwrite", help="Overwrite an existing report file at the location.", is_flag=True)
 @click.option("--ignore", help="Comma-separated names of checks to skip.")
 @click.option("--select", help="Comma-separated names of checks to run.")
 @click.option(
@@ -565,12 +568,14 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
                         importance=Importance.ERROR,
                         check_function_name=check_function.__name__,
                     )
-                if output is not None:
-                    if isinstance(output, Iterable):
-                        for x in output:
-                            yield x
-                    else:
-                        yield output
+                if isinstance(output, InspectorMessage) and output.importance != Importance.ERROR:
+                    # temporary solution to https://github.com/dandi/dandi-cli/issues/1031
+                    output.importance = check_function.importance
+                    yield output
+                elif output is not None:
+                    for x in output:
+                        x.importance = check_function.importance
+                        yield x
 
 
 if __name__ == "__main__":
