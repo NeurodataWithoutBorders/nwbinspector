@@ -1,5 +1,13 @@
 # Upcoming
 
+# v0.4.18
+
+### Hotfix
+
+* Fix to the assigned `importance` output of configured checks, which was reverting to pre-configuration values. [PR #303](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/303)
+
+
+
 # v0.4.17
 
 ### Hotfix
