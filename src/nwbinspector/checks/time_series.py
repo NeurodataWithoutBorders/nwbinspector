@@ -58,7 +58,8 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
         return
 
     if (
-            any(isinstance(time_series.data, lazy_type) for lazy_type in [np.memmap, h5py.Dataset, H5Dataset]) and  time_series.data.shape[0] != time_series.timestamps.shape[0]
+        any(isinstance(time_series.data, lazy_type) for lazy_type in [np.memmap, h5py.Dataset, H5Dataset])
+        and time_series.data.shape[0] != time_series.timestamps.shape[0]
     ):
         return InspectorMessage(
             message=(
