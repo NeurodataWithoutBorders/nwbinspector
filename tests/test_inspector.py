@@ -506,11 +506,24 @@ class TestInspector(TestCase):
         true_results = [
             InspectorMessage(
                 message="Subject is missing.",
-                importance=Importance.BEST_PRACTICE_SUGGESTION,
+                importance=Importance.CRITICAL,  # Normally a BEST_PRACTICE_SUGGESTION
                 check_function_name="check_subject_exists",
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,  # Normally CRITICAL, now a BEST_PRACTICE_VIOLATION
+                check_function_name="check_data_orientation",
+                object_type="SpatialSeries",
+                object_name="my_spatial_series",
+                location="/processing/behavior/Position/my_spatial_series",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
@@ -532,19 +545,6 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/test_time_series_2",
-                file_path=self.nwbfile_paths[0],
-            ),
-            InspectorMessage(
-                message=(
-                    "Data may be in the wrong orientation. "
-                    "Time should be in the first dimension, and is usually the longest dimension. "
-                    "Here, another dimension is longer."
-                ),
-                importance=Importance.CRITICAL,
-                check_function_name="check_data_orientation",
-                object_type="SpatialSeries",
-                object_name="my_spatial_series",
-                location="/processing/behavior/Position/my_spatial_series",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
