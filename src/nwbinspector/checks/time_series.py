@@ -1,9 +1,10 @@
 """Check functions that can apply to any descendant of TimeSeries."""
 import numpy as np
 
+import h5py
 from pynwb import TimeSeries
+from hdmf.backends.hdf5.h5_utils import H5Dataset
 
-# from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
 from ..utils import is_regular_series, is_ascending_series
 
@@ -53,14 +54,29 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
 
     Best Practice: :ref:`best_practice_data_orientation`
     """
-    if (
-        time_series.data is not None
-        and time_series.timestamps is not None
-        and np.array(time_series.data).shape[:1] != np.array(time_series.timestamps).shape
-    ):
+    if time_series.data is None or time_series.timestamps is None:
+        return
+
+    is_lazy_type = any(isinstance(time_series.data, lazy_type) for lazy_type in [np.memmap, h5py.Dataset, H5Dataset])
+    if is_lazy_type and time_series.data.shape[0] != time_series.timestamps.shape[0]:
         return InspectorMessage(
-            message="The length of the first dimension of data does not match the length of timestamps.",
+            message=(
+                f"The length of the first dimension of data ({time_series.data.shape[0]}) "
+                f"does not match the length of timestamps ({time_series.timestamps.shape[0]})."
+            )
         )
+
+    # object data is already loaded into memory - cast as numpy array to infer shaping
+    if not is_lazy_type:
+        data_shape = np.array(time_series.data).shape[0]
+        timestamps_shape = np.array(time_series.timestamps).shape[0]
+        if data_shape != timestamps_shape:
+            return InspectorMessage(
+                message=(
+                    f"The length of the first dimension of data ({data_shape}) "
+                    f"does not match the length of timestamps ({timestamps_shape})."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)

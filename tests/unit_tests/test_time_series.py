@@ -82,11 +82,11 @@ def test_check_timestamps():
         time_series=pynwb.TimeSeries(
             name="test_time_series",
             unit="test_units",
-            data=np.zeros(shape=4),
+            data=np.empty(shape=4),
             timestamps=[1.0, 2.0, 3.0],
         )
     ) == InspectorMessage(
-        message="The length of the first dimension of data does not match the length of timestamps.",
+        message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
@@ -99,7 +99,7 @@ def test_check_timestamps_empty_data():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[], timestamps=[1.0, 2.0, 3.0])
     ) == InspectorMessage(
-        message="The length of the first dimension of data does not match the length of timestamps.",
+        message="The length of the first dimension of data (0) does not match the length of timestamps (3).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
@@ -110,9 +110,9 @@ def test_check_timestamps_empty_data():
 
 def test_check_timestamps_empty_timestamps():
     assert check_timestamps_match_first_dimension(
-        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.zeros(shape=4), timestamps=[])
+        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.empty(shape=4), timestamps=[])
     ) == InspectorMessage(
-        message="The length of the first dimension of data does not match the length of timestamps.",
+        message="The length of the first dimension of data (4) does not match the length of timestamps (0).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
