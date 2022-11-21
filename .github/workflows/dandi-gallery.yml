@@ -1,0 +1,34 @@
+
+name: DANDI Gallery
+on: workflow_call
+
+jobs:
+  build-and-test:
+    name: Testing against current DANDI release and dev branch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: s-weigand/setup-conda@v1
+        with:
+          update-conda: true
+          python-version: 3.9
+          conda-channels: conda-forge
+      - uses: actions/checkout@v3
+      - run: git fetch --prune --unshallow --tags
+
+      - name: Install and test against latest DANDI release
+        run: |
+          git clone https://github.com/dandi/dandi-cli
+          cd dandi-cli
+          virtualenv --system-site-packages --python=python3 venvs/dev3
+          source venvs/dev3/bin/activate
+          pip install dandi[test]
+
+      - name: Install and test against DANDI dev branch
+        run: |
+          git clone https://github.com/dandi/dandi-cli
+          cd dandi-cli
+          virtualenv --system-site-packages --python=python3 venvs/dev4
+          source venvs/dev4/bin/activate
+          pip install -e .[test]
