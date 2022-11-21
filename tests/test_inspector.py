@@ -22,7 +22,7 @@ from nwbinspector import (
     check_subject_exists,
     load_config,
 )
-from nwbinspector import inspect_all, inspect_nwb
+from nwbinspector import inspect_all, inspect_nwb, available_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.tools import make_minimal_nwbfile
@@ -547,6 +547,37 @@ class TestInspector(TestCase):
                 object_type="TimeSeries",
                 object_name="test_time_series_2",
                 location="/acquisition/test_time_series_2",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_dandi_config_critical_only_entire_registry(self):
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=available_checks,
+                config=load_config(filepath_or_keyword="dandi"),
+                importance_threshold=Importance.CRITICAL,
+            )
+        )
+        true_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,  # Normally a BEST_PRACTICE_SUGGESTION
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
                 file_path=self.nwbfile_paths[0],
             ),
             InspectorMessage(
