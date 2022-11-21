@@ -17,6 +17,11 @@ jobs:
       - uses: actions/checkout@v3
       - run: git fetch --prune --unshallow --tags
 
+      - name: Install virtualenv and tox
+        run: |
+          pip install virtualenv
+          pip install tox
+
       - name: Install and test against latest DANDI release
         run: |
           git clone https://github.com/dandi/dandi-cli
@@ -24,11 +29,19 @@ jobs:
           virtualenv --system-site-packages --python=python3 venvs/dev3
           source venvs/dev3/bin/activate
           pip install dandi[test]
+          tox -e py3
 
       - name: Install and test against DANDI dev branch
         run: |
-          git clone https://github.com/dandi/dandi-cli
-          cd dandi-cli
           virtualenv --system-site-packages --python=python3 venvs/dev4
           source venvs/dev4/bin/activate
           pip install -e .[test]
+          tox -e py3
+
+      - name: Temporary - testing fix against lower threshold...
+        run: |
+          git checkout error_fix
+          virtualenv --system-site-packages --python=python3 venvs/dev4
+          source venvs/dev4/bin/activate
+          pip install -e .[test]
+          tox -e py3
