@@ -31,7 +31,7 @@ jobs:
   run-downstream-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-gallery.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-gallery.yml@add_downstream_ci
 
   update-testing-files:
     needs: assess-file-changes
