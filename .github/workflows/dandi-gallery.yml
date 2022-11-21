@@ -36,7 +36,7 @@ jobs:
           source venvs/dev4/bin/activate
           pip install -e .[test]
 
-      - name: Temporary: testing fix against lower threshold...
+      - name: Temporary - testing fix against lower threshold...
         run: |
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
