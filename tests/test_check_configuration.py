@@ -48,6 +48,17 @@ class TestCheckConfiguration(TestCase):
             and checks_out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
         )
 
+    def test_configure_checks_with_threshold_against_entire_registry(self):
+        checks_out = configure_checks(
+            checks=available_checks,
+            config=load_config(filepath_or_keyword="dandi"),
+            importance_threshold=Importance.CRITICAL,
+        )
+        for check in checks_out:
+            assert check.importance is Importance.CRITICAL, (
+                f"Check function {check.__name__} with importance {check.importance} is below the set threshold!"
+            )
+
     def test_configure_checks_no_change(self):
         config = dict(CRITICAL=["check_data_orientation"])
         validate_config(config=config)
@@ -81,23 +92,6 @@ class TestCheckConfiguration(TestCase):
                 ],
                 BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
-                ],
-            ),
-        )
-
-    def test_load_config_with_threshold(self):
-        config = load_config(filepath_or_keyword="dandi", importance_threshold=Importance.CRITICAL)
-        self.assertDictEqual(
-            d1=config,
-            d2=dict(
-                CRITICAL=[
-                    "check_subject_exists",
-                    "check_subject_id_exists",
-                    "check_subject_sex",
-                    "check_subject_species_exists",
-                    "check_subject_species_latin_binomial",
-                    "check_subject_age",
-                    "check_subject_proper_age_range",
                 ],
             ),
         )
