@@ -55,9 +55,9 @@ class TestCheckConfiguration(TestCase):
             importance_threshold=Importance.CRITICAL,
         )
         for check in checks_out:
-            assert check.importance is Importance.CRITICAL, (
-                f"Check function {check.__name__} with importance {check.importance} is below the set threshold!"
-            )
+            assert (
+                check.importance is Importance.CRITICAL
+            ), f"Check function {check.__name__} with importance {check.importance} is below the set threshold!"
 
     def test_configure_checks_no_change(self):
         config = dict(CRITICAL=["check_data_orientation"])
