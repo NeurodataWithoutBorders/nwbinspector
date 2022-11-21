@@ -29,17 +29,25 @@ jobs:
           pip install dandi[test]
           pip install tox
           tox -e py3
+          cd ..
+          rm -rf dandi-cli
 
       - name: Install and test against DANDI dev branch
         run: |
+          git clone https://github.com/dandi/dandi-cli
+          cd dandi-cli
           virtualenv --system-site-packages --python=python3 venvs/dev4
           source venvs/dev4/bin/activate
           pip install -e .[test]
           pip install tox
           tox -e py3
+          cd ..
+          rm -rf dandi-cli
 
       - name: Temporary - testing fix against lower threshold...
         run: |
+          git clone https://github.com/dandi/dandi-cli
+          cd dandi-cli
           git checkout error_fix
           virtualenv --system-site-packages --python=python3 venvs/dev5
           source venvs/dev5/bin/activate
