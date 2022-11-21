@@ -84,3 +84,20 @@ class TestCheckConfiguration(TestCase):
                 ],
             ),
         )
+
+    def test_load_config_with_threshold(self):
+        config = load_config(filepath_or_keyword="dandi", importance_threshold=Importance.CRITICAL)
+        self.assertDictEqual(
+            d1=config,
+            d2=dict(
+                CRITICAL=[
+                    "check_subject_exists",
+                    "check_subject_id_exists",
+                    "check_subject_sex",
+                    "check_subject_species_exists",
+                    "check_subject_species_latin_binomial",
+                    "check_subject_age",
+                    "check_subject_proper_age_range",
+                ],
+            ),
+        )
