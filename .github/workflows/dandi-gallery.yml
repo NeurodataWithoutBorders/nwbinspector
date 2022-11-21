@@ -32,3 +32,12 @@ jobs:
           virtualenv --system-site-packages --python=python3 venvs/dev4
           source venvs/dev4/bin/activate
           pip install -e .[test]
+
+      - name: Temporary: testing fix against lower threshold...
+        run: |
+          git clone https://github.com/dandi/dandi-cli
+          cd dandi-cli
+          git checkout error_fix
+          virtualenv --system-site-packages --python=python3 venvs/dev4
+          source venvs/dev4/bin/activate
+          pip install -e .[test]
