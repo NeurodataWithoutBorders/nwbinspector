@@ -29,5 +29,4 @@ jobs:
           cd ../nwbinspector
           pip install -e .
           cd ../dandi-cli
-          pip install tox
-          tox -e py3
+          pytest -vv
