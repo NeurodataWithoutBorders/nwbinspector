@@ -568,9 +568,10 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
                         importance=Importance.ERROR,
                         check_function_name=check_function.__name__,
                     )
-                if isinstance(output, InspectorMessage) and output.importance != Importance.ERROR:
+                if isinstance(output, InspectorMessage):
                     # temporary solution to https://github.com/dandi/dandi-cli/issues/1031
-                    output.importance = check_function.importance
+                    if output.importance != Importance.ERROR:
+                        output.importance = check_function.importance
                     yield output
                 elif output is not None:
                     for x in output:
