@@ -22,6 +22,10 @@ jobs:
 
       - name: Install and test against latest DANDI release
         run: |
+          git clone https://github.com/NeurodataWithoutBorders/nwbinspector
+          cd nwbinspector
+          pip install -e .
+          cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           virtualenv --system-site-packages --python=python3 venvs/dev3
@@ -34,6 +38,10 @@ jobs:
 
       - name: Install and test against DANDI dev branch
         run: |
+          git clone https://github.com/NeurodataWithoutBorders/nwbinspector
+          cd nwbinspector
+          pip install -e .
+          cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           virtualenv --system-site-packages --python=python3 venvs/dev4
@@ -46,6 +54,10 @@ jobs:
 
       - name: Temporary - testing fix against lower threshold...
         run: |
+          git clone https://github.com/NeurodataWithoutBorders/nwbinspector
+          cd nwbinspector
+          pip install -e .
+          cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           git checkout error_fix
