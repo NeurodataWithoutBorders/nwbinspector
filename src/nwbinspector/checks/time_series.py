@@ -43,9 +43,8 @@ def check_data_orientation(time_series: TimeSeries):
     if any(np.array(data_shape[1:]) > data_shape[0]):
         return InspectorMessage(
             message=(
-                "Data may be in the wrong orientation. "
-                "Time should be in the first dimension, and is usually the longest dimension. "
-                "Here, another dimension is longer."
+                "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
+                "longest dimension. Here, another dimension is longer."
             ),
         )
 
