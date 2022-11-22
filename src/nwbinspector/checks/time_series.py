@@ -36,7 +36,11 @@ def check_regular_timestamps(
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_data_orientation(time_series: TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
-    if time_series.data is not None and any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
+    if time_series.data is None:
+        return
+
+    data_shape = get_data_shape(time_series.data)
+    if any(np.array(data_shape[1:]) > data_shape[0]):
         return InspectorMessage(
             message=(
                 "Data may be in the wrong orientation. "
