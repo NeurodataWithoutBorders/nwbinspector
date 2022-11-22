@@ -35,4 +35,5 @@ jobs:
           # If testing  against a specific branch or commit, might need to use pytest instead of tox
           # tox uses the site-package, but also seems to configure a couple other things
           # pytest -vv
+          pip install tox
           tox -e py3
