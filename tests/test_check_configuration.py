@@ -48,6 +48,25 @@ class TestCheckConfiguration(TestCase):
             and checks_out[1].importance is Importance.BEST_PRACTICE_SUGGESTION
         )
 
+    def test_configure_checks_with_critical_threshold_against_entire_registry(self):
+        checks_out = configure_checks(
+            checks=available_checks,
+            config=load_config(filepath_or_keyword="dandi"),
+            importance_threshold=Importance.CRITICAL,
+        )
+        for check in checks_out:
+            assert (
+                check.importance is Importance.CRITICAL
+            ), f"Check function {check.__name__} with importance {check.importance} is below the set threshold!"
+
+    def test_configure_checks_with_critical_threshold_against_entire_registry_not_include_orientation(self):
+        checks_out = configure_checks(
+            checks=available_checks,
+            config=load_config(filepath_or_keyword="dandi"),
+            importance_threshold=Importance.CRITICAL,
+        )
+        assert len(list(filter(lambda x: x.__name__ == "check_data_orientation", checks_out))) == 0
+
     def test_configure_checks_no_change(self):
         config = dict(CRITICAL=["check_data_orientation"])
         validate_config(config=config)
