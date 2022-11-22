@@ -51,9 +51,7 @@ def add_regular_timestamps(nwbfile: NWBFile):
 
 
 def add_flipped_data_orientation_to_acquisition(nwbfile: NWBFile):
-    time_series = TimeSeries(
-        name="my_spatial_series", data=np.zeros(shape=(2, 3)), unit="test_unit", rate=1.0
-    )
+    time_series = TimeSeries(name="my_spatial_series", data=np.zeros(shape=(2, 3)), unit="test_unit", rate=1.0)
     nwbfile.add_acquisition(time_series)
 
 
@@ -653,12 +651,12 @@ class TestDANDIConfig(TestCase):
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
-                check_function_name='check_data_orientation',
-                object_type='TimeSeries',
-                object_name='my_spatial_series',
-                location='/acquisition/my_spatial_series',
+                check_function_name="check_data_orientation",
+                object_type="TimeSeries",
+                object_name="my_spatial_series",
+                location="/acquisition/my_spatial_series",
                 file_path=self.nwbfile_paths[1],
-            )
+            ),
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
