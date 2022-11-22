@@ -19,6 +19,7 @@ import pynwb
 import yaml
 from tqdm import tqdm
 from natsort import natsorted
+from packaging.version import Version
 
 from . import available_checks
 from .inspector_tools import (
@@ -29,7 +30,14 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from .utils import (
+    FilePathType,
+    PathType,
+    OptionalListOfStrings,
+    robust_s3_read,
+    calculate_number_of_cpu,
+    get_package_version,
+)
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -236,6 +244,7 @@ def inspect_all_cli(
     json_file_path: Optional[str] = None,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    use_cached_namespaces: Optional[str] = None,
     detailed: bool = False,
     progress_bar: Optional[str] = None,
     stream: bool = False,
@@ -276,6 +285,7 @@ def inspect_all_cli(
             config=config,
             n_jobs=n_jobs,
             skip_validate=skip_validate,
+            use_cached_namespaces=strtobool(use_cached_namespaces) if use_cached_namespaces is not None else None,
             progress_bar=progress_bar,
             stream=stream,
             version_id=version_id,
@@ -304,6 +314,7 @@ def inspect_all(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
+    use_cached_namespaces: Optional[str] = None,
     progress_bar: bool = True,
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
@@ -348,6 +359,10 @@ def inspect_all(
     skip_validate : bool, optional
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    use_cached_namespaces : bool
+        If not skipping validation, this determines whether to use global namespaces or those cached within the file.
+        Only available when using PyNWB version 2.2.0 or greater.
+        Defaults to True.
     progress_bar : bool, optional
         Display a progress bar while scanning NWBFiles.
         Defaults to True.
@@ -396,6 +411,8 @@ def inspect_all(
 
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
+    filterwarnings(action="ignore", message="No cached namespaces found in .*")
+    filterwarnings(action="ignore", message="Ignoring cached namespace .*")
     for nwbfile_path in nwbfiles:
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
             nwbfile = robust_s3_read(io.read)
@@ -433,6 +450,7 @@ def inspect_all(
                         nwbfile_path=nwbfile_path,
                         checks=checks,
                         skip_validate=skip_validate,
+                        use_cached_namespaces=use_cached_namespaces,
                         driver=driver,
                     )
                 )
@@ -446,17 +464,35 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+            for message in inspect_nwb(
+                nwbfile_path=nwbfile_path,
+                checks=checks,
+                skip_validate=skip_validate,
+                use_cached_namespaces=use_cached_namespaces,
+                driver=driver,
+            ):
                 if stream:
                     message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
 def _pickle_inspect_nwb(
-    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+    nwbfile_path: str,
+    checks: list = available_checks,
+    skip_validate: bool = False,
+    use_cached_namespaces: Optional[str] = None,
+    driver: Optional[str] = None,
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
+    return list(
+        inspect_nwb(
+            nwbfile_path=nwbfile_path,
+            checks=checks,
+            skip_validate=skip_validate,
+            use_cached_namespaces=use_cached_namespaces,
+            driver=driver,
+        )
+    )
 
 
 def inspect_nwb(
@@ -468,6 +504,7 @@ def inspect_nwb(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     driver: Optional[str] = None,
     skip_validate: bool = False,
+    use_cached_namespaces: Optional[bool] = None,
     max_retries: int = 10,
 ) -> List[InspectorMessage]:
     """
@@ -504,6 +541,10 @@ def inspect_nwb(
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
+    use_cached_namespaces : bool
+        If not skipping validation, this determines whether to use global namespaces or those cached within the file.
+        Only available when using PyNWB version 2.2.0 or greater.
+        Defaults to True.
     max_retries : int, optional
         When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
         AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
@@ -518,12 +559,15 @@ def inspect_nwb(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
     nwbfile_path = str(nwbfile_path)
+
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
-
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
-            validation_errors = pynwb.validate(io=io)
+    if not skip_validate:
+        # For back-compatability, the original io usage does not use cached namespaces
+        if get_package_version(name="pynwb") >= Version("2.2.0"):
+            validation_errors, _ = pynwb.validate(
+                paths=[nwbfile_path], use_cached_namespaces=use_cached_namespaces or True
+            )
             for validation_error in validation_errors:
                 yield InspectorMessage(
                     message=validation_error.reason,
@@ -532,7 +576,23 @@ def inspect_nwb(
                     location=validation_error.location,
                     file_path=nwbfile_path,
                 )
-
+        else:  # pragma: no cover
+            if use_cached_namespaces is not None:
+                warn(
+                    "Validation option 'use_cached_namespaces' was specified, "
+                    "but the system does not have PyNWB>=2.2.0 - using only the global namespaces."
+                )
+            with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+                validation_errors = pynwb.validate(io=io)
+                for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         try:
             nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
             for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
