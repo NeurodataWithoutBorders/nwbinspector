@@ -50,6 +50,13 @@ def add_regular_timestamps(nwbfile: NWBFile):
     nwbfile.add_acquisition(time_series)
 
 
+def add_flipped_data_orientation_to_acquisition(nwbfile: NWBFile):
+    time_series = TimeSeries(
+        name="my_spatial_series", data=np.zeros(shape=(2, 3)), unit="test_unit", rate=1.0
+    )
+    nwbfile.add_acquisition(time_series)
+
+
 def add_flipped_data_orientation_to_processing(nwbfile: NWBFile):
     spatial_series = SpatialSeries(
         name="my_spatial_series", data=np.zeros(shape=(2, 3)), reference_frame="unknown", rate=1.0
@@ -563,7 +570,7 @@ class TestInspector(TestCase):
 
 
 class TestDANDIConfig(TestCase):
-    maxdiff = None
+    maxDiff = None
 
     @classmethod
     def setUpClass(cls):
@@ -578,7 +585,7 @@ class TestDANDIConfig(TestCase):
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_simple_table(nwbfiles[0])
-        add_flipped_data_orientation_to_processing(nwbfiles[1])
+        add_flipped_data_orientation_to_acquisition(nwbfiles[1])
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
@@ -623,10 +630,10 @@ class TestDANDIConfig(TestCase):
     def test_inspect_nwb_dandi_config_violation_and_above_entire_registry(self):
         test_results = list(
             inspect_nwb(
-                nwbfile_path=self.nwbfile_paths[0],
+                nwbfile_path=self.nwbfile_paths[1],
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
-                importance_threshold=Importance.CRITICAL,
+                importance_threshold=Importance.BEST_PRACTICE_VIOLATION,
             )
         )
         true_results = [
@@ -637,17 +644,21 @@ class TestDANDIConfig(TestCase):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                file_path=self.nwbfile_paths[0],
+                file_path=self.nwbfile_paths[1],
             ),
             InspectorMessage(
-                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
-                importance=Importance.CRITICAL,
-                check_function_name="check_timestamps_match_first_dimension",
-                object_type="TimeSeries",
-                object_name="test_time_series_3",
-                location="/acquisition/test_time_series_3",
-                file_path=self.nwbfile_paths[0],
-            ),
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, "
+                    "and is usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                check_function_name='check_data_orientation',
+                object_type='TimeSeries',
+                object_name='my_spatial_series',
+                location='/acquisition/my_spatial_series',
+                file_path=self.nwbfile_paths[1],
+            )
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
