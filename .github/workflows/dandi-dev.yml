@@ -22,7 +22,7 @@ jobs:
           git clone https://github.com/NeurodataWithoutBorders/nwbinspector
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
-          git checkout error_fix
+          git checkout a50c4fe243f9a3b72fbcecaea095943be02616d6  # error_fix branch with iteration issue
           virtualenv --system-site-packages --python=python3 venvs/dev3
           source venvs/dev3/bin/activate
           pip install -e .[test]
