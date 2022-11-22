@@ -32,4 +32,7 @@ jobs:
           # git checkout add_downstream_ci
           pip install -e .
           cd ../dandi-cli
-          pytest -vv  # Tox uses site-package, might need editable install of nwbinspector
+          # If testing  against a specific branch or commit, might need to use pytest instead of tox
+          # tox uses the site-package, but also seems to configure a couple other things
+          # pytest -vv
+          tox -e py3
