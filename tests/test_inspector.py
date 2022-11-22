@@ -561,7 +561,66 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+
+class TestDANDIConfig(TestCase):
+    maxdiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = Path(mkdtemp())
+        cls.checks = available_checks
+        num_nwbfiles = 2
+        nwbfiles = list()
+        for j in range(num_nwbfiles):
+            nwbfiles.append(make_minimal_nwbfile())
+        add_big_dataset_no_compression(nwbfiles[0])
+        add_regular_timestamps(nwbfiles[0])
+        add_flipped_data_orientation_to_processing(nwbfiles[0])
+        add_non_matching_timestamps_dimension(nwbfiles[0])
+        add_simple_table(nwbfiles[0])
+        add_flipped_data_orientation_to_processing(nwbfiles[1])
+
+        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
+            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+                io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tempdir)
+
     def test_inspect_nwb_dandi_config_critical_only_entire_registry(self):
+        test_results = list(
+            inspect_nwb(
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=available_checks,
+                config=load_config(filepath_or_keyword="dandi"),
+                importance_threshold=Importance.CRITICAL,
+            )
+        )
+        true_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,  # Normally a BEST_PRACTICE_SUGGESTION
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwb_dandi_config_violation_and_above_entire_registry(self):
         test_results = list(
             inspect_nwb(
                 nwbfile_path=self.nwbfile_paths[0],

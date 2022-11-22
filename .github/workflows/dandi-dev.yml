@@ -27,6 +27,7 @@ jobs:
           source venvs/dev3/bin/activate
           pip install -e .[test]
           cd ../nwbinspector
+          git checkout add_downstream_ci
           pip install -e .
           cd ../dandi-cli
           pytest -vv
