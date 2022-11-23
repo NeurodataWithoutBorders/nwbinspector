@@ -1,5 +1,21 @@
 # Upcoming
 
+# v0.4.19
+
+### Fixes
+
+* Fixed an issue with table checks that attempted to retrieve data from on-disk NWB files in a non-lazy manner. Also improved `check_timestamps_match_first_dimension` for `TimeSeries` objects, which similarly attempted to load unnecessary data into memory. [PR #296](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/296) [PR #307](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/307)
+
+
+
+# v0.4.18
+
+### Hotfix
+
+* Fix to the assigned `importance` output of configured checks, which was reverting to pre-configuration values. [PR #303](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/303)
+
+
+
 # v0.4.17
 
 ### Hotfix

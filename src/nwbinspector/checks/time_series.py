@@ -2,8 +2,8 @@
 import numpy as np
 
 from pynwb import TimeSeries
+from hdmf.utils import get_data_shape
 
-# from ..tools import all_of_type
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
 from ..utils import is_regular_series, is_ascending_series
 
@@ -36,12 +36,15 @@ def check_regular_timestamps(
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_data_orientation(time_series: TimeSeries):
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
-    if time_series.data is not None and any(np.array(time_series.data.shape[1:]) > time_series.data.shape[0]):
+    if time_series.data is None:
+        return
+
+    data_shape = get_data_shape(time_series.data)
+    if any(np.array(data_shape[1:]) > data_shape[0]):
         return InspectorMessage(
             message=(
-                "Data may be in the wrong orientation. "
-                "Time should be in the first dimension, and is usually the longest dimension. "
-                "Here, another dimension is longer."
+                "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
+                "longest dimension. Here, another dimension is longer."
             ),
         )
 
@@ -53,13 +56,17 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
 
     Best Practice: :ref:`best_practice_data_orientation`
     """
-    if (
-        time_series.data is not None
-        and time_series.timestamps is not None
-        and np.array(time_series.data).shape[:1] != np.array(time_series.timestamps).shape
-    ):
+    if time_series.data is None or time_series.timestamps is None:
+        return
+
+    timestamps_shape = get_data_shape(time_series.timestamps)
+    data_shape = get_data_shape(time_series.data)
+    if data_shape[0] != timestamps_shape[0]:
         return InspectorMessage(
-            message="The length of the first dimension of data does not match the length of timestamps.",
+            message=(
+                f"The length of the first dimension of data ({data_shape[0]}) "
+                f"does not match the length of timestamps ({timestamps_shape[0]})."
+            )
         )
 
 
