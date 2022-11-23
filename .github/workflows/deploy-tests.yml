@@ -31,12 +31,12 @@ jobs:
   test-dandi-latest:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@add_downstream_ci
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
 
   test-dandi-dev:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@add_downstream_ci
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
 
   update-testing-files:
     needs: assess-file-changes
