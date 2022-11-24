@@ -1,5 +1,11 @@
 # Upcoming
 
+### Improvements
+
+* Added compression size consideration to `check_image_series_size`. [PR #311](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/311)
+
+
+
 # v0.4.19
 
 ### Fixes
