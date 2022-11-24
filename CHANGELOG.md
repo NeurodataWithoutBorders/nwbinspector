@@ -1,9 +1,19 @@
 # Upcoming
 
+# v0.4.20
+
 ### Improvements
 
 * Added compression size consideration to `check_image_series_size`. [PR #311](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/311)
+* Added false positive skip condition for `check_image_series_size` for `TwoPhotonSeries` neurodata types. [PR #301](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/301)
 
+### Testing
+
+* Added downstream testing of DANDI to the per-PR suite as a requirement for merging. [PR #306](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/306)
+
+### Fixes
+
+* Fixed issue in `run_checks` following [PR #303](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/303) that prevented iteration over certain check output types. [PR #306](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/306)
 
 
 # v0.4.19
