@@ -13,7 +13,7 @@ In order to understand the output of the core functions, we must first explain t
 library, the :py:class:`~nwbinspector.register_checks.InspectorMessage`. This is a standalone data class that contains
 all values that could be useful or related to a detected Best Practice issue. These values include the text-based
 ``message`` displayed in the report, the ``importance`` of the check (how crucial it is to fix), the ``object_name``
-and ``object_type`` that triggered the issue, the ``location`` of that object within the NWBFile, and the ``file_path``
+and ``object_type`` that triggered the issue, the ``location`` of that object within the NWB file, and the ``file_path``
 of the NWBFile relative to the directory the inspection function was called from.
 
 
@@ -21,7 +21,7 @@ of the NWBFile relative to the directory the inspection function was called from
 Inspect a single NWBFile
 ------------------------
 
-The most basic function to use when inspecting a single NWBFile is the
+The most basic function to use when inspecting a single NWB file is the
 :py:class:`~nwbinspector.nwbinspector.inspect_nwb` function.
 
 .. code-block:: python
@@ -32,7 +32,7 @@ The most basic function to use when inspecting a single NWBFile is the
 
 This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMessage` objects.
 
-If you have an ``NWBFile`` object in memory, you can run:
+If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run:
 
 .. code-block:: python
 
@@ -70,10 +70,12 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 Inspect a DANDI set (ROS3)
 --------------------------
 
-It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
-run the NWB Inspector as usual, it can be more convenient to stream the data. This can be especially useful when the dandiset is large and impractical to download in full.
+It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the
+:dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
+run the NWB Inspector as usual, it can be more convenient to stream the data. This can be especially useful when the
+dandiset is large and impractical to download in full.
 
-Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset by providing the six-digit identifier...
+Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset by providing the six-digit identifier.
 
 .. code-block:: python
 
@@ -83,7 +85,8 @@ Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset
 
     messages = list(inspect_all(nwbfile_path=dandiset_id, stream=True))
 
-If there are multiple versions of the dandiset available (*e.g.*, separate 'draft' and 'published' versions) you can additionally specify this with the ``version_id`` argument...
+If there are multiple versions of the dandiset available (*e.g.*, separate 'draft' and 'published' versions) you can
+additionally specify this with the ``version_id`` argument.
 
 .. code-block:: python
 
