@@ -57,6 +57,11 @@ def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: floa
     Best Practice: :ref:`best_practice_use_external_mode`
     """
     data = image_series.data
-    data_size_gb = data.size * data.dtype.itemsize / 1e9
+
+    if getattr(data, "compression", None) is not None:
+        data_size_gb = data.id.get_storage_size() / 1e9
+    else:
+        data_size_gb = data.size * data.dtype.itemsize / 1e9
+
     if data_size_gb > gb_lower_bound:
-        return InspectorMessage(message=f"ImageSeries {image_series.name} is too large. Use external mode for storage")
+        return InspectorMessage(message="ImageSeries is very large. Consider using external mode for better storage.")
