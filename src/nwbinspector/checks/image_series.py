@@ -3,6 +3,7 @@ import ntpath
 from pathlib import Path
 
 from pynwb.image import ImageSeries
+from pynwb.ophys import TwoPhotonSeries
 
 from ..register_checks import register_check, Importance, InspectorMessage
 from ..tools import get_nwbfile_path_from_internal_object
@@ -56,6 +57,11 @@ def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: floa
 
     Best Practice: :ref:`best_practice_use_external_mode`
     """
+    # False positive case; TwoPhotonSeries are a subclass of ImageSeries, but it is very common and perfectly fine
+    # to write lots of data using one without an external file
+    if isinstance(image_series, TwoPhotonSeries):
+        return
+
     data = image_series.data
 
     if getattr(data, "compression", None) is not None:

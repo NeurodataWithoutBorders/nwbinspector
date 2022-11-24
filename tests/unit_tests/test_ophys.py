@@ -23,6 +23,7 @@ from nwbinspector import (
     check_excitation_lambda_in_nm,
     check_emission_lambda_in_nm,
     check_plane_segmentation_image_mask_shape_against_ref_images,
+    check_image_series_data_size,  # Technically an ImageSeries check, but test is more convenient here
 )
 
 
@@ -327,3 +328,37 @@ def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
             location="/",
         )
     ]
+
+
+def test_false_positive_skip_check_image_series_data_size():
+
+    device = Device(
+        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    )
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=300.0,
+        indicator="GFP",
+        location="V1",
+        grid_spacing=[0.01, 0.01],
+        grid_spacing_unit="meters",
+        origin_coords=[1.0, 2.0, 3.0],
+        origin_coords_unit="meters",
+    )
+
+    two_photon_series = TwoPhotonSeries(
+        name="TwoPhotonSeries",
+        imaging_plane=imaging_plane,
+        data=np.empty(
+            shape=(110 * 10**6, 1, 1), dtype="uint8"
+        ),  # Empty data, but of shape+dtype that would be more than default GB threshold
+        unit="n.a.",
+        rate=30.0,
+    )
+
+    assert check_image_series_data_size(image_series=two_photon_series, gb_lower_bound=0.1) is None
