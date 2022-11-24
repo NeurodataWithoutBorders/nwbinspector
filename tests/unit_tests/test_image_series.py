@@ -1,8 +1,10 @@
 import unittest
 from pathlib import Path
+from tempfile import mkdtemp
+from shutil import rmtree
 
 import numpy as np
-from pynwb import NWBHDF5IO
+from pynwb import NWBHDF5IO, H5DataIO
 from pynwb.image import ImageSeries
 
 from nwbinspector import (
@@ -12,6 +14,7 @@ from nwbinspector import (
     check_image_series_external_file_relative,
     check_image_series_data_size,
 )
+from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import load_testing_config
 
 try:
@@ -131,7 +134,7 @@ def test_check_large_image_series_stored_internally():
 
     expected_message = InspectorMessage(
         importance=Importance.BEST_PRACTICE_VIOLATION,
-        message=f"ImageSeries {image_series.name} is too large. Use external mode for storage",
+        message="ImageSeries is very large. Consider using external mode for better storage.",
         check_function_name="check_image_series_data_size",
         object_type="ImageSeries",
         object_name="ImageSeriesLarge",
@@ -139,3 +142,65 @@ def test_check_large_image_series_stored_internally():
     )
 
     assert inspector_message == expected_message
+
+
+class TestCheckImageSeriesStoredInternally(unittest.TestCase):
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmpdir = Path(mkdtemp())
+        cls.nwbfile_path = cls.tmpdir / "test_compressed_image_series.nwb"
+        cls.gb_size = 0.01  # 10 MB
+
+        image_length = 10
+        total_frames = int(cls.gb_size * 1e9 / np.dtype("float").itemsize) // (image_length * image_length)
+
+        # Use random data in order to give non-trivial compression size
+        # Fix the seed to give consistent result every run
+        np.random.seed = 123
+        dtype = "uint8"
+        data = np.random.randint(
+            low=0, high=np.iinfo(dtype).max, size=(total_frames, image_length, image_length, 1), dtype=dtype
+        )
+        image_series = ImageSeries(name="ImageSeries", rate=1.0, data=H5DataIO(data), unit="TestUnit")
+
+        nwbfile = make_minimal_nwbfile()
+        nwbfile.add_acquisition(image_series)
+
+        with NWBHDF5IO(path=cls.nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tmpdir)
+
+    def test_check_image_series_stored_internally_compressed_larger_threshold(self):
+        """With compression enabled, the size by the check should be less than the full uncompressed size."""
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            image_series = nwbfile.acquisition["ImageSeries"]
+
+            assert check_image_series_data_size(image_series=image_series, gb_lower_bound=self.gb_size) is None
+
+    def test_check_image_series_stored_internally_compressed_smaller_threshold(self):
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            nwbfile = io.read()
+            image_series = nwbfile.acquisition["ImageSeries"]
+
+            expected_message = InspectorMessage(
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                message="ImageSeries is very large. Consider using external mode for better storage.",
+                check_function_name="check_image_series_data_size",
+                object_type="ImageSeries",
+                object_name="ImageSeries",
+                location="/acquisition/ImageSeries",
+            )
+
+            assert (
+                check_image_series_data_size(
+                    image_series=image_series,
+                    gb_lower_bound=self.gb_size / 10,  # Compression of uint8 noise is unlikely be more than 10:1 ratio
+                )
+                == expected_message
+            )
