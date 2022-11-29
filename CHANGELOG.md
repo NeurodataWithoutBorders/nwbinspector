@@ -14,7 +14,7 @@
 ### Fixes
 
 * Fixed issue in `run_checks` following [PR #303](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/303) that prevented iteration over certain check output types. [PR #306](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/306)
-
+* Fix `check_subject_age` to parse years. [PR #314](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/314)
 
 # v0.4.19
 
