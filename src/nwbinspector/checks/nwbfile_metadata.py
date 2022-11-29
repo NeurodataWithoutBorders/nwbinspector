@@ -168,9 +168,8 @@ def check_subject_proper_age_range(subject: Subject):
     if subject.age is not None and "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
-        if (
-            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound)
-            and re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound)
+        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and re.fullmatch(
+            pattern=duration_regex, string=subject_upper_age_bound
         ):
             lower = parse_duration(subject_lower_age_bound)
             if isinstance(lower, Duration):
