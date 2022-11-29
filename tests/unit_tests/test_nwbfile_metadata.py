@@ -296,11 +296,6 @@ def test_pass_check_subject_age_with_dob():
     assert check_subject_age(subject) is None
 
 
-def test_check_subject_age_with_years():
-    subject = Subject(subject_id="001", age="P1Y/P2Y")
-    assert check_subject_age(subject) is None
-
-
 def test_check_subject_age_missing():
     subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
@@ -389,6 +384,26 @@ def test_check_subject_proper_age_range_fail():
     assert check_subject_proper_age_range(subject) == InspectorMessage(
         message=(
             "The durations of the Subject age range, 'P3D/P1D', are not strictly increasing. "
+            "The upper (right) bound should be a longer duration than the lower (left) bound."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_proper_age_range",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_with_years():
+    subject = Subject(subject_id="001", age="P1Y/P2Y")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_with_years_fail():
+    subject = Subject(subject_id="001", age="P2Y/P1Y")
+    assert check_subject_proper_age_range(subject) == InspectorMessage(
+        message=(
+            "The durations of the Subject age range, 'P2Y/P1Y', are not strictly increasing. "
             "The upper (right) bound should be a longer duration than the lower (left) bound."
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
