@@ -296,6 +296,11 @@ def test_pass_check_subject_age_with_dob():
     assert check_subject_age(subject) is None
 
 
+def test_check_subject_age_with_years():
+    subject = Subject(subject_id="001", age="P1Y/P2Y")
+    assert check_subject_age(subject) is None
+
+
 def test_check_subject_age_missing():
     subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
