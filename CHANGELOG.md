@@ -1,5 +1,9 @@
 # Upcoming
 
+### Fixes
+* Fix `check_subject_proper_age_range` to parse years. [PR #314](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/314)
+
+
 # v0.4.20
 
 ### Improvements
@@ -14,7 +18,6 @@
 ### Fixes
 
 * Fixed issue in `run_checks` following [PR #303](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/303) that prevented iteration over certain check output types. [PR #306](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/306)
-
 
 # v0.4.19
 
