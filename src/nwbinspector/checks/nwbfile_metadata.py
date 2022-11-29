@@ -174,11 +174,11 @@ def check_subject_proper_age_range(subject: Subject):
         ):
             lower = parse_duration(subject_lower_age_bound)
             if isinstance(lower, Duration):
-                lower = parse_duration(lower).totimedelta(end=datetime.now())
+                lower = lower.totimedelta(end=datetime.now())
 
             upper = parse_duration(subject_upper_age_bound)
             if isinstance(upper, Duration):
-                upper = parse_duration(upper).totimedelta(end=datetime.now())
+                upper = upper.totimedelta(end=datetime.now())
 
             if lower >= upper:
                 return InspectorMessage(
