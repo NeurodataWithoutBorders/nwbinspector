@@ -119,3 +119,14 @@ Timing Columns
 Times are always stored in seconds in NWB. In :ref:`nwb-schema:sec-TimeIntervals` tables such as the ``TrialsTable`` and :ref:`EpochsTable <nwb-schema:epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile` (which by default is the ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
 
 Additional time columns in :ref:`nwb-schema:sec-TimeIntervals` tables, such as the ``TrialsTable`` should have ``_time`` as a suffix to the name. *E.g.*, if you add more times in ``TrialsTable``, such as a subject response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`, just like ``start_time`` and ``stop_time``. This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events. See :ref:`best_practice_global_time_reference` for more details.
+
+.. _best_practice_unique_dynamic_table_ids:
+
+Unique ids
+~~~~~~~~~~~
+
+The values of the ``id`` attribute of any :ref:`hdmf-schema:sec-dynamictable` should be unique. This includes
+descendants of :ref:`hdmf-schema:sec-dynamictable` such as :ref:`nwb-schema:sec-TimeIntervals` and
+``ElectrodesTable``. In PyNWB, rows of :ref:`hdmf-schema:sec-dynamictable` increment as you add rows, so this
+variable is unique by default. If you would like to make values of ``id`` non-unique, a better
+solution would be to store these values as a custom column and use the default ``id`` values.
