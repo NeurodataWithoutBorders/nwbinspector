@@ -217,6 +217,21 @@ def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = NELEMS):
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
 def check_ids_unique(table: DynamicTable, nelems: Optional[int] = NELEMS):
+    """
+    Ensure that the values of the id attribute of a DynamicTable are unique.
+
+    Best Practice: :ref:`best_practice_unique_dynamic_table_ids`
+
+    Parameters
+    ----------
+    table: DynamicTable
+    nelems: int, optional
+        Only inspect the first {nelems} elements
+
+    Returns
+    -------
+
+    """
     data = table.id[:nelems]
     if len(set(data)) != len(data):
         return InspectorMessage(message="This table has ids that are not unique.")
