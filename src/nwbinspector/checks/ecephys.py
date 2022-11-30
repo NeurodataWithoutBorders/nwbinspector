@@ -4,7 +4,7 @@ import numpy as np
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
 
-from hdmf.utils import get_data_shape
+from ..utils import get_data_shape
 
 from ..register_checks import register_check, Importance, InspectorMessage
 

@@ -2,10 +2,9 @@
 import numpy as np
 
 from pynwb import TimeSeries
-from hdmf.utils import get_data_shape
 
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
-from ..utils import is_regular_series, is_ascending_series
+from ..utils import is_regular_series, is_ascending_series, get_data_shape
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)

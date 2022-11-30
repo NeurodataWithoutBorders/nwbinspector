@@ -2,6 +2,7 @@
 
 ### Fixes
 * Fix `check_subject_proper_age_range` to parse years. [PR #314](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/314)
+* Write a custom `get_data_shape` method that does not return `maxshape`, which fixes errors in parsing shape. [PR #315](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/315)
 
 
 # v0.4.20
