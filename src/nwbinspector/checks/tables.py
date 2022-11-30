@@ -17,8 +17,11 @@ from ..utils import (
 )
 
 
+NELEMS = 200
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
-def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems=200):
+def check_dynamic_table_region_data_validity(dynamic_table_region: DynamicTableRegion, nelems: Optional[int] = NELEMS):
     """Check if a DynamicTableRegion is valid."""
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
         return InspectorMessage(
@@ -41,14 +44,14 @@ def check_empty_table(table: DynamicTable):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
-def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int = 200):
+def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS):
     """
     Check that time columns are in ascending order.
 
     Parameters
     ----------
     time_intervals: TimeIntervals
-    nelems: int
+    nelems: int, optional
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
@@ -68,7 +71,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: int 
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
-def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems: int = 200):
+def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS):
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
 
@@ -77,7 +80,7 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
     Parameters
     ----------
     time_intervals: TimeIntervals
-    nelems: int
+    nelems: int, optional
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
@@ -96,14 +99,14 @@ def check_time_intervals_stop_after_start(time_intervals: TimeIntervals, nelems:
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_column_binary_capability(table: DynamicTable, nelems: int = 200):
+def check_column_binary_capability(table: DynamicTable, nelems: Optional[int] = NELEMS):
     """
     Check each column of a table to see if the data could be set as a boolean dtype.
 
     Parameters
     ----------
     time_intervals: DynamicTable
-    nelems: int
+    nelems: int, optional
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
@@ -176,7 +179,7 @@ def check_single_row(
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
-def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
+def check_table_values_for_dict(table: DynamicTable, nelems: Optional[int] = NELEMS):
     """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
@@ -193,7 +196,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: int = 200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
-def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
+def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = NELEMS):
     """Check if all of the values in a single column of a table are NaN."""
     for column in table.columns:
         if (
@@ -210,3 +213,11 @@ def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = 200):
         message = message.replace("might have", "has") if nelems is None or slice_by == 1 else message
         if all(np.isnan(column[slice(0, None, slice_by)]).flatten()):
             yield InspectorMessage(message=message)
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+def check_ids_unique(table: DynamicTable, nelems: Optional[int] = NELEMS):
+    data = table.id[:nelems]
+    if len(set(data)) != len(data):
+        return InspectorMessage(message="This table has ids that are not unique.")
+

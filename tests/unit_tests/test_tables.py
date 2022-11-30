@@ -18,6 +18,7 @@ from nwbinspector import (
     check_single_row,
     check_table_values_for_dict,
     check_col_not_nan,
+    check_ids_unique,
 )
 from nwbinspector.utils import get_package_version
 
@@ -397,3 +398,16 @@ def test_check_col_not_nan_fail_span_all_data():
             file_path=None,
         ),
     ]
+
+
+def test_check_ids_unique():
+    dt = DynamicTable(name="test_table", description="test", id=[0, 0, 1, 1])
+    assert check_ids_unique(dt) == InspectorMessage(
+        message="This table has ids that are not unique.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_ids_unique",
+        object_type="DynamicTable",
+        object_name="test_table",
+        location="/",
+        file_path=None,
+    )

@@ -3,6 +3,7 @@ import numpy as np
 
 from pynwb.misc import Units
 from pynwb.ecephys import ElectricalSeries
+from pynwb.file import ElectrodeTable
 
 from ..utils import get_data_shape
 
