@@ -400,7 +400,7 @@ def test_check_col_not_nan_fail_span_all_data():
     ]
 
 
-def test_check_ids_unique():
+def test_fail_check_ids_unique():
     dt = DynamicTable(name="test_table", description="test", id=[0, 0, 1, 1])
     assert check_ids_unique(dt) == InspectorMessage(
         message="This table has ids that are not unique.",
@@ -411,3 +411,8 @@ def test_check_ids_unique():
         location="/",
         file_path=None,
     )
+
+
+def test_pass_check_ids_unique():
+    dt = DynamicTable(name="test_table", description="test", id=[0, 1])
+    assert check_ids_unique(dt) is None
