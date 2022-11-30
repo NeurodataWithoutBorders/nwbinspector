@@ -85,7 +85,7 @@ def test_check_data_orientation_unbounded_maxshape(tmp_path):
         data = file.create_dataset(
             "data",
             data=np.ones((10, 3)),
-            maxshape=(None,3),
+            maxshape=(None, 3),
         )
 
         time_series = pynwb.TimeSeries(

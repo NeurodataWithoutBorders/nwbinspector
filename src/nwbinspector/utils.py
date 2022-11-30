@@ -216,7 +216,7 @@ def get_data_shape(data, strict_no_data_load=False):
 
     def __get_shape_helper(local_data):
         shape = list()
-        if hasattr(local_data, '__len__'):
+        if hasattr(local_data, "__len__"):
             shape.append(len(local_data))
             if len(local_data):
                 el = next(iter(local_data))
