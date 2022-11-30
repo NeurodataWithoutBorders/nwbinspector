@@ -220,4 +220,3 @@ def check_ids_unique(table: DynamicTable, nelems: Optional[int] = NELEMS):
     data = table.id[:nelems]
     if len(set(data)) != len(data):
         return InspectorMessage(message="This table has ids that are not unique.")
-
