@@ -3,6 +3,8 @@ import pynwb
 import pytest
 from packaging import version
 
+import h5py
+
 from nwbinspector import (
     InspectorMessage,
     Importance,
@@ -75,6 +77,25 @@ def test_check_data_orientation():
         object_name="test_time_series",
         location="/",
     )
+
+
+def test_check_data_orientation_unbounded_maxshape(tmp_path):
+    filepath = tmp_path / "test.nwb"
+    with h5py.File(filepath, "w") as file:
+        data = file.create_dataset(
+            "data",
+            data=np.ones((10, 3)),
+            maxshape=(None,3),
+        )
+
+        time_series = pynwb.TimeSeries(
+            name="test_time_series",
+            unit="test_units",
+            data=data,
+            rate=1.0,
+        )
+
+        assert check_data_orientation(time_series) is None
 
 
 def test_check_timestamps():

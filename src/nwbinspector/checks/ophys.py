@@ -6,7 +6,7 @@ from pynwb.ophys import (
     ImagingPlane,
 )
 
-from hdmf.utils import get_data_shape
+from ..utils import get_data_shape
 
 from ..register_checks import register_check, Importance, InspectorMessage
 

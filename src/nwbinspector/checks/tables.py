@@ -4,7 +4,6 @@ from typing import List, Optional
 
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
-from hdmf.utils import get_data_shape
 from pynwb.file import TimeIntervals, Units
 
 from ..register_checks import register_check, InspectorMessage, Importance
@@ -14,6 +13,7 @@ from ..utils import (
     is_ascending_series,
     is_dict_in_string,
     is_string_json_loadable,
+    get_data_shape,
 )
 
 
