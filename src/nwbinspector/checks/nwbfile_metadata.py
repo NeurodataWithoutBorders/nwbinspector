@@ -2,7 +2,7 @@
 import re
 from datetime import datetime
 
-from pandas import Timedelta
+from isodate import parse_duration, Duration
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
@@ -168,17 +168,24 @@ def check_subject_proper_age_range(subject: Subject):
     if subject.age is not None and "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
-        if (
-            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound)
-            and re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound)
-            and Timedelta(subject_lower_age_bound) >= Timedelta(subject_upper_age_bound)
+        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and re.fullmatch(
+            pattern=duration_regex, string=subject_upper_age_bound
         ):
-            return InspectorMessage(
-                message=(
-                    f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
-                    "The upper (right) bound should be a longer duration than the lower (left) bound."
+            lower = parse_duration(subject_lower_age_bound)
+            if isinstance(lower, Duration):
+                lower = lower.totimedelta(end=datetime.now())
+
+            upper = parse_duration(subject_upper_age_bound)
+            if isinstance(upper, Duration):
+                upper = upper.totimedelta(end=datetime.now())
+
+            if lower >= upper:
+                return InspectorMessage(
+                    message=(
+                        f"The durations of the Subject age range, '{subject.age}', are not strictly increasing. "
+                        "The upper (right) bound should be a longer duration than the lower (left) bound."
+                    )
                 )
-            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
