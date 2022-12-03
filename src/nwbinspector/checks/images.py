@@ -1,13 +1,13 @@
 """Checks specific to the Images neurodata type."""
+from packing.version import Version
+
 from ..register_checks import register_check, Importance, InspectorMessage
+from ..utils import get_package
 
-try:
-    from pynwb.base import Images
-
+# The Images neurodata type was unavailable prior to PyNWB v.2.1.0
+HAVE_IMAGES = False
+if get_package_version("pynwb") >= Version("2.1.0"):
     HAVE_IMAGES = True
-except ImportError:
-    HAVE_IMAGES = False
-
 
 if HAVE_IMAGES:
 
