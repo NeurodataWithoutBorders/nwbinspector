@@ -1,7 +1,7 @@
 """Checks specific to the Images neurodata type."""
 from ..register_checks import register_check, Importance, InspectorMessage
 
-try: # The Images neurodata type was unavailable prior to PyNWB v.2.1.0
+try:  # The Images neurodata type was unavailable prior to PyNWB v.2.1.0
     from pynwb.base import Images
 
     HAVE_IMAGES = True
