@@ -1,9 +1,9 @@
-import numpy as np
+import h5py
 import pynwb
 import pytest
+import numpy as np
 from packaging import version
 
-import h5py
 
 from nwbinspector import (
     InspectorMessage,
@@ -15,6 +15,7 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
 )
+from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.utils import get_package_version, robust_s3_read
 
@@ -98,7 +99,62 @@ def test_check_data_orientation_unbounded_maxshape(tmp_path):
         assert check_data_orientation(time_series) is None
 
 
-def test_check_timestamps():
+def test_check_timestamps_match_first_dimension_good():
+    assert (
+        check_timestamps_match_first_dimension(
+            time_series=pynwb.TimeSeries(
+                name="test_time_series",
+                unit="test_units",
+                data=np.empty(shape=4),
+                timestamps=[1.0, 2.0, 3.0, 4.0],
+            )
+        )
+        is None
+    )
+
+
+def test_check_timestamps_match_first_dimension_special_skip(tmp_path):
+    """
+    Very special skip condition for a certain older practice for indexing repeated Images.
+
+    The use of an ImageSeries for this is discouraged, with preference to use a stack of unordered Images instead.
+    """
+    nwbfile_path = tmp_path / "test_check_timestamps_match_first_dimension_special_skip.nwb"
+
+    nwbfile = make_minimal_nwbfile()
+    num_images = 5
+    image_width = 10
+    image_height = 15
+    num_channels = 3
+    dtype = "uint8"
+    image_series = pynwb.image.ImageSeries(
+        name="ImageSeries",
+        unit="n.a.",
+        data=np.empty(shape=(num_images, image_width, image_height, num_channels), dtype=dtype),
+        timestamps=[],
+    )
+    nwbfile.add_acquisition(image_series)
+    nwbfile.add_acquisition(
+        pynwb.image.IndexSeries(
+            name="IndexSeries",
+            unit="n.a.",
+            data=np.empty(shape=num_images),
+            indexed_timeseries=image_series,
+            timestamps=np.arange(0, num_images, 0.1),
+        )
+    )
+
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+        io.write(nwbfile)
+
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        nwbfile_out = io.read()
+        image_series_out = nwbfile_out.acquisition["ImageSeries"]
+
+        assert check_timestamps_match_first_dimension(time_series=image_series_out) is None
+
+
+def test_check_timestamps_match_first_dimension_bad():
     assert check_timestamps_match_first_dimension(
         time_series=pynwb.TimeSeries(
             name="test_time_series",
