@@ -2,6 +2,7 @@
 import numpy as np
 
 from pynwb import TimeSeries
+from pynwb.image import ImageSeries, IndexSeries
 
 from ..register_checks import register_check, Importance, Severity, InspectorMessage
 from ..utils import is_regular_series, is_ascending_series, get_data_shape
@@ -57,6 +58,17 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
     """
     if time_series.data is None or time_series.timestamps is None:
         return
+
+    # A very specific edge case where this has been allowed, though much more preferable
+    # to use a stack of Images rather than an ImageSeries
+    if (
+        isinstance(time_series, ImageSeries)
+        and len(time_series.timestamps) == 0
+        and time_series.get_ancestor("NWBFile") is not None
+    ):
+        for neurodata_object in time_series.get_ancestor("NWBFile").objects.values():
+            if isinstance(neurodata_object, IndexSeries) and neurodata_object.indexed_timeseries == time_series:
+                return
 
     timestamps_shape = get_data_shape(time_series.timestamps)
     data_shape = get_data_shape(time_series.data)
