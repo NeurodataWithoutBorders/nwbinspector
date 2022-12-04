@@ -1,5 +1,12 @@
 # Upcoming
 
+# v0.4.22
+
+### Fixes
+* Add a special skip condition to `check_timestamps_match_first_dimension` when an `IndexSeries` uses an `ImageSeries` as a target. [PR #321](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/321)
+
+
+
 # v0.4.21
 
 ### New Checks
