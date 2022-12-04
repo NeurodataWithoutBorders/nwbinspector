@@ -5,7 +5,11 @@ from pynwb.testing.mock.base import mock_TimeSeries
 from pynwb.image import GrayscaleImage, IndexSeries
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len, check_index_series_points_to_image
+from nwbinspector.checks.images import (
+    check_order_of_images_unique,
+    check_order_of_images_len,
+    check_index_series_points_to_image,
+)
 
 try:
     from pynwb.base import Images, ImageReferences
@@ -92,7 +96,7 @@ def test_pass_check_index_series_points_to_image():
         data=[0, 1, 0, 1],
         indexed_images=images,
         unit="N/A",
-        timestamps=[.1, .2, .3, .4],
+        timestamps=[0.1, 0.2, 0.3, 0.4],
     )
 
     assert check_index_series_points_to_image(idx_series) is None
@@ -108,7 +112,7 @@ def test_fail_check_index_series_points_to_image():
         data=[0, 1, 0, 1],
         indexed_timeseries=time_series,
         unit="N/A",
-        timestamps=[.1, .2, .3, .4],
+        timestamps=[0.1, 0.2, 0.3, 0.4],
     )
 
     assert check_index_series_points_to_image(idx_series) == InspectorMessage(
@@ -116,7 +120,7 @@ def test_fail_check_index_series_points_to_image():
         importance=Importance.BEST_PRACTICE_VIOLATION,
         object_type="IndexSeries",
         message="Pointing an IndexSeries to a TimeSeries is is deprecated. Please point to an Images container "
-                "instead.",
+        "instead.",
         location="/",
         check_function_name="check_index_series_points_to_image",
     )
