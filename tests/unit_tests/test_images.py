@@ -1,10 +1,11 @@
 import pytest
 
 import numpy as np
-from pynwb.image import GrayscaleImage
+from pynwb.testing.mock.base import mock_TimeSeries
+from pynwb.image import GrayscaleImage, IndexSeries
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len
+from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len, check_index_series_points_to_image
 
 try:
     from pynwb.base import Images, ImageReferences
@@ -67,3 +68,55 @@ def test_pass_check_order_of_images_len():
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
 
     assert check_order_of_images_len(images) is None
+
+
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
+def test_pass_check_index_series_points_to_image():
+
+    gs_img = GrayscaleImage(
+        name="random grayscale",
+        data=np.empty(shape=(40, 50), dtype=np.uint8),
+        resolution=70.0,
+        description="Grayscale version of a raccoon.",
+    )
+
+    images = Images(
+        name="images",
+        images=[gs_img],
+        description="An example collection.",
+        order_of_images=ImageReferences("order_of_images", [gs_img]),
+    )
+
+    idx_series = IndexSeries(
+        name="stimuli",
+        data=[0, 1, 0, 1],
+        indexed_images=images,
+        unit="N/A",
+        timestamps=[.1, .2, .3, .4],
+    )
+
+    assert check_index_series_points_to_image(idx_series) is None
+
+
+@pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
+def test_fail_check_index_series_points_to_image():
+
+    time_series = mock_TimeSeries(data=np.empty(shape=(2, 50, 40)))
+
+    idx_series = IndexSeries(
+        name="stimuli",
+        data=[0, 1, 0, 1],
+        indexed_timeseries=time_series,
+        unit="N/A",
+        timestamps=[.1, .2, .3, .4],
+    )
+
+    assert check_index_series_points_to_image(idx_series) == InspectorMessage(
+        object_name="stimuli",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        object_type="IndexSeries",
+        message="Pointing an IndexSeries to a TimeSeries is is deprecated. Please point to an Images container "
+                "instead.",
+        location="/",
+        check_function_name="check_index_series_points_to_image",
+    )
