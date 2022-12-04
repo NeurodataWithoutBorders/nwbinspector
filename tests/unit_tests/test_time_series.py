@@ -138,7 +138,7 @@ def test_check_timestamps_match_first_dimension_special_skip(tmp_path):
         pynwb.image.IndexSeries(
             name="IndexSeries",
             unit="n.a.",
-            data=np.empty(shape=num_images),
+            data=[0,1],
             indexed_timeseries=image_series,
             timestamps=np.arange(0, num_images, 0.1),
         )
