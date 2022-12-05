@@ -8,6 +8,7 @@ try:  # The Images neurodata type was unavailable prior to PyNWB v.2.1.0
 except ImportError:
     HAVE_IMAGES = False
 
+from pynwb.image import IndexSeries
 
 if HAVE_IMAGES:
 
@@ -28,4 +29,12 @@ if HAVE_IMAGES:
             return InspectorMessage(
                 message=f"Length of order_of_images ({len(images.order_of_images)}) does not match the number of "
                 f"images ({len(images.images)})."
+            )
+
+    @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=IndexSeries)
+    def check_index_series_points_to_image(index_series: IndexSeries):
+        if index_series.indexed_timeseries is not None:
+            return InspectorMessage(
+                message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images "
+                "container instead."
             )
