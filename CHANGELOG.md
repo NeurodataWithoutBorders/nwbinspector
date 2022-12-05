@@ -1,5 +1,12 @@
 # Upcoming
 
+# v0.4.23
+
+### New Checks
+* Added check `check_index_series_points_to_image` to additionally about future deprecation of `indexed_timeseries` linked in `IndexSeries`. [# 322](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/322)
+
+
+
 # v0.4.22
 
 ### Fixes
@@ -10,7 +17,7 @@
 # v0.4.21
 
 ### New Checks
-* Add check for unique ids for DynamicTables. [PR #316](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/316)
+* Added check for unique ids for DynamicTables. [PR #316](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/316)
 
 
 ### Fixes
