@@ -5,7 +5,11 @@ from pynwb import TimeSeries
 from pynwb.image import GrayscaleImage, IndexSeries
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.images import check_order_of_images_unique, check_order_of_images_len, check_index_series_points_to_image
+from nwbinspector.checks.images import (
+    check_order_of_images_unique,
+    check_order_of_images_len,
+    check_index_series_points_to_image,
+)
 
 try:
     from pynwb.base import Images, ImageReferences
@@ -104,7 +108,7 @@ def test_fail_check_index_series_points_to_image():
     time_series = TimeSeries(
         name="TimeSeries",
         data=np.empty(shape=(2, 50, 40)),
-        rate=400.,
+        rate=400.0,
         description="description",
         unit="n.a.",
     )
@@ -122,7 +126,7 @@ def test_fail_check_index_series_points_to_image():
         importance=Importance.BEST_PRACTICE_VIOLATION,
         object_type="IndexSeries",
         message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images container "
-                "instead.",
+        "instead.",
         location="/",
         check_function_name="check_index_series_points_to_image",
     )
