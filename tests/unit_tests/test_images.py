@@ -92,7 +92,7 @@ def test_pass_check_index_series_points_to_image():
         data=[0, 1, 0, 1],
         indexed_images=images,
         unit="N/A",
-        timestamps=[.1, .2, .3, .4],
+        timestamps=[0.1, 0.2, 0.3, 0.4],
     )
 
     assert check_index_series_points_to_image(idx_series) is None
@@ -114,7 +114,7 @@ def test_fail_check_index_series_points_to_image():
         data=[0, 1, 0, 1],
         indexed_timeseries=time_series,
         unit="N/A",
-        timestamps=[.1, .2, .3, .4],
+        timestamps=[0.1, 0.2, 0.3, 0.4],
     )
 
     assert check_index_series_points_to_image(idx_series) == InspectorMessage(
