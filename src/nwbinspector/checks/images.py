@@ -35,6 +35,6 @@ if HAVE_IMAGES:
     def check_index_series_points_to_image(index_series: IndexSeries):
         if index_series.indexed_timeseries is not None:
             return InspectorMessage(
-                message="Pointing an IndexSeries to a TimeSeries is is deprecated. Please point to an Images container "
-                        "instead."
+                message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images "
+                        "container instead."
             )

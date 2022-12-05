@@ -1,7 +1,7 @@
 import pytest
 
 import numpy as np
-from pynwb.testing.mock.base import mock_TimeSeries
+from pynwb import TimeSeries
 from pynwb.image import GrayscaleImage, IndexSeries
 
 from nwbinspector import InspectorMessage, Importance
@@ -101,7 +101,13 @@ def test_pass_check_index_series_points_to_image():
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_fail_check_index_series_points_to_image():
 
-    time_series = mock_TimeSeries(data=np.empty(shape=(2, 50, 40)))
+    time_series = TimeSeries(
+        name="TimeSeries",
+        data=np.empty(shape=(2, 50, 40)),
+        rate=400.,
+        description="description",
+        unit="n.a.",
+    )
 
     idx_series = IndexSeries(
         name="stimuli",
@@ -115,7 +121,7 @@ def test_fail_check_index_series_points_to_image():
         object_name="stimuli",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         object_type="IndexSeries",
-        message="Pointing an IndexSeries to a TimeSeries is is deprecated. Please point to an Images container "
+        message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images container "
                 "instead.",
         location="/",
         check_function_name="check_index_series_points_to_image",
