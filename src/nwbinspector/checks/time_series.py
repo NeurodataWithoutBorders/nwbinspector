@@ -89,6 +89,21 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_timestamp_of_the_first_sample_is_not_negative(time_series: TimeSeries):
+    """
+    Check that the timestamp of the first sample is not negative.
+
+    Best Practice: :ref:`best_practice_timestamp_of_the_first_sample`
+    """
+
+    first_timestamp = time_series.starting_time if time_series.starting_time is not None else time_series.timestamps[0]
+    if first_timestamp < 0:
+        return InspectorMessage(
+            message=f"{time_series.name} timestamp of the first sample should not be negative value."
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_missing_unit(time_series: TimeSeries):
     """
     Check if the TimeSeries.unit field is empty.
