@@ -22,6 +22,9 @@ the ``timestamp_reference_time`` used across all of the NWBFiles may be set sepa
 All time-related data in the NWBFile should be synchronized to the ``timestamps_reference_time`` so that future users
 are able to understand the timing of all events contained within the NWBFile.
 
+The ``timestamps_reference_time`` should also be the earliest timestamp in the file, giving all other time references
+a positive value relative to that. There should be no time references which are negative.
+
 Given the importance of this field within an :ref:`nwb-schema:sec-NWBFile`, is it critical that it be set to a proper
 value. Default values should generally not be used for this field. If the true date is unknown, use your
 best guess. If the exact start time is unknown, then it is fine to simply set it to midnight on that date.
@@ -29,6 +32,7 @@ best guess. If the exact start time is unknown, then it is fine to simply set it
 
 Check functions: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_old_date`,
 :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_session_start_time_future_date`,
+:py:meth:`~nwbinspector.checks.time_series.check_timestamp_of_the_first_sample_is_not_negative`
 
 
 

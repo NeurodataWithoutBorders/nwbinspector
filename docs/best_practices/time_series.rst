@@ -107,23 +107,6 @@ Check function: :py:meth:`~nwbinspector.checks.time_series.check_regular_timesta
 
 
 
-
-.. _best_practice_timestamp_of_the_first_sample:
-
-Timestamp of the first sample
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The timestamp of the first sample of a :ref:`nwb-schema:sec-TimeSeries` defined by
-:ref:`nwb-schema:TimeSeries.starting_time <sec-TimeSeries>` or the first value in
-:ref:`nwb-schema:TimeSeries.timestamps <sec-TimeSeries>` should be `0.0` or any positive value.
-If you have multiple modalities with different timestamps, the earliest timestamp should
-correspond to `0.0` and every other time reference should be shifted by this timestamp.
-
-Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamp_of_the_first_sample_is_not_negative`
-
-
-
-
 .. _best_practice_chunk_data:
 
 Chunk Data
