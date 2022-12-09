@@ -225,7 +225,7 @@ def test_check_timestamp_of_the_first_sample_is_not_negative_with_timestamps_fai
     )
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
         message=message,
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_timestamp_of_the_first_sample_is_not_negative",
         object_type="TimeSeries",
         object_name="test_time_series",
@@ -249,7 +249,7 @@ def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_
     )
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
         message=message,
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_timestamp_of_the_first_sample_is_not_negative",
         object_type="TimeSeries",
         object_name="test_time_series",
