@@ -19,6 +19,7 @@ from nwbinspector import (
     check_table_values_for_dict,
     check_col_not_nan,
     check_ids_unique,
+    check_table_time_columns_are_not_negative,
 )
 from nwbinspector.utils import get_package_version
 
@@ -416,3 +417,40 @@ def test_fail_check_ids_unique():
 def test_pass_check_ids_unique():
     dt = DynamicTable(name="test_table", description="test", id=[0, 1])
     assert check_ids_unique(dt) is None
+
+
+def test_table_time_columns_are_not_negative_fail():
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_column(name="start_time", description="")
+    test_table.add_column(name="stop_time", description="")
+    test_table.add_row(test_time=-2.0, start_time=-1.0, stop_time=3.0)
+
+    assert check_table_time_columns_are_not_negative(test_table) == [
+        InspectorMessage(
+            message=f"Timestamps in column test_time should not be negative."
+            " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_table_time_columns_are_not_negative",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        ),
+        InspectorMessage(
+            message=f"Timestamps in column start_time should not be negative."
+            " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_table_time_columns_are_not_negative",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        ),
+    ]
+
+
+def test_table_time_columns_are_not_negative_pass():
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_row(test_time=1.0)
+
+    assert check_table_time_columns_are_not_negative(test_table) is None

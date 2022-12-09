@@ -88,6 +88,22 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
+def check_timestamp_of_the_first_sample_is_not_negative(time_series: TimeSeries):
+    """
+    Check that the timestamp of the first sample is not negative.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
+
+    first_timestamp = time_series.starting_time if time_series.starting_time is not None else time_series.timestamps[0]
+    if first_timestamp < 0:
+        return InspectorMessage(
+            message="Timestamps should not be negative."
+            " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
+        )
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_missing_unit(time_series: TimeSeries):
     """

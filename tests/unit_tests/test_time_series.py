@@ -14,6 +14,7 @@ from nwbinspector import (
     check_timestamps_ascending,
     check_missing_unit,
     check_resolution,
+    check_timestamp_of_the_first_sample_is_not_negative,
 )
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled
@@ -213,6 +214,54 @@ def test_check_timestamps_ascending_fail():
         object_name="test_time_series",
         location="/",
     )
+
+
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_timestamps_fail():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[-1, 0, 1])
+    message = (
+        "Timestamps should not be negative."
+        " It is recommended to align the `session_start_time` or `timestamps_reference_time` "
+        "to be the earliest time value that occurs in the data, and shift all other signals accordingly."
+    )
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
+        message=message,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_timestamp_of_the_first_sample_is_not_negative",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_timestamps_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[0, 1, 2])
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
+
+
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], starting_time=-1.0, rate=30.0
+    )
+    message = (
+        "Timestamps should not be negative."
+        " It is recommended to align the `session_start_time` or `timestamps_reference_time` "
+        "to be the earliest time value that occurs in the data, and shift all other signals accordingly."
+    )
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
+        message=message,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_timestamp_of_the_first_sample_is_not_negative",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], starting_time=0.0, rate=30.0
+    )
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
 
 
 def test_check_missing_unit_pass():
