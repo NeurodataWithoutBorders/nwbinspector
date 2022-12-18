@@ -1,5 +1,10 @@
 # Upcoming
 
+# v0.4.24
+
+* Loosened upper bound of numpy version. [PR # 330](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/330)
+
+
 # v0.4.23
 
 ### New Checks
