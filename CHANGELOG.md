@@ -1,7 +1,15 @@
 # Upcoming
 
+# v0.4.25
+
+### Improvements
+* The version of the NWB Inspector can now be returned directly from the CLI via the `--version` flag. [PR # 333](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/333)
+
+
+
 # v0.4.24
 
+### Dependencies
 * Loosened upper bound of numpy version. [PR # 330](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/330)
 
 
