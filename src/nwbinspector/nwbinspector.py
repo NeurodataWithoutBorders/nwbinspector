@@ -30,6 +30,7 @@ from .inspector_tools import (
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
 from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from nwbinspector import __version__
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
@@ -222,6 +223,7 @@ def configure_checks(
         "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
     ),
 )
+@click.version_option(__version__)
 def inspect_all_cli(
     path: str,
     modules: Optional[str] = None,
