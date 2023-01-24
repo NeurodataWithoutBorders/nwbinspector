@@ -59,6 +59,9 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries):
     if time_series.data is None or time_series.timestamps is None:
         return
 
+    if getattr(time_series, "external_file", None) is not None and get_data_shape(time_series.data)[0] == 0:
+        return
+
     # A very specific edge case where this has been allowed, though much more preferable
     # to use a stack of Images rather than an ImageSeries
     if (

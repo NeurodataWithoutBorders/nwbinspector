@@ -13,6 +13,7 @@ from nwbinspector import (
     check_image_series_external_file_valid,
     check_image_series_external_file_relative,
     check_image_series_data_size,
+    check_timestamps_match_first_dimension,
 )
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import load_testing_config
@@ -121,6 +122,17 @@ def test_check_small_image_series_stored_internally():
     image_series = ImageSeries(name="ImageSeriesLarge", rate=1.0, data=data, unit="TestUnit")
 
     assert check_image_series_data_size(image_series=image_series) is None
+
+
+def test_check_image_series_external_file_no_data_valid_pass():
+    image_series = ImageSeries(
+        name="ImageSeriesLarge",
+        external_file=["Test"],
+        format="external",
+        timestamps=[0, 1, 2, 3],
+        unit="TestUnit",
+    )
+    assert check_timestamps_match_first_dimension(time_series=image_series) is None
 
 
 def test_check_large_image_series_stored_internally():
