@@ -102,8 +102,8 @@ Experimenter
 
 The ``experimenter`` field of an :ref:`nwb-schema:sec-NWBFile` should be specified as any of the accepted forms: 'LastName, Firstname', 'LastName, FirstName MiddleInitial.' or 'LastName, FirstName MiddleName'.
 
-Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter`
-
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter_exists`,
+:py:meth:`~nwbinspector.checks.nwbfile_metadata.check_experimenter_form`
 
 
 .. _best_practice_experiment_description:
