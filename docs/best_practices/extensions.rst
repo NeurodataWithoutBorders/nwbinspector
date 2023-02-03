@@ -108,6 +108,7 @@ When possible, use existing types when creating extensions either by creating ne
 existing ones, or by creating ``neurodata_types`` that contain existing ones. Building on existing types facilitates the
 reuse of existing functionality and interpretation of the data. If a community extension already exists that has a
 similar scope, it is preferable to use that extension rather than creating a new one. For example:
+
 * Extend ``TimeSeries`` for storing timeseries data. NWB provides main types of ``TimeSeries``
   and you should identify the most specific type of ``TimeSeries`` relevant for your use case
   (e.g., extend ``ElectricalSeries`` to define a new kind of electrical recording).
@@ -160,10 +161,11 @@ should include links to the relevant metadata. NWB provides a few key mechanisms
 * Use a ``dataset`` with an object reference data type to store collections of links
   to other objects, e.g., the following dtype to define a dataset of links to ``TimeSeries``
 
-  .. code-block:: yaml
-        dtype:
-            target_type: TimeSeries
-            reftype: object
+.. code-block:: yaml
+
+    dtype:
+        target_type: TimeSeries
+        reftype: object
 
 
 Best practices for object names
@@ -182,7 +184,7 @@ Best practices for naming ``neurodata_types``
 
 For defining new types via ``neurodata_type_def`` use:
 
-* **Use CamelCase:**  notation, i.e., names of types should NOT include spaces,
+* **Use camelcase:**  notation, i.e., names of types should NOT include spaces,
   always start with an uppercase letter, and use a single capitalized letter to
   separate parts of the name. E.g,. ``neurodata_type_def: LaserMeasurement``
 * **Use the postfix ``Series`` when extending a ``TimeSeries`` type.** E.g., when
