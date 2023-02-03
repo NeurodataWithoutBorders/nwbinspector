@@ -182,7 +182,7 @@ Best practices for naming ``neurodata_types``
 
 For defining new types via ``neurodata_type_def`` use:
 
-* **Use camelcase:**  notation, i.e., names of types should NOT include spaces,
+* **Use CamelCase:**  notation, i.e., names of types should NOT include spaces,
   always start with an uppercase letter, and use a single capitalized letter to
   separate parts of the name. E.g,. ``neurodata_type_def: LaserMeasurement``
 * **Use the postfix ``Series`` when extending a ``TimeSeries`` type.** E.g., when
