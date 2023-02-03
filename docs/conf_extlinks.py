@@ -33,6 +33,8 @@ extlinks = {
     "black-coding-style": ("https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html%s", None),
     "ncbi": ("https://www.ncbi.nlm.nih.gov/taxonomy%s", None),
     "ontobee": ("https://ontobee.org/%s", None),
+    "ndx-catalog": ("https://nwb-extensions.github.io/", None),
+    "nwb_extension_git": ("https://github.com/nwb-extensions/%s", None),
 }
 
 # Use this for mapping for links to commonly used documentation
