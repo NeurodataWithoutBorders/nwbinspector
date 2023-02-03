@@ -167,7 +167,7 @@ should include links to the relevant metadata. NWB provides a few key mechanisms
 
 
 Best practices for object names
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Names for groups, datasets, attributes, or links should typically:
 
