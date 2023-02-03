@@ -144,7 +144,7 @@ is associated with a particular Group or Dataset. Typical uses of attributes are
 define the ``unit`` of measurement of a dataset or to store a short ``description`` of
 a group or dataset. For larger data, datasets should be used instead.
 
-In practice, the main difference is that in PyNWB and MatNWB all Attributes are read into memory when reading the
+In practice, the main difference is that in PyNWB and MatNWB all attributes are read into memory when reading the
 NWB file. If you would like to allow users to read a file without reading all of these particular data values, use a
 Dataset.
 
