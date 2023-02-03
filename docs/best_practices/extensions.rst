@@ -16,8 +16,8 @@ If an extension is required, tutorials for the process may be found through the
 It is also encouraged for extensions to contain their own check functions for their own best practices.
 See the` :ref:`adding_custom_checks` section of the Developer Guide for how to do this.
 
-Define new ``neurodata_types`` at the top-level (a.k.a., do not nest type definitions)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Define new ``neurodata_types`` at the top-level (do not nest type definitions)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Rather than nesting definitions of ``neurodata_types``, all new types should be defined
 at the top-level of the schema. To include a specific ``neurodata_type`` in another type
