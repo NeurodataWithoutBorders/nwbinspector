@@ -112,7 +112,7 @@ similar scope, it is preferable to use that extension rather than creating a new
 * Extend ``TimeSeries`` for storing timeseries data. NWB provides main types of ``TimeSeries``
   and you should identify the most specific type of ``TimeSeries`` relevant for your use case
   (e.g., extend ``ElectricalSeries`` to define a new kind of electrical recording).
-* Extend ``DynamicTable`` to store tabular data/
+* Extend ``DynamicTable`` to store tabular data.
 * Extend ``TimeIntervals`` to store specific annotations of intervals in time.
 
 
