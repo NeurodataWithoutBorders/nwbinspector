@@ -24,7 +24,6 @@ class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
         )
 
     def test_check_pass(self):
-
         ogen_series = OptogeneticSeries(
             name="ogen_series_name",
             data=[1.0, 2.0, 3.0],
