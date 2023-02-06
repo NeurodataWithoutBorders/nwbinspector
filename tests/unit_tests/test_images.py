@@ -22,7 +22,6 @@ skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_unique():
-
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
     img_refs = ImageReferences(name="order_of_images", data=imgs + [imgs[0]])
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
@@ -39,7 +38,6 @@ def test_check_order_of_images_unique():
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_pass_check_order_of_images_unique():
-
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
     img_refs = ImageReferences(name="order_of_images", data=imgs)
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
@@ -49,7 +47,6 @@ def test_pass_check_order_of_images_unique():
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_len():
-
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
     img_refs = ImageReferences(name="order_of_images", data=imgs + [imgs[0]])
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
@@ -66,7 +63,6 @@ def test_check_order_of_images_len():
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_pass_check_order_of_images_len():
-
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
     img_refs = ImageReferences(name="order_of_images", data=imgs)
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
@@ -76,7 +72,6 @@ def test_pass_check_order_of_images_len():
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_pass_check_index_series_points_to_image():
-
     gs_img = GrayscaleImage(
         name="random grayscale",
         data=np.empty(shape=(40, 50), dtype=np.uint8),
@@ -104,7 +99,6 @@ def test_pass_check_index_series_points_to_image():
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_fail_check_index_series_points_to_image():
-
     time_series = TimeSeries(
         name="TimeSeries",
         data=np.empty(shape=(2, 50, 40)),

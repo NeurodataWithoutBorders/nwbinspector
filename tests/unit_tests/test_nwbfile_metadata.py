@@ -264,7 +264,6 @@ def test_check_doi_publications_multiple_fail():
 
 
 def test_check_subject_sex():
-
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
     nwbfile.subject = Subject(subject_id="001")
 
