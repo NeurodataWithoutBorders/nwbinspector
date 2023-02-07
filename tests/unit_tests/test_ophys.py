@@ -29,7 +29,6 @@ from nwbinspector import (
 
 class TestCheckRoiResponseSeries(TestCase):
     def setUp(self):
-
         nwbfile = NWBFile(
             session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
         )
@@ -74,7 +73,6 @@ class TestCheckRoiResponseSeries(TestCase):
         self.nwbfile = nwbfile
 
     def test_check_flipped_dims(self):
-
         rt_region = self.plane_segmentation.create_roi_table_region(
             region=[0, 1, 2, 3, 4],
             description="the first of two ROIs",
@@ -102,7 +100,6 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
     def test_check_wrong_dims(self):
-
         rt_region = self.plane_segmentation.create_roi_table_region(
             region=[0, 1, 2, 3, 4],
             description="the first of two ROIs",
@@ -167,7 +164,6 @@ class TestCheckRoiResponseSeries(TestCase):
         )
 
     def test_pass_check_roi_response_series_link_to_plane_segmentation(self):
-
         rt_region = self.plane_segmentation.create_roi_table_region(
             region=[0, 1, 2, 3, 4],
             description="the first of two ROIs",
@@ -185,7 +181,6 @@ class TestCheckRoiResponseSeries(TestCase):
 
 
 def test_check_excitation_lambda_in_nm():
-
     device = Device(
         name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
@@ -242,7 +237,6 @@ def test_pass_check_emission_lambda_in_nm():
 
 
 def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
-
     device = Device(
         name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
@@ -282,7 +276,6 @@ def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
 
 
 def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
-
     device = Device(
         name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
@@ -331,7 +324,6 @@ def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
 
 
 def test_false_positive_skip_check_image_series_data_size():
-
     device = Device(
         name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )

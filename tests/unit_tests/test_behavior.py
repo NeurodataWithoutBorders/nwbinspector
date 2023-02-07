@@ -11,7 +11,6 @@ from nwbinspector.checks.behavior import (
 
 
 def test_check_spatial_series_dims():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -30,7 +29,6 @@ def test_check_spatial_series_dims():
 
 
 def test_pass_check_spatial_series_dims():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -43,7 +41,6 @@ def test_pass_check_spatial_series_dims():
 
 
 def test_pass_check_spatial_series_dims_1d():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -89,7 +86,6 @@ def test_pass_check_compass_direction_unit():
 
 
 def test_pass_check_spatial_series_degrees_magnitude():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -103,7 +99,6 @@ def test_pass_check_spatial_series_degrees_magnitude():
 
 
 def test_check_spatial_series_degrees_magnitude():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -124,7 +119,6 @@ def test_check_spatial_series_degrees_magnitude():
 
 
 def test_pass_check_spatial_series_radians_magnitude():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
@@ -138,7 +132,6 @@ def test_pass_check_spatial_series_radians_magnitude():
 
 
 def test_check_spatial_series_radians_magnitude():
-
     spatial_series = SpatialSeries(
         name="SpatialSeries",
         description="description",
