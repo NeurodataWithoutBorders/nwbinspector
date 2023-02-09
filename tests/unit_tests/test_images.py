@@ -16,6 +16,7 @@ skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
 if HAVE_IMAGES:
     from pynwb.base import Images, ImageReferences
 
+
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_unique():
     imgs = [GrayscaleImage(name=f"image{i}", data=np.random.randn(10, 10)) for i in range(5)]
