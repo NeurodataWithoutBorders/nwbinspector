@@ -11,14 +11,10 @@ from nwbinspector.checks.images import (
     check_index_series_points_to_image,
 )
 
-try:
-    from pynwb.base import Images, ImageReferences
-
-    HAVE_IMAGES = True
-except ImportError:
-    HAVE_IMAGES = False
+HAVE_IMAGES = get_package_version(name="pynwb") >= Version("2.1.0"):
 skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
-
+if HAVE_IMAGES:
+    from pynwb.base import Images, ImageReferences
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
 def test_check_order_of_images_unique():
