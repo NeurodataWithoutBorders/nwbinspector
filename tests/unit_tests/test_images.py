@@ -11,7 +11,7 @@ from nwbinspector.checks.images import (
     check_index_series_points_to_image,
 )
 
-HAVE_IMAGES = get_package_version(name="pynwb") >= Version("2.1.0"):
+HAVE_IMAGES = get_package_version(name="pynwb") >= Version("2.1.0")
 skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
 if HAVE_IMAGES:
     from pynwb.base import Images, ImageReferences
