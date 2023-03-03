@@ -1,7 +1,12 @@
 # Upcoming
 
+
+
+# v0.4.26
+
 ### Fixes
-* Added a false positive skip condition to `check_timestamps_match_first_dimension` when applied to an `ImageSeries` that is using an `external_file` and therefore has an empty array set to `data`, but could have non-empty irregular `timestamps` for the video. [PR # 335](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/335)
+* Added a false positive skip condition to `check_timestamps_match_first_dimension` when applied to an `ImageSeries` that is using an `external_file` and therefore has an empty array set to `data`, but could have non-empty irregular `timestamps` for the video. [PR #335](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/335)
+* Fixed the skip condition for `images` checks that were incorrectly run when using PyNWB v2.0.0. [PR #341](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/341)
 
 
 

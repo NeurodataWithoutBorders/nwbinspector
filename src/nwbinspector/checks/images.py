@@ -1,16 +1,14 @@
 """Checks specific to the Images neurodata type."""
-from ..register_checks import register_check, Importance, InspectorMessage
-
-try:  # The Images neurodata type was unavailable prior to PyNWB v.2.1.0
-    from pynwb.base import Images
-
-    HAVE_IMAGES = True
-except ImportError:
-    HAVE_IMAGES = False
+from packaging.version import Version
 
 from pynwb.image import IndexSeries
 
-if HAVE_IMAGES:
+from ..register_checks import register_check, Importance, InspectorMessage
+from ..utils import get_package_version
+
+# The Images neurodata type was unavailable prior to PyNWB v.2.1.0
+if get_package_version(name="pynwb") >= Version("2.1.0"):
+    from pynwb.base import Images
 
     @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Images)
     def check_order_of_images_unique(images: Images):

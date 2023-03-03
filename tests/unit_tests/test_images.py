@@ -3,6 +3,7 @@ import pytest
 import numpy as np
 from pynwb import TimeSeries
 from pynwb.image import GrayscaleImage, IndexSeries
+from packaging.version import Version
 
 from nwbinspector import InspectorMessage, Importance
 from nwbinspector.checks.images import (
@@ -10,14 +11,12 @@ from nwbinspector.checks.images import (
     check_order_of_images_len,
     check_index_series_points_to_image,
 )
+from nwbinspector.utils import get_package_version
 
-try:
-    from pynwb.base import Images, ImageReferences
-
-    HAVE_IMAGES = True
-except ImportError:
-    HAVE_IMAGES = False
+HAVE_IMAGES = get_package_version(name="pynwb") >= Version("2.1.0")
 skip_reason = "You must have PyNWB>=v2.1.0 to run these tests!"
+if HAVE_IMAGES:
+    from pynwb.base import Images, ImageReferences
 
 
 @pytest.mark.skipif(not HAVE_IMAGES, reason=skip_reason)
