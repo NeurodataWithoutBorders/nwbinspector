@@ -72,20 +72,21 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_processing
 File Metadata
 -------------
 
-
-.. _best_practice_file_id:
-
-File Identifiers
-~~~~~~~~~~~~~~~~
+Session ID
+~~~~~~~~~~
 
 An :ref:`nwb-schema:sec-NWBFile` has two distinct places for identifiers: ``NWBFile.session_id`` and ``identifier``.
-
 The ``session_id`` field marks unique experimental sessions. The ``session_id`` should have a one-to-one relationship
 with a recording session. Sometimes you may find yourself having multiple NWBFiles that correspond to the same session.
 This can happen, for instance, if you separate out processing steps across multiple files or if you want to compare
 different processing outputs. In this case, the ``session_id`` should be the same for each file. Each lab should follow
 a standard structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily
 human-readable.
+
+.. _best_practice_file_id:
+
+Identifier
+~~~~~~~~~~
 
 The ``identifier`` tag should be a globally unique value for the :ref:`nwb-schema:sec-NWBFile`. Two different NWBFiles
 from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
