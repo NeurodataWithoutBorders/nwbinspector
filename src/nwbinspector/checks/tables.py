@@ -111,7 +111,10 @@ def check_column_binary_capability(table: DynamicTable, nelems: Optional[int] = 
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
     """
+    pre_defined_column_names = [column["name"] for column in getattr(table, "__columns__", list())]
     for column in table.columns:
+        if column.name in pre_defined_column_names:
+            continue  # The column name and data type cannot be changed by the user
         if hasattr(column, "data") and not isinstance(column, VectorIndex):
             if np.asarray(column.data[0]).itemsize == 1:
                 continue  # already boolean, int8, or uint8
