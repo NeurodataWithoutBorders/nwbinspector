@@ -15,9 +15,9 @@ body:
       label: What happened?
       description: |
         Also tell us, what did you expect to happen?
-        
+
         If you can, please include a minimal code snippet that reproduces the issue.
-        
+
         If you have a Traceback, please include the entire message.
     validations:
       required: true
