@@ -41,7 +41,7 @@ body:
     attributes:
       label: Were you streaming with ROS3?
       options:
-        - I'm not sure what that is
+        - N/A
         - 'Yes'
         - 'No'
   - type: textarea
