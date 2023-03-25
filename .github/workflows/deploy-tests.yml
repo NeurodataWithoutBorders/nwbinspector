@@ -13,6 +13,9 @@ jobs:
   assess-file-changes:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
 
+  run-doc-link-checks:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}

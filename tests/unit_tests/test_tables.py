@@ -222,6 +222,14 @@ class TestCheckBinaryColumns(TestCase):
         assert check_column_binary_capability(table=self.table) is None
 
 
+def test_check_binary_skip_pre_defined_columns():
+    units = Units()
+    units.add_unit(spike_times=[0], waveform_mean=[0])
+    units.add_unit(spike_times=[1], waveform_mean=[1])
+
+    assert check_column_binary_capability(table=units) is None
+
+
 def test_check_single_row_pass():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
