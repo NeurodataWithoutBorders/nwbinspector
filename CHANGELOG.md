@@ -1,5 +1,10 @@
 # Upcoming
 
+# v0.4.27
+
+### Fixes
+* Added a false positive skip condition to `check_binary_columns` when applied to special tables with pre-defined columns, such as the `electrodes` of `Units`. [#349](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/349)
+
 
 
 # v0.4.26
