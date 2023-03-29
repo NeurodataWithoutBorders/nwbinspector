@@ -105,7 +105,7 @@ def check_column_binary_capability(table: DynamicTable, nelems: Optional[int] = 
 
     Parameters
     ----------
-    time_intervals: DynamicTable
+    table: DynamicTable
     nelems: int, optional
         Only check the first {nelems} elements. This is useful in case there columns are
         very long so you don't need to load the entire array into memory. Use None to
