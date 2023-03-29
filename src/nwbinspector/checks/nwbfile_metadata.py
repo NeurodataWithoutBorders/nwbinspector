@@ -197,7 +197,11 @@ def check_subject_id_exists(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
-    """Check if the subject sex has been specified, if one exists."""
+    """
+    Check if the subject sex has been specified, if one exists.
+
+    Best Practice: :ref:`best_practice_subject_sex`
+    """
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
     elif subject.sex not in ("M", "F", "O", "U"):
