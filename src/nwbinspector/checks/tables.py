@@ -200,7 +200,7 @@ def check_table_values_for_dict(table: DynamicTable, nelems: Optional[int] = NEL
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = NELEMS):
-    """Check if all of the values in a single column of a table are NaN."""
+    """Check if all the values in a single column of a table are NaN."""
     for column in table.columns:
         if (
             not hasattr(column, "data")

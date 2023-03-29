@@ -16,6 +16,7 @@ def check_spatial_series_dims(spatial_series: SpatialSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=CompassDirection)
 def check_compass_direction_unit(compass_direction: CompassDirection):
+    """Check that SpatialSeries objects within CompassDirection objects have units 'degrees' or 'radians'."""
     for spatial_series in compass_direction.spatial_series.values():
         if spatial_series.unit not in ("degrees", "radians"):
             yield InspectorMessage(
@@ -26,6 +27,7 @@ def check_compass_direction_unit(compass_direction: CompassDirection):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
 def check_spatial_series_radians_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
+    """Check that SpatialSeries with units radians have data values in the range [0,2*pi]."""
     if spatial_series.unit in ("radian", "radians"):
         data = spatial_series.data[:nelems]
         if np.any(data > (2 * np.pi)) or np.any(data < (-2 * np.pi)):
@@ -36,6 +38,7 @@ def check_spatial_series_radians_magnitude(spatial_series: SpatialSeries, nelems
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
 def check_spatial_series_degrees_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
+    """Check that SpatialSeries with units of degrees have data values between 0 and 360."""
     if spatial_series.unit in ("degree", "degrees"):
         data = spatial_series.data[:nelems]
         if np.any(data > 360) or np.any(data < -360):
