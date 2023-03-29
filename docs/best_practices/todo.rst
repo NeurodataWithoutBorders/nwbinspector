@@ -5,15 +5,6 @@ This is an isolated page of the documentation containing all current section ref
 When all of these are done, this page will be removed.
 
 
-.. _best_practice_experimenter_form:
-
-TODO
-----
-
-Need to write section about DANDI regex pattern.
-
-
-
 
 .. _best_practice_intracellular_electrode_cell_id_exists:
 
