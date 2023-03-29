@@ -10,7 +10,7 @@ def check_spatial_series_dims(spatial_series: SpatialSeries):
     """
     Check if a SpatialSeries has the correct dimensions.
 
-    Best Practice: :ref:`_best_practice_unit_of_measurement`
+    Best Practice: :ref:`_best_practice_spatial_series_dimensionality`
     """
     if len(spatial_series.data.shape) > 1 and spatial_series.data.shape[1] > 3:
         return InspectorMessage(
@@ -23,7 +23,7 @@ def check_compass_direction_unit(compass_direction: CompassDirection):
     """
     Check that SpatialSeries objects within CompassDirection objects have units 'degrees' or 'radians'.
 
-    Best Practice: :ref:`_best_practice_unit_of_measurement`
+    Best Practice: :ref:`_best_practice_spatial_series_units`
     """
     for spatial_series in compass_direction.spatial_series.values():
         if spatial_series.unit not in ("degrees", "radians"):
@@ -36,9 +36,9 @@ def check_compass_direction_unit(compass_direction: CompassDirection):
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
 def check_spatial_series_radians_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
     """
-    Check that SpatialSeries with units radians have data values in the range [0,2*pi].
+    Check that SpatialSeries with units radians have data values between -2*pi and 2*pi.
 
-    Best Practice: :ref:`_best_practice_unit_of_measurement`
+    Best Practice: :ref:`_best_practice_spatial_series_values`
     """
     if spatial_series.unit in ("radian", "radians"):
         data = spatial_series.data[:nelems]
@@ -51,9 +51,9 @@ def check_spatial_series_radians_magnitude(spatial_series: SpatialSeries, nelems
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
 def check_spatial_series_degrees_magnitude(spatial_series: SpatialSeries, nelems: int = 200):
     """
-    Check that SpatialSeries with units of degrees have data values between 0 and 360.
+    Check that SpatialSeries with units of degrees have data values between -360 and 360.
 
-    Best Practice: :ref:`_best_practice_unit_of_measurement`
+    Best Practice: :ref:`_best_practice_spatial_series_values`
     """
     if spatial_series.unit in ("degree", "degrees"):
         data = spatial_series.data[:nelems]

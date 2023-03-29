@@ -24,6 +24,7 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    nwbfile_metadata
    time_series
    tables
+   behavior
    ecephys
    ophys
    ogen
