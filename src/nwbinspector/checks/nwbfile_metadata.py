@@ -201,7 +201,7 @@ def check_subject_sex(subject: Subject):
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
     if subject.species in ("Caenorhabditis elegans", "C. elegans") and subject.sex not in ("XO", "XX"):
-        return InspectorMessage(message="For C. elegens, Subject.sex should be 'XO' or 'XX'.")
+        return InspectorMessage(message="For C. elegans, Subject.sex should be 'XO' or 'XX'.")
     if subject.sex not in ("M", "F", "O", "U"):
         return InspectorMessage(
             message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
