@@ -36,4 +36,3 @@ When a :ref:`nwb-schema:sec-SpatialSeries` has units "radians", it should have d
 
 Check functions: :py:meth:`~nwbinspector.checks.behavior.check_spatial_series_radians_magnitude`,
 :py:meth:`~nwbinspector.checks.behavior.check_spatial_series_degrees_magnitude`
-
