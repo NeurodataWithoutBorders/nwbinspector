@@ -13,4 +13,3 @@ Image Shape Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``image_mask`` column of a ``PlaneSegmentation``, if specified, should have the same image shape as each item in the ``reference_images``.
-
