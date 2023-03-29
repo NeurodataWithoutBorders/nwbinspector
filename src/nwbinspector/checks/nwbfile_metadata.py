@@ -197,10 +197,12 @@ def check_subject_id_exists(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
-    """Check if the subject sex has been specified, if one exists."""
+    """Check that the subject sex has been correctly specified."""
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
-    elif subject.sex not in ("M", "F", "O", "U"):
+    if subject.species in ("Caenorhabditis elegens", "C. elegens") and subject.sex not in ("XO", "XX"):
+        return InspectorMessage(message="For C. elegens, Subject.sex should be 'XO' or 'XX'.")
+    if subject.sex not in ("M", "F", "O", "U"):
         return InspectorMessage(
             message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
         )
