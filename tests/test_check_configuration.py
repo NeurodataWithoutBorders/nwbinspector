@@ -111,4 +111,4 @@ class TestCheckConfiguration(TestCase):
             for check_name in check_names:
                 assert (
                     check_name in default_check_registry
-                ), "Check name {check_name} was not found in the default registry!"
+                ), f"Check name {check_name} was not found in the default registry!"
