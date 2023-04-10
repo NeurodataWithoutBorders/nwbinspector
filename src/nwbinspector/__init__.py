@@ -13,3 +13,5 @@ from .checks.ophys import *
 from .checks.tables import *
 from .checks.time_series import *
 from .checks.icephys import *
+
+default_check_registry = {check.__name__: check for check in available_checks}
