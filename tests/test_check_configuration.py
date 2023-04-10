@@ -8,6 +8,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
     available_checks,
+    default_check_registry,
 )
 from nwbinspector.nwbinspector import validate_config, configure_checks, _copy_function, load_config
 
@@ -94,7 +95,7 @@ class TestCheckConfiguration(TestCase):
                     "check_subject_id_exists",
                     "check_subject_sex",
                     "check_subject_species_exists",
-                    "check_subject_species_latin_binomial",
+                    "check_subject_species_form",
                     "check_subject_age",
                     "check_subject_proper_age_range",
                 ],
@@ -103,3 +104,11 @@ class TestCheckConfiguration(TestCase):
                 ],
             ),
         )
+
+    def test_all_config_check_names_are_in_default_registry(self):
+        config = load_config(filepath_or_keyword="dandi")
+        for importance_level, check_names in config.items():
+            for check_name in check_names:
+                assert check_name in default_check_registry, "Check name {check_name} was not found in the default registry!"
+        
+        
