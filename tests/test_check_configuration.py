@@ -109,6 +109,6 @@ class TestCheckConfiguration(TestCase):
         config = load_config(filepath_or_keyword="dandi")
         for importance_level, check_names in config.items():
             for check_name in check_names:
-                assert check_name in default_check_registry, "Check name {check_name} was not found in the default registry!"
-        
-        
+                assert (
+                    check_name in default_check_registry
+                ), "Check name {check_name} was not found in the default registry!"
