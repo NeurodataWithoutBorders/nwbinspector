@@ -26,6 +26,6 @@ This section lists the available checks organized by their importance level.
 ''')
 
             for check in checks:
-                f.write(f'*  :py:func:`~{check.__module__}.{check.__name__}` {check.__doc__}\n')
+                f.write(f'*  :py:func:`~{check.__module__}.{check.__name__}`\n')
 
             f.write('\n')
