@@ -19,11 +19,8 @@ jobs:
     - uses: dawidd6/action-send-mail@v3.7.1
       with:
         server_address: smtp.gmail.com
-        secure: true
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: NWB Inspector Daily Failure
         to: cody.baker@catalystneuro.com
-        from: NWB Inspector
         body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
-        priority: high
