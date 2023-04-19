@@ -22,9 +22,9 @@ jobs:
       with:
         server_address: smtp.gmail.com
         server_port: 465
-        username: cody.c.baker.phd@gmail.com
+        username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: NWB Inspector Daily Failure
-        to: cody.c.baker.phd@gmail.com
+        to: cody.baker@catalystneuro.com  # add more with commas, no separation
         from: NWB Inspector
         body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
