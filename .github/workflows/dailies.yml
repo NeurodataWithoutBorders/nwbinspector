@@ -16,7 +16,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-    - uses: dawidd6/action-send-mail@v3.7.1
+    - uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
         username: ${{ secrets.MAIL_USERNAME }}
