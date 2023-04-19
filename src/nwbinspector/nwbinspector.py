@@ -515,7 +515,7 @@ def inspect_nwb(
         This sets a hard bound on the number of times to attempt to retry the collection of messages.
         Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
-    if nwbfile_path is None and nwbfile_object is None:
+    if nwbfile_path is None and nwbfile_object is None or (nwbfile_path and nwbfile_object):
         raise ValueError("Either nwbfile_path or nwbfile_object must be specified.")
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
