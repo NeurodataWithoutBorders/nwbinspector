@@ -52,3 +52,18 @@ jobs:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@dev
     secrets:
       DANDI_API_KEY: ${{ secrets.DANDI_API_KEY }}
+
+  check-final-status:
+    name: All tests passing
+    if: always()
+
+    needs:
+    - run-tests
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Decide whether the all jobs succeeded or at least one failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
