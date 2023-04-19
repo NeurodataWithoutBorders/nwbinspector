@@ -7,16 +7,16 @@ on:
 
 jobs:
 
-  #run-daily-tests:
-  #  uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+  run-daily-tests:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
 
-  #run-daily-doc-link-checks:
-  #  uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+  run-daily-doc-link-checks:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
 
   notify:
     runs-on: ubuntu-latest
-    #needs: [run-daily-tests, run-daily-doc-link-checks]
-    #if: ${{ always() && contains(needs.*.result, 'failure') }}
+    needs: [run-daily-tests, run-daily-doc-link-checks]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
     - uses: dawidd6/action-send-mail@v3
       with:
