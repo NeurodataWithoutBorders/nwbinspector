@@ -549,14 +549,14 @@ def inspect_nwb(
             )
 
 
-def run_checks(nwbfile: pynwb.NWBFile, checks: list):
+def run_checks(nwbfile: pynwb.NWBFile, checks: list = available_checks):
     """
     Run checks on an open NWBFile object.
 
     Parameters
     ----------
     nwbfile : NWBFile
-    checks : list
+    checks : list, defaults to current registry
     """
     for check_function in checks:
         for nwbfile_object in nwbfile.objects.values():
