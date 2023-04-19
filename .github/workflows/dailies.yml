@@ -24,5 +24,6 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: NWB Inspector Daily Failure
-        to: cody.baker@catalystneuro.com
+        to: ${{ secrets.DAILY_FAILURE_EMAIL_LIST }}
+        from: ${{ secrets.MAIL_USERNAME }}
         body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
