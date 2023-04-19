@@ -7,11 +7,11 @@ on:
 
 jobs:
 
-  run-daily-tests:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+  #run-daily-tests:
+  #  uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
 
-  run-daily-doc-link-checks:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+  #run-daily-doc-link-checks:
+  #  uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
 
   notify:
     runs-on: ubuntu-latest
@@ -22,9 +22,9 @@ jobs:
       with:
         server_address: smtp.gmail.com
         server_port: 465
-        username: ${{ secrets.MAIL_USERNAME }}
+        username: cody.c.baker.phd@gmail.com
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: NWB Inspector Daily Failure
-        to: ${{ secrets.DAILY_FAILURE_EMAIL_LIST }}
+        to: cody.c.baker.phd@gmail.com
         from: NWB Inspector
         body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
