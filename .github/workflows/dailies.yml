@@ -1,6 +1,7 @@
 name: Daily workflows
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 16 * * *"  # Daily at noon EST
 
@@ -15,7 +16,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: dawidd6/action-send-mail@v3.7.1
+      - uses: github.com/dawidd6/action-send-mail@v3.7.1
         with:
           server_address: smtp.gmail.com
           secure: true
