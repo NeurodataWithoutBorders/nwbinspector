@@ -15,8 +15,8 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [run-daily-tests, run-daily-doc-link-checks]
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    #needs: [run-daily-tests, run-daily-doc-link-checks]
+    #if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
     - uses: dawidd6/action-send-mail@v3
       with:
