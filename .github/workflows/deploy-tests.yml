@@ -66,4 +66,5 @@ jobs:
     - name: Decide whether the all jobs succeeded or at least one failed
       uses: re-actors/alls-green@release/v1
       with:
+        allowed-skips: run-tests  # Sometimes only docs are adjusted
         jobs: ${{ toJSON(needs) }}
