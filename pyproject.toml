@@ -20,7 +20,6 @@ extend-exclude = '''
 force-exclude = '''
 /(
    /*.txt
-   /docs
-   /docs/*
+   /*.rst
 )\
 '''
