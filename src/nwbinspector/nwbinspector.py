@@ -448,7 +448,7 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
                 if stream:
                     message.file_path = nwbfiles[message.file_path]
                 yield message
@@ -458,7 +458,7 @@ def _pickle_inspect_nwb(
     nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwb(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
+    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
 
 
 def inspect_nwb(
@@ -472,8 +472,126 @@ def inspect_nwb(
     skip_validate: bool = False,
     max_retries: int = 10,
 ) -> List[InspectorMessage]:
+    warn(
+        "The API function 'inspect_nwb' has been deprecated and will be removed in a future release! "
+        "To remove ambiguity, please call either "
+        "'inspect_nwbfile' giving a path to the unopened file on a system, or "
+        "'inspect_nwbfile_object' passing an already open pynwb.NWBFile object.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    inspect_nwbfile(
+        nwbfile_path=nwbfile_path,
+        checks=checks,
+        config=config,
+        ignore=ignore,
+        select=select,
+        importance_threshold=importance_threshold,
+        driver=driver,
+        skip_validate=skip_validate,
+        max_retries=max_retries,
+   )
+
+
+def inspect_nwbfile(
+    nwbfile_path: FilePathType,
+    checks: list = available_checks,
+    config: dict = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    driver: Optional[str] = None,
+    skip_validate: bool = False,
+    max_retries: int = 10,
+) -> List[InspectorMessage]:
     """
-    Inspect a NWBFile object and return suggestions for improvements according to best practices.
+    Open an NWB file, inspect the contents, and return suggestions for improvements according to best practices.
+
+    Parameters
+    ----------
+    nwbfile_path : FilePathType
+        Path to the NWB file on disk or on S3.
+    checks : list, optional
+        List of checks to run.
+    config : dict
+        Dictionary valid against our JSON configuration schema.
+        Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
+        Typically loaded via json.load from a valid .json file
+    ignore: list, optional
+        Names of functions to skip.
+    select: list, optional
+        Names of functions to pick out of available checks.
+    importance_threshold : string or Importance, optional
+        Ignores tests with an assigned importance below this threshold.
+        Importance has three levels:
+
+            CRITICAL
+                - potentially incorrect data
+            BEST_PRACTICE_VIOLATION
+                - very suboptimal data representation
+            BEST_PRACTICE_SUGGESTION
+                - improvable data representation
+
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    driver: str, optional
+        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
+    max_retries : int, optional
+        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
+        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
+        This sets a hard bound on the number of times to attempt to retry the collection of messages.
+        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
+    """
+    #importance_threshold = (
+    #    Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    #)
+    #if any(x is not None for x in [config, ignore, select, importance_threshold]):
+    #    checks = configure_checks(
+    #        checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
+    #    )
+    nwbfile_path = str(nwbfile_path)
+    filterwarnings(action="ignore", message="No cached namespaces found in .*")
+    filterwarnings(action="ignore", message="Ignoring cached namespace .*")
+
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        if not skip_validate:
+            validation_errors = pynwb.validate(io=io)
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+
+        try:
+            nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
+            inspect_nwbfile_object(nwbfile_object=nwbfile_object, checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
+            #for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+            #    inspector_message.file_path = nwbfile_path
+            #    yield inspector_message
+        except Exception as ex:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
+                file_path=nwbfile_path,
+            )
+
+
+def inspect_nwbfile_object(
+    nwbfile_object: pynwb.NWBFile,
+    checks: list = available_checks,
+    config: dict = None,
+    ignore: OptionalListOfStrings = None,
+    select: OptionalListOfStrings = None,
+    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+) -> List[InspectorMessage]:
+    """
+    Inspect an NWBFile object and return suggestions for improvements according to best practices.
 
     Parameters
     ----------
@@ -515,38 +633,14 @@ def inspect_nwb(
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
-    if any(x is not None for x in [config, ignore, select, importance_threshold]):
+    if any(argument is not None for argument in [config, ignore, select, importance_threshold]):
         checks = configure_checks(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
-    nwbfile_path = str(nwbfile_path)
-    filterwarnings(action="ignore", message="No cached namespaces found in .*")
-    filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
-            validation_errors = pynwb.validate(io=io)
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
-
-        try:
-            nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
-            for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
-                inspector_message.file_path = nwbfile_path
-                yield inspector_message
-        except Exception as ex:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
-                file_path=nwbfile_path,
-            )
+    for inspector_message in run_checks(nwbfile=nwbfile_object, checks=checks):
+        inspector_message.file_path = nwbfile_path
+        yield inspector_message
 
 
 def run_checks(nwbfile: pynwb.NWBFile, checks: list = available_checks):
