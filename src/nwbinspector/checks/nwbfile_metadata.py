@@ -198,7 +198,7 @@ def check_subject_id_exists(subject: Subject):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
     """
-    Check if the subject sex has been specified, and if so if it has has the correct form.
+    Check if the subject sex has been specified and ensure that it has has the correct form depending on the species.
 
     Best Practice: :ref:`best_practice_subject_sex`
     """
