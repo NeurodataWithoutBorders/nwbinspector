@@ -10,11 +10,11 @@ extend-exclude = '''
   |\.sh
   |\.git
   |\.ini
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
+  |\.hg
+  |\.mypy_cache
+  |\.tox
+  |\.venv
+  |build
+  |dist
 )/
 '''
