@@ -22,7 +22,7 @@ from nwbinspector import (
     check_subject_exists,
     load_config,
 )
-from nwbinspector import inspect_all, inspect_nwb, available_checks
+from nwbinspector import inspect_all, inspect_nwbfile, available_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
@@ -277,8 +277,8 @@ class TestInspector(TestCase):
             ]
             self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb(self):
-        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
+    def test_inspect_nwbfile(self):
+        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -327,9 +327,9 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold_as_importance(self):
+    def test_inspect_nwbfile_importance_threshold_as_importance(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
             )
         )
@@ -358,9 +358,9 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold_as_string(self):
+    def test_inspect_nwbfile_importance_threshold_as_string(self):
         test_results = list(
-            inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
+            inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
         )
         true_results = [
             InspectorMessage(
@@ -457,7 +457,7 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -478,8 +478,8 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_manual_iteration(self):
-        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+    def test_inspect_nwbfile_manual_iteration(self):
+        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
         message = next(generator)
         true_result = InspectorMessage(
             message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -493,15 +493,15 @@ class TestInspector(TestCase):
         )
         self.assertEqual(message, true_result)
 
-    def test_inspect_nwb_manual_iteration_stop(self):
-        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+    def test_inspect_nwbfile_manual_iteration_stop(self):
+        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
 
-    def test_inspect_nwb_dandi_config(self):
+    def test_inspect_nwbfile_dandi_config(self):
         config_checks = [check_subject_exists] + self.checks
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0],
                 checks=config_checks,
                 config=load_config(filepath_or_keyword="dandi"),
@@ -591,9 +591,9 @@ class TestDANDIConfig(TestCase):
     def tearDownClass(cls):
         rmtree(cls.tempdir)
 
-    def test_inspect_nwb_dandi_config_critical_only_entire_registry(self):
+    def test_inspect_nwbfile_dandi_config_critical_only_entire_registry(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0],
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
@@ -622,9 +622,9 @@ class TestDANDIConfig(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_dandi_config_violation_and_above_entire_registry(self):
+    def test_inspect_nwbfile_dandi_config_violation_and_above_entire_registry(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[1],
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),

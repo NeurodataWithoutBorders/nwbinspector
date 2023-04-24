@@ -7,7 +7,7 @@ import json
 import jsonschema
 from pathlib import Path
 from enum import Enum
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -461,6 +461,7 @@ def _pickle_inspect_nwb(
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
 
 
+# TODO: remove after 7/1/2023
 def inspect_nwb(
     nwbfile_path: FilePathType,
     checks: list = available_checks,
@@ -471,7 +472,7 @@ def inspect_nwb(
     driver: Optional[str] = None,
     skip_validate: bool = False,
     max_retries: int = 10,
-) -> List[InspectorMessage]:
+) -> Iterable[InspectorMessage]:
     warn(
         "The API function 'inspect_nwb' has been deprecated and will be removed in a future release! "
         "To remove ambiguity, please call either "
@@ -480,7 +481,7 @@ def inspect_nwb(
         category=DeprecationWarning,
         stacklevel=2,
     )
-    inspect_nwbfile(
+    for inspector_message in inspect_nwbfile(
         nwbfile_path=nwbfile_path,
         checks=checks,
         config=config,
@@ -490,20 +491,21 @@ def inspect_nwb(
         driver=driver,
         skip_validate=skip_validate,
         max_retries=max_retries,
-    )
+    ):
+        yield inspector_message
 
 
 def inspect_nwbfile(
     nwbfile_path: FilePathType,
+    driver: Optional[str] = None,
+    skip_validate: bool = False,
+    max_retries: int = 10,
     checks: list = available_checks,
     config: dict = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-    driver: Optional[str] = None,
-    skip_validate: bool = False,
-    max_retries: int = 10,
-) -> List[InspectorMessage]:
+) -> Iterable[InspectorMessage]:
     """
     Open an NWB file, inspect the contents, and return suggestions for improvements according to best practices.
 
@@ -511,6 +513,16 @@ def inspect_nwbfile(
     ----------
     nwbfile_path : FilePathType
         Path to the NWB file on disk or on S3.
+    driver: str, optional
+        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    skip_validate : bool
+        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
+        The default is False, which is also recommended.
+    max_retries : int, optional
+        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
+        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
+        This sets a hard bound on the number of times to attempt to retry the collection of messages.
+        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     checks : list, optional
         List of checks to run.
     config : dict
@@ -533,24 +545,7 @@ def inspect_nwbfile(
                 - improvable data representation
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    driver: str, optional
-        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
-    skip_validate : bool
-        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
-        The default is False, which is also recommended.
-    max_retries : int, optional
-        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
-        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
-        This sets a hard bound on the number of times to attempt to retry the collection of messages.
-        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
-    # importance_threshold = (
-    #    Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
-    # )
-    # if any(x is not None for x in [config, ignore, select, importance_threshold]):
-    #    checks = configure_checks(
-    #        checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
-    #    )
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
@@ -569,17 +564,16 @@ def inspect_nwbfile(
 
         try:
             nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
-            inspect_nwbfile_object(
+            for inspector_message in inspect_nwbfile_object(
                 nwbfile_object=nwbfile_object,
                 checks=checks,
                 config=config,
                 ignore=ignore,
                 select=select,
                 importance_threshold=importance_threshold,
-            )
-            # for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
-            #    inspector_message.file_path = nwbfile_path
-            #    yield inspector_message
+            ):
+                inspector_message.file_path = nwbfile_path
+                yield inspector_message
         except Exception as ex:
             yield InspectorMessage(
                 message=traceback.format_exc(),
@@ -598,12 +592,12 @@ def inspect_nwbfile_object(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
 ) -> List[InspectorMessage]:
     """
-    Inspect an NWBFile object and return suggestions for improvements according to best practices.
+    Inspect an in-memory NWBFile object and return suggestions for improvements according to best practices.
 
     Parameters
     ----------
     nwbfile_path : FilePathType
-        Path to the NWBFile.
+        An in-memory NWBFile object.
     checks : list, optional
         list of checks to run
     config : dict
@@ -626,16 +620,6 @@ def inspect_nwbfile_object(
                 - improvable data representation
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
-    driver: str, optional
-        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
-    skip_validate : bool
-        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
-        The default is False, which is also recommended.
-    max_retries : int, optional
-        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
-        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
-        This sets a hard bound on the number of times to attempt to retry the collection of messages.
-        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
@@ -646,7 +630,6 @@ def inspect_nwbfile_object(
         )
 
     for inspector_message in run_checks(nwbfile=nwbfile_object, checks=checks):
-        inspector_message.file_path = nwbfile_path
         yield inspector_message
 
 
