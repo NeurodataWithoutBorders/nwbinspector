@@ -585,10 +585,10 @@ def inspect_nwbfile(
 
 def inspect_nwbfile_object(
     nwbfile_object: pynwb.NWBFile,
-    checks: list = available_checks,
-    config: dict = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    checks: Optional[list] = None,
+    config: Optional[dict] = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
 ) -> List[InspectorMessage]:
     """
@@ -600,7 +600,7 @@ def inspect_nwbfile_object(
         An in-memory NWBFile object.
     checks : list, optional
         list of checks to run
-    config : dict
+    config : dict, optional
         Dictionary valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
         Typically loaded via json.load from a valid .json file
@@ -621,6 +621,7 @@ def inspect_nwbfile_object(
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
+    checks = checks or available_checks
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
