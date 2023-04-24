@@ -197,7 +197,11 @@ def check_subject_id_exists(subject: Subject):
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
-    """Check that the subject sex has been correctly specified."""
+    """
+    Check if the subject sex has been specified, and if so if it has has the correct form.
+
+    Best Practice: :ref:`best_practice_subject_sex`
+    """
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
     if subject.species in ("Caenorhabditis elegans", "C. elegans"):

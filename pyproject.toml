@@ -5,23 +5,18 @@ include = '\.pyi?$'
 extend-exclude = '''
 /(
   \.toml
+  |\.rst
+  |\.md
   |\.yml
   |\.txt
   |\.sh
   |\.git
   |\.ini
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
+  |\.hg
+  |\.mypy_cache
+  |\.tox
+  |\.venv
+  |build
+  |dist
 )/
-'''
-force-exclude = '''
-/(
-   /*.txt
-   /docs
-   /docs/*
-)\
 '''
