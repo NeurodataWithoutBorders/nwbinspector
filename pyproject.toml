@@ -1,9 +1,10 @@
 [tool.black]
 line-length = 120
-target-version = ['py37']
+target-version = ['py39']
 extend-exclude = '''
 /(
   \.toml
+  |\.rst
   |\.yml
   |\.txt
   |\.sh
@@ -16,10 +17,4 @@ extend-exclude = '''
   | build
   | dist
 )/
-'''
-force-exclude = '''
-/(
-   /*.txt
-   /*.rst
-)\
 '''
