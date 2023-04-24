@@ -490,7 +490,7 @@ def inspect_nwb(
         driver=driver,
         skip_validate=skip_validate,
         max_retries=max_retries,
-   )
+    )
 
 
 def inspect_nwbfile(
@@ -544,10 +544,10 @@ def inspect_nwbfile(
         This sets a hard bound on the number of times to attempt to retry the collection of messages.
         Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     """
-    #importance_threshold = (
+    # importance_threshold = (
     #    Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
-    #)
-    #if any(x is not None for x in [config, ignore, select, importance_threshold]):
+    # )
+    # if any(x is not None for x in [config, ignore, select, importance_threshold]):
     #    checks = configure_checks(
     #        checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
     #    )
@@ -569,8 +569,15 @@ def inspect_nwbfile(
 
         try:
             nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
-            inspect_nwbfile_object(nwbfile_object=nwbfile_object, checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
-            #for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
+            inspect_nwbfile_object(
+                nwbfile_object=nwbfile_object,
+                checks=checks,
+                config=config,
+                ignore=ignore,
+                select=select,
+                importance_threshold=importance_threshold,
+            )
+            # for inspector_message in run_checks(nwbfile=nwbfile, checks=checks):
             #    inspector_message.file_path = nwbfile_path
             #    yield inspector_message
         except Exception as ex:
