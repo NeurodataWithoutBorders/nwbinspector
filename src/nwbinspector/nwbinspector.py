@@ -633,14 +633,14 @@ def inspect_nwbfile_object(
         yield inspector_message
 
 
-def run_checks(nwbfile: pynwb.NWBFile, checks: list = available_checks):
+def run_checks(nwbfile: pynwb.NWBFile, checks: list):
     """
     Run checks on an open NWBFile object.
 
     Parameters
     ----------
     nwbfile : NWBFile
-    checks : list, defaults to current registry
+    checks : list
     """
     for check_function in checks:
         for nwbfile_object in nwbfile.objects.values():
