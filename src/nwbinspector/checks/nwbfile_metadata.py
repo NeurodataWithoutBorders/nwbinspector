@@ -195,19 +195,33 @@ def check_subject_id_exists(subject: Subject):
         return InspectorMessage(message="subject_id is missing.")
 
 
+def _check_subject_sex_defaults(sex: str):
+    """Check if the subject sex has been specified properly for the C. elegans species."""
+    if sex not in ("M", "F", "O", "U"):
+        return InspectorMessage(
+            message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
+        )
+
+
+def _check_subject_sex_c_elegans(sex: str):
+    """Check if the subject sex has been specified properly for the C. elegans species."""
+    if sex not in ("XO", "XX"):
+        return InspectorMessage(message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).")
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_sex(subject: Subject):
     """
-    Check if the subject sex has been specified, if one exists.
+    Check if the subject sex has been specified and ensure that it has has the correct form depending on the species.
 
     Best Practice: :ref:`best_practice_subject_sex`
     """
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
-    elif subject.sex not in ("M", "F", "O", "U"):
-        return InspectorMessage(
-            message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown)."
-        )
+    if subject.species in ("Caenorhabditis elegans", "C. elegans"):
+        return _check_subject_sex_c_elegans(sex=subject.sex)
+    else:
+        return _check_subject_sex_defaults(sex=subject.sex)
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
