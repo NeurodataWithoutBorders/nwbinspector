@@ -195,6 +195,8 @@ Subject Sex
 The ``sex`` of the :ref:`nwb-schema:sec-Subject` should be specified as a single upper-case character among the
 following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
 
+C. elegans are an exception to this rule. For C. elegans, the sex should either be "XO" (male) or "XX" (hermaphrodite).
+
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sex`
 
 
