@@ -1,8 +1,5 @@
 .. image:: logo/logo.png
 
-Welcome to the documentation for the NWBInspector!
-==================================================
-
 ..
   :scale: 100 %
   :align: right
