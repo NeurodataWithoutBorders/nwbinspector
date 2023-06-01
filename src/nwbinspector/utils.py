@@ -93,7 +93,7 @@ def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional
         differences = np.diff(_cache_data_selection(data=series, selection=slice(nelems)))
     else:
         differences = np.diff(series[:nelems])
-    
+
     return np.all(differences >= 0)  # already in memory, no need to cache
 
 
