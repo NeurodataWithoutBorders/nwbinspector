@@ -10,6 +10,7 @@ from nwbinspector.utils import (
     is_dict_in_string,
     get_package_version,
     calculate_number_of_cpu,
+    is_ascending_series,
 )
 
 
@@ -135,3 +136,9 @@ class TestCalulcateNumberOfCPU(TestCase):
     def test_calculate_number_of_cpu_negative_value(self):
         requested_cpu = -1  # CI only has 2 jobs available
         assert calculate_number_of_cpu(requested_cpu=requested_cpu) == requested_cpu % self.total_cpu
+
+
+def test_is_ascending_series():
+    assert is_ascending_series(series=[1, 1, 1])
+    assert is_ascending_series(series=[1, 2, 3])
+    assert not is_ascending_series(series=[1, 2, 1])
