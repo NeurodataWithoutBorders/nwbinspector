@@ -36,13 +36,22 @@ If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run:
 
 .. code-block:: python
 
-    from nwbinspector import available_checks, run_checks
+    from nwbinspector import inspect_nwbfile_objects
     from pynwb import NWBHDF5IO
 
     with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
         nwbfile = io.read()
-        messages = list(run_checks(nwbfile=nwbfile, checks=available_checks))
+        messages = list(inspect_nwbfile_object(nwbfile))
 
+ This approach can be used to inspect a Zarr :py:class:`~pynwb.file.NWBFile` as well:
+
+.. code-block:: python
+
+    from hdmf_zarr.nwb import NWBZarrIO
+
+    with NWBZarrIO("example_zarr.nwb", "r") as zarr_io:
+        nwbfile = zarr_io.read()
+        print(list(inspect_nwbfile_object(nwbfile)))
 
 Inspect a Directory or List of Paths to NWBFiles
 ------------------------------------------------
@@ -110,3 +119,5 @@ available check functions via
 .. code-block:: python
 
     from nwbinspector import available_checks
+
+Zarr
