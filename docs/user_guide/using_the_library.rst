@@ -51,7 +51,7 @@ If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run:
 
     with NWBZarrIO("example_zarr.nwb", "r") as zarr_io:
         nwbfile = zarr_io.read()
-        print(list(inspect_nwbfile_object(nwbfile)))
+        messages = list(inspect_nwbfile_object(nwbfile))
 
 Inspect a Directory or List of Paths to NWBFiles
 ------------------------------------------------
