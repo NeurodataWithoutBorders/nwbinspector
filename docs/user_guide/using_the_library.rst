@@ -120,4 +120,3 @@ available check functions via
 
     from nwbinspector import available_checks
 
-Zarr
