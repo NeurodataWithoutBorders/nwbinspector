@@ -119,4 +119,3 @@ available check functions via
 .. code-block:: python
 
     from nwbinspector import available_checks
-
