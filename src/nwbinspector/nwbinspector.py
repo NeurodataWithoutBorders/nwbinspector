@@ -596,7 +596,7 @@ def inspect_nwbfile_object(
 
     Parameters
     ----------
-    nwbfile_path : FilePathType
+    nwbfile_object : NWBFile
         An in-memory NWBFile object.
     checks : list, optional
         list of checks to run
