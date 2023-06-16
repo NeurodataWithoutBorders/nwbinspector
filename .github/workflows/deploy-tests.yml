@@ -13,10 +13,18 @@ jobs:
   assess-file-changes:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
 
+  run-doc-link-checks:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+
+  run-streaming-tests:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/streaming-tests.yml@dev
 
   run-past-gallery:
     needs: assess-file-changes
@@ -44,3 +52,19 @@ jobs:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@dev
     secrets:
       DANDI_API_KEY: ${{ secrets.DANDI_API_KEY }}
+
+  check-final-status:
+    name: All tests passing
+    if: always()
+
+    needs:
+    - run-tests
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Decide whether the all jobs succeeded or at least one failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        allowed-skips: run-tests  # Sometimes only docs are adjusted
+        jobs: ${{ toJSON(needs) }}

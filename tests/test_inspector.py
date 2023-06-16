@@ -22,13 +22,10 @@ from nwbinspector import (
     check_subject_exists,
     load_config,
 )
-from nwbinspector import inspect_all, inspect_nwb, available_checks
+from nwbinspector import inspect_all, inspect_nwbfile, available_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
-from nwbinspector.testing import check_streaming_tests_enabled
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
-
-STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -280,8 +277,8 @@ class TestInspector(TestCase):
             ]
             self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb(self):
-        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
+    def test_inspect_nwbfile(self):
+        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -330,9 +327,9 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold_as_importance(self):
+    def test_inspect_nwbfile_importance_threshold_as_importance(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
             )
         )
@@ -361,9 +358,9 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_importance_threshold_as_string(self):
+    def test_inspect_nwbfile_importance_threshold_as_string(self):
         test_results = list(
-            inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
+            inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
         )
         true_results = [
             InspectorMessage(
@@ -460,7 +457,7 @@ class TestInspector(TestCase):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = list(inspect_nwb(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -481,8 +478,8 @@ class TestInspector(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_manual_iteration(self):
-        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+    def test_inspect_nwbfile_manual_iteration(self):
+        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
         message = next(generator)
         true_result = InspectorMessage(
             message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -496,15 +493,15 @@ class TestInspector(TestCase):
         )
         self.assertEqual(message, true_result)
 
-    def test_inspect_nwb_manual_iteration_stop(self):
-        generator = inspect_nwb(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+    def test_inspect_nwbfile_manual_iteration_stop(self):
+        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
 
-    def test_inspect_nwb_dandi_config(self):
+    def test_inspect_nwbfile_dandi_config(self):
         config_checks = [check_subject_exists] + self.checks
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0],
                 checks=config_checks,
                 config=load_config(filepath_or_keyword="dandi"),
@@ -594,9 +591,9 @@ class TestDANDIConfig(TestCase):
     def tearDownClass(cls):
         rmtree(cls.tempdir)
 
-    def test_inspect_nwb_dandi_config_critical_only_entire_registry(self):
+    def test_inspect_nwbfile_dandi_config_critical_only_entire_registry(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0],
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
@@ -625,9 +622,9 @@ class TestDANDIConfig(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
-    def test_inspect_nwb_dandi_config_violation_and_above_entire_registry(self):
+    def test_inspect_nwbfile_dandi_config_violation_and_above_entire_registry(self):
         test_results = list(
-            inspect_nwb(
+            inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[1],
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
@@ -659,67 +656,6 @@ class TestDANDIConfig(TestCase):
             ),
         ]
         self.assertCountEqual(first=test_results, second=true_results)
-
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_dandiset_streaming():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
-    assert messages[0] == InspectorMessage(
-        message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_subject_species_exists",
-        object_type="Subject",
-        object_name="subject",
-        location="/general/subject",
-        file_path="sub-1/sub-1.nwb",
-    )
-
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_dandiset_streaming_parallel():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
-    assert messages[0] == InspectorMessage(
-        message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_subject_species_exists",
-        object_type="Subject",
-        object_name="subject",
-        location="/general/subject",
-        file_path="sub-1/sub-1.nwb",
-    )
-
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-class TestStreamingCLI(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tempdir = Path(mkdtemp())
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
-
-    def assertFileExists(self, path: FilePathType):
-        path = Path(path)
-        assert path.exists()
-
-    def test_dandiset_streaming_cli(self):
-        console_output_file = self.tempdir / "test_console_streaming_output_1.txt"
-        os.system(
-            f"nwbinspector 000126 --stream "
-            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_6.txt'}"
-            f"> {console_output_file}"
-        )
-        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
-
-    def test_dandiset_streaming_cli_parallel(self):
-        console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
-        os.system(
-            f"nwbinspector https://dandiarchive.org/dandiset/000126/0.210813.0327 --stream --n-jobs 2 "
-            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_7.txt'}"
-            f"> {console_output_file}"
-        )
-        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):

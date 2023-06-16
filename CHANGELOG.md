@@ -1,5 +1,23 @@
 # Upcoming
 
+# v0.4.28
+
+### Pending Deprecation (API)
+* To reduce ambiguity of the new intermediate workflow calls in the API, `inspect_nwb` will be deprecated in the next major release. It is replaced by either `inspect_nwbfile` (applied to a written file on disk) or `inspect_nwbfile_object` (an open object in memory). [#364](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/364)
+
+### New Checks
+* Added support for new options to `subject.sex` (`XX` or `XO`) conditional on the `subject.species` being either "C. elegens" or "Caenorhabditis  elegens". [#353](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/353)
+
+### Improvements
+* Added an intermediate workflow to the main `nwbinspector` call pattern, named `inspect_nwbfile_object`. [#364](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/364)
+
+
+
+# v0.4.27
+
+### Fixes
+* Added a false positive skip condition to `check_binary_columns` when applied to special tables with pre-defined columns, such as the `electrodes` of `Units`. [#349](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/349)
+
 
 
 # v0.4.26

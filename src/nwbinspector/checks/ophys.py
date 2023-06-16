@@ -71,6 +71,7 @@ def check_excitation_lambda_in_nm(imaging_plane: ImagingPlane):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=PlaneSegmentation)
 def check_plane_segmentation_image_mask_shape_against_ref_images(plane_segmentation: PlaneSegmentation):
+    """Check that image masks and reference images have the same shape."""
     if plane_segmentation.reference_images and "image_mask" in plane_segmentation.colnames:
         mask_shape = plane_segmentation["image_mask"].shape[1:]
         for ref_image in plane_segmentation.reference_images:
