@@ -43,7 +43,7 @@ If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run
         nwbfile = io.read()
         messages = list(inspect_nwbfile_object(nwbfile))
 
- This approach can be used to inspect a Zarr :py:class:`~pynwb.file.NWBFile` as well
+This approach can be used to inspect a Zarr :py:class:`~pynwb.file.NWBFile` as well
 
 .. code-block:: python
 
