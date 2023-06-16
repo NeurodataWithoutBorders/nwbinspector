@@ -32,7 +32,7 @@ The most basic function to use when inspecting a single NWB file is the
 
 This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMessage` objects.
 
-If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run:
+If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run
 
 .. code-block:: python
 
@@ -43,7 +43,7 @@ If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run:
         nwbfile = io.read()
         messages = list(inspect_nwbfile_object(nwbfile))
 
- This approach can be used to inspect a Zarr :py:class:`~pynwb.file.NWBFile` as well:
+ This approach can be used to inspect a Zarr :py:class:`~pynwb.file.NWBFile` as well
 
 .. code-block:: python
 
