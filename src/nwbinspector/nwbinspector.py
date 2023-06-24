@@ -4,10 +4,14 @@ import re
 import importlib
 import traceback
 import json
+
+import fsspec as fsspec
+import h5py
+import hdmf_zarr
 import jsonschema
 from pathlib import Path
 from enum import Enum
-from typing import Union, Optional, List, Iterable
+from typing import Union, Optional, List, Iterable, Literal
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -19,6 +23,7 @@ import pynwb
 import yaml
 from tqdm import tqdm
 from natsort import natsorted
+import hdmf_zarr
 
 from . import available_checks
 from .inspector_tools import (
@@ -33,6 +38,8 @@ from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read
 from nwbinspector import __version__
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
+
+backend_reader_map = dict(hdf5=pynwb.NWBHDF5IO, zarr=hdmf_zarr.NWBZarrIO)
 
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):
@@ -223,6 +230,12 @@ def configure_checks(
         "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
     ),
 )
+@click.option(
+    "--backend",
+    default="hdf5",
+    type=click.Choice(["hdf5", "zarr"]),
+    help="Read data using the reader for this backend."
+)
 @click.version_option(__version__)
 def inspect_all_cli(
     path: str,
@@ -242,6 +255,7 @@ def inspect_all_cli(
     progress_bar: Optional[str] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
+    backend: Literal["hdf5", "zarr"] = "hdf5"
 ):
     """
     Run the NWBInspector via the command line.
@@ -281,6 +295,7 @@ def inspect_all_cli(
             progress_bar=progress_bar,
             stream=stream,
             version_id=version_id,
+            backend=backend,
         )
     )
     if json_file_path is not None:
@@ -310,6 +325,7 @@ def inspect_all(
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
+    backend: Literal["hdf5", "zarr"] = "hdf5",
 ):
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
@@ -364,6 +380,13 @@ def inspect_all(
         If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
+    backend : {"hdf5", "zarr"}
+        Read data using the reader for this backend.
+
+    Yields
+    ------
+    InspectorMessage
+
     """
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
@@ -380,15 +403,23 @@ def inspect_all(
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
         ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
-        driver = "ros3"
-        nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
+        s3_url = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
+        fs=fsspec.filesystem("http")
+        with fs.open(s3_url, "rb") as f:
+            with h5py.File(f) as file:
+                with backend_reader_map[backend](file=file, load_namespaces=True) as io:
+                    nwbfile = io.read()
+                    yield inspect_nwbfile_object(nwbfile)
+
     else:
-        driver = None
         in_path = Path(path)
+        nwbfiles = []
+        if str(in_path).endswith(".nwb"):
+            nwbfiles.append(in_path)
         if in_path.is_dir():
-            nwbfiles = list(in_path.rglob("*.nwb"))
+            nwbfiles.append(in_path.rglob("*.nwb"))
         elif in_path.is_file():
-            nwbfiles = [in_path]
+            nwbfiles.append(in_path)
         else:
             raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
@@ -399,8 +430,8 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-            nwbfile = robust_s3_read(io.read)
+        with backend_reader_map[backend](path=nwbfile_path, mode="r", load_namespaces=True) as io:
+            nwbfile = io.read()
             identifiers[nwbfile.identifier].append(nwbfile_path)
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
@@ -455,10 +486,10 @@ def inspect_all(
 
 
 def _pickle_inspect_nwb(
-    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
+    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 # TODO: remove after 7/1/2023
