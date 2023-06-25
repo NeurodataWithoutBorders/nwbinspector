@@ -10,7 +10,7 @@
 
 ### Improvements
 * Added an intermediate workflow to the main `nwbinspector` call pattern, named `inspect_nwbfile_object`. [#364](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/364)
-
+* Use fsspec for streaming instead of ros3. [#379](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/379)
 
 
 # v0.4.27
