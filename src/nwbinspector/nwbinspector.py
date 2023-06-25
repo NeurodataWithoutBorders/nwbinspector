@@ -304,6 +304,7 @@ def inspect_all_cli(
 def read_nwb(nwbfile_path, stream: bool = False):
     if stream:
         import fsspec
+
         fs = fsspec.filesystem("http")
         f = fs.open(nwbfile_path, "rb")
         file = h5py.File(f)
