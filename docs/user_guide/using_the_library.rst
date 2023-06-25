@@ -67,15 +67,15 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 
 .. _simple_streaming_api:
 
-Inspect a DANDI set (ROS3)
---------------------------
+Inspect a dandiset
+------------------
 
 It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the
 :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and
 run the NWB Inspector as usual, it can be more convenient to stream the data. This can be especially useful when the
 dandiset is large and impractical to download in full.
 
-Once you install the :ros3-tutorial:`ros3 driver <>`, you can inspect a dandiset by providing the six-digit identifier.
+You can inspect a dandiset by providing the six-digit identifier.
 
 .. code-block:: python
 

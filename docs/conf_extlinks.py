@@ -13,10 +13,6 @@ extlinks = {
         None,
     ),
     "dandi-archive": ("https://dandiarchive.org/%s", "%s"),
-    "ros3-tutorial": (
-        "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-2-ros3%s",
-        None,
-    ),
     "alternative-streaming-tutorial": (
         "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-1-fsspec%s",
         None,

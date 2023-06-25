@@ -47,10 +47,8 @@ Of course, the generator can be treated like any other iterable as well, such as
 
 .. _advanced_streaming_api:
 
-Fetching and inspecting individual DANDI assets (ROS3)
-------------------------------------------------------
-
-While the section explaining :ref:`basic steaming of a dandiset <simple_streaming_api>` covered the simplest and most convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :py:attr:`driver` argument of the :py:class:`~pynwb.NWBHDF5IO` can be passed directly into our core inspection functions. In this case, the :py:attr:`path` or :py:attr:`nwbfile_path` arguments become the full S3 path on the DANDI archive. Resolution of these paths can be performed via the following code...
+Fetching and inspecting individual NWB files on DANDI
+-----------------------------------------------------
 
 
 .. code-block:: python
@@ -66,11 +64,7 @@ While the section explaining :ref:`basic steaming of a dandiset <simple_streamin
         dandiset = client.get_dandiset(dandiset_id, dandiset_type)
         for asset in dandiset.get_assets():
             s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
-            messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
-
-.. note::
-
-    Since the :py:attr:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming-tutorial:`alternative streaming methods <>` with the NWB Insector API.
+            messages.extend(list(inspect_nwb(nwbfile_path=s3_url, stream=True)))
 
 .. note::
 
