@@ -32,7 +32,7 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from .utils import FilePathType, PathType, calculate_number_of_cpu
 from nwbinspector import __version__
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
@@ -322,10 +322,10 @@ def read_nwb(nwbfile_path, stream: bool = False):
 
 def inspect_all(
     path: PathType,
-    modules: OptionalListOfStrings = None,
+    modules: Optional[List[str]] = None,
     config: Optional[dict] = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     n_jobs: int = 1,
     skip_validate: bool = False,
@@ -392,11 +392,7 @@ def inspect_all(
     modules = modules or []
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
-        progress_bar_options = dict(position=0, leave=False)
-        if stream:
-            progress_bar_options.update(desc="Inspecting NWBFiles with ROS3...")
-        else:
-            progress_bar_options.update(desc="Inspecting NWBFiles...")
+        progress_bar_options = dict(position=0, leave=False, desc="Inspecting NWB files...")
     if stream:
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
@@ -485,8 +481,8 @@ def inspect_nwb(
     nwbfile_path: FilePathType,
     checks: list = available_checks,
     config: dict = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     stream: bool = False,
@@ -518,8 +514,8 @@ def inspect_nwbfile(
     skip_validate: bool = False,
     checks: list = available_checks,
     config: dict = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
+    ignore: Optional[List[str]] = None,
+    select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
 ) -> Iterable[InspectorMessage]:
     """
@@ -657,7 +653,7 @@ def run_checks(nwbfile: pynwb.NWBFile, checks: list):
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
-                    output = robust_s3_read(command=check_function, command_args=[nwbfile_object])
+                    output = check_function(nwbfile_object)
                 # if an individual check fails, include it in the report and continue with the inspection
                 except Exception:
                     output = InspectorMessage(
