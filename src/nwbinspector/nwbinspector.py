@@ -312,10 +312,7 @@ def open_nwb(nwbfile_path: str, mode: str = "r", method: Literal["local", "fsspe
                     yield io
     else:
         with pynwb.NWBHDF5IO(
-            nwbfile_path,
-            mode=mode,
-            load_namespaces=True,
-            driver="ros3" if method == "ros3" else None
+            nwbfile_path, mode=mode, load_namespaces=True, driver="ros3" if method == "ros3" else None
         ) as io:
             yield io
 
