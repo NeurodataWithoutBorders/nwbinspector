@@ -10,7 +10,7 @@ import h5py
 import jsonschema
 from pathlib import Path
 from enum import Enum
-from typing import Union, Optional, List, Iterable
+from typing import Union, Optional, List, Iterable, Literal
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -282,7 +282,7 @@ def inspect_all_cli(
             n_jobs=n_jobs,
             skip_validate=skip_validate,
             progress_bar=progress_bar,
-            stream=stream,
+            method="fsspec" if stream else "local",
             version_id=version_id,
         )
     )
@@ -301,23 +301,23 @@ def inspect_all_cli(
 
 
 @contextlib.contextmanager
-def read_nwb(nwbfile_path, stream: bool = False):
-    if stream:
+def open_nwb(nwbfile_path: str, mode: str = "r", method: Literal["local", "fsspec", "ros3"] = "local"):
+    if method == "fsspec":
         import fsspec
 
         fs = fsspec.filesystem("http")
-        f = fs.open(nwbfile_path, "rb")
-        file = h5py.File(f)
-        io = pynwb.NWBHDF5IO(file=file, mode="r", load_namespaces=True)
+        with fs.open(nwbfile_path, "rb") as f:
+            with h5py.File(f) as file:
+                with pynwb.NWBHDF5IO(file=file, mode=mode, load_namespaces=True) as io:
+                    yield io
     else:
-        io = pynwb.NWBHDF5IO(nwbfile_path, mode="r", load_namespaces=True)
-
-    yield io
-
-    io.close()
-    if stream:
-        file.close()
-        f.close()
+        with pynwb.NWBHDF5IO(
+            nwbfile_path,
+            mode=mode,
+            load_namespaces=True,
+            driver="ros3" if method == "ros3" else None
+        ) as io:
+            yield io
 
 
 def inspect_all(
@@ -331,7 +331,7 @@ def inspect_all(
     skip_validate: bool = False,
     progress_bar: bool = True,
     progress_bar_options: Optional[dict] = None,
-    stream: bool = False,
+    method: Literal["local", "fsspec", "ros3"] = "local",
     version_id: Optional[str] = None,
 ):
     """
@@ -393,7 +393,7 @@ def inspect_all(
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False, desc="Inspecting NWB files...")
-    if stream:
+    if method in ("ros3", "fsspec"):
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
         ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
@@ -414,7 +414,7 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with read_nwb(nwbfile_path, stream=stream) as io:
+        with open_nwb(nwbfile_path, method=method) as io:
             nwbfile = io.read()
             identifiers[nwbfile.identifier].append(nwbfile_path)
     if len(identifiers) != len(nwbfiles):
@@ -450,7 +450,7 @@ def inspect_all(
                         nwbfile_path=nwbfile_path,
                         checks=checks,
                         skip_validate=skip_validate,
-                        stream=stream,
+                        method=method,
                     )
                 )
             nwbfiles_iterable = as_completed(futures)
@@ -458,22 +458,25 @@ def inspect_all(
                 nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
             for future in nwbfiles_iterable:
                 for message in future.result():
-                    if stream:
+                    if method in ("ros3", "fsspec"):
                         message.file_path = nwbfiles[message.file_path]
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
             for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks):
-                if stream:
+                if method in ("ros3", "fsspec"):
                     message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
 def _pickle_inspect_nwb(
-    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, stream: bool = False
+    nwbfile_path: str,
+    checks: list = available_checks,
+    skip_validate: bool = False,
+    method: Literal["local", "fsspec", "ros3"] = "local",
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, stream=stream))
+    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, method=method))
 
 
 # TODO: remove after 7/1/2023
@@ -503,14 +506,14 @@ def inspect_nwb(
         select=select,
         importance_threshold=importance_threshold,
         skip_validate=skip_validate,
-        stream=stream,
+        method=method,
     ):
         yield inspector_message
 
 
 def inspect_nwbfile(
     nwbfile_path: FilePathType,
-    stream: bool = False,
+    method: Literal["local", "fsspec", "ros3"] = "local",
     skip_validate: bool = False,
     checks: list = available_checks,
     config: dict = None,
@@ -525,7 +528,7 @@ def inspect_nwbfile(
     ----------
     nwbfile_path : FilePathType
         Path to the NWB file on disk or on S3.
-    stream : bool, default: False
+    method : {"local", "fsspec", "ros3"}
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
@@ -556,7 +559,7 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    with read_nwb(nwbfile_path, stream=stream) as io:
+    with open_nwb(nwbfile_path, method=method) as io:
         if not skip_validate:
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
@@ -602,7 +605,7 @@ def inspect_nwbfile_object(
 
     Parameters
     ----------
-    nwbfile_path : FilePathType
+    nwbfile_object : NWBFile
         An in-memory NWBFile object.
     checks : list, optional
         list of checks to run
