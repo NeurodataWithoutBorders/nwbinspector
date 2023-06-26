@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.7", "3.10"]
+        python-version: ["3.8", "3.11"]
     steps:
       - uses: s-weigand/setup-conda@v1
         with:
@@ -26,10 +26,6 @@ jobs:
         run: |
           pip install -e .
           pip install dandi
-      - name: Uninstall h5py
-        run: pip uninstall -y h5py
-      - name: Install ROS3
-        run: conda install -c conda-forge h5py
 
       - name: Run pytest on stream tests
         run: pytest tests/ -rsx tests/streaming_tests.py
