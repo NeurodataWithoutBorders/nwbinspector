@@ -263,6 +263,7 @@ def inspect_all_cli(
         if url_path:
             dandiset_id, version_id = url_path.split("/")[-2:]
             path = dandiset_id
+        print(url_path)
         assert url_path or re.fullmatch(
             pattern="^[0-9]{6}$", string=path
         ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
@@ -378,9 +379,8 @@ def inspect_all(
         Defaults to True.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to tqdm.
-    stream : bool, default: False
-        Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, setting this
-        argument to True will force the data to be streamed instead of using the local copy.
+    method : {"local", "fsspec", "ros3"}
+        Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet.
     version_id : str, optional
         If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
         Common options are 'draft' or 'published'.
@@ -394,10 +394,11 @@ def inspect_all(
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False, desc="Inspecting NWB files...")
     if method in ("ros3", "fsspec"):
-        assert (
-            re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
-        ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
-        nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
+        if re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None:
+            nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
+        else:
+            nwbfiles = [str(path)]
+
     else:
         in_path = Path(path)
         if in_path.is_dir():
@@ -463,7 +464,7 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks):
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, method=method):
                 if method in ("ros3", "fsspec"):
                     message.file_path = nwbfiles[message.file_path]
                 yield message
@@ -488,7 +489,7 @@ def inspect_nwb(
     select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-    stream: bool = False,
+    method: Literal["local", "fsspec", "ros3"] = "local",
 ) -> Iterable[InspectorMessage]:
     warn(
         "The API function 'inspect_nwb' has been deprecated and will be removed in a future release! "
