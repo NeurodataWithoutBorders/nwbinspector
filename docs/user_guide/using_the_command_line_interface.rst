@@ -41,12 +41,12 @@ If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI 
 Formatting the Report
 ---------------------
 
-The basic report layout organizes by :py:attr:`~nwbinspector.register_check.InspectorMessage.importance` first and
-:py:attr:`~nwbinspector.register_check.InspectorMessage.file_path` last.
+The basic report layout organizes by :py:attr:`~nwbinspector.register_checks.InspectorMessage.importance` first and
+:py:attr:`~nwbinspector.register_checks.InspectorMessage.file_path` last.
 
 However, the NWBInspector supports more general organization as defined by the ``--levels`` flag. To use this flag,
 you must pass a series a comma-separated words that correspond to any attributes of the
-:py:class:`~nwbinspector.register_check.InspectorMessage` in any order.
+:py:class:`~nwbinspector.register_checks.InspectorMessage` in any order.
 
 For example,
 
@@ -56,7 +56,7 @@ For example,
 
 .. note::
 
-    The :py:attr:`~nwbinspector.register_check.InspectorMessage.message` itself cannot be used in organization.
+    The :py:attr:`~nwbinspector.register_checks.InspectorMessage.message` itself cannot be used in organization.
 
 The ascending or descending order of each of these levels may be additionally controlled with the ``--reverse`` flag,
 which is likewise a comma-separated series of boolean words.
