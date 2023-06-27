@@ -43,7 +43,7 @@ body:
   - type: dropdown
     id: streaming
     attributes:
-      label: Were you streaming with ROS3?
+      label: Were you streaming?
       options:
         - 'Yes'
         - 'No'

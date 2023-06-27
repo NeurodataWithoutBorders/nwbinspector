@@ -9,7 +9,7 @@ from packaging.version import Version
 from pynwb import NWBHDF5IO
 from pynwb.image import ImageSeries
 
-from .tools import check_streaming_enabled, make_minimal_nwbfile
+from .tools import make_minimal_nwbfile
 from .utils import is_module_installed, get_package_version
 
 
@@ -27,18 +27,14 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
         strtobool(os.environ.get("NWBI_SKIP_NETWORK_TESTS", "")) if environment_skip_flag != "" else False
     )
     if environment_skip_flag_bool:
-        failure_reason += "Environmental variable set to skip network tets."
-
-    streaming_enabled, streaming_failure_reason = check_streaming_enabled()
-    if not streaming_enabled:
-        failure_reason += streaming_failure_reason
+        failure_reason += "Environmental variable set to skip network tests."
 
     have_dandi = is_module_installed("dandi")
     if not have_dandi:
         failure_reason += "The DANDI package is not installed on the system."
 
     failure_reason = None if failure_reason == "" else failure_reason
-    return streaming_enabled and not environment_skip_flag_bool and have_dandi, failure_reason
+    return not environment_skip_flag_bool and have_dandi, failure_reason
 
 
 def load_testing_config() -> dict:

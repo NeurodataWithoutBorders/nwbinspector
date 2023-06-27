@@ -16,7 +16,7 @@ STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_dandiset_streaming():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], method="fsspec"))
     assert messages[0] == InspectorMessage(
         message="Subject species is missing.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -30,7 +30,7 @@ def test_dandiset_streaming():
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_dandiset_streaming_parallel():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
+    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], method="fsspec", n_jobs=2))
     assert messages[0] == InspectorMessage(
         message="Subject species is missing.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
