@@ -1,4 +1,6 @@
 # Upcoming
+### Fixes
+* `check_time_interval_time_columns` now only checks for `start_time`  with `is_ascending_series` . [#382](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/382)
 
 # v0.4.28
 
