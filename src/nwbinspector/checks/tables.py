@@ -58,7 +58,7 @@ def check_time_interval_time_columns(time_intervals: TimeIntervals, nelems: Opti
     """
     unsorted_cols = []
     for column in time_intervals.columns:
-        if column.name[-5:] == "_time":
+        if column.name == "start_time":
             if not is_ascending_series(column.data, nelems):
                 unsorted_cols.append(column.name)
     if unsorted_cols:

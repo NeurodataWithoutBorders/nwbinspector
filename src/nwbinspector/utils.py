@@ -92,9 +92,9 @@ def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional
     if isinstance(series, h5py.Dataset):
         differences = np.diff(_cache_data_selection(data=series, selection=slice(nelems)))
     else:
-        differences = np.diff(series[:nelems])
+        differences = np.diff(series[:nelems]) # already in memory, no need to cache
 
-    return np.all(differences >= 0)  # already in memory, no need to cache
+    return np.all(differences >= 0)  
 
 
 def is_dict_in_string(string: str):
