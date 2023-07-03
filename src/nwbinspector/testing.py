@@ -1,12 +1,13 @@
 """Helper functions for internal use across the testing suite."""
 import os
 import json
+from datetime import datetime
 from distutils.util import strtobool
 from pathlib import Path
 from typing import Tuple, Optional
 
 from packaging.version import Version
-from pynwb import NWBHDF5IO
+from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.image import ImageSeries
 
 from .tools import check_streaming_enabled, make_minimal_nwbfile
@@ -118,3 +119,60 @@ def generate_image_series_testing_files():  # pragma: no cover
     )
     with NWBHDF5IO(path=local_path / "image_series_testing_file.nwb", mode="w") as io:
         io.write(nwbfile)
+
+class ReadNWBFileChecksMixin:
+    """Mixin class for testing the `read_nwbfile` helper function/context."""
+    def check_nwbfile_access(self, nwbfile: NWBFile):
+        self.check_basic_attributes(nwbfile=nwbfile)
+        self.check_data_read(nwbfile=nwbfile)
+
+    def check_basic_attributes(self, nwbfile: NWBFile):
+        assert isinstance(nwbfile.identifier, str)
+        assert isinstance(nwbfile.session_description, str)
+        assert isinstance(nwbfile.session_start_time, datetime)
+
+    def check_data_read(self, nwbfile: NWBFile):
+        for _, object in nwbfile.objects:
+            if isinstance(object, TimeSeries) and object.data.size != 0:
+                object.data[0:2]  # attempt to access first data elements; will fail if I/O is closed
+                return
+        raise ValueError("The tests for the `read_nwbfile` function must be applied to an NWB file that contains at least one dataset.")
+
+class ReadNWBFileTestCase(TestCase, ReadNWBFileChecksMixin):
+    nwbfile_path: str | Path
+
+    def test_read_and_close_as_function(self):
+        nwbfile = read_nwbfile(path=nwbfile_path)
+        hidden_io = nwbfile._io
+        self.check_nwbfile_access(nwbfile=nwbfile)
+        nwbfile.close()
+        assert hidden_io.is_closed()
+
+    def test_read_and_close_as_context(self):
+        with read_nwbfile(path=nwbfile_path) as nwbfile:
+            self.check_nwbfile_access(nwbfile=nwbfile)
+            hidden_io = nwbfile._io
+        assert hidden_io.is_closed()
+
+    def test_object_deletion_closes(self):
+        nwbfile = read_nwbfile(path=nwbfile_path)
+        self.check_nwbfile_access(nwbfile=nwbfile)
+        hidden_io = nwbfile._io
+        del nwbfile
+        assert hidden_io.is_closed()
+
+
+class ReadNWBFileReplacementClosesTestCase(TestCase, ReadNWBFileChecksMixin):
+    nwbfile_path_1: str | Path
+    nwbfile_path_2: str | Path
+
+    def test_object_replacement_closes(self):
+        nwbfile_1 = read_nwbfile(path=nwbfile_path_1)
+        hidden_io = nwbfile_1._io
+        self.check_nwbfile_access(nwbfile=nwbfile_1)
+
+        nwbfile_2 = read_nwbfile(path=nwbfile_path_2)
+        self.check_nwbfile_access(nwbfile=nwbfile_2)
+
+        nwbfile_1=nwbfile_2
+        assert hidden_io.is_closed()
