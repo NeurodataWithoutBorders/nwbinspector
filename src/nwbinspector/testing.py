@@ -118,3 +118,82 @@ def generate_image_series_testing_files():  # pragma: no cover
     )
     with NWBHDF5IO(path=local_path / "image_series_testing_file.nwb", mode="w") as io:
         io.write(nwbfile)
+
+
+class CheckFunctionTestCase(TestCase):
+    check_function: callable
+    true_positive_object: Any
+    expected_inspector_message: InspectorMessage
+
+    @classmethod
+    def create_true_positive_neurodata_object(cls) -> Any:  # TODO, type properly
+        """
+        Please define this method on a per-check basis when adding tests for a check function.
+        
+        This function should create and return a PyNWB object to be used as a true positive case for the check function.
+        The check function should trigger an InspectorMessage when run on this object.
+        """
+        raise NotImplementedError("The logic for creating a true positive test object for this check function has not been implemented.")
+
+    @classmethod
+    def create_true_negative_neurodata_object(cls) -> Any:  # TODO, type properly
+        """
+        Please define this method on a per-check basis when adding tests for a check function.
+        
+        This function should create and return a PyNWB object to be used as a true negative case for the check function.
+        The check function should return None when run on this object.
+        """
+        raise NotImplementedError("The logic for creating a true positive test object for this check function has not been implemented.")
+
+    @classmethod
+    def create_true_negative_neurodata_object(cls) -> Any:  # TODO, type properly
+        """
+        Please define this optional method on a per-check basis when adding tests for a check function.
+        
+        This function should create and return a PyNWB object to be used as a false positive skip case for the check function.
+        The check function should return None when run on this object.
+        """
+        pass # may not need this, try it out in practice and see
+
+    @classmethod
+    def setUpClass(cls):
+        cls.true_positive_neurodata_object = cls.create_true_positive_neurodata_object()
+        cls.true_negative_neurodata_object = cls.create_true_negative_neurodata_object()
+
+    def assert_check_function_true_positive(self):
+        result = self.check_function(self.true_positive_neurodata_object)
+        assert result == self.expected_message
+
+    def assert_check_function_true_negative(self):
+        result = self.check_function(self.true_positive_neurodata_object)
+        assert result is None
+
+    def assert_check_function_false_positive_skips(self):
+        result = self.check_function(self.true_positive_neurodata_object)
+        assert result == self.expected_message
+
+    def test_in_memory(self):
+        self.assert_check_function_logic()
+        self.assert_check_function_true_negative()
+        self.assert_check_function_false_positive_skips()
+
+    def add_object_to_nwbfile(self, nwbfile: NWBFile):
+        """Define how to add the object to an NWB file."""
+        raise NotImplementedError("The logic for how to add this neurodata object to an in-memory NWBFile has not been implemented.")
+
+    def read_object_from_nwbfile(self, nwbfile: NWBFile):
+        """Define how to add the object to an NWB file."""
+        raise NotImplementedError("The logic for how to read this neurodata object from an in-memory NWBFile has not been implemented.")
+
+    def test_written_hdf5(self):
+        nwbfile = mock_NWBFile()
+        self.add_object_to_nwbfile(nwbfile=nwbfile)
+        nwbfile_path = tmpdir / f"{check_function.name}_hdf5.nwb"
+        with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+        with NWBHDF5IO(path=nwbfile_path) as io:
+            nwbfile_from_disk = io.read() # can eventually replace with read_nwbfile
+            result = self.check_function(self.read_object_from_nwbfile())
+            self.assert_check_function_logic()
+            self.assert_check_function_true_negative()
+            self.assert_check_function_false_positive_skips()
