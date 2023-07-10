@@ -14,7 +14,7 @@ _backend_io_classes = dict(hdf5=NWBHDF5IO, zarr=NWBZarrIO)
 def _get_method(path: str):
     if path.startswith(("https://", "http://", "s3://")):
         return "fsspec"
-    elif Path(path).is_file():
+    elif Path(path).exists():
         return "local"
     else:
         raise ValueError(
@@ -58,7 +58,6 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
 
 def read_nwbfile(
     nwbfile_path: str | Path,
-    mode: str = "r",
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
 ) -> NWBFile:
@@ -69,16 +68,17 @@ def read_nwbfile(
     # Filter out some of most common warnings that don't really matter with `load_namespaces=True`
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
+    io_kwargs = dict(mode="r", load_namespaces=True)
     if method == "fsspec":
         fs = _init_fsspec(nwbfile_path)
         f = fs.open(nwbfile_path, "rb")
         file = h5py.File(f)
-        io = _backend_io_classes[backend](file=file, mode=mode, load_namespaces=True)
+        io_kwargs.update(file=file)
     else:
-        io = _backend_io_classes[backend](
-            path=nwbfile_path, mode=mode, load_namespaces=True, driver="ros3" if method == "ros3" else None
-        )
+        io_kwargs.update(path=nwbfile_path)
+    if method == "ros3":
+        io_kwargs.update(driver="ros3")
+    io = _backend_io_classes[backend](**io_kwargs)
     nwbfile = io.read()
-    # nwbfile.io = io  # Should not be necessary when using HDMF PR #882
 
     return nwbfile

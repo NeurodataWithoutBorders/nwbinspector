@@ -1,4 +1,6 @@
 """Temporary tests for thorough testing and evaluation of the propsed `read_nwbfile` helper function."""
+from pathlib import Path
+
 import zarr
 import pytest
 from hdmf.backends.io import HDMFIO
@@ -10,26 +12,32 @@ from pynwb.testing.mock.base import mock_TimeSeries
 from nwbinspector.tools import read_nwbfile
 
 
-@pytest.fixture(scope='session')
-def nwbfile():
-    nwbfile = mock_NWBFile()
-    nwbfile.add_acquisition(mock_TimeSeries())
-    return nwbfile
+# @pytest.fixture(scope='session')
+# def nwbfile():
+#     nwbfile = mock_NWBFile()
+#     nwbfile.add_acquisition(mock_TimeSeries())
+#     return nwbfile
 
 
 @pytest.fixture(scope='session')
-def hdf5_nwbfile_path(tmpdir_factory, nwbfile):
+def hdf5_nwbfile_path(tmpdir_factory):
     nwbfile_path = tmpdir_factory.mktemp('data').join("test_read_nwbfile_hdf5.nwb")
-    with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
-        io.write(nwbfile)
+    if not Path(nwbfile_path).exists():
+        nwbfile = mock_NWBFile()
+        nwbfile.add_acquisition(mock_TimeSeries())
+        with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
+            io.write(nwbfile)
     return nwbfile_path
 
 
 @pytest.fixture(scope='session')
-def zarr_nwbfile_path(tmpdir_factory, nwbfile):
+def zarr_nwbfile_path(tmpdir_factory):
     nwbfile_path = tmpdir_factory.mktemp('data').join("test_read_nwbfile_zarr.nwb")
-    with NWBZarrIO(path=str(nwbfile_path), mode="w") as io:
-        io.write(nwbfile)
+    if not Path(nwbfile_path).exists():
+        nwbfile = mock_NWBFile()
+        nwbfile.add_acquisition(mock_TimeSeries())
+        with NWBZarrIO(path=str(nwbfile_path), mode="w") as io:
+            io.write(nwbfile)
     return nwbfile_path
 
 
@@ -43,9 +51,9 @@ def check_hdf5_io_closed(io: HDMFIO):
     """For HDF5, the file is 'closed' if attempts to access data from one of its `h5py.Dataset` result in error."""
     try:
         io._file["acquisition"]["TimeSeries"]["data"][:2]
-        assert False, "The test to close the HDF5 I/O through manual closure of `nwbfile.read_io.close()` failed!"
+        assert False, "The test to close the HDF5 I/O failed!"  # The line above should throw a ValueError
     except ValueError as exception:
-        assert exception.message == "Invalid location identifier (invalid location identifier)"
+        assert str(exception) == "Invalid location identifier (invalid location identifier)"
 
 
 # Zarr assert styles
@@ -91,7 +99,7 @@ def test_hdf5_object_replacement_closure(hdf5_nwbfile_path):
     check_hdf5_io_open(io=io_1)
 
 
-# Zarr tests
+# # Zarr tests
 def test_zarr_explicit_closure(zarr_nwbfile_path):
     nwbfile = read_nwbfile(nwbfile_path=zarr_nwbfile_path)
     check_zarr_io_open(io=nwbfile.read_io)
