@@ -150,24 +150,3 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
     if "ros3" not in h5py.registered_drivers():
         return False, "ROS3 driver not installed."
     return True, None
-
-
-class TemporaryFolderTestCase(HDMFTestCase):
-    @classmethod
-    def setUpClass(cls):
-        """
-        The `tmpdir` pytest fixture does not immediately clean itself up after running the test suite.
-
-        Instead it caches some number of total testing runs under a temporary folder.
-
-        This helper defines a simple class attribute `temporary_folder` which is then cleaned up when the test are done.
-        """
-        cls.temporary_folder = mkdtemp()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Note that this cleanup is only attempted and not guaranteed to succeed on stuck I/O; mostly on Windows."""
-        try:
-            rmtree(cls.temporary_folder)
-        except PermissionError:  # pragma: no cover
-            warn(f"Unable to clean up the temporary folder {cls.temporary_folder}!")
