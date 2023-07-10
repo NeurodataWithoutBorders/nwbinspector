@@ -37,7 +37,9 @@ class TemporaryFolderTestCase(HDMFTestCase):
     @classmethod
     def setUpClass(cls):
         """
-        The `tmpdir` pytest fixture does not clean itself up after running the test suite.
+        The `tmpdir` pytest fixture does not immediately clean itself up after running the test suite.
+
+        Instead it caches some number of total testing runs under a temporary folder.
 
         This helper defines a simple class attribute `temporary_folder` which is then cleaned up when the test are done.
         """
