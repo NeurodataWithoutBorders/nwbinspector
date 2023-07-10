@@ -12,13 +12,6 @@ from pynwb.testing.mock.base import mock_TimeSeries
 from nwbinspector.tools import read_nwbfile
 
 
-# @pytest.fixture(scope='session')
-# def nwbfile():
-#     nwbfile = mock_NWBFile()
-#     nwbfile.add_acquisition(mock_TimeSeries())
-#     return nwbfile
-
-
 @pytest.fixture(scope='session')
 def hdf5_nwbfile_path(tmpdir_factory):
     nwbfile_path = tmpdir_factory.mktemp('data').join("test_read_nwbfile_hdf5.nwb")
