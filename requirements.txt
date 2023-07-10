@@ -1,6 +1,6 @@
 pynwb
+hdmf_zarr @ git+https://github.com/hdmf-dev/hdmf-zarr.git@dev  # needed for .can_read() method
 hdmf @ git+https://github.com/hdmf-dev/hdmf.git@add_io_attr
-hdmf_zarr
 PyYAML
 jsonschema
 packaging

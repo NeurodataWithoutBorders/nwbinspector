@@ -57,11 +57,12 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
 
 
 def read_nwbfile(
-    nwbfile_path: str,
+    nwbfile_path: str | Path,
     mode: str = "r",
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
 ) -> NWBFile:
+    nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
     method = method or _get_method(nwbfile_path)
     backend = backend or _get_backend(nwbfile_path, method)
 
