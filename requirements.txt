@@ -1,4 +1,5 @@
 pynwb
+hdmf @ https://github.com/hdmf-dev/hdmf.git@add_io_attr
 PyYAML
 jsonschema
 packaging
