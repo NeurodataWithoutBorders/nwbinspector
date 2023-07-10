@@ -1,35 +1,10 @@
-"""Helper functions for internal use that rely on external dependencies (i.e., pynwb)."""
+"""Helper functions related to DANDI for internal use that rely on external dependencies (i.e., dandi)."""
 import re
-from uuid import uuid4
-from datetime import datetime
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from urllib import request
-from warnings import warn
 
-import h5py
-from pynwb import NWBFile
 
 from .utils import is_module_installed, calculate_number_of_cpu
-
-
-def make_minimal_nwbfile():
-    """Most basic NWBFile that can exist."""
-    return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
-
-
-def all_of_type(nwbfile: NWBFile, neurodata_type):
-    """Iterate over all objects inside an NWBFile object and return those that match the given neurodata_type."""
-    for obj in nwbfile.objects.values():
-        if isinstance(obj, neurodata_type):
-            yield obj
-
-
-def get_nwbfile_path_from_internal_object(obj):
-    """Determine the file path on disk for a NWBFile given only an internal object of that file."""
-    if isinstance(obj, NWBFile):
-        return obj.container_source
-    return obj.get_ancestor("NWBFile").container_source
 
 
 def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:
@@ -78,19 +53,3 @@ def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: boo
     Must be globally defined (not as a part of get_s3_urls..) in order to be pickled.
     """
     return {asset.get_content_url(follow_redirects=1, strip_query=True): asset.path}
-
-
-def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
-    """
-    General purpose helper for determining if the environment can support S3 DANDI streaming.
-
-    Returns the boolean status of the check and, if False, provides a string reason for the failure for the user to
-    utilize as they please (raise an error or warning with that message, print it, or ignore it).
-    """
-    try:
-        request.urlopen("https://dandiarchive.s3.amazonaws.com/ros3test.nwb", timeout=1)
-    except request.URLError:
-        return False, "Internet access to DANDI failed."
-    if "ros3" not in h5py.registered_drivers():
-        return False, "ROS3 driver not installed."
-    return True, None
