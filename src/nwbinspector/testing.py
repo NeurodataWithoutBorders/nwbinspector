@@ -126,10 +126,11 @@ def generate_image_series_testing_files():  # pragma: no cover
     with NWBHDF5IO(path=local_path / "image_series_testing_file.nwb", mode="w") as io:
         io.write(nwbfile)
 
+
 def make_minimal_nwbfile():
     """
     Most basic NWBFile that can exist.
-    
+
     TODO: replace with pynwb.mock if we can require minimal PyNWB version (or perhaps just for a testing)
     """
     return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
