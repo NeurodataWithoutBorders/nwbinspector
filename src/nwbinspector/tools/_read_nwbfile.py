@@ -19,11 +19,13 @@ def _get_method(path: str):
     else:
         raise ValueError(
             f"Unable to automatically determine method. Path {path} does not appear to be a URL and is not a file on "
-            f"the local filesystem.")
+            f"the local filesystem."
+        )
 
 
 def _init_fsspec(path):
     import fsspec
+
     if path.startswith(("https://", "http://")):
         return fsspec.filesystem("http")
     elif path.startswith("s3://"):
@@ -58,7 +60,7 @@ def read_nwbfile(
     nwbfile_path: str,
     mode: str = "r",
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
-    backend: Optional[Literal["hdf5", "zarr"]] = None
+    backend: Optional[Literal["hdf5", "zarr"]] = None,
 ) -> NWBFile:
     method = method or _get_method(nwbfile_path)
     backend = backend or _get_backend(nwbfile_path, method)

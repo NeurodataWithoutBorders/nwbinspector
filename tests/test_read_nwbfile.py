@@ -13,7 +13,7 @@ from nwbinspector.tools import read_nwbfile
 
 
 class TestReadNWB(TemporaryFolderTestCase):
-    nwbfile_path: Path # Define how to name and write the in-memory cls.nwbfile object to disk for each backend
+    nwbfile_path: Path  # Define how to name and write the in-memory cls.nwbfile object to disk for each backend
 
     @classmethod
     def setUpClass(cls):
@@ -72,11 +72,11 @@ class TestReadNWBHDF5(TestReadNWB):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        
+
         cls.nwbfile_path = cls.temporary_folder / "test_read_nwbfile_hdf5.nwb"
         with NWBHDF5IO(path=cls.nwbfile_path, mode="w") as io:
             io.write(cls.nwbfile)
-  
+
     def check_io_open(self, io: HDMFIO):
         """For HDF5, the file is 'open' if we can access data from slicing one of its `h5py.Dataset` objects."""
         assert io._file["acquisition"]["TimeSeries"]["data"][:2] is not None
