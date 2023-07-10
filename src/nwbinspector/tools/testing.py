@@ -31,5 +31,3 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
     if "ros3" not in h5py.registered_drivers():
         return False, "ROS3 driver not installed."
     return True, None
-
-
