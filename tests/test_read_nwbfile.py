@@ -8,7 +8,7 @@ from pynwb import NWBHDF5IO
 from pynwb.testing.mock.file import mock_NWBFile
 from pynwb.testing.mock.base import mock_TimeSeries
 
-from nwbinspector.tools.testing import TemporaryFolderTestCase
+from nwbinspector.testing import TemporaryFolderTestCase
 from nwbinspector.tools import read_nwbfile
 
 
@@ -17,6 +17,8 @@ class TestReadNWB(TemporaryFolderTestCase):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
+
         cls.nwbfile = mock_NWBFile()
         cls.nwbfile.add_acquisition(mock_TimeSeries())
 
