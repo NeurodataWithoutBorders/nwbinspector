@@ -10,24 +10,24 @@ from pynwb.testing.mock.base import mock_TimeSeries
 from nwbinspector.tools import read_nwbfile
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def nwbfile():
     nwbfile = mock_NWBFile()
     nwbfile.add_acquisition(mock_TimeSeries())
     return nwbfile
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def hdf5_nwbfile_path(tmpdir_factory, nwbfile):
-    nwbfile_path = tmpdir_factory.mktemp('data').join("test_read_nwbfile_hdf5.nwb")
+    nwbfile_path = tmpdir_factory.mktemp("data").join("test_read_nwbfile_hdf5.nwb")
     with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
         io.write(nwbfile)
     return nwbfile_path
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def zarr_nwbfile_path(tmpdir_factory, nwbfile):
-    nwbfile_path = tmpdir_factory.mktemp('data').join("test_read_nwbfile_zarr.nwb")
+    nwbfile_path = tmpdir_factory.mktemp("data").join("test_read_nwbfile_zarr.nwb")
     with NWBZarrIO(path=str(nwbfile_path), mode="w") as io:
         io.write(nwbfile)
     return nwbfile_path
