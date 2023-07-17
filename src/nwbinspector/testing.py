@@ -8,7 +8,9 @@ from datetime import datetime
 from typing import Tuple, Optional
 from urllib import request
 
+import zarr
 import h5py
+from hdmf.backends.io import HDMFIO
 from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
@@ -146,3 +148,29 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
     if "ros3" not in h5py.registered_drivers():
         return False, "ROS3 driver not installed."
     return True, None
+
+
+# HDF5 assertion styles
+def check_hdf5_io_open(io: HDMFIO):
+    """For HDF5, the file is 'open' if we can access data from slicing one of its `h5py.Dataset` objects."""
+    assert io._file["acquisition"]["TimeSeries"]["data"][:2] is not None
+
+
+def check_hdf5_io_closed(io: HDMFIO):
+    """For HDF5, the file is 'closed' if attempts to access data from one of its `h5py.Dataset` result in error."""
+    try:
+        io._file["acquisition"]["TimeSeries"]["data"][:2]
+        assert False, "The test to close the HDF5 I/O failed!"  # The line above should throw a ValueError
+    except ValueError as exception:
+        assert str(exception) == "Invalid location identifier (invalid location identifier)"
+
+
+# Zarr assert styles
+def check_zarr_io_open(io: HDMFIO):
+    """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
+    assert isinstance(io._ZarrIO__file, zarr.Group)
+
+
+def check_zarr_io_closed(io: HDMFIO):
+    """For Zarr, the private attribute `_ZarrIO__file` is replaced with `None` after closure."""
+    assert io._ZarrIO__file is None
