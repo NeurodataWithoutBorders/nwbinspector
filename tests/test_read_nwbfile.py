@@ -79,7 +79,7 @@ def test_hdf5_object_deletion_does_not_close_io(hdf5_nwbfile_path):
     check_hdf5_io_open(io=io)
 
     del nwbfile
-    check_hdf5_io_closed(io=io)
+    check_hdf5_io_open(io=io)
 
 
 def test_hdf5_object_replacement_does_not_close_io(hdf5_nwbfile_path):
@@ -93,8 +93,8 @@ def test_hdf5_object_replacement_does_not_close_io(hdf5_nwbfile_path):
     check_hdf5_io_open(io=io_2)
 
     nwbfile_2 = nwbfile_1
-    check_hdf5_io_closed(io=io_2)
     check_hdf5_io_open(io=io_1)
+    check_hdf5_io_open(io=io_2)
 
 
 # # Zarr tests
@@ -113,7 +113,7 @@ def test_zarr_object_deletion_does_not_close_io(zarr_nwbfile_path):
     check_zarr_io_open(io=io)
 
     del nwbfile
-    check_zarr_io_closed(io=io)
+    check_hdf5_io_open(io=io)
 
 
 def test_zarr_object_replacement_does_not_close_io(zarr_nwbfile_path):
@@ -127,8 +127,8 @@ def test_zarr_object_replacement_does_not_close_io(zarr_nwbfile_path):
     check_zarr_io_open(io=io_2)
 
     nwbfile_2 = nwbfile_1
-    check_zarr_io_closed(io=io_2)
     check_zarr_io_open(io=io_1)
+    check_hdf5_io_open(io=io_2)
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
