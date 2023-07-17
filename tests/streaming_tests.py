@@ -10,7 +10,13 @@ from nwbinspector import Importance
 from nwbinspector import inspect_all
 from nwbinspector.register_checks import InspectorMessage
 from nwbinspector.tools import read_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open, check_hdf5_io_closed, check_zarr_io_open, check_zarr_io_closed
+from nwbinspector.testing import (
+    check_streaming_tests_enabled,
+    check_hdf5_io_open,
+    check_hdf5_io_closed,
+    check_zarr_io_open,
+    check_zarr_io_closed,
+)
 from nwbinspector.utils import FilePathType
 
 
