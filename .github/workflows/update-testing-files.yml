@@ -27,7 +27,7 @@ jobs:
         run: pip install -e .[dandi]
       - name: Install older PyNWB version to generate example invalid files
         run: |
-          pip uninstall pynwb
+          pip uninstall pynwb -y
           pip install pynwb==2.1.0
       - name: Update testing configuration path
         run: python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./testing_files/')"
