@@ -197,3 +197,8 @@ def test_hdf5_ros3_streaming_s3():
 
 #     nwbfile.read_io.close()
 #     check_hdf5_io_closed(io=nwbfile.read_io)
+
+# Zarr streaming WIP: see https://github.com/dandi/dandi-cli/issues/1310
+# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+# def test_zarr_ros3_error():
+#     test that an error is raised with ros3 driver on zarr (not applicable)

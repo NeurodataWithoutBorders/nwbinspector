@@ -1,8 +1,7 @@
 """Temporary module for thorough testing and evaluation of the propsed `read_nwbfile` helper function."""
 from pathlib import Path
 from warnings import filterwarnings
-
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 
 import h5py
 from hdmf_zarr import NWBZarrIO
@@ -57,10 +56,30 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
 
 
 def read_nwbfile(
-    nwbfile_path: str | Path,
+    nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
 ) -> NWBFile:
+    """
+    Read an NWB file using the specified (or auto-detected) method and specified (or auto-detected) backend.
+
+    Parameters
+    ----------
+    nwbfile_path : string or pathlib.Path
+        Path to the file on your system.
+    method : "local", "fsspec", "ros3", or None (default)
+        Where to read the file from; a local disk drive or steaming from an https:// or s3:// path.
+        The default auto-detects based on the form of the path.
+        When streaming, the default method is "fsspec".
+        Note that "ros3" is specific to HDF5 backend files.
+    backend : "hdf5", "zarr", or None (default)
+        Type of backend used to write the file.
+        The default auto-detects the type of the file.
+
+    Returns
+    -------
+    pynwb.NWBFile
+    """
     nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
     method = method or _get_method(nwbfile_path)
     backend = backend or _get_backend(nwbfile_path, method)
