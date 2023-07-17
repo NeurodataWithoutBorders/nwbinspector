@@ -160,7 +160,7 @@ def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
         nwbfile_path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
         method="ros3",
-      )
+    )
     check_hdf5_io_open(io=nwbfile.read_io)
 
     nwbfile.read_io.close()
