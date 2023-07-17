@@ -7,20 +7,12 @@ from pathlib import Path
 from datetime import datetime
 from typing import Tuple, Optional
 from urllib import request
-from tempfile import mkdtemp
-from shutil import rmtree
-from warnings import warn
 
 import h5py
 from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
-from pynwb.testing.mock.file import mock_NWBFile
-from pynwb.testing.mock.base import mock_TimeSeries
-from hdmf.testing import TestCase as HDMFTestCase
-from hdmf.backends.io import HDMFIO
 
-from .tools import read_nwbfile
 from .utils import is_module_installed, get_package_version
 
 
