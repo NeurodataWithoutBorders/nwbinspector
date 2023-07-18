@@ -13,12 +13,12 @@ from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_op
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")  # scope="session" for HDF5 leads to strange simultaneous access errors in CI
 def hdf5_nwbfile_path(tmpdir_factory):
     nwbfile_path = tmpdir_factory.mktemp("data").join("test_read_nwbfile_hdf5.nwb")
     if not Path(nwbfile_path).exists():
         nwbfile = mock_NWBFile()
-        nwbfile.add_acquisition(mock_TimeSeries())
+        nwbfile.add_acquisition(mock_TimeSeries(name="TimeSeries"))  # scope="function" re-triggers mock naming factory
         with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
             io.write(nwbfile)
     return nwbfile_path
@@ -35,7 +35,6 @@ def zarr_nwbfile_path(tmpdir_factory):
     return nwbfile_path
 
 
-# HDF5 tests
 def test_hdf5_explicit_closure(hdf5_nwbfile_path):
     nwbfile = read_nwbfile(nwbfile_path=hdf5_nwbfile_path)
     check_hdf5_io_open(io=nwbfile.read_io)
