@@ -86,7 +86,7 @@ def test_check_time_interval_time_columns():
 
     assert check_time_interval_time_columns(time_intervals) == InspectorMessage(
         message=(
-            "['start_time', 'stop_time'] are time columns but the values are not in ascending order. "
+            "['start_time'] are time columns but the values are not in ascending order. "
             "All times should be in seconds with respect to the session start time."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -220,6 +220,14 @@ class TestCheckBinaryColumns(TestCase):
         for x in ["testing", "testingAgain", "MoreTesting", "testing"]:
             self.table.add_row(test_col=x)
         assert check_column_binary_capability(table=self.table) is None
+
+
+def test_check_binary_skip_pre_defined_columns():
+    units = Units()
+    units.add_unit(spike_times=[0], waveform_mean=[0])
+    units.add_unit(spike_times=[1], waveform_mean=[1])
+
+    assert check_column_binary_capability(table=units) is None
 
 
 def test_check_single_row_pass():

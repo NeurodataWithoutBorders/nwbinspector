@@ -14,11 +14,11 @@ extlinks = {
     ),
     "dandi-archive": ("https://dandiarchive.org/%s", "%s"),
     "ros3-tutorial": (
-        "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-1-ros3%s",
+        "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-2-ros3%s",
         None,
     ),
     "alternative-streaming-tutorial": (
-        "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-nwb-files%s",
+        "https://pynwb.readthedocs.io/en/stable/tutorials/advanced_io/streaming.html#streaming-method-1-fsspec%s",
         None,
     ),
     "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),

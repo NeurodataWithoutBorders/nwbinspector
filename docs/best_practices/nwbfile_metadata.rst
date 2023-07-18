@@ -72,20 +72,21 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_processing
 File Metadata
 -------------
 
-
-.. _best_practice_file_id:
-
-File Identifiers
-~~~~~~~~~~~~~~~~
+Session ID
+~~~~~~~~~~
 
 An :ref:`nwb-schema:sec-NWBFile` has two distinct places for identifiers: ``NWBFile.session_id`` and ``identifier``.
-
 The ``session_id`` field marks unique experimental sessions. The ``session_id`` should have a one-to-one relationship
 with a recording session. Sometimes you may find yourself having multiple NWBFiles that correspond to the same session.
 This can happen, for instance, if you separate out processing steps across multiple files or if you want to compare
 different processing outputs. In this case, the ``session_id`` should be the same for each file. Each lab should follow
 a standard structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily
 human-readable.
+
+.. _best_practice_file_id:
+
+Identifier
+~~~~~~~~~~
 
 The ``identifier`` tag should be a globally unique value for the :ref:`nwb-schema:sec-NWBFile`. Two different NWBFiles
 from the same session should have different ``identifier`` values if they differ in any way. It is recommended that you
@@ -176,8 +177,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_ex
 
 .. _best_practice_subject_id_exists:
 
-ID
-~~
+Subject ID
+~~~~~~~~~~
 
 A ``subject_id`` is required for upload to the :dandi-archive:`DANDI archive <>`. Even if the goal of a given NWBFile is
 not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified at all it should be given a
@@ -189,11 +190,13 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id
 
 .. _best_practice_subject_sex:
 
-Sex
-~~~
+Subject Sex
+~~~~~~~~~~~
 
 The ``sex`` of the :ref:`nwb-schema:sec-Subject` should be specified as a single upper-case character among the
 following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
+
+C. elegans are an exception to this rule. For C. elegans, the sex should either be "XO" (male) or "XX" (hermaphrodite).
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sex`
 
@@ -201,8 +204,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_se
 
 .. _best_practice_subject_species:
 
-Species
-~~~~~~~
+Subject Species
+~~~~~~~~~~~~~~~
 
 The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
@@ -210,8 +213,8 @@ Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_sp
 
 
 
-Strain
-~~~~~~~
+Subject Strain
+~~~~~~~~~~~~~~
 
 The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indicate the subspecies or breed or common genetic modification. *E.g.*, common strains for species "Rattus norvegicus" might include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6". If no specific strain is used, then simply indicate "Wild Type".
 
@@ -219,8 +222,8 @@ The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indic
 
 .. _best_practice_subject_age:
 
-Age
-~~~
+Subject Age
+~~~~~~~~~~~
 
 The ``age`` of a :ref:`nwb-schema:sec-Subject` should use the :wikipedia:`ISO 8601 Duration <ISO_8601#Durations>`
 format. For instance indicating an age of 90 days would be 'P90D'. It is not necessary to include both ``age`` and

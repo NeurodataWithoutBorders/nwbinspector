@@ -20,6 +20,10 @@ Tables
 ------
 .. automodule:: nwbinspector.checks.tables
 
+Behavior
+--------
+.. automodule:: nwbinspector.checks.behavior
+
 Intracellular Electrophysiology (icephys)
 -----------------------------------------
 .. automodule:: nwbinspector.checks.icephys

@@ -90,9 +90,11 @@ def is_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional[int] = None):
     """General purpose function for determining if a series is monotonic increasing."""
     if isinstance(series, h5py.Dataset):
-        return np.all(np.diff(_cache_data_selection(data=series, selection=slice(nelems))) > 0)
+        differences = np.diff(_cache_data_selection(data=series, selection=slice(nelems)))
     else:
-        return np.all(np.diff(series[:nelems]) > 0)  # already in memory, no need to cache
+        differences = np.diff(series[:nelems])  # already in memory, no need to cache
+
+    return np.all(differences >= 0)
 
 
 def is_dict_in_string(string: str):

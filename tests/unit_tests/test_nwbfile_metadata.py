@@ -267,7 +267,7 @@ def test_check_subject_sex():
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
     nwbfile.subject = Subject(subject_id="001")
 
-    assert check_subject_sex(nwbfile.subject) == InspectorMessage(
+    assert check_subject_sex(subject=nwbfile.subject) == InspectorMessage(
         message="Subject.sex is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
@@ -277,10 +277,10 @@ def test_check_subject_sex():
     )
 
 
-def test_check_subject_sex_other_value():
+def test_check_subject_sex_wrong_value():
     subject = Subject(subject_id="001", sex="Female")
 
-    assert check_subject_sex(subject) == InspectorMessage(
+    assert check_subject_sex(subject=subject) == InspectorMessage(
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_sex",
@@ -288,6 +288,44 @@ def test_check_subject_sex_other_value():
         object_name="subject",
         location="/general/subject",
     )
+
+
+def test_check_subject_sex_caenorhabditis_elegans_default_sex():
+    subject = Subject(subject_id="001", species="Caenorhabditis elegans", sex="F")
+
+    assert check_subject_sex(subject=subject) == InspectorMessage(
+        message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_sex",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_sex_c_elegans_default_sex():
+    subject = Subject(subject_id="001", species="C. elegans", sex="F")
+
+    assert check_subject_sex(subject=subject) == InspectorMessage(
+        message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_sex",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_sex_c_elegans_xo_sex():
+    subject = Subject(subject_id="001", species="C. elegans", sex="XO")
+
+    assert check_subject_sex(subject) is None
+
+
+def test_check_subject_sex_c_elegans_xx_sex():
+    subject = Subject(subject_id="001", species="C. elegans", sex="XX")
+
+    assert check_subject_sex(subject) is None
 
 
 def test_pass_check_subject_age_with_dob():
@@ -445,6 +483,19 @@ def test_check_subject_species_not_binomial():
 
     assert check_subject_species_form(subject) == InspectorMessage(
         message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_form",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_species_c_elegans():
+    subject = Subject(subject_id="001", species="C. elegans")
+
+    assert check_subject_species_form(subject) == InspectorMessage(
+        message="Subject species 'C. elegans' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_form",
         object_type="Subject",
