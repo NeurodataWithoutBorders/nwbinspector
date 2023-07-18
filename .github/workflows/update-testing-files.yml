@@ -38,4 +38,4 @@ jobs:
           dandi download 'https://gui-staging.dandiarchive.org/#/dandiset/204919' --download dandiset.yaml
           cd 204919
           mv ../testing_files .
-          dandi upload -i dandi-staging --validation skip  # These are purposefully invalid files
+          dandi upload -i dandi-staging --validation ignore  # These are purposefully invalid files
