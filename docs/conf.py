@@ -19,7 +19,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
     "sphinx_copybutton",
-    'sphinx_tabs.tabs',
+    "sphinx_tabs.tabs",
 ]
 templates_path = ["_templates"]
 master_doc = "index"
