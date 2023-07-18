@@ -163,6 +163,8 @@ def check_hdf5_io_closed(io: HDMFIO):
         assert False, "The test to close the HDF5 I/O failed!"  # The line above should throw a ValueError
     except ValueError as exception:
         assert str(exception) == "Invalid location identifier (invalid location identifier)"
+    except KeyError as exception:  # Error type may depend on h5py version and/or installation source
+        assert str(exception) == "Unable to synchronously open object (invalid identifier type to function)"
 
 
 # Zarr assert styles
