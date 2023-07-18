@@ -165,6 +165,7 @@ def check_hdf5_io_closed(io: HDMFIO):
         assert str(exception) in ["Invalid location identifier (invalid location identifier)", "Not a location (invalid object ID)"]
     except KeyError as exception:  # Error type may depend on h5py version and/or installation source
         print(str(exception)) # debugging CI
+        print(str(exception) == "Unable to synchronously open object (invalid identifier type to function)")
         assert str(exception) == "Unable to synchronously open object (invalid identifier type to function)"
 
 
