@@ -21,6 +21,18 @@ from nwbinspector.utils import FilePathType
 
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
+PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS = """
+https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620
+"""
+PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3 = """
+s3://dandi-api-staging-dandisets/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620
+"""
+PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = """
+https://dandi-api-staging-dandisets.s3.amazonaws.com/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03
+"""
+PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = """
+s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03
+"""
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -88,7 +100,7 @@ class TestStreamingCLI(TestCase):
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_fsspec_https():
     nwbfile = read_nwbfile(
-        nwbfile_path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
+        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
         method="fsspec",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
@@ -100,7 +112,7 @@ def test_hdf5_fsspec_https():
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_fsspec_s3():
     nwbfile = read_nwbfile(
-        nwbfile_path="s3://dandiarchive/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
+        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3,
         method="fsspec",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
@@ -112,7 +124,7 @@ def test_hdf5_fsspec_s3():
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
-        nwbfile_path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
+        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
         method="ros3",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
@@ -121,38 +133,32 @@ def test_hdf5_ros3_https():
     check_hdf5_io_closed(io=nwbfile.read_io)
 
 
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_hdf5_ros3_streaming_s3():
-    nwbfile = read_nwbfile(
-        nwbfile_path="s3://dandiarchive/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
-        method="ros3",
-    )
-    check_hdf5_io_open(io=nwbfile.read_io)
+# Zarr files not working yet with streaming
 
-    nwbfile.read_io.close()
-    check_hdf5_io_closed(io=nwbfile.read_io)
-
-
-# Zarr streaming WIP: see https://github.com/dandi/dandi-cli/issues/1310
 # @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 # def test_zarr_fsspec_streaming_https():
-#     nwbfile = read_nwbfile(nwbfile_path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297")
-#     check_hdf5_io_open(io=nwbfile.read_io)
+#     nwbfile = read_nwbfile(
+#         nwbfile_path=PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS,
+#         method="fsspec",
+#     )
+#     check_zarr_io_open(io=nwbfile.read_io)
 
 #     nwbfile.read_io.close()
-#     check_hdf5_io_closed(io=nwbfile.read_io)
+#     check_zarr_io_closed(io=nwbfile.read_io)
 
 
-# Zarr streaming WIP: see https://github.com/dandi/dandi-cli/issues/1310
 # @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 # def test_zarr_fsspec_streaming_s3():
-#     nwbfile = read_nwbfile(nwbfile_path=hdf5_nwbfile_path)
-#     check_hdf5_io_open(io=nwbfile.read_io)
+#     nwbfile = read_nwbfile(
+#         nwbfile_path=PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3,
+#         method="fsspec",
+#     )
+#     check_zarr_io_open(io=nwbfile.read_io)
 
 #     nwbfile.read_io.close()
-#     check_hdf5_io_closed(io=nwbfile.read_io)
+#     check_zarr_io_closed(io=nwbfile.read_io)
 
-# Zarr streaming WIP: see https://github.com/dandi/dandi-cli/issues/1310
+
 # @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 # def test_zarr_ros3_error():
 #     test that an error is raised with ros3 driver on zarr (not applicable)

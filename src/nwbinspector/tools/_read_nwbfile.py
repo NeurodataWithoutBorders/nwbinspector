@@ -47,10 +47,12 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
             if cls.can_read(path):
                 possible_backends.append(backend)
 
-    if len(possible_backends) > 1:
-        raise ValueError("more than one possible backend found: {possible_backends}")
+    if len(possible_backends) > 1:  # pragma: no cover
+        raise ValueError(
+            f"More than one possible backend found - please choose from the following: {possible_backends}"
+        )
     elif len(possible_backends) == 0:
-        raise ValueError("No possible backend found.")
+        raise ValueError("No compatible backend found.")
 
     return possible_backends[0]
 
