@@ -19,6 +19,7 @@ from nwbinspector.testing import (
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
+
 # @pytest.fixture(scope="function")  # scope="session" for HDF5 leads to strange simultaneous access errors in CI
 @pytest.fixture(scope="session")
 def hdf5_nwbfile_path(tmpdir_factory):
