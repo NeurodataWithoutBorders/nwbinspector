@@ -1,6 +1,9 @@
 pynwb
 hdmf_zarr @ git+https://github.com/hdmf-dev/hdmf-zarr.git@io_er  # needed for .can_read() method; need io_er branch for dependency resolution
 hdmf>=3.7.0
+fsspec
+requests
+aiohttp
 PyYAML
 jsonschema
 packaging
