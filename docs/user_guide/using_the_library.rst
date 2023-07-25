@@ -36,7 +36,7 @@ If you have an :py:class:`~pynwb.file.NWBFile` object in memory, you can run
 
 .. code-block:: python
 
-    from nwbinspector import inspect_nwbfile_objects
+    from nwbinspector import inspect_nwbfile_object
     from pynwb import NWBHDF5IO
 
     with NWBHDF5IO(path="path_to_single_nwbfile", mode="r", load_namespaces=True) as io:
