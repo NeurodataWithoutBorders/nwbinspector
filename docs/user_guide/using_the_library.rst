@@ -26,9 +26,9 @@ The most basic function to use when inspecting a single NWB file is the
 
 .. code-block:: python
 
-    from nwbinspector import inspect_nwb
+    from nwbinspector import inspect_nwbfile_object
 
-    results = list(inspect_nwb(nwbfile_path="path_to_single_nwbfile"))
+    results = list(inspect_nwbfile_object(nwbfile_path="path_to_single_nwbfile"))
 
 This returns a ``list`` of :py:class:`~nwbinspector.register_checks.InspectorMessage` objects.
 
