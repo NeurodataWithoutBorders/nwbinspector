@@ -26,6 +26,10 @@ jobs:
         run: |
           pip install -e .
           pip install dandi
+      - name: Install HDMF-zarr # temporary
+        run: pip install hdmf-zarr
+      - name: Install latest HDMF # temporary
+        run: pip install -U hdmf
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
