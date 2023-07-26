@@ -37,10 +37,10 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
 
     possible_backends = []
     if method == "fsspec":
-        fs = _init_fsspec(path)
-        with fs.open(path, "rb") as f:
+        fs = _init_fsspec(path=path)
+        with fs.open(path=path, mode="rb") as file:
             for backend, cls in _BACKEND_IO_CLASSES.items():
-                if cls.can_read(f):
+                if cls.can_read(path=file):
                     possible_backends.append(backend)
     else:
         for backend, cls in _BACKEND_IO_CLASSES.items():
@@ -95,9 +95,15 @@ def read_nwbfile(
             f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! "
             "Please set method='fsspec' or 'ros3' (for HDF5 only)."
         )
+    if method == "ros3" and nwbfile_path.startswith("s3://"):
+        raise ValueError(
+            "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL."
+        )
 
     backend = backend or _get_backend(nwbfile_path, method)
-    if not _BACKEND_IO_CLASSES[backend].can_read(path=nwbfile_path):
+    if method == "local" and not _BACKEND_IO_CLASSES[  # Temporary until .can_read() is able to work on streamed bytes
+        backend
+    ].can_read(path=nwbfile_path):
         raise IOError(f"The chosen backend ({backend}) is unable to read the file! Please select a different backend.")
 
     # Filter out some of most common warnings that don't really matter with `load_namespaces=True`

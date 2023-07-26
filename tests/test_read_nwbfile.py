@@ -90,6 +90,21 @@ def test_incorrect_method_set_on_remote_hdf5():
         assert str(exception) == expected_message
 
 
+def test_s3_url_set_on_ros3_hdf5():
+    nwbfile_path = "s3://dandi-api-staging-dandisets/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620"
+    try:
+        read_nwbfile(
+            nwbfile_path=nwbfile_path,
+            backend="hdf5",
+            method="ros3",
+        )
+    except ValueError as exception:
+        expected_message = (
+            "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL."
+        )
+        assert str(exception) == expected_message
+
+
 # HDF5 tests
 def test_hdf5_explicit_closure(hdf5_nwbfile_path):
     nwbfile = read_nwbfile(nwbfile_path=hdf5_nwbfile_path)

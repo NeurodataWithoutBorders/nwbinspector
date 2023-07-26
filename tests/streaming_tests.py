@@ -21,18 +21,16 @@ from nwbinspector.utils import FilePathType
 
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
-PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS = """
-https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620
-"""
-PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3 = """
-s3://dandi-api-staging-dandisets/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620
-"""
-PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = """
-https://dandi-api-staging-dandisets.s3.amazonaws.com/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03
-"""
-PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = """
-s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03
-"""
+PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS = (
+    "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620"
+)
+PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3 = (
+    "s3://dandi-api-staging-dandisets/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620"
+)
+PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = (
+    "https://dandi-api-staging-dandisets.s3.amazonaws.com/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
+)
+PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = "s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -97,10 +95,11 @@ class TestStreamingCLI(TestCase):
 
 
 # These will move to PyNWB when the time is right
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_fsspec_https():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
+        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="fsspec",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
@@ -109,10 +108,11 @@ def test_hdf5_fsspec_https():
     check_hdf5_io_closed(io=nwbfile.read_io)
 
 
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_fsspec_s3():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3,
+        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="fsspec",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
@@ -121,16 +121,18 @@ def test_hdf5_fsspec_s3():
     check_hdf5_io_closed(io=nwbfile.read_io)
 
 
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
+        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="ros3",
     )
     check_hdf5_io_open(io=nwbfile.read_io)
 
     nwbfile.read_io.close()
     check_hdf5_io_closed(io=nwbfile.read_io)
+
 
 
 # Zarr files not working yet with streaming
