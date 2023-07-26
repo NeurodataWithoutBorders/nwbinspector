@@ -134,7 +134,6 @@ def test_hdf5_ros3_https():
     check_hdf5_io_closed(io=nwbfile.read_io)
 
 
-
 # Zarr files not working yet with streaming
 
 # @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
