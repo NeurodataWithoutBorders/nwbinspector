@@ -20,13 +20,11 @@ from nwbinspector.testing import (
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
-# @pytest.fixture(scope="function")  # scope="session" for HDF5 leads to strange simultaneous access errors in CI
 @pytest.fixture(scope="session")
 def hdf5_nwbfile_path(tmpdir_factory):
     nwbfile_path = tmpdir_factory.mktemp("data").join("test_read_nwbfile_hdf5.nwb")
     if not Path(nwbfile_path).exists():
         nwbfile = mock_NWBFile()
-        # nwbfile.add_acquisition(mock_TimeSeries(name="TimeSeries"))  # scope="function" re-triggers mock naming factory
         nwbfile.add_acquisition(mock_TimeSeries())
         with NWBHDF5IO(path=str(nwbfile_path), mode="w") as io:
             io.write(nwbfile)
@@ -48,33 +46,48 @@ def zarr_nwbfile_path(tmpdir_factory):
 def test_incorrect_backend_set_on_hdf5(hdf5_nwbfile_path):
     try:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, backend="zarr")
-    except FSPathExistNotDir as exception:
-        assert str(exception) == "path exists but is not a directory: %r"  # unwrapped fstring in zarr?
+    except IOError as exception:
+        assert (
+            str(exception) == "The chosen backend (zarr) is unable to read the file! Please select a different backend."
+        )
 
 
 def test_incorrect_backend_set_on_zarr(zarr_nwbfile_path):
     try:
         read_nwbfile(nwbfile_path=zarr_nwbfile_path, backend="hdf5")
-    except PermissionError as exception:
-        assert "Unable to open file" in str(exception)
+    except IOError as exception:
+        assert (
+            str(exception) == "The chosen backend (hdf5) is unable to read the file! Please select a different backend."
+        )
 
 
 def test_incorrect_method_set_on_hdf5(hdf5_nwbfile_path):
     try:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, method="fsspec")
-    except AttributeError as exception:
-        assert str(exception) == "'NoneType' object has no attribute 'open'"  # TODO: catch earlier and improve message
+    except ValueError as exception:
+        expected_message = (
+            f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! "
+            "Please set method='local'."
+        )
+        assert str(exception) == expected_message
 
 
 def test_incorrect_method_set_on_remote_hdf5():
+    nwbfile_path = (
+        "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
+    )
     try:
         read_nwbfile(
-            nwbfile_path="https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297",
+            nwbfile_path=nwbfile_path,
             backend="hdf5",  # Currently unable to auto-determine backend with https
             method="local",
         )
-    except OSError as exception:
-        assert "Unable to open file" in str(exception)  # TODO: catch earlier and improve message
+    except ValueError as exception:
+        expected_message = (
+            f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! "
+            "Please set method='fsspec' or 'ros3' (for HDF5 only)."
+        )
+        assert str(exception) == expected_message
 
 
 # HDF5 tests

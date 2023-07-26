@@ -7,7 +7,7 @@ import h5py
 from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile
 
-_backend_io_classes = dict(hdf5=NWBHDF5IO, zarr=NWBZarrIO)
+_BACKEND_IO_CLASSES = dict(hdf5=NWBHDF5IO, zarr=NWBZarrIO)
 
 
 def _get_method(path: str):
@@ -39,11 +39,11 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
     if method == "fsspec":
         fs = _init_fsspec(path)
         with fs.open(path, "rb") as f:
-            for backend, cls in _backend_io_classes.items():
+            for backend, cls in _BACKEND_IO_CLASSES.items():
                 if cls.can_read(f):
                     possible_backends.append(backend)
     else:
-        for backend, cls in _backend_io_classes.items():
+        for backend, cls in _BACKEND_IO_CLASSES.items():
             if cls.can_read(path):
                 possible_backends.append(backend)
 
@@ -83,8 +83,22 @@ def read_nwbfile(
     pynwb.NWBFile
     """
     nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
+
     method = method or _get_method(nwbfile_path)
+    if method != "local" and Path(nwbfile_path).exists():
+        raise ValueError(
+            f"The file ({nwbfile_path}) is a local path on your system, but the method ({method}) was selected! "
+            "Please set method='local'."
+        )
+    if method == "local" and any(protocol in nwbfile_path for protocol in ["s3://", "https://"]):
+        raise ValueError(
+            f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! "
+            "Please set method='fsspec' or 'ros3' (for HDF5 only)."
+        )
+
     backend = backend or _get_backend(nwbfile_path, method)
+    if not _BACKEND_IO_CLASSES[backend].can_read(path=nwbfile_path):
+        raise IOError(f"The chosen backend ({backend}) is unable to read the file! Please select a different backend.")
 
     # Filter out some of most common warnings that don't really matter with `load_namespaces=True`
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
@@ -99,7 +113,7 @@ def read_nwbfile(
         io_kwargs.update(path=nwbfile_path)
     if method == "ros3":
         io_kwargs.update(driver="ros3")
-    io = _backend_io_classes[backend](**io_kwargs)
+    io = _BACKEND_IO_CLASSES[backend](**io_kwargs)
     nwbfile = io.read()
 
     return nwbfile
