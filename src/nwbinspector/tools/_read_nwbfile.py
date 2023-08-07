@@ -1,4 +1,4 @@
-"""Temporary module for thorough testing and evaluation of the propsed `read_nwbfile` helper function."""
+"""Temporary module for thorough testing and evaluation of the proposed `read_nwbfile` helper function."""
 from pathlib import Path
 from warnings import filterwarnings
 from typing import Optional, Literal, Union
@@ -67,7 +67,7 @@ def read_nwbfile(
 
     Parameters
     ----------
-    nwbfile_path : string or pathlib.Path
+    nwbfile_path : str or pathlib.Path
         Path to the file on your system.
     method : "local", "fsspec", "ros3", or None (default)
         Where to read the file from; a local disk drive or steaming from an https:// or s3:// path.

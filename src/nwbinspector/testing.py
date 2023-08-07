@@ -10,6 +10,7 @@ from urllib import request
 
 import zarr
 import h5py
+from hdmf.backends.hdf5 import HDF5IO
 from hdmf.backends.io import HDMFIO
 from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
@@ -150,32 +151,12 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-# HDF5 assertion styles
-def check_hdf5_io_open(io: HDMFIO):
-    """For HDF5, the file is 'open' if we can access data from slicing one of its `h5py.Dataset` objects."""
-    assert io._file["acquisition"]["TimeSeries"]["data"][:2] is not None
+def check_hdf5_io_open(io: HDF5IO):
+    """Check if an h5py.File object is open by using the file object's .id attribute, which is invalid when the file is closed."""
+    return io._file.id.valid
 
 
-def check_hdf5_io_closed(io: HDMFIO):
-    """For HDF5, the file is 'closed' if attempts to access data from one of its `h5py.Dataset` result in error."""
-    try:
-        io._file["acquisition"]["TimeSeries"]["data"][:2]
-        assert False, "The test to close the HDF5 I/O failed!"  # The line above should throw a ValueError
-    except ValueError as exception:
-        assert str(exception) in [
-            "Invalid location identifier (invalid location identifier)",
-            "Not a location (invalid object ID)",
-        ]
-    except KeyError as exception:  # Error type may depend on h5py version and/or installation source
-        assert str(exception) == "'Unable to synchronously open object (invalid identifier type to function)'"
-
-
-# Zarr assert styles
 def check_zarr_io_open(io: HDMFIO):
     """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
-    assert isinstance(io._ZarrIO__file, zarr.Group)
+    return isinstance(io._ZarrIO__file, zarr.Group)
 
-
-def check_zarr_io_closed(io: HDMFIO):
-    """For Zarr, the private attribute `_ZarrIO__file` is replaced with `None` after closure."""
-    assert io._ZarrIO__file is None
