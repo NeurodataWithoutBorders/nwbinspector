@@ -43,23 +43,32 @@ def zarr_nwbfile_path(tmpdir_factory):
 def test_incorrect_backend_set_on_hdf5(hdf5_nwbfile_path):
     with pytest.raises(IOError) as excinfo:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, backend="zarr")
-    assert "The chosen backend (zarr) is unable to read the file! Please select a different backend." in str(excinfo.value)
+    assert "The chosen backend (zarr) is unable to read the file! Please select a different backend." in str(
+        excinfo.value
+    )
 
 
 def test_incorrect_backend_set_on_zarr(zarr_nwbfile_path):
     with pytest.raises(IOError) as excinfo:
         read_nwbfile(nwbfile_path=zarr_nwbfile_path, backend="hdf5")
-    assert "The chosen backend (hdf5) is unable to read the file! Please select a different backend." in str(excinfo.value)
+    assert "The chosen backend (hdf5) is unable to read the file! Please select a different backend." in str(
+        excinfo.value
+    )
 
 
 def test_incorrect_method_set_on_hdf5(hdf5_nwbfile_path):
     with pytest.raises(ValueError) as excinfo:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, method="fsspec")
-    assert f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! Please set method='local'." in str(excinfo.value)
+    assert (
+        f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! Please set method='local'."
+        in str(excinfo.value)
+    )
 
 
 def test_incorrect_method_set_on_remote_hdf5():
-    nwbfile_path = "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297"
+    nwbfile_path = (
+        "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/6a6/1ba/6a61bab5-0662-49e5-be46-0b9ee9a27297"
+    )
 
     with pytest.raises(ValueError) as excinfo:
         read_nwbfile(
@@ -67,7 +76,10 @@ def test_incorrect_method_set_on_remote_hdf5():
             backend="hdf5",  # Currently unable to auto-determine backend with https
             method="local",
         )
-    assert f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! Please set method='fsspec' or 'ros3' (for HDF5 only)." in str(excinfo.value)
+    assert (
+        f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! Please set method='fsspec' or 'ros3' (for HDF5 only)."
+        in str(excinfo.value)
+    )
 
 
 def test_s3_url_set_on_ros3_hdf5():
@@ -78,7 +90,9 @@ def test_s3_url_set_on_ros3_hdf5():
             backend="hdf5",
             method="ros3",
         )
-    assert "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL."  in str(excinfo.value)
+    assert "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL." in str(
+        excinfo.value
+    )
 
 
 # HDF5 tests

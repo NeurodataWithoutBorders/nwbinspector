@@ -159,4 +159,3 @@ def check_hdf5_io_open(io: HDF5IO):
 def check_zarr_io_open(io: HDMFIO):
     """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
     return isinstance(io._ZarrIO__file, zarr.Group)
-
