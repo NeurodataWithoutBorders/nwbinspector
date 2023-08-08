@@ -99,7 +99,7 @@ def test_hdf5_fsspec_https():
     assert check_hdf5_io_open(io=nwbfile.read_io)
 
     nwbfile.read_io.close()
-    assert check_hdf5_io_open(io=nwbfile.read_io)
+    assert not check_hdf5_io_open(io=nwbfile.read_io)
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
