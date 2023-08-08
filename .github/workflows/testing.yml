@@ -53,4 +53,4 @@ jobs:
           version: "v0.1.15"
           fail_ci_if_error: true
           file: ./nwbinspector/nwbinspector/coverage.xml
-          flags: unittests    
+          flags: unittests

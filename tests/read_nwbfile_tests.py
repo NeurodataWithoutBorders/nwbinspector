@@ -60,8 +60,8 @@ def test_incorrect_method_set_on_hdf5(hdf5_nwbfile_path):
     with pytest.raises(ValueError) as excinfo:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, method="fsspec")
     assert (
-      f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! "
-      "Please set method='local'."
+        f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! "
+        "Please set method='local'."
     ) in str(excinfo.value)
 
 
