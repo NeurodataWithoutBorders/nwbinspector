@@ -46,13 +46,6 @@ jobs:
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
 
-  update-testing-files:
-    needs: assess-file-changes
-    if: ${{ needs.assess-file-changes.outputs.TESTING_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/update-testing-files.yml@dev
-    secrets:
-      DANDI_API_KEY: ${{ secrets.DANDI_API_KEY }}
-
   check-final-status:
     name: All tests passing
     if: always()
