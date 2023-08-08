@@ -39,7 +39,7 @@ def zarr_nwbfile_path(tmpdir_factory):
     return nwbfile_path
 
 
-# Assertions
+# Assertion tests
 def test_incorrect_backend_set_on_hdf5(hdf5_nwbfile_path):
     with pytest.raises(IOError) as excinfo:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, backend="zarr")
@@ -60,9 +60,9 @@ def test_incorrect_method_set_on_hdf5(hdf5_nwbfile_path):
     with pytest.raises(ValueError) as excinfo:
         read_nwbfile(nwbfile_path=hdf5_nwbfile_path, method="fsspec")
     assert (
-        f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! Please set method='local'."
-        in str(excinfo.value)
-    )
+      f"The file ({hdf5_nwbfile_path}) is a local path on your system, but the method (fsspec) was selected! "
+      "Please set method='local'."
+    ) in str(excinfo.value)
 
 
 def test_incorrect_method_set_on_remote_hdf5():
@@ -77,9 +77,9 @@ def test_incorrect_method_set_on_remote_hdf5():
             method="local",
         )
     assert (
-        f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! Please set method='fsspec' or 'ros3' (for HDF5 only)."
-        in str(excinfo.value)
-    )
+        f"The path ({nwbfile_path}) is an external URL, but the method (local) was selected! "
+        "Please set method='fsspec' or 'ros3' (for HDF5 only)."
+    ) in str(excinfo.value)
 
 
 def test_s3_url_set_on_ros3_hdf5():

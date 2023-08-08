@@ -42,7 +42,9 @@ jobs:
         run: pip install -U hdmf
 
       - name: Run pytest with coverage
-        run: pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+        run: |
+          pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+          pytest tests/ -rsx tests/read_nwbfile_tests.py  # TODO when read_nwbfile is ported
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -51,4 +53,4 @@ jobs:
           version: "v0.1.15"
           fail_ci_if_error: true
           file: ./nwbinspector/nwbinspector/coverage.xml
-          flags: unittests
+          flags: unittests    
