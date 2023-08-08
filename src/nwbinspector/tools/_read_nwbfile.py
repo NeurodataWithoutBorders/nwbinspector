@@ -4,10 +4,17 @@ from warnings import filterwarnings
 from typing import Optional, Literal, Union
 
 import h5py
-from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile
 
-_BACKEND_IO_CLASSES = dict(hdf5=NWBHDF5IO, zarr=NWBZarrIO)
+_BACKEND_IO_CLASSES = dict(hdf5=NWBHDF5IO)
+
+try:
+    from hdmf_zarr import NWBZarrIO
+
+    _BACKEND_IO_CLASSES.update(zarr=NWBZarrIO)
+except ModuleNotFoundError as exception:
+    if str(exception) != "No module named 'hdmf_zarr'":  # not the exception we're looking for, so re-raise
+        raise exception
 
 
 def _get_method(path: str):
@@ -39,13 +46,13 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
     if method == "fsspec":
         fs = _init_fsspec(path=path)
         with fs.open(path=path, mode="rb") as file:
-            for backend, cls in _BACKEND_IO_CLASSES.items():
-                if cls.can_read(path=file):
-                    possible_backends.append(backend)
+            for backend_name, backend_class in _BACKEND_IO_CLASSES.items():
+                if backend_class.can_read(path=file):
+                    possible_backends.append(backend_name)
     else:
-        for backend, cls in _BACKEND_IO_CLASSES.items():
-            if cls.can_read(path):
-                possible_backends.append(backend)
+        for backend_name, backend_class in _BACKEND_IO_CLASSES.items():
+            if backend_class.can_read(path):
+                possible_backends.append(backend_name)
 
     if len(possible_backends) > 1:  # pragma: no cover
         raise ValueError(

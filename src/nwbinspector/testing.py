@@ -8,7 +8,6 @@ from datetime import datetime
 from typing import Tuple, Optional
 from urllib import request
 
-import zarr
 import h5py
 from hdmf.backends.hdf5 import HDF5IO
 from hdmf.backends.io import HDMFIO
@@ -158,4 +157,6 @@ def check_hdf5_io_open(io: HDF5IO):
 
 def check_zarr_io_open(io: HDMFIO):
     """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
+    import zarr  # relative import since extra requirement
+
     return isinstance(io._ZarrIO__file, zarr.Group)
