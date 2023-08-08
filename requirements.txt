@@ -1,5 +1,4 @@
 pynwb
-hdmf_zarr>=0.3.0
 fsspec
 s3fs
 requests
