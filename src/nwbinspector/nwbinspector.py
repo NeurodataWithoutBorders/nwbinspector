@@ -7,7 +7,7 @@ import json
 import jsonschema
 from pathlib import Path
 from enum import Enum
-from typing import Union, Optional, List, Iterable
+from typing import Union, Optional, List, Iterable, Literal
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
@@ -28,7 +28,7 @@ from .inspector_tools import (
     save_report,
 )
 from .register_checks import InspectorMessage, Importance
-from .tools import get_s3_urls_and_dandi_paths
+from .tools import get_s3_urls_and_dandi_paths, read_nwbfile
 from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
 from nwbinspector import __version__
 
@@ -380,10 +380,10 @@ def inspect_all(
         assert (
             re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
         ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
-        driver = "ros3"
+        method = "fsspec"
         nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
     else:
-        driver = None
+        method = None
         in_path = Path(path)
         if in_path.is_dir():
             nwbfiles = list(in_path.rglob("*.nwb"))
@@ -399,9 +399,10 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-            nwbfile = robust_s3_read(io.read)
-            identifiers[nwbfile.identifier].append(nwbfile_path)
+        # with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+            # nwbfile = robust_s3_read(io.read)
+        nwbfile = read_nwbfile(nwbfile_path=nwbfile_path, method=method)
+        identifiers[nwbfile.identifier].append(nwbfile_path)
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
@@ -435,7 +436,7 @@ def inspect_all(
                         nwbfile_path=nwbfile_path,
                         checks=checks,
                         skip_validate=skip_validate,
-                        driver=driver,
+                        method=method,
                     )
                 )
             nwbfiles_iterable = as_completed(futures)
@@ -448,58 +449,25 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, method=method):
                 if stream:
                     message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
 def _pickle_inspect_nwb(
-    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, method: Optional[Literal["local", "fsspec", "ros3"]] = None
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
-
-
-# TODO: remove after 7/1/2023
-def inspect_nwb(
-    nwbfile_path: FilePathType,
-    checks: list = available_checks,
-    config: dict = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
-    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-    driver: Optional[str] = None,
-    skip_validate: bool = False,
-    max_retries: int = 10,
-) -> Iterable[InspectorMessage]:
-    warn(
-        "The API function 'inspect_nwb' has been deprecated and will be removed in a future release! "
-        "To remove ambiguity, please call either "
-        "'inspect_nwbfile' giving a path to the unopened file on a system, or "
-        "'inspect_nwbfile_object' passing an already open pynwb.NWBFile object.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    for inspector_message in inspect_nwbfile(
-        nwbfile_path=nwbfile_path,
-        checks=checks,
-        config=config,
-        ignore=ignore,
-        select=select,
-        importance_threshold=importance_threshold,
-        driver=driver,
-        skip_validate=skip_validate,
-        max_retries=max_retries,
-    ):
-        yield inspector_message
+    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, method=method))
 
 
 def inspect_nwbfile(
     nwbfile_path: FilePathType,
-    driver: Optional[str] = None,
+    driver: Optional[str] = None,  # TODO: remove on or after 11/1/2023
+    method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     skip_validate: bool = False,
-    max_retries: int = 10,
+    max_retries: int = 10,  # TODO: remove on or after 11/1/2023
     checks: list = available_checks,
     config: dict = None,
     ignore: OptionalListOfStrings = None,
@@ -513,16 +481,14 @@ def inspect_nwbfile(
     ----------
     nwbfile_path : FilePathType
         Path to the NWB file on disk or on S3.
-    driver: str, optional
-        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
+    method : "local", "fsspec", "ros3", or None (default)
+        Where to read the file from; a local disk drive or steaming from an https:// or s3:// path.
+        The default auto-detects based on the form of the path.
+        When streaming, the default method is "fsspec".
+        Note that "ros3" is specific to HDF5 backend files.
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
-    max_retries : int, optional
-        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
-        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
-        This sets a hard bound on the number of times to attempt to retry the collection of messages.
-        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     checks : list, optional
         List of checks to run.
     config : dict
@@ -546,6 +512,25 @@ def inspect_nwbfile(
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
+    # TODO: remove 'driver' and 'max_retires' on or after 11/1/2023
+    if driver is not None and method is not None:
+        raise ValueError("Cannot set both 'driver' and 'method'! Please only use 'method'.")
+    if driver is not None:
+        warn(
+            "The argument 'driver' has been deprecated and will be removed in a future release! "
+            "Please use the new argument, 'method' and choose one of 'local' or 'fsspec'.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        method = "fsspec" if "https" in nwbfile_path else None
+    if max_retries is not None:
+        warn(
+            "The argument 'max_retries' has been deprecated and will be removed in a future release! "
+            "Using method='fsspec' automatically handles retries.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
