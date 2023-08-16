@@ -1,4 +1,8 @@
 pynwb
+fsspec
+s3fs
+requests
+aiohttp
 PyYAML
 jsonschema
 packaging

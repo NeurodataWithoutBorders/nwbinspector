@@ -7,15 +7,13 @@ from pathlib import Path
 from datetime import datetime
 from typing import Tuple, Optional
 from urllib import request
-from tempfile import mkdtemp
-from shutil import rmtree
-from warnings import warn
 
 import h5py
+from hdmf.backends.hdf5 import HDF5IO
+from hdmf.backends.io import HDMFIO
 from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
-from hdmf.testing import TestCase as HDMFTestCase
 
 from .utils import is_module_installed, get_package_version
 
@@ -150,3 +148,15 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
     if "ros3" not in h5py.registered_drivers():
         return False, "ROS3 driver not installed."
     return True, None
+
+
+def check_hdf5_io_open(io: HDF5IO):
+    """Check if an h5py.File object is open by using the file object's .id attribute, which is invalid when the file is closed."""
+    return io._file.id.valid
+
+
+def check_zarr_io_open(io: HDMFIO):
+    """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
+    import zarr  # relative import since extra requirement
+
+    return isinstance(io._ZarrIO__file, zarr.Group)
