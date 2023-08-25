@@ -19,6 +19,7 @@ import pynwb
 import yaml
 from tqdm import tqdm
 from natsort import natsorted
+from packaging.version import Version
 
 from . import available_checks
 from .inspector_tools import (
@@ -38,13 +39,29 @@ INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dand
 class InspectorOutputJSONEncoder(json.JSONEncoder):
     """Custom JSONEncoder for the NWBInspector."""
 
-    def default(self, o):  # noqa D102
-        if isinstance(o, InspectorMessage):
-            return o.__dict__
-        if isinstance(o, Enum):
-            return o.name
-        else:
-            return super().default(o)
+    def _transform_enum(self, object_: object):
+        if isinstance(object_, Enum):
+            return object_.name
+        return self._recursively_encode(object_)
+
+    def _recursively_encode(self, object_: object):
+        if isinstance(object_, dict):
+            return {
+                self._transform_enum(object_=key): self._transform_enum(object_=value) for key, value in object_.items()
+            }
+        return object_
+
+    def encode(self, object_: object):
+        return super().encode(self._recursively_encode(object_=object_))
+
+    def default(self, object_):  # noqa D102
+        if isinstance(object_, InspectorMessage):
+            return object_.__dict__
+        if isinstance(object_, Enum):
+            return object_.name
+        if isinstance(object_, Version):
+            return str(object_)
+        return super().default(object_)
 
 
 def validate_config(config: dict):
