@@ -1,4 +1,4 @@
-pynwb @ git+https://github.com/NeurodataWithoutBorders/pynwb.git@age_reference  # relax to pynwb when upstream is merged
+pynwb
 PyYAML
 jsonschema
 packaging
