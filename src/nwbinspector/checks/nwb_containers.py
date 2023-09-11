@@ -66,8 +66,9 @@ def check_small_dataset_compression(
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     """
-    Check if any NWBContainer has optional fields that are written as an empty string. These values should just be
-    omitted instead
+    Check if any NWBContainer has optional fields that are written as an empty string.
+
+    These values should just be omitted instead.
 
     Parameters
     ----------
@@ -76,7 +77,9 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
     Best Practice: :ref:`best_practice_placeholders`
     """
     docval_args = type(nwb_container).__init__.__docval__["args"]
-    optional_attrs = [arg["name"] for arg in docval_args if "default" in arg and arg["default"] is None]
+    optional_attrs = [
+        arg["name"] for arg in docval_args if arg["type"] is str and "default" in arg and arg["default"] is None
+    ]
     fields = [attr for attr in optional_attrs if getattr(nwb_container, attr) == ""]
     for field in fields:
         yield InspectorMessage(

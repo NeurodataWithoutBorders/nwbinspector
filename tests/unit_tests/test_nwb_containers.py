@@ -7,6 +7,7 @@ from datetime import datetime
 import h5py
 import numpy as np
 from pynwb import NWBContainer, NWBFile
+from pynwb.image import ImageSeries
 
 from nwbinspector import (
     InspectorMessage,
@@ -94,9 +95,9 @@ class TestNWBContainers(TestCase):
 
 
 def test_hit_check_empty_string_for_optional_attribute():
-    nwb = NWBFile("aa", "aa", datetime.now(), pharmacology="")
+    nwbfile = NWBFile(session_description="aa", identifier="aa", session_start_time=datetime.now(), pharmacology="")
 
-    assert check_empty_string_for_optional_attribute(nwb)[0] == InspectorMessage(
+    assert check_empty_string_for_optional_attribute(nwb_container=nwbfile)[0] == InspectorMessage(
         message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve my omitting '
         "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -108,5 +109,18 @@ def test_hit_check_empty_string_for_optional_attribute():
 
 
 def test_miss_check_empty_string_for_optional_attribute():
-    nwb = NWBFile("aa", "aa", datetime.now())
-    assert check_empty_string_for_optional_attribute(nwb) is None
+    nwbfile = NWBFile(session_description="aa", identifier="aa", session_start_time=datetime.now())
+    assert check_empty_string_for_optional_attribute(nwb_container=nwbfile) is None
+
+
+def test_check_empty_string_for_optional_attribute_skip_non_string():
+    image_series = ImageSeries(
+        name="TestImageSeries",
+        description="Behavior video of animal moving in environment",
+        unit="n.a.",
+        external_file=["test1.mp4", "test2.avi"],
+        format="external",
+        starting_frame=[0, 2],
+        timestamps=[0.0, 0.04, 0.07, 0.1, 0.14, 0.16, 0.21],
+    )  # The `data` field will be created by PyNWB but it will be empty and will otherwise raise warning/error via numpy
+    assert check_empty_string_for_optional_attribute(nwb_container=image_series) is None
