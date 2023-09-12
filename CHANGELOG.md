@@ -1,5 +1,11 @@
 # Upcoming
 
+### Fixes
+
+* Fixed issue in `check_empty_string_for_optional_attribute` where it would not skip optional non-`str` fields. [#400](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/400)
+
+
+
 # v0.4.29
 
 * Support for Python 3.7 has officially been dropped by the NWB Inspector. Please use Python 3.8 and above. [#380](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/380)
