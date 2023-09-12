@@ -1,5 +1,7 @@
 # Upcoming
 
+# v0.4.30
+
 ### Fixes
 
 * Fixed issue in `check_empty_string_for_optional_attribute` where it would not skip optional non-`str` fields. [#400](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/400)
