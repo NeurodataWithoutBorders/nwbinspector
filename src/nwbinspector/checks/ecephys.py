@@ -79,3 +79,17 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                     "observed intervals."
                 )
             )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_ascending_spike_times(units_table: Units):
+    """Check that the values in the timestamps array are strictly increasing."""
+    if "spike_times" not in units_table:
+        return
+    differences = np.diff(np.asarray(units_table["spike_times"].target.data[:]))
+    if np.all(differences >= 0):
+        return InspectorMessage(
+            message=(
+                "This Units table contains spike times that are not ascending."
+            )
+        )
