@@ -138,4 +138,4 @@ def check_rate_is_not_zero(time_series: TimeSeries):
     data_shape = get_data_shape(time_series.data) 
     timestamps_shape = get_data_shape(time_series.timestamps)
     if time_series.rate == 0.0 and (data_shape[0] > 1 or timestamps_shape[0] > 1):
-            return InspectorMessage(f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame.")
+        return InspectorMessage(f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame.")

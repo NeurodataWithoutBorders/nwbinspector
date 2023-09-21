@@ -15,6 +15,7 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
+    check_rate_is_not_zero,
 )
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled
@@ -290,6 +291,33 @@ def test_check_unknown_resolution_pass():
     for valid_unknown in [-1.0, np.nan]:
         time_series = pynwb.TimeSeries(name="test", unit="test", data=[1], timestamps=[1], resolution=valid_unknown)
         assert check_resolution(time_series) is None
+
+
+def test_check_check_rate_is_not_zero_timestamp_is_none_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=None, rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_check_rate_is_not_zero_data_is_none_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=None, timestamps=[1, 2, 3], rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_check_rate_is_not_zero_timestamp_and_data_are_none_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=None, timestamps=None, rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_check_rate_is_not_zero_fail():
+    time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=None, rate=0.0)
+    assert check_rate_is_not_zero(time_series) == InspectorMessage(
+        message=f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_rate_is_not_zero",
+        object_type="TimeSeries",
+        object_name="test",
+        location="/",
+    )
 
 
 @pytest.mark.skipif(
