@@ -15,6 +15,7 @@ from nwbinspector import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_spike_times_not_in_unobserved_interval,
+    check_ascending_spike_times,
 )
 
 
@@ -211,6 +212,27 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+def test_check_ascending_spike_times_pass():
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    units_table.add_unit(spike_times=[1.0, 2.0])
+    assert check_ascending_spike_times(units_table=units_table) is None
+
+def test_check_ascending_spike_times_fail():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    units_table.add_unit(spike_times=[2.0, 1.0])
+    assert check_ascending_spike_times(units_table=units_table)  == InspectorMessage(
+        message=(
+            "This Units table contains spike times that are not ascending."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_ascending_spike_times",
         object_type="Units",
         object_name="TestUnits",
         location="/",
