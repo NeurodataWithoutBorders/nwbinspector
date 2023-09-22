@@ -86,8 +86,9 @@ def check_ascending_spike_times(units_table: Units):
     """Check that the values in the timestamps array are strictly increasing."""
     if "spike_times" not in units_table:
         return
-    differences = np.diff(np.asarray(units_table["spike_times"].target.data[:]))
-    if np.all(differences >= 0):
+    for spike_times_per_unit in units_table["spike_times"]:
+        differences_per_unit = np.diff(spike_times_per_unit)
+    if np.all(differences_per_unit >= 0):
         return InspectorMessage(
             message=(
                 "This Units table contains spike times that are not ascending."
