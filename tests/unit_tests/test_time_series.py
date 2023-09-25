@@ -293,23 +293,18 @@ def test_check_unknown_resolution_pass():
         assert check_resolution(time_series) is None
 
 
-def test_check_check_rate_is_not_zero_timestamp_is_none_pass():
-    time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=None, rate=4.0)
+def test_check_rate_is_not_zero_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
     assert check_rate_is_not_zero(time_series) is None
 
 
-def test_check_check_rate_is_not_zero_data_is_none_pass():
-    time_series = pynwb.TimeSeries(name="test", unit="test", data=None, timestamps=[1, 2, 3], rate=4.0)
+def test_check_rate_is_not_zero_single_frame_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1], rate=0.0)
     assert check_rate_is_not_zero(time_series) is None
 
 
-def test_check_check_rate_is_not_zero_timestamp_and_data_are_none_pass():
-    time_series = pynwb.TimeSeries(name="test", unit="test", data=None, timestamps=None, rate=4.0)
-    assert check_rate_is_not_zero(time_series) is None
-
-
-def test_check_check_rate_is_not_zero_fail():
-    time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=None, rate=0.0)
+def test_check_rate_is_not_zero_timestamp_is_none_fail():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=0.0)
     assert check_rate_is_not_zero(time_series) == InspectorMessage(
         message=f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
