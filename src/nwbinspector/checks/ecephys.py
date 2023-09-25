@@ -87,6 +87,5 @@ def check_ascending_spike_times(units_table: Units):
     if "spike_times" not in units_table:
         return
     for spike_times_per_unit in units_table["spike_times"]:
-        differences_per_unit = np.diff(spike_times_per_unit)
-    if np.all(differences_per_unit >= 0):
-        return InspectorMessage(message=("This Units table contains spike times that are not ascending."))
+        if not np.all(spike_times_per_unit[:-1] <= spike_times_per_unit[1:]):
+            return InspectorMessage(message=("This Units table contains spike times that are not ascending."))
