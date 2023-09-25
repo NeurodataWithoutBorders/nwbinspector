@@ -225,6 +225,13 @@ def test_check_ascending_spike_times_pass():
     assert check_ascending_spike_times(units_table=units_table) is None
 
 
+def test_check_ascending_spike_times_w_missing_spike_times_pass():
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    units_table.add_unit(spike_times=[])
+    assert check_ascending_spike_times(units_table=units_table) is None
+
+
 def test_check_ascending_spike_times_fail():
     units_table = Units(name="TestUnits")
     units_table.add_unit(spike_times=[0.0, 0.1])
