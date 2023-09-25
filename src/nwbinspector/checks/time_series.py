@@ -133,9 +133,10 @@ def check_resolution(time_series: TimeSeries):
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_rate_is_not_zero(time_series: TimeSeries):
-    if time_series.data is None and time_series.timestamps is None:
+    if time_series.data is None:
         return
-    data_shape = get_data_shape(time_series.data) 
-    timestamps_shape = get_data_shape(time_series.timestamps)
-    if time_series.rate == 0.0 and (data_shape[0] > 1 or timestamps_shape[0] > 1):
-        return InspectorMessage(f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame.")
+    data_shape = get_data_shape(time_series.data)
+    if time_series.rate == 0.0 and data_shape[0] > 1:
+        return InspectorMessage(
+            f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame."
+        )
