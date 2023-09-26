@@ -200,6 +200,28 @@ def test_check_timestamps_empty_timestamps():
     )
 
 
+def test_check_rate_is_not_zero_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_single_frame_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1], rate=0.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_fail():
+    time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=0.0)
+    assert check_rate_is_not_zero(time_series) == InspectorMessage(
+        message="TimeSeriesTest has a sampling rate value of 0.0Hz but the series has more than one frame.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_rate_is_not_zero",
+        object_type="TimeSeries",
+        object_name="TimeSeriesTest",
+        location="/",
+    )
+
+
 def test_pass_check_timestamps_ascending_pass():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
     assert check_timestamps_ascending(time_series) is None
@@ -291,28 +313,6 @@ def test_check_unknown_resolution_pass():
     for valid_unknown in [-1.0, np.nan]:
         time_series = pynwb.TimeSeries(name="test", unit="test", data=[1], timestamps=[1], resolution=valid_unknown)
         assert check_resolution(time_series) is None
-
-
-def test_check_rate_is_not_zero_pass():
-    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
-    assert check_rate_is_not_zero(time_series) is None
-
-
-def test_check_rate_is_not_zero_single_frame_pass():
-    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1], rate=0.0)
-    assert check_rate_is_not_zero(time_series) is None
-
-
-def test_check_rate_is_not_zero_fail():
-    time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=0.0)
-    assert check_rate_is_not_zero(time_series) == InspectorMessage(
-        message="TimeSeriesTest has a sampling rate value of 0.0Hz but the series has more than one frame.",
-        importance=Importance.CRITICAL,
-        check_function_name="check_rate_is_not_zero",
-        object_type="TimeSeries",
-        object_name="TimeSeriesTest",
-        location="/",
-    )
 
 
 @pytest.mark.skipif(

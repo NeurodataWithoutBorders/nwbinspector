@@ -157,3 +157,15 @@ Unknown Resolution
 If the ``resolution`` of a :ref:`nwb-schema:sec-TimeSeries` is unknown, use ``-1.0`` or ``NaN`` to indicate this.
 
 Check function: :py::meth:`~nwbinspector.checks.time_series.check_resolution`
+
+
+
+.. _best_practice_non_zero_rate:
+
+Zero Rate
+~~~~~~~~~~~~~~~~~~
+
+If ``data`` field of :ref:`nwb-schema:sec-TimeSeries` has more than one frame, thus first dimension that represent time is
+greater than one, ``rate`` should not be 0.0.
+
+Check function: :py::meth:`~nwbinspector.checks.time_series.check_rate_is_not_zero`
