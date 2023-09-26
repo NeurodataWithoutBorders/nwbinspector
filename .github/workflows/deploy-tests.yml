@@ -11,7 +11,20 @@ jobs:
         uses: styfle/cancel-workflow-action@0.11.0
 
   assess-file-changes:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
+    uses: catalystneuro/neuroconv/.github/workflows/assess-file-changes.yml@dev
+
+  detect-changelog-updates:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    name: Auto-detecting CHANGELOG.md updates
+    runs-on: ubuntu-latest
+    steps:
+      - if:  ${{ needs.assess-file-changes.outputs.CHANGELOG_UPDATED == 'true' }}
+        run: echo "CHANGELOG.md has been updated."
+      - if:  ${{ needs.assess-file-changes.outputs.CHANGELOG_UPDATED == 'false' }}
+        run: |
+          echo "CHANGELOG.md has not been updated."
+          0
 
   run-doc-link-checks:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
