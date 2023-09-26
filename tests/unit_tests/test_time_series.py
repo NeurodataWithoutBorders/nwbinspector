@@ -303,14 +303,14 @@ def test_check_rate_is_not_zero_single_frame_pass():
     assert check_rate_is_not_zero(time_series) is None
 
 
-def test_check_rate_is_not_zero_timestamp_is_none_fail():
-    time_series = pynwb.TimeSeries(name="TimeSeriesTestt", unit="n.a.", data=[1, 2, 3], rate=0.0)
+def test_check_rate_is_not_zero_fail():
+    time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=0.0)
     assert check_rate_is_not_zero(time_series) == InspectorMessage(
         message="TimeSeriesTest has a sampling rate value of 0.0Hz but the series has more than one frame.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.CRITICAL,
         check_function_name="check_rate_is_not_zero",
         object_type="TimeSeries",
-        object_name="test",
+        object_name="TimeSeriesTest",
         location="/",
     )
 

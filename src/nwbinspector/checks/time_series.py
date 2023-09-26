@@ -131,7 +131,7 @@ def check_resolution(time_series: TimeSeries):
         )
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_rate_is_not_zero(time_series: TimeSeries):
     if time_series.data is None:
         return
