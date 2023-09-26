@@ -83,3 +83,14 @@ Observation Intervals
 The ``obs_intervals`` field of the :ref:`nwb-schema:sec-units-src` table is used to indicate periods of time where the underlying electrical signal(s) were not observed. This can happen if the recording site moves away from the unit, or if the recording is stopped. Since the channel is not observed, it is not determinable whether a spike occurred during this time. Therefore, there should not be any identified spike times for units matched to those electrical signal(s) occurring outside of the defined ``obs_intervals``. If this variable is not set, it is assumed that all time is observed.
 
 Check function: :py:meth:`~nwbinspector.checks.ecephys.check_spike_times_not_in_unobserved_interval`
+
+
+
+.. _best_practice_ascending_spike_times:
+
+Ascending Spike Times
+~~~~~~~~~~~~~~~~~~~~~
+
+All spike times should be sorted in ascending order. Spike times may reset to zero about halfway through. This can happen if the spikes are not properly aligned with the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`.
+
+Check function: :py:meth:`~nwbinspector.checks.ecephys.check_ascending_spike_times`
