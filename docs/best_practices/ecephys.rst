@@ -91,6 +91,6 @@ Check function: :py:meth:`~nwbinspector.checks.ecephys.check_spike_times_not_in_
 Ascending Spike Times
 ~~~~~~~~~~~~~~~~~~~~~
 
-All spike times should be sorted in ascending order. Spike times may reset to zero about halfway through. This can happen if the spikes are not properly aligned with the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`.
+All spike times should be sorted in ascending order. If they reset to zero, this can be a sign that spikes are not properly aligned with the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`.
 
 Check function: :py:meth:`~nwbinspector.checks.ecephys.check_ascending_spike_times`
