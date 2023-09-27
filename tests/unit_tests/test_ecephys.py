@@ -15,7 +15,7 @@ from nwbinspector import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_spike_times_not_in_unobserved_interval,
-    check_electrical_series_dtype,
+    check_electrical_series_conversion_factors,
 )
 
 
@@ -169,7 +169,7 @@ class TestCheckElectricalSeries(TestCase):
 
         self.nwbfile.add_acquisition(electrical_series)
 
-        assert check_electrical_series_dtype(electrical_series) is None
+        assert check_electrical_series_conversion_factors(electrical_series) is None
 
     def test_check_electrical_series_dtype_fail(self):
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
@@ -184,7 +184,7 @@ class TestCheckElectricalSeries(TestCase):
 
         self.nwbfile.add_acquisition(electrical_series)
 
-        assert check_electrical_series_dtype(electrical_series) == InspectorMessage(
+        assert check_electrical_series_conversion_factors(electrical_series) == InspectorMessage(
             message=(
                 "ElectricalSeries data type is integer and conversion factor and offset are both default, the value may not be in the correct unit"
             ),
@@ -208,7 +208,7 @@ class TestCheckElectricalSeries(TestCase):
 
         self.nwbfile.add_acquisition(electrical_series)
 
-        assert check_electrical_series_dtype(electrical_series) is None
+        assert check_electrical_series_conversion_factors(electrical_series) is None
 
     def test_check_electrical_series_dtype_non_default_offet_skip(self):
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
@@ -224,7 +224,7 @@ class TestCheckElectricalSeries(TestCase):
 
         self.nwbfile.add_acquisition(electrical_series)
 
-        assert check_electrical_series_dtype(electrical_series) is None
+        assert check_electrical_series_conversion_factors(electrical_series) is None
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
