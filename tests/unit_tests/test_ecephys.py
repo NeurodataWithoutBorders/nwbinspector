@@ -162,7 +162,7 @@ class TestCheckElectricalSeries(TestCase):
         electrical_series = ElectricalSeries(
             name="elec_series",
             description="desc",
-            data=np.ones((100, 5), dtype=float),
+            data=np.ones((100, 5), dtype=np.dtype("float64")),
             electrodes=electrodes,
             rate=30.0,
         )
