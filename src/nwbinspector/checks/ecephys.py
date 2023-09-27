@@ -82,7 +82,7 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
-def check_electrical_series_dtype(electrical_series: ElectricalSeries):
+def check_electrical_series_conversion_factors(electrical_series: ElectricalSeries):
     data = electrical_series.data
     if (
         np.issubdtype(data.dtype, np.integer)
