@@ -2,7 +2,7 @@
 
 ### New Checks
 
-* Add `check_electrical_series_dtype` [#395](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/395)
+* Added `check_electrical_series_conversion_factors` for ensuring non-default conversion/offset factors of any `ElectricalSeries` that has an integer data type. [#395](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/395)
 
 # v0.4.30
 
