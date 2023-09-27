@@ -1,5 +1,9 @@
 # Upcoming
 
+### New Checks
+
+* Add `check_electrical_series_dtype` [#395](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/395)
+
 # v0.4.30
 
 ### Fixes
