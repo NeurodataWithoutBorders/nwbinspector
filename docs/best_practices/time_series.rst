@@ -163,7 +163,7 @@ Check function: :py::meth:`~nwbinspector.checks.time_series.check_resolution`
 .. _best_practice_non_zero_rate:
 
 Zero Rate
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
 
 If ``data`` field of :ref:`nwb-schema:sec-TimeSeries` has more than one frame, thus first dimension that represent time is
 greater than one, ``rate`` should not be 0.0.
