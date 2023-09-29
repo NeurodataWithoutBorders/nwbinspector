@@ -1,5 +1,9 @@
 # Upcoming
 
+### New Checks
+
+* Added `check_ascending_spike_times` for ensuring spike times are sorted in ascending order. [#394](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/394)
+
 # v0.4.30
 
 ### Fixes
