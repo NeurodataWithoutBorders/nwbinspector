@@ -134,7 +134,7 @@ def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None:
         if subject.date_of_birth is None:
-            return InspectorMessage(message="Subject is missing age and date_of_birth.")
+            return InspectorMessage(message="Subject is missing age or date_of_birth.")
         else:
             return
     if re.fullmatch(pattern=duration_regex, string=subject.age):
