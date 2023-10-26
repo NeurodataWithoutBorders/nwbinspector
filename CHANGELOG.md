@@ -3,7 +3,6 @@
 ### New Checks
 
 * Added `check_rate_is_not_zero` for ensuring non-zero rate value of `TimeSeries` that has more than one frame. [#389](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/389)
-* Added `check_subject_date_of_birth` for ensuring the value of date of birth has been set correctly. [#411](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/411)
 
 # v0.4.30
 
