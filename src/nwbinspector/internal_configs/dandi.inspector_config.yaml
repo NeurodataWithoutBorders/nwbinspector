@@ -6,5 +6,6 @@ CRITICAL:  # All the fields under CRITICAL will be required for dandi validate t
   - check_subject_species_form
   - check_subject_age
   - check_subject_proper_age_range
+  - check_subject_date_of_birth
 BEST_PRACTICE_VIOLATION:
   - check_data_orientation  # not 100% accurate, so need to deelevate from CRITICAL to skip it in dandi validate
