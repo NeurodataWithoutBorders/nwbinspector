@@ -132,11 +132,12 @@ def check_doi_publications(nwbfile: NWBFile):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
-    if subject.age is None:
-        if subject.date_of_birth is None:
-            return InspectorMessage(message="Subject is missing age and date_of_birth.")
-        else:
-            return
+    if subject.age is None and subject.date_of_birth is None:
+        return InspectorMessage(
+            message="Subject is missing age and date_of_birth. Please specify at least one of these fields."
+        )
+    elif subject.age is None and subject.date_of_birth is not None:
+        return
     if re.fullmatch(pattern=duration_regex, string=subject.age):
         return
 
