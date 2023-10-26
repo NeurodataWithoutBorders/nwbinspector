@@ -130,6 +130,42 @@ def check_doi_publications(nwbfile: NWBFile):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_date_of_birth(subject: Subject):
+    """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
+    if subject.date_of_birth is None and subject.age is None:
+        return InspectorMessage(message="Subject is missing age or date_of_birth.")
+    elif subject.date_of_birth is None and subject.age is not None:
+        return
+    try:
+        datetime.fromisoformat(subject.date_of_birth)
+    except ValueError as exception:
+        assert str(exception) == f"Invalid isoformat string: '{subject.date_of_birth}'"
+        return InspectorMessage(
+            message=(
+                f"Subject date_of_birth, '{subject.date_of_birth}', does not follow ISO 8601 format, "
+                "e.g., '2016-12-13' for the date or '2016-12-13T21:20:37.593194+00:00' for the full datetime."
+            )
+        )
+
+    if "/" in subject.age:
+        subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
+
+        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and (
+            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
+        ):
+            return
+
+    return InspectorMessage(
+        message=(
+            f"Subject age, '{subject.age}', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
+        )
+    )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None and subject.date_of_birth is None:
