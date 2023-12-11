@@ -8,6 +8,10 @@ NWBFile Metadata
 ----------------
 .. automodule:: nwbinspector.checks.nwbfile_metadata
 
+General
+-------
+.. automodule:: nwbinspector.checks.general
+
 NWB Containers
 --------------
 .. automodule:: nwbinspector.checks.nwb_containers
@@ -43,3 +47,7 @@ Optogenetics (ogen)
 ImageSeries
 -----------
 .. automodule:: nwbinspector.checks.image_series
+
+Images
+------
+.. automodule:: nwbinspector.checks.images
