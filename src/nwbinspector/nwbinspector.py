@@ -551,15 +551,16 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
     if not skip_validate:
-        validation_errors = pynwb.validate(paths=[nwbfile_path], driver=driver)
-        for validation_error in validation_errors:
-            yield InspectorMessage(
-                message=validation_error.reason,
-                importance=Importance.PYNWB_VALIDATION,
-                check_function_name=validation_error.name,
-                location=validation_error.location,
-                file_path=nwbfile_path,
-            )
+        validation_error_list = pynwb.validate(paths=[nwbfile_path], driver=driver)
+        for validation_namespace_errors in validation_error_list:
+            for validation_error in validation_namespace_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
 
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         try:
