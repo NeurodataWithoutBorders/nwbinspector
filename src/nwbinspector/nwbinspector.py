@@ -13,6 +13,7 @@ from types import FunctionType
 from warnings import filterwarnings, warn
 from distutils.util import strtobool
 from collections import defaultdict
+from packaging.version import Version
 
 import click
 import pynwb
@@ -29,7 +30,14 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from .utils import (
+    FilePathType,
+    PathType,
+    OptionalListOfStrings,
+    robust_s3_read,
+    calculate_number_of_cpu,
+    get_package_version,
+)
 from nwbinspector import __version__
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
@@ -550,8 +558,20 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
+    if not skip_validate and get_package_version("pynwb") >= Version("2.2.0"):
+        validation_error_list, _ = pynwb.validate(paths=[nwbfile_path], driver=driver)
+        for validation_namespace_errors in validation_error_list:
+            for validation_error in validation_namespace_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
+        if not skip_validate and get_package_version("pynwb") < Version("2.2.0"):
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
                 yield InspectorMessage(
