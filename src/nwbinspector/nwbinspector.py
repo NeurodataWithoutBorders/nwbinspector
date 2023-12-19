@@ -550,18 +550,18 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
-            validation_errors = pynwb.validate(io=io)
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
+    if not skip_validate:
+        validation_errors = pynwb.validate(paths=[nwbfile_path], driver=driver)
+        for validation_error in validation_errors:
+            yield InspectorMessage(
+                message=validation_error.reason,
+                importance=Importance.PYNWB_VALIDATION,
+                check_function_name=validation_error.name,
+                location=validation_error.location,
+                file_path=nwbfile_path,
+            )
 
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
         try:
             nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
             for inspector_message in inspect_nwbfile_object(
