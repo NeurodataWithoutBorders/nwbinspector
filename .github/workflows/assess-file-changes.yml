@@ -27,7 +27,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v32.1.2
+        uses: tj-actions/changed-files@v41.0.0
 
       - name: Assess Source Code Changes
         id: flagged-changes
