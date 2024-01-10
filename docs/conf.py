@@ -37,6 +37,9 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
+# For detecting missing links on PRs
+nitpicky = True
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------
