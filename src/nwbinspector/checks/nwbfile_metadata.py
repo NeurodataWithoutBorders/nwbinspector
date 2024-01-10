@@ -104,7 +104,7 @@ def check_keywords(nwbfile: NWBFile):
         return InspectorMessage(message="Metadata /general/keywords is missing.")
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_subject_exists(nwbfile: NWBFile):
     """Check if subject exists."""
     if nwbfile.subject is None:
