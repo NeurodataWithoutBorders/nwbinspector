@@ -3,8 +3,8 @@ import os
 
 import h5py
 from pynwb import NWBContainer
-
-
+from hdmf.utils import get_data_shape
+from numpy import ndarray
 from ..register_checks import register_check, Importance, InspectorMessage, Severity
 
 
@@ -26,6 +26,25 @@ def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound:
                 severity=Severity.HIGH,
                 message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
             )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
+def check_dataset_is_empty(nwb_container: NWBContainer):
+
+    def is_empty_data(data):
+        if isinstance(data, ndarray):
+            return data.size == 0
+        elif isinstance(data, (list, tuple)):
+            return all(is_empty_data(item) for item in data)
+        else:
+            return not bool(data)
+
+    if hasattr(nwb_container, "data"):
+        data = getattr(nwb_container, "data")
+        if is_empty_data(data):
+            return InspectorMessage(
+                message="Data object is empty. Please check the dataset before conversion"
+                )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
