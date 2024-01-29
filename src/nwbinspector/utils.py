@@ -1,4 +1,5 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
+
 import os
 import re
 import json

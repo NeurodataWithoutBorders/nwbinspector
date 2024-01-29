@@ -1,4 +1,5 @@
 """Primary functions for inspecting NWBFiles."""
+
 import os
 import re
 import importlib

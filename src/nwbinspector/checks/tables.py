@@ -1,4 +1,5 @@
 """Check functions that can apply to any descendant of DynamicTable."""
+
 from numbers import Real
 from typing import List, Optional
 

@@ -1,4 +1,5 @@
 """Check functions that can apply to any object inside an NWBContainer."""
+
 import os
 
 import h5py

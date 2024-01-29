@@ -1,4 +1,5 @@
 """Helper functions related to NWB for internal use that rely on external dependencies (i.e., pynwb)."""
+
 from pynwb import NWBFile
 
 

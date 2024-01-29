@@ -1,4 +1,5 @@
 """Check functions that can apply to any descendant of TimeSeries."""
+
 import numpy as np
 
 from pynwb import TimeSeries
