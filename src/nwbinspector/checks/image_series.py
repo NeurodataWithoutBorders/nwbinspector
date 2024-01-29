@@ -1,4 +1,5 @@
 """Check functions specific to ImageSeries."""
+
 import ntpath
 from pathlib import Path
 

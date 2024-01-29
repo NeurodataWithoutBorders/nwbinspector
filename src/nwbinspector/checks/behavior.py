@@ -1,4 +1,5 @@
 """Checks for types belonging to the pynwb.behavior module."""
+
 import numpy as np
 from pynwb.behavior import SpatialSeries, CompassDirection
 

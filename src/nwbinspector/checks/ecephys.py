@@ -1,4 +1,5 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
+
 import numpy as np
 
 from pynwb.misc import Units

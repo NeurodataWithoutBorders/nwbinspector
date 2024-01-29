@@ -1,4 +1,5 @@
 """Check functions that examine general NWBFile metadata."""
+
 import re
 from datetime import datetime
 
