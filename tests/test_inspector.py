@@ -730,7 +730,7 @@ class TestCheckUniqueIdentifiersFail(TestCase):
 
 
 def test_dandi_config_in_vitro_injection():
-    """Test that a special subject_id of 'in_vitro' properly excludes meaningless CRITICAL-elevated subject checks."""
+    """Test that a subject_id starting with 'in_vitro_' excludes meaningless CRITICAL-elevated subject checks."""
     nwbfile = mock_NWBFile(
         subject=Subject(subject_id="in_vitro_CaMPARI3", description="A detailed description about the in vitro setup.")
     )
