@@ -6,10 +6,10 @@ from unittest import TestCase
 from datetime import datetime
 
 import numpy as np
-import pynwb
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Subject
 from pynwb.behavior import SpatialSeries, Position
+from pynwb.testing.mock.file import mock_NWBFile
 from hdmf.common import DynamicTable
 from natsort import natsorted
 
@@ -731,10 +731,8 @@ class TestCheckUniqueIdentifiersFail(TestCase):
 
 def test_dandi_config_in_vitro_injection():
     """Test that a special subject_id of 'in_vitro' properly excludes meaningless CRITICAL-elevated subject checks."""
-    nwbfile = pynwb.testing.mock.file.mock_NWBFile(
-        subject=pynwb.file.Subject(
-            subject_id="in_vitro", description="A detailed description about the in vitro setup."
-        )
+    nwbfile = mock_NWBFile(
+        subject=Subject(subject_id="in_vitro_CaMPARI3", description="A detailed description about the in vitro setup.")
     )
     config = load_config(filepath_or_keyword="dandi")
     importance_threshold = "CRITICAL"

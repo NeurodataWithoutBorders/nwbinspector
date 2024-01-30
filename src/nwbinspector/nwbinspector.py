@@ -623,7 +623,7 @@ def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = 
     if (
         any(subject_related_dandi_requirements)
         and subject is not None
-        and getattr(subject, "subject_id", "") == "in_vitro"
+        and getattr(subject, "subject_id", "").startswith("in_vitro_")
     ):
         non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
         return non_subject_checks
