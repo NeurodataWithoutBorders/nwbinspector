@@ -604,6 +604,32 @@ def inspect_nwbfile(
             )
 
 
+def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
+    """If the special 'in_vitro' subject_id is specified, return a truncated list of checks to run."""
+    subject_related_check_names = [
+        "check_subject_exists",
+        "check_subject_id_exists",
+        "check_subject_sex",
+        "check_subject_species_exists",
+        "check_subject_species_form",
+        "check_subject_age",
+        "check_subject_proper_age_range",
+    ]
+    subject_related_dandi_requirements = [
+        check.importance == Importance.CRITICAL for check in checks if check.__name__ in subject_related_check_names
+    ]
+
+    subject = getattr(nwbfile_object, "subject", None)
+    if (
+        any(subject_related_dandi_requirements)
+        and subject is not None
+        and getattr(subject, "subject_id", "") == "in_vitro"
+    ):
+        non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
+        return non_subject_checks
+    return checks
+
+
 def inspect_nwbfile_object(
     nwbfile_object: pynwb.NWBFile,
     checks: Optional[list] = None,
@@ -651,7 +677,9 @@ def inspect_nwbfile_object(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
 
-    for inspector_message in run_checks(nwbfile=nwbfile_object, checks=checks):
+    subject_dependent_checks = _intercept_in_vitro(nwbfile_object=nwbfile_object, checks=checks)
+
+    for inspector_message in run_checks(nwbfile=nwbfile_object, checks=subject_dependent_checks):
         yield inspector_message
 
 
