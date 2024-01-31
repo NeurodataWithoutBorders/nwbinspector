@@ -604,8 +604,14 @@ def inspect_nwbfile(
             )
 
 
+# TODO: deprecate once subject types and dandi schemas have been extended
 def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
-    """If the special 'in_vitro' subject_id is specified, return a truncated list of checks to run."""
+    """
+    If the special 'invitro' subject_id is specified, return a truncated list of checks to run.
+
+    This is a temporary method for allowing upload of in vitro data to DANDI and
+    is expected to replaced in future versions.
+    """
     subject_related_check_names = [
         "check_subject_exists",
         "check_subject_id_exists",
@@ -623,7 +629,7 @@ def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = 
     if (
         any(subject_related_dandi_requirements)
         and subject is not None
-        and getattr(subject, "subject_id", "").startswith("in_vitro_")
+        and getattr(subject, "subject_id", "").startswith("invitro")
     ):
         non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
         return non_subject_checks
