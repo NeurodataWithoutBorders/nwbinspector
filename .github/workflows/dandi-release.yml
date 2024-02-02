@@ -31,4 +31,4 @@ jobs:
           source venvs/dev3/bin/activate
           pip install dandi[test]
           pip install tox
-          tox -e py3
+          pytest -vv
