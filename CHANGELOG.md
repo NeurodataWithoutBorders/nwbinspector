@@ -1,5 +1,11 @@
 # Upcoming
 
+# v0.4.33
+
+### Fixes
+
+* Add safer retrieval of `subject_id` for _in vitro_ protein filtering. [#433](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/433)
+
 
 
 # v0.4.32
