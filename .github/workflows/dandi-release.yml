@@ -21,13 +21,13 @@ jobs:
 
       - name: Install and test against latest DANDI release
         run: |
+          virtualenv --system-site-packages --python=python3 venvs/dev3
+          source venvs/dev3/bin/activate
           git clone https://github.com/NeurodataWithoutBorders/nwbinspector
           cd nwbinspector
           pip install -e .
           cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
-          virtualenv --system-site-packages --python=python3 venvs/dev3
-          source venvs/dev3/bin/activate
           pip install dandi[test]
           pytest -vv
