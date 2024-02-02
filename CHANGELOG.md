@@ -1,8 +1,8 @@
 # Upcoming
 
-### New Checks
 
-* Added `check_rate_is_not_zero` for ensuring non-zero rate value of `TimeSeries` that has more than one frame. [#389](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/389)
+
+# v0.4.32
 
 ### Fixes
 
@@ -11,6 +11,14 @@
 ### Improvements
 
 * Added automatic suppression of certain subject related checks when inspecting files using the "dandi" configuration that have a `subject_id` that starts with the keyphrase "protein"; _e.g._, "proteinCaMPARI3" to indicate the _in vitro_ subject of the experiment is a purified CaMPARI3 protein.
+
+
+
+# v0.4.31
+
+### New Checks
+
+* Added `check_rate_is_not_zero` for ensuring non-zero rate value of `TimeSeries` that has more than one frame. [#389](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/389)
 
 
 
