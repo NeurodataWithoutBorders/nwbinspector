@@ -1,5 +1,4 @@
 import os
-import pytest
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
@@ -8,7 +7,7 @@ from datetime import datetime
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Subject
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
 from natsort import natsorted
@@ -22,7 +21,7 @@ from nwbinspector import (
     check_subject_exists,
     load_config,
 )
-from nwbinspector import inspect_all, inspect_nwbfile, available_checks
+from nwbinspector import inspect_all, inspect_nwbfile, inspect_nwbfile_object, available_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
@@ -727,3 +726,17 @@ class TestCheckUniqueIdentifiersFail(TestCase):
                 file_path=str(self.tempdir),
             )
         ]
+
+
+def test_dandi_config_in_vitro_injection():
+    """Test that a subject_id starting with 'protein' excludes meaningless CRITICAL-elevated subject checks."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.subject = Subject(
+        subject_id="proteinCaMPARI3", description="A detailed description about the in vitro setup."
+    )
+    config = load_config(filepath_or_keyword="dandi")
+    importance_threshold = "CRITICAL"
+    messages = list(
+        inspect_nwbfile_object(nwbfile_object=nwbfile, config=config, importance_threshold=importance_threshold)
+    )
+    assert messages == []
