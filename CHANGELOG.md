@@ -10,7 +10,7 @@
 
 ### Improvements
 
-* Added automatic suppression of certain subject related checks when inspecting files using the "dandi" configuration that have a `subject_id` that starts with the keyphrase "invitro"; _e.g._, "invitroCaMPARI3" to indicate the _in vitro_ subject of the experiment is a purified CaMPARI3 protein.
+* Added automatic suppression of certain subject related checks when inspecting files using the "dandi" configuration that have a `subject_id` that starts with the keyphrase "protein"; _e.g._, "proteinCaMPARI3" to indicate the _in vitro_ subject of the experiment is a purified CaMPARI3 protein.
 
 
 

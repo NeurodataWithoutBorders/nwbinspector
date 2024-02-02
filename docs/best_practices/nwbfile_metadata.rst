@@ -184,7 +184,7 @@ A ``subject_id`` is required for upload to the :dandi-archive:`DANDI archive <>`
 not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified at all it should be given a
 ``subject_id`` for reference.
 
-In the special case of *in vitro* studies where the 'subject' of scientific interest may not have been a biological sample obtained from a living subject, such as the case of a purified protein, suppression of validation for additional subject attributes is possible by prepending the keyphrase "invitro" to the subject ID; *e.g*, "invitroCaMPARI3". In the case where the *in vitro* experiment is performed on an extracted or cultured biological sample, the other subject attributes (such as age and sex) should be specified as their values at the time the sample was collected.
+In the special case of *in vitro* studies where the 'subject' of scientific interest was not a tissue sample obtained from a living subject but was instead a purified protein, this will be annotated by prepending the keyphrase "protein" to the subject ID; *e.g*, "proteinCaMPARI3". In the case where the *in vitro* experiment is performed on an extracted or cultured biological sample, the other subject attributes (such as age and sex) should be specified as their values at the time the sample was collected.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id_exists`
 

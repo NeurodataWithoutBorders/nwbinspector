@@ -605,11 +605,11 @@ def inspect_nwbfile(
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
-def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
+def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
     """
-    If the special 'invitro' subject_id is specified, return a truncated list of checks to run.
+    If the special 'protein' subject_id is specified, return a truncated list of checks to run.
 
-    This is a temporary method for allowing upload of in vitro data to DANDI and
+    This is a temporary method for allowing upload of certain in vitro data to DANDI and
     is expected to replaced in future versions.
     """
     subject_related_check_names = [
@@ -629,7 +629,7 @@ def _intercept_in_vitro(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = 
     if (
         any(subject_related_dandi_requirements)
         and subject is not None
-        and getattr(subject, "subject_id", "").startswith("invitro")
+        and getattr(subject, "subject_id", "").startswith("protein")
     ):
         non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
         return non_subject_checks
@@ -683,7 +683,7 @@ def inspect_nwbfile_object(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
 
-    subject_dependent_checks = _intercept_in_vitro(nwbfile_object=nwbfile_object, checks=checks)
+    subject_dependent_checks = _intercept_in_vitro_protein(nwbfile_object=nwbfile_object, checks=checks)
 
     for inspector_message in run_checks(nwbfile=nwbfile_object, checks=subject_dependent_checks):
         yield inspector_message
