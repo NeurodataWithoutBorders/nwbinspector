@@ -741,14 +741,11 @@ def test_dandi_config_in_vitro_injection():
     )
     assert messages == []
 
+
 def test_dandi_config_in_vitro_injection():
     """Test the safe subject ID retrieval of the in vitro injection."""
     nwbfile = make_minimal_nwbfile()
-    nwbfile.subject = Subject(
-        subject_id=None, description="A detailed description about the in vitro setup."
-    )
+    nwbfile.subject = Subject(subject_id=None, description="A detailed description about the in vitro setup.")
     config = load_config(filepath_or_keyword="dandi")
-    messages = list(
-        inspect_nwbfile_object(nwbfile_object=nwbfile, config=config)
-    )
+    messages = list(inspect_nwbfile_object(nwbfile_object=nwbfile, config=config))
     assert len(messages) != 0
