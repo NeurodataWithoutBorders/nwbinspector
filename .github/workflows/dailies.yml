@@ -13,6 +13,12 @@ jobs:
   run-daily-doc-link-checks:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
 
+  run-daily-dandi-release-tests:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
+
+  run-daily-dandi-dev-tests:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
+
   notify:
     runs-on: ubuntu-latest
     needs: [run-daily-tests, run-daily-doc-link-checks]
