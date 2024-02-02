@@ -629,7 +629,7 @@ def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[
     if (
         any(subject_related_dandi_requirements)
         and subject is not None
-        and getattr(subject, "subject_id", "").startswith("protein")
+        and (getattr(subject, "subject_id") or "").startswith("protein")
     ):
         non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
         return non_subject_checks
