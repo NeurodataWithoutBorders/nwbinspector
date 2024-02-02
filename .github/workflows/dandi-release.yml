@@ -30,5 +30,4 @@ jobs:
           virtualenv --system-site-packages --python=python3 venvs/dev3
           source venvs/dev3/bin/activate
           pip install dandi[test]
-          pip install tox
           pytest -vv
