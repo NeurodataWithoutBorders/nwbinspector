@@ -1,5 +1,8 @@
-name: Test against latest DANDI release
+name: Test against latest DANDI release - no network
 on: workflow_call
+
+env:
+  DANDI_TESTS_NONETWORK: "1"
 
 jobs:
   build-and-test:
