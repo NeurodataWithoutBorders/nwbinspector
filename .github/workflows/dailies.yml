@@ -3,7 +3,7 @@ name: Daily workflows
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 16 * * *"  # Daily at noon EST
+    - cron: "0 14 * * *"  # Daily at 10am EST
 
 jobs:
 
