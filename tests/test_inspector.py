@@ -589,7 +589,7 @@ class TestDANDIConfig(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-    
+
     def test_inspect_nwbfile_dandi_config_critical_only_entire_registry(self):
         test_results = list(
             inspect_nwbfile(
@@ -658,7 +658,11 @@ class TestDANDIConfig(TestCase):
 
     def inspect_all_dandi_config_parallel(self):
 
-        test_results = list(inspect_all(path=Path(self.nwbfile_paths[0]).parent, config=load_config(filepath_or_keyword="dandi"), n_jobs=2))
+        test_results = list(
+            inspect_all(
+                path=Path(self.nwbfile_paths[0]).parent, config=load_config(filepath_or_keyword="dandi"), n_jobs=2
+            )
+        )
 
         expected_results = [
             InspectorMessage(
