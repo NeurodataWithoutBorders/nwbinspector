@@ -589,7 +589,7 @@ class TestDANDIConfig(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
+    
     def test_inspect_nwbfile_dandi_config_critical_only_entire_registry(self):
         test_results = list(
             inspect_nwbfile(
@@ -634,6 +634,54 @@ class TestDANDIConfig(TestCase):
             InspectorMessage(
                 message="Subject is missing.",
                 importance=Importance.CRITICAL,  # Normally a BEST_PRACTICE_SUGGESTION
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[1],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, "
+                    "and is usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                check_function_name="check_data_orientation",
+                object_type="TimeSeries",
+                object_name="my_spatial_series",
+                location="/acquisition/my_spatial_series",
+                file_path=self.nwbfile_paths[1],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def inspect_all_dandi_config_parallel(self):
+
+        test_results = list(inspect_all(path=Path(self.nwbfile_paths[0]).parent, config=load_config(filepath_or_keyword="dandi"), n_jobs=2))
+
+        expected_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,
                 check_function_name="check_subject_exists",
                 object_type="NWBFile",
                 object_name="root",
