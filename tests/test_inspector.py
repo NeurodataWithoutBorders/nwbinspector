@@ -411,7 +411,7 @@ class TestInspector(TestCase):
             true_file_path=Path(__file__).parent / "true_nwbinspector_default_report.txt",
             skip_first_newlines=True,
         )
-    
+
     def test_command_line_saves_report(self):
         console_output_file = self.tempdir / "test_console_output_3.txt"
         os.system(
@@ -658,11 +658,7 @@ class TestDANDIConfig(TestCase):
 
     def inspect_all_dandi_config_parallel(self):
         """Reproducing Issue #436."""
-        test_results = list(
-            inspect_all(
-                path=self.tmpdir, config=load_config(filepath_or_keyword="dandi"), n_jobs=2
-            )
-        )
+        test_results = list(inspect_all(path=self.tmpdir, config=load_config(filepath_or_keyword="dandi"), n_jobs=2))
 
         expected_results = [
             InspectorMessage(
