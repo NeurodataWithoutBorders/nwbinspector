@@ -411,7 +411,7 @@ class TestInspector(TestCase):
             true_file_path=Path(__file__).parent / "true_nwbinspector_default_report.txt",
             skip_first_newlines=True,
         )
-
+    
     def test_command_line_saves_report(self):
         console_output_file = self.tempdir / "test_console_output_3.txt"
         os.system(
@@ -657,10 +657,10 @@ class TestDANDIConfig(TestCase):
         self.assertCountEqual(first=test_results, second=true_results)
 
     def inspect_all_dandi_config_parallel(self):
-
+        """Reproducing Issue #436."""
         test_results = list(
             inspect_all(
-                path=Path(self.nwbfile_paths[0]).parent, config=load_config(filepath_or_keyword="dandi"), n_jobs=2
+                path=self.tmpdir, config=load_config(filepath_or_keyword="dandi"), n_jobs=2
             )
         )
 
@@ -707,6 +707,13 @@ class TestDANDIConfig(TestCase):
             ),
         ]
         self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_command_line_runs_parallel_with_config_and_report(self):
+        """Reproducing Issue #436."""
+        console_output_file = self.tempdir / "test_command_line_runs_parallel_with_config_and_report_results.txt"
+        os.system(
+            f"nwbinspector {str(self.tempdir)} --config dandi --report-file-path {console_output_file} --n-jobs 2"
+        )
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):
