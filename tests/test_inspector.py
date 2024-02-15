@@ -710,6 +710,7 @@ class TestDANDIConfig(TestCase):
         os.system(
             f"nwbinspector {str(self.tempdir)} --config dandi --report-file-path {console_output_file} --n-jobs 2"
         )
+        assert console_output_file.exists()
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):
