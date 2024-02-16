@@ -656,6 +656,62 @@ class TestDANDIConfig(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+    def inspect_all_dandi_config_parallel(self):
+        """Reproducing Issue #436."""
+        test_results = list(inspect_all(path=self.tmpdir, config=load_config(filepath_or_keyword="dandi"), n_jobs=2))
+
+        expected_results = [
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
+                importance=Importance.CRITICAL,
+                check_function_name="check_timestamps_match_first_dimension",
+                object_type="TimeSeries",
+                object_name="test_time_series_3",
+                location="/acquisition/test_time_series_3",
+                file_path=self.nwbfile_paths[0],
+            ),
+            InspectorMessage(
+                message="Subject is missing.",
+                importance=Importance.CRITICAL,
+                check_function_name="check_subject_exists",
+                object_type="NWBFile",
+                object_name="root",
+                location="/",
+                file_path=self.nwbfile_paths[1],
+            ),
+            InspectorMessage(
+                message=(
+                    "Data may be in the wrong orientation. Time should be in the first dimension, "
+                    "and is usually the longest dimension. Here, another dimension is longer."
+                ),
+                importance=Importance.BEST_PRACTICE_VIOLATION,
+                severity=Severity.LOW,
+                check_function_name="check_data_orientation",
+                object_type="TimeSeries",
+                object_name="my_spatial_series",
+                location="/acquisition/my_spatial_series",
+                file_path=self.nwbfile_paths[1],
+            ),
+        ]
+        self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_command_line_runs_parallel_with_config_and_report(self):
+        """Reproducing Issue #436."""
+        console_output_file = self.tempdir / "test_command_line_runs_parallel_with_config_and_report_results.txt"
+        os.system(
+            f"nwbinspector {str(self.tempdir)} --config dandi --report-file-path {console_output_file} --n-jobs 2"
+        )
+        assert console_output_file.exists()
+
 
 class TestCheckUniqueIdentifiersPass(TestCase):
     maxDiff = None
