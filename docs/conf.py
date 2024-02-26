@@ -37,6 +37,11 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
+linkcheck_anchors = False
+linkcheck_ignore = [
+    r"https://stackoverflow\.com/.*",  # The r is because of the regex, stackoverflow links are forbidden to bots
+]
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------
