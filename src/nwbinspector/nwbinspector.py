@@ -82,9 +82,6 @@ def copy_check(check):
 
     Also copies the wrapper for auto-parsing results,
     see https://github.com/NeurodataWithoutBorders/nwbinspector/pull/218 for explanation.
-
-    Taken from
-    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
     copied_check = _copy_function(function=check)
     copied_check.__wrapped__ = _copy_function(function=check.__wrapped__)
