@@ -64,12 +64,7 @@ def validate_config(config: dict):
 
 
 def _copy_function(function):
-    """
-    Copy the core parts of a given function, excluding wrappers, then return a new function.
-
-    Based off of
-    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
-    """
+    """Copy the core parts of a given function, excluding wrappers, then return a new function."""
     copied_function = FunctionType(
         function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
     )
