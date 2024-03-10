@@ -482,7 +482,10 @@ def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
     assert check_subject_species_form(subject) == InspectorMessage(
-        message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        message=(
+            "Subject species 'Human' should either be in Latin binomial form (e.g., 'Mus musculus' and "
+            "'Homo sapiens') or be a NCBI taxonomy link (e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_form",
         object_type="Subject",
@@ -495,7 +498,10 @@ def test_check_subject_species_c_elegans():
     subject = Subject(subject_id="001", species="C. elegans")
 
     assert check_subject_species_form(subject) == InspectorMessage(
-        message="Subject species 'C. elegans' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        message=(
+            "Subject species 'C. elegans' should either be in Latin binomial form (e.g., 'Mus musculus' and "
+            "'Homo sapiens') or be a NCBI taxonomy link (e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_form",
         object_type="Subject",
