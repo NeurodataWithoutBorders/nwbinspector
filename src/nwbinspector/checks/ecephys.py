@@ -80,3 +80,16 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                     "observed intervals."
                 )
             )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
+def check_electrical_series_conversion_factors(electrical_series: ElectricalSeries):
+    data = electrical_series.data
+    if (
+        np.issubdtype(data.dtype, np.integer)
+        and electrical_series.conversion == electrical_series.DEFAULT_CONVERSION
+        and electrical_series.offset == electrical_series.DEFAULT_OFFSET
+    ):
+        return InspectorMessage(
+            message="ElectricalSeries data type is integer and conversion factor and offset are both default, the value may not be in the correct unit"
+        )

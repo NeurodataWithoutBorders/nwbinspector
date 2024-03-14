@@ -15,6 +15,7 @@ from nwbinspector import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_spike_times_not_in_unobserved_interval,
+    check_electrical_series_conversion_factors,
 )
 
 
@@ -154,6 +155,76 @@ class TestCheckElectricalSeries(TestCase):
             check_electrical_series_reference_electrodes_table(electrical_series).message
             == "electrodes does not  reference an electrodes table."
         )
+
+    def test_check_electrical_series_dtype_pass(self):
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.ones((100, 5), dtype=np.dtype("float64")),
+            electrodes=electrodes,
+            rate=30.0,
+        )
+
+        self.nwbfile.add_acquisition(electrical_series)
+
+        assert check_electrical_series_conversion_factors(electrical_series) is None
+
+    def test_check_electrical_series_dtype_fail(self):
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.ones((100, 5), dtype=np.dtype("int16")),
+            electrodes=electrodes,
+            rate=30.0,
+        )
+
+        self.nwbfile.add_acquisition(electrical_series)
+
+        assert check_electrical_series_conversion_factors(electrical_series) == InspectorMessage(
+            message=(
+                "ElectricalSeries data type is integer and conversion factor and offset are both default, the value may not be in the correct unit"
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_electrical_series_dtype",
+            object_type="ElectricalSeries",
+            object_name="elec_series",
+        )
+
+    def test_check_electrical_series_dtype_non_default_conversion_skip(self):
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.ones((100, 5), dtype=np.dtype("int16")),
+            electrodes=electrodes,
+            rate=30.0,
+            conversion=0.1,
+        )
+
+        self.nwbfile.add_acquisition(electrical_series)
+
+        assert check_electrical_series_conversion_factors(electrical_series) is None
+
+    def test_check_electrical_series_dtype_non_default_offet_skip(self):
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2, 3, 4], description="all")
+
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.ones((100, 5), dtype=np.dtype("int16")),
+            electrodes=electrodes,
+            rate=30.0,
+            offset=0.1,
+        )
+
+        self.nwbfile.add_acquisition(electrical_series)
+
+        assert check_electrical_series_conversion_factors(electrical_series) is None
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
