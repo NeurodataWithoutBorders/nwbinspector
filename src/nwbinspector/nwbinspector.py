@@ -308,6 +308,7 @@ def inspect_all(
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
+    progress_bar_class: tqdm = tqdm,
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
@@ -354,8 +355,11 @@ def inspect_all(
     progress_bar : bool, optional
         Display a progress bar while scanning NWBFiles.
         Defaults to True.
+    progress_bar_class : type of tqdm.tqdm, optional
+        The specific child class of tqdm.tqdm to use to make progress bars.
+        Defaults to tqdm.tqdm, the most generic parent.
     progress_bar_options : dict, optional
-        Dictionary of keyword arguments to pass directly to tqdm.
+        Dictionary of keyword arguments to pass directly to the progress_bar_class.
     stream : bool, optional
         Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, setting this
         argument to True will force the data to be streamed instead of using the local copy.
@@ -423,7 +427,7 @@ def inspect_all(
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:
-        nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+        nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
     if n_jobs != 1:
         progress_bar_options.update(total=len(nwbfiles))
         futures = []
@@ -441,7 +445,7 @@ def inspect_all(
                 )
             nwbfiles_iterable = as_completed(futures)
             if progress_bar:
-                nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+                nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
             for future in nwbfiles_iterable:
                 for message in future.result():
                     if stream:
