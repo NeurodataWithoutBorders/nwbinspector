@@ -1,11 +1,43 @@
 """Helper functions related to DANDI for internal use that rely on external dependencies (i.e., dandi)."""
-
+import os
 import re
 from typing import Optional, Dict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
+import tqdm
 
 from ..utils import is_module_installed, calculate_number_of_cpu
+
+
+def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True) -> Dict[str, str]:
+    """
+    Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'.
+
+    Must be globally defined (not as a part of get_s3_urls..) in order to be pickled.
+    """
+    return {asset.get_content_url(follow_redirects=follow_redirects, strip_query=strip_query): asset.path}
+
+
+def _get_content_url_from_path(dandiset, dandiset_path: str) -> str:
+    """
+    Private helper function that operates on a dandiset object directly so it does not need to be reinstantiated.
+
+    Must be globally defined (not as a part of get_s3_urls..) in order to be pickled.
+    """
+    asset = dandiset.get_asset_by_path(path=dandiset_path)
+    if asset.path.split(".")[-1] == "nwb":
+        return next(_get_content_url_and_path(asset=asset).keys())
+
+
+def get_s3_url_from_dandi_path(
+    dandiset_id: str, dandiset_path: str, version_id: Optional[str] = None, n_jobs: int = 1
+) -> str:
+    assert is_module_installed(module_name="dandi"), "You must install DANDI to get S3 paths (pip install dandi)."
+    from dandi.dandiapi import DandiAPIClient
+
+    with DandiAPIClient() as client:
+        dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
+        _get_content_url_from_path(dandiset=dandiset, dandiset_path=dandiset_path)
 
 
 def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:
@@ -13,6 +45,9 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
     Collect S3 URLS from a DANDISet ID.
 
     Returns dictionary that maps each S3 url to the displayed file path on the DANDI archive content page.
+
+    More efficient than `get_s3_url_from_dandi_path` when iterating over and entire dandiset because the DANDI client
+    does not need to be reinitialized.
     """
     assert is_module_installed(module_name="dandi"), "You must install DANDI to get S3 paths (pip install dandi)."
     from dandi.dandiapi import DandiAPIClient
@@ -20,6 +55,9 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
     assert re.fullmatch(
         pattern="^[0-9]{6}$", string=dandiset_id
     ), "The specified 'path' is not a proper DANDISet ID. It should be a six-digit numeric identifier."
+
+    tqdm_type = tqdm.tqdm if "JPY_PARENT_PID" in os.environ else tqdm.notebook.tqdm
+    tqdm_description = "Fetching S3 asset paths from the DANDI Archive"
 
     s3_urls_to_dandi_paths = dict()
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
@@ -36,21 +74,12 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
                                 _get_content_url_and_path, asset=asset, follow_redirects=1, strip_query=True
                             )
                         )
-                    for future in as_completed(futures):
+                    for future in tqdm_type(iterable=as_completed(futures), desc=tqdm_description):
                         s3_urls_to_dandi_paths.update(future.result())
     else:
         with DandiAPIClient() as client:
             dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=version_id)
-            for asset in dandiset.get_assets():
+            for asset in tqdm_type(dandiset.get_assets(), desc=tqdm_description):
                 if asset.path.split(".")[-1] == "nwb":
                     s3_urls_to_dandi_paths.update(_get_content_url_and_path(asset=asset))
     return s3_urls_to_dandi_paths
-
-
-def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True) -> Dict[str, str]:
-    """
-    Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'.
-
-    Must be globally defined (not as a part of get_s3_urls..) in order to be pickled.
-    """
-    return {asset.get_content_url(follow_redirects=1, strip_query=True): asset.path}
