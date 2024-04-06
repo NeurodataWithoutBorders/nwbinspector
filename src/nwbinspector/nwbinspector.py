@@ -591,10 +591,12 @@ def inspect_nwbfile(
                 importance_threshold=importance_threshold,
             )
             if progress_bar_class is not None:
-                per_nwbfile_inspection_progress = progress_bar_class(iterable=per_nwbfile_inspection, total=len(checks), **progress_bar_options)
+                per_nwbfile_inspection_progress = progress_bar_class(
+                    iterable=per_nwbfile_inspection, total=len(checks), **progress_bar_options
+                )
             else:
                 per_nwbfile_inspection_progress = per_nwbfile_inspection
-            
+
             for inspector_message in per_nwbfile_inspection_progress:
                 inspector_message.file_path = nwbfile_path
                 yield inspector_message
@@ -694,7 +696,7 @@ def inspect_nwbfile_object(
 
 def run_checks(
     nwbfile: pynwb.NWBFile,
-    checks: list, 
+    checks: list,
     progress_bar_class: Optional[tqdm] = None,
     progress_bar_options: Optional[dict] = None,
 ) -> Iterable[InspectorMessage]:
