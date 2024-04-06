@@ -580,15 +580,22 @@ def inspect_nwbfile(
                 )
 
         try:
-            nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
-            for inspector_message in inspect_nwbfile_object(
-                nwbfile_object=nwbfile_object,
+            in_memory_nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
+
+            per_nwbfile_inspection = inspect_nwbfile_object(
+                nwbfile_object=in_memory_nwbfile,
                 checks=checks,
                 config=config,
                 ignore=ignore,
                 select=select,
                 importance_threshold=importance_threshold,
-            ):
+            )
+            if progress_bar_class is not None:
+                per_nwbfile_inspection_progress = progress_bar_class(iterable=per_nwbfile_inspection, total=len(checks), **progress_bar_options)
+            else:
+                per_nwbfile_inspection_progress = per_nwbfile_inspection
+            
+            for inspector_message in per_nwbfile_inspection_progress:
                 inspector_message.file_path = nwbfile_path
                 yield inspector_message
         except Exception as ex:
@@ -685,16 +692,39 @@ def inspect_nwbfile_object(
         yield inspector_message
 
 
-def run_checks(nwbfile: pynwb.NWBFile, checks: list):
+def run_checks(
+    nwbfile: pynwb.NWBFile,
+    checks: list, 
+    progress_bar_class: Optional[tqdm] = None,
+    progress_bar_options: Optional[dict] = None,
+) -> Iterable[InspectorMessage]:
     """
     Run checks on an open NWBFile object.
 
     Parameters
     ----------
-    nwbfile : NWBFile
-    checks : list
+    nwbfile : pynwb.NWBFile
+        The in-memory pynwb.NWBFile object to run the checks on.
+    checks : list of check functions
+        The list of check functions that will be run on the in-memory pynwb.NWBFile object.
+    progress_bar_class : type of tqdm.tqdm, optional
+        The specific child class of tqdm.tqdm to use to make progress bars.
+        Defaults to not displaying progress per set of checks over an invidiual file.
+    progress_bar_options : dict, optional
+        Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
+
+    Yields
+    ------
+    results : a generator of InspectorMessage objects
+        A generator that returns a message on each iteration, if any are triggered by downstream conditions.
+        Otherwise, has length zero (if cast as `list`), or raises `StopIteration` (if explicitly calling `next`).
     """
-    for check_function in checks:
+    if progress_bar_class is not None:
+        check_progress = progress_bar_class(iterable=checks, total=len(checks), **progress_bar_options)
+    else:
+        check_progress = checks
+
+    for check_function in check_progress:
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:
