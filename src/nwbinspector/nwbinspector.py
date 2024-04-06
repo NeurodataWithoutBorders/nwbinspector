@@ -582,22 +582,14 @@ def inspect_nwbfile(
         try:
             in_memory_nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
 
-            per_nwbfile_inspection = inspect_nwbfile_object(
+            for inspector_message in inspect_nwbfile_object(
                 nwbfile_object=in_memory_nwbfile,
                 checks=checks,
                 config=config,
                 ignore=ignore,
                 select=select,
                 importance_threshold=importance_threshold,
-            )
-            if progress_bar_class is not None:
-                per_nwbfile_inspection_progress = progress_bar_class(
-                    iterable=per_nwbfile_inspection, total=len(checks), **progress_bar_options
-                )
-            else:
-                per_nwbfile_inspection_progress = per_nwbfile_inspection
-
-            for inspector_message in per_nwbfile_inspection_progress:
+            ):
                 inspector_message.file_path = nwbfile_path
                 yield inspector_message
         except Exception as ex:
