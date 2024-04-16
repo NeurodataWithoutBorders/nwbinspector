@@ -1,6 +1,13 @@
 from .version import __version__
 from .register_checks import available_checks, Importance
-from .nwbinspector import InspectorOutputJSONEncoder, inspect_all, inspect_nwbfile, inspect_nwbfile_object, run_checks, load_config
+from .nwbinspector import (
+    InspectorOutputJSONEncoder,
+    inspect_all,
+    inspect_nwbfile,
+    inspect_nwbfile_object,
+    run_checks,
+    load_config,
+)
 from .nwbinspector import inspect_nwb  # TODO: remove after 7/1/2023
 from .checks.ecephys import *
 from .checks.general import *
