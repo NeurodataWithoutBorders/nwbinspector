@@ -15,3 +15,12 @@ from .checks.time_series import *
 from .checks.icephys import *
 
 default_check_registry = {check.__name__: check for check in available_checks}
+
+# Automatically import from a set of known extensions that might be installed
+import importlib
+
+KNOWN_EXTENSIONS = ["ndx_multichannel_volume"]
+for extension_candidate in KNOWN_EXTENSIONS:
+    if importlib.util.find_spec(name=extension_candidate) is not None:
+        importlib.import_module(name=extension_candidate)
+        # Any checks exposed to the extension __init__ will now be registered
