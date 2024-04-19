@@ -1,5 +1,11 @@
 # Upcoming
 
+# v0.4.34
+
+### Fixes
+
+* Fixed --modules flag in nwbinspector to allow for import of additional modules in the command line. This was necessary to be able to register new customized checks to the nwbinspector
+
 # v0.4.33
 
 ### Fixes
