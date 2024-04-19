@@ -4,7 +4,7 @@
 
 ### Fixes
 
-* Fixed --modules flag in nwbinspector to allow for import of additional modules in the command line. This was necessary to be able to register new customized checks to the nwbinspector
+* Fixed `--modules` flag in `nwbinspector` command line interface to allow for import of additional modules in the command line. This was necessary to be able to register new customized checks to the NWB Inspector. [#446](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/446)
 
 # v0.4.33
 
