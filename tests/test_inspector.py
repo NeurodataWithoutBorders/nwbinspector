@@ -390,7 +390,8 @@ class TestInspector(TestCase):
         console_output_file = self.tempdir / "test_console_output.txt"
         os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
-            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
+            "--modules random,math,datetime"
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(

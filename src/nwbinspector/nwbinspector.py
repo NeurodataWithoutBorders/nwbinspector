@@ -252,6 +252,7 @@ def inspect_all_cli(
     DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a six-digit Dandiset ID.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    modules = [] if modules is None else modules.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     progress_bar = strtobool(progress_bar) if progress_bar is not None else True
     if config is not None:
