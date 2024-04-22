@@ -1,5 +1,9 @@
 # Upcoming
 
+### Improvements
+
+* Exposed progress bar control to `inspect_all` and `run_checks` to allow compatibility with more generic visualizations of inspection progress related to the NWB GUIDED. [#443](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/443)
+
 # v0.4.34
 
 ### Fixes
