@@ -31,7 +31,7 @@ jobs:
       - name: Download testing data and set config path
         run: |
           dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
-          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919/testing_files/')"
+          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='{nwbinspector.__file__}/204919/testing_files/')"
       - name: Uninstall h5py
         run: pip uninstall -y h5py
       - name: Install ROS3
@@ -43,7 +43,7 @@ jobs:
 
       - name: Run pytest with coverage
         run: |
-          pytest -rsx --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+          pytest -rsx --cov=nwbinspector --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
           pytest tests/ -rsx tests/read_nwbfile_tests.py  # TODO when read_nwbfile is ported
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
