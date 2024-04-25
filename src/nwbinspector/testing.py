@@ -55,7 +55,7 @@ def load_testing_config() -> dict:
     # directly from GitHub and then updated the branch/commit in-place
     if not test_config_file_path.exists():  # pragma: no cover
         raise FileNotFoundError(
-            "The testing configuration file not found at the location '{test_config_file_path}'! "
+            f"The testing configuration file not found at the location '{test_config_file_path}'! "
             "Please try reinstalling the package."
         )
 
