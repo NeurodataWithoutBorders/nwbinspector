@@ -11,6 +11,7 @@ jobs:
         os: ["ubuntu-latest", "macos-13", "windows-latest"]
         python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
+      - uses: conda-incubator/setup-miniconda@v3
       - uses: actions/checkout@v3
       - run: git fetch --prune --unshallow --tags
 
