@@ -11,10 +11,10 @@ with open(root / "src" / "nwbinspector" / "version.py") as f:
     version = f.read()
 
 # Instantiate the testing configuration file from the base file `base_test_config.json`
-BASE_CONFIG_FILE_PATH = str(Path(__file__) / "base_test_config.json")
-TESTING_CONFIG_FILE_PATH = str(Path(__file__) / "tests" / "testing_config.json")
+BASE_CONFIG_FILE_PATH = Path(__file__) / "base_test_config.json"
+TESTING_CONFIG_FILE_PATH = Path(__file__) / "tests" / "testing_config.json"
 if not TESTING_CONFIG_FILE_PATH.exists():
-    copy(src=BASE_CONFIG_FILE_PATH, dst=TESTING_CONFIG_FILE_PATH)
+    copy(src=str(BASE_CONFIG_FILE_PATH), dst=str(TESTING_CONFIG_FILE_PATH))
 
 setup(
     name="nwbinspector",
