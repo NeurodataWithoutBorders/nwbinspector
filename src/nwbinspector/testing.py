@@ -21,6 +21,7 @@ from .utils import is_module_installed, get_package_version
 
 TESTING_CONFIG_FILE_PATH = Path(__file__).parent.parent / "tests" / "testing_config.json"
 
+
 def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the testing environment can support S3 DANDI streaming.
