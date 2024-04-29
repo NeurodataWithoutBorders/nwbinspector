@@ -26,11 +26,14 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
 
     Best Practice: :ref:`best_practice_global_time_reference`
     """
-    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
+    session_start_time = nwbfile.session_start_time
+    dummy_time = datetime(1980, 1, 1)
+    if dummy_time.tzinfo is None:
+        dummy_time = dummy_time.astimezone()
+    if session_start_time <= dummy_time:
         return InspectorMessage(
             message=(
-                f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "
-                "recording."
+                f"The session_start_time ({session_start_time}) may not be set to the true date of the recording."
             )
         )
 
@@ -43,7 +46,9 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
     Best Practice: :ref:`best_practice_global_time_reference`
     """
     session_start_time = nwbfile.session_start_time
-    current_time = datetime.now() if session_start_time.tzinfo is None else datetime.now().astimezone()
+    current_time = datetime.now()
+    if session_start_time.tzinfo is None:
+        current_time = current_time.astimezone()
     if session_start_time >= current_time:
         return InspectorMessage(
             message=f"The session_start_time ({session_start_time}) is set to a future date and time."
