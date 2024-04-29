@@ -24,7 +24,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install -e .
+          pip install .
           pip install dandi
       - name: Install HDMF-zarr # temporary
         run: pip install hdmf-zarr
