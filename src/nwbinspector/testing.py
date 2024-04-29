@@ -60,7 +60,7 @@ def load_testing_config() -> dict:
             "Please try reinstalling the package."
         )
 
-    with open(file=test_config_file_path) as file:
+    with open(file=TESTING_CONFIG_FILE_PATH) as file:
         test_config = json.load(file)
 
     return test_config
