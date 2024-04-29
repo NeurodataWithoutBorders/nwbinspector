@@ -25,7 +25,7 @@ the most useful of these options.
 Streaming
 ---------
 
-If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it. All that is needed is to specfy the DANDI set ID (six-digit identifier) as the path and add the ``--stream`` flag.
+If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it. All that is needed is to specify the DANDI set ID (six-digit identifier) as the path and add the ``--stream`` flag.
 
 ::
 
@@ -75,7 +75,7 @@ For example,
     numbers like ``"0, 1"``.
 
 
-The defalt report also aggregates identical outputs into a summary over multiple files; running
+The default report also aggregates identical outputs into a summary over multiple files; running
 
 ::
 

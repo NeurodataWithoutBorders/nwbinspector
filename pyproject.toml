@@ -20,3 +20,10 @@ extend-exclude = '''
   |dist
 )/
 '''
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*,*.pdf,*.css'
+check-hidden = true
+# ignore-regex = ''
+# ignore-words-list = ''
