@@ -26,7 +26,6 @@ jobs:
 
       - name: Install package
         run: |
-          cd nwbinspector
           pip install .
           pip install dandi
       - name: Download testing data and set config path
