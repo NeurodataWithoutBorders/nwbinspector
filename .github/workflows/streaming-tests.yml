@@ -8,8 +8,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.8", "3.11"]
+        os: ["ubuntu-latest", "windows-latest"]  # TODO: update mac and streaming methods
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - uses: s-weigand/setup-conda@v1
         with:
@@ -24,7 +24,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install -e .
+          pip install .
           pip install dandi
       - name: Install HDMF-zarr # temporary
         run: pip install hdmf-zarr
