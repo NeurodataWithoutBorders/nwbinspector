@@ -42,9 +42,11 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
     Best Practice: :ref:`best_practice_global_time_reference`
     """
-    if nwbfile.session_start_time >= datetime.now().astimezone():
+    session_start_time = nwbfile.session_start_time
+    current_time = datetime.now() if session_start_time.tzinfo is None else datetime.now().astimezone()
+    if session_start_time >= current_time:
         return InspectorMessage(
-            message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
+            message=f"The session_start_time ({session_start_time}) is set to a future date and time."
         )
 
 
