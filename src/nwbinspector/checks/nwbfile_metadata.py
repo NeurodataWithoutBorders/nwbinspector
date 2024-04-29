@@ -28,7 +28,7 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
     """
     session_start_time = nwbfile.session_start_time
     dummy_time = datetime(1980, 1, 1)
-    if dummy_time.tzinfo is not None:
+    if session_start_time.tzinfo is not None:
         dummy_time = dummy_time.astimezone()
     if session_start_time <= dummy_time:
         return InspectorMessage(
