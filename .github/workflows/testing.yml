@@ -1,6 +1,10 @@
 name: Testing
-on: workflow_call
-
+on:
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+        
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
