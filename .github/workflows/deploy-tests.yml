@@ -33,6 +33,8 @@ jobs:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
     uses: ./.github/workflows/testing.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   run-streaming-tests:
     needs: assess-file-changes
