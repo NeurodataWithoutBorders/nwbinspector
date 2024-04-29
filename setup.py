@@ -18,9 +18,6 @@ TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
 if not TESTING_CONFIG_FILE_PATH.exists():
     copy(src=str(BASE_CONFIG_FILE_PATH), dst=str(TESTING_CONFIG_FILE_PATH))
 
-print(BASE_CONFIG_FILE_PATH)
-print(TESTING_CONFIG_FILE_PATH)
-
 setup(
     name="nwbinspector",
     version=version.split('"')[1],
