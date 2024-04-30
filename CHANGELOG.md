@@ -1,5 +1,19 @@
 # Upcoming
 
+### Fixes
+
+* Extended `check_session_start_time_future_date` and `check_session_start_time_old_date` to be timezone optional as allowed by PyNWB > 2.6.0 versions. [#452](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/452)
+
+### Improvements
+
+* Exposed progress bar control to `inspect_all` and `run_checks` to allow compatibility with more generic visualizations of inspection progress related to the NWB GUIDED. [#443](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/443)
+
+### Testing
+
+* Pinned action runners to MacOS x64 architecture; removed other deprecated steps of setup and continuous integration testing. [#450](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/450)
+
+
+
 # v0.4.34
 
 ### Fixes
@@ -197,7 +211,7 @@
 # v0.4.14
 
 ### Fixes
-* Fixed an error with attribute retrieval specific to the `cell_id` of the `IntracellularElectrode` neurodata type that occured with respect to older versions of PyNWB. [PR #264](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/264)
+* Fixed an error with attribute retrieval specific to the `cell_id` of the `IntracellularElectrode` neurodata type that occurred with respect to older versions of PyNWB. [PR #264](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/264)
 
 
 

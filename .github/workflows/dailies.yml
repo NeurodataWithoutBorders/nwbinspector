@@ -9,6 +9,8 @@ jobs:
 
   run-daily-tests:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   run-daily-doc-link-checks:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev

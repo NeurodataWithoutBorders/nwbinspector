@@ -18,6 +18,9 @@ from pynwb.image import ImageSeries
 
 from .utils import is_module_installed, get_package_version
 
+# The tests must be invoked at the outer level of the repository
+TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
+
 
 def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
     """
@@ -49,17 +52,15 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
 
 def load_testing_config() -> dict:
     """Helper function for loading the testing configuration file as a dictionary."""
-    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "testing_config.json"
-
     # This error would only occur if someone installed a previous version
     # directly from GitHub and then updated the branch/commit in-place
-    if not test_config_file_path.exists():  # pragma: no cover
+    if not TESTING_CONFIG_FILE_PATH.exists():  # pragma: no cover
         raise FileNotFoundError(
-            "The testing configuration file not found at the location '{test_config_file_path}'! "
+            f"The testing configuration file not found at the location '{TESTING_CONFIG_FILE_PATH}'! "
             "Please try reinstalling the package."
         )
 
-    with open(file=test_config_file_path) as file:
+    with open(file=TESTING_CONFIG_FILE_PATH) as file:
         test_config = json.load(file)
 
     return test_config
@@ -67,15 +68,13 @@ def load_testing_config() -> dict:
 
 def update_testing_config(key: str, value):
     """Update a key/value pair in the testing configuration file through the API."""
-    test_config_file_path = Path(__file__).parent.parent.parent / "tests" / "testing_config.json"
-
     testing_config = load_testing_config()
 
     if key not in testing_config:
         raise KeyError("Updating the testing configuration file via the API is only possible for the pre-defined keys!")
     testing_config[key] = value
 
-    with open(file=test_config_file_path, mode="w") as file:
+    with open(file=TESTING_CONFIG_FILE_PATH, mode="w") as file:
         json.dump(testing_config, file)
 
 

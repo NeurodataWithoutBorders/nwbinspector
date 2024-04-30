@@ -11,10 +11,12 @@ with open(root / "src" / "nwbinspector" / "version.py") as f:
     version = f.read()
 
 # Instantiate the testing configuration file from the base file `base_test_config.json`
-base_test_config = Path.cwd() / "base_test_config.json"
-local_test_config = Path.cwd() / "tests" / "testing_config.json"
-if not local_test_config.exists():
-    copy(src=base_test_config, dst=local_test_config)
+# This requires the current working directory to be the top level
+# of a local copy of the NWB Inspector GitHub repository
+BASE_CONFIG_FILE_PATH = Path.cwd() / "base_test_config.json"
+TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
+if not TESTING_CONFIG_FILE_PATH.exists():
+    copy(src=str(BASE_CONFIG_FILE_PATH), dst=str(TESTING_CONFIG_FILE_PATH))
 
 setup(
     name="nwbinspector",
