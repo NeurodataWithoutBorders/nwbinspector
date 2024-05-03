@@ -3,7 +3,7 @@
 
 ### New Checks
 
-* Add check for missing timezone for `session_start_time` [#458](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/458).
+* Add: `check_session_start_time_contains_time_zone` [#458](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/458).
 
 # v0.4.35
 
