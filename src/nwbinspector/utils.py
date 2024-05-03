@@ -234,3 +234,22 @@ def get_data_shape(data, strict_no_data_load=False):
     if hasattr(data, "__len__") and not isinstance(data, (str, bytes)):
         if not strict_no_data_load or isinstance(data, (list, tuple, set)):
             return __get_shape_helper(data)
+
+
+def strtobool(val: str) -> bool:
+    """
+    Convert a string representation of truth to True or False.
+
+    True values are 'y', 'yes', 't', 'true', 'on', and '1';
+    False values are 'n', 'no', 'f', 'false', 'off', and '0'.
+    Raises ValueError if 'val' is anything else.
+    """
+    if not isinstance(val, str):
+        raise TypeError(f"Invalid type of {val!r} - must be str for `strtobool`")
+    val = val.lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    elif val in ("n", "no", "f", "false", "off", "0"):
+        return False
+    else:
+        raise ValueError(f"Invalid truth value {val!r}")

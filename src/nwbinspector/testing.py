@@ -3,7 +3,6 @@
 import os
 import json
 from uuid import uuid4
-from distutils.util import strtobool
 from pathlib import Path
 from datetime import datetime
 from typing import Tuple, Optional
@@ -16,7 +15,7 @@ from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
 
-from .utils import is_module_installed, get_package_version
+from .utils import is_module_installed, get_package_version, strtobool
 
 # The tests must be invoked at the outer level of the repository
 TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
