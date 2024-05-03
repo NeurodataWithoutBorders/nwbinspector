@@ -12,7 +12,6 @@ from typing import Union, Optional, List, Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
-from distutils.util import strtobool
 from collections import defaultdict
 from packaging.version import Version
 
@@ -38,6 +37,7 @@ from .utils import (
     robust_s3_read,
     calculate_number_of_cpu,
     get_package_version,
+    strtobool,
 )
 from nwbinspector import __version__
 
