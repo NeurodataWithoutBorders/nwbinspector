@@ -1,7 +1,7 @@
 """Check functions that examine general NWBFile metadata."""
 
 import re
-from datetime import datetime
+from datetime import datetime, date
 
 from isodate import parse_duration, Duration
 from pynwb import NWBFile, ProcessingModule
@@ -33,6 +33,22 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
     if session_start_time <= dummy_time:
         return InspectorMessage(
             message=(f"The session_start_time ({session_start_time}) may not be set to the true date of the recording.")
+        )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_session_start_time_contains_time_zone(nwbfile: NWBFile):
+    """
+    Check if the session_start_time contains a time zone.
+
+    Best Practice: :ref:`best_practice_global_time_reference`
+    """
+    session_start_time = nwbfile.session_start_time
+    if session_start_time.tzinfo is None:
+        return InspectorMessage(
+            message=(
+                f"The session_start_time ({session_start_time}) does not contain a time zone."
+            )
         )
 
 

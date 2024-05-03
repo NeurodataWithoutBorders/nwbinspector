@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -23,6 +23,7 @@ from nwbinspector import (
     check_processing_module_name,
     check_session_start_time_old_date,
     check_session_start_time_future_date,
+    check_session_start_time_contains_time_zone,
     PROCESSING_MODULE_CONFIG,
 )
 from nwbinspector.tools import make_minimal_nwbfile
@@ -54,6 +55,24 @@ def test_check_session_start_time_old_date_fail():
 def test_check_session_start_time_future_date_pass():
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1))
     assert check_session_start_time_future_date(nwbfile) is None
+
+
+def test_check_session_start_time_contains_time_zone_pass():
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1, 0, 0, 0, 0, timezone.utc))
+    assert check_session_start_time_contains_time_zone(nwbfile) is None
+
+
+def test_check_session_start_time_contains_time_zone_fail():
+    session_start_time = datetime(2010, 1, 1, 0, 0, 0, 0)
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=session_start_time)
+    assert check_session_start_time_contains_time_zone(nwbfile) == InspectorMessage(
+        message=f"The session_start_time ({session_start_time}) does not contain a time zone.",
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_session_start_time_contains_time_zone",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
 def test_check_session_start_time_future_date_fail():
