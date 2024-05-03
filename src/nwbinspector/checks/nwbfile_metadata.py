@@ -44,6 +44,8 @@ def check_session_start_time_contains_time_zone(nwbfile: NWBFile):
     Best Practice: :ref:`best_practice_global_time_reference`
     """
     session_start_time = nwbfile.session_start_time
+    if isinstance(session_start_time, date):
+        return
     if session_start_time.tzinfo is None:
         return InspectorMessage(
             message=(f"The session_start_time ({session_start_time}) does not contain a time zone.")
@@ -58,8 +60,19 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
     Best Practice: :ref:`best_practice_global_time_reference`
     """
     session_start_time = nwbfile.session_start_time
+
+    if isinstance(session_start_time, date):
+        current_date = date.today()
+        if session_start_time > current_date:
+            return InspectorMessage(
+                message=(
+                    f"The session_start_time ({session_start_time}) is set to a future date. "
+                    "Please ensure that the session_start_time is set to the correct date and time."
+                )
+            )
+
     current_time = datetime.now()
-    if session_start_time.tzinfo is not None:
+    if isinstance(session_start_time, datetime) and session_start_time.tzinfo is not None:
         current_time = current_time.astimezone()
     if session_start_time >= current_time:
         return InspectorMessage(

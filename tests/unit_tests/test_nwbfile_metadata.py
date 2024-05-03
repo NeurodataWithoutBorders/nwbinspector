@@ -1,5 +1,5 @@
 from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 import pynwb
 import pytest
@@ -65,6 +65,16 @@ def test_check_session_start_time_contains_time_zone_pass():
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime(2010, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
+    assert check_session_start_time_contains_time_zone(nwbfile) is None
+
+
+@pytest.mark.skipif(pynwb.__version__ < "2.7.0", reason="Feature not supported in pynwb < 2.7.0")
+def test_check_session_start_time_is_date_contains_time_zone_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=date(2010, 1, 1),
     )
     assert check_session_start_time_contains_time_zone(nwbfile) is None
 
