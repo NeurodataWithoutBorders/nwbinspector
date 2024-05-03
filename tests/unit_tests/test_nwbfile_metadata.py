@@ -1,6 +1,8 @@
 from uuid import uuid4
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 
+import pynwb
+import pytest
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
@@ -57,11 +59,13 @@ def test_check_session_start_time_future_date_pass():
     assert check_session_start_time_future_date(nwbfile) is None
 
 
+@pytest.mark.skipif(pynwb.__version__ < "2.7.0", reason="Feature not supported in pynwb < 2.7.0")
 def test_check_session_start_time_contains_time_zone_pass():
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1, 0, 0, 0, 0, timezone.utc))
     assert check_session_start_time_contains_time_zone(nwbfile) is None
 
 
+@pytest.mark.skipif(pynwb.__version__ < "2.7.0", reason="Feature not supported in pynwb < 2.7.0")
 def test_check_session_start_time_contains_time_zone_fail():
     session_start_time = datetime(2010, 1, 1, 0, 0, 0, 0)
     nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=session_start_time)
