@@ -1,5 +1,7 @@
 # Upcoming
 
+# v0.4.35
+
 ### Fixes
 
 * Extended `check_session_start_time_future_date` and `check_session_start_time_old_date` to be timezone optional as allowed by PyNWB > 2.6.0 versions. [#452](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/452)
