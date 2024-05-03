@@ -85,7 +85,7 @@ class InspectorMessage:
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
 # objects. We can wait and see how well that holds up before adding it in officially.
-def register_check(importance: Importance, neurodata_type):
+def register_check(importance: Importance, neurodata_type, skipif: bool = False):
     """
     Wrap a check function with this decorator to add it to the check registry and automatically parse some output.
 
@@ -103,6 +103,8 @@ def register_check(importance: Importance, neurodata_type):
         The most generic HDMF/PyNWB class the check function applies to.
         Should generally match the type annotation of the check.
         If this check is intended to apply to any general NWBFile object, set neurodata_type to None.
+    skipif : bool, optional
+        If True, the check will be skipped when running the full suite of checks.
     """
 
     def register_check_and_auto_parse(check_function):
@@ -137,7 +139,8 @@ def register_check(importance: Importance, neurodata_type):
                     auto_parsed_result = None
             return auto_parsed_result
 
-        available_checks.append(auto_parse_some_output)
+        if not skipif:
+            available_checks.append(auto_parse_some_output)
 
         return auto_parse_some_output
 
