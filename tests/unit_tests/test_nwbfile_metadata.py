@@ -58,7 +58,11 @@ def test_check_session_start_time_future_date_pass():
 
 
 def test_check_session_start_time_contains_time_zone_pass():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1, 0, 0, 0, 0, timezone.utc))
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime(2010, 1, 1, 0, 0, 0, 0, timezone.utc),
+    )
     assert check_session_start_time_contains_time_zone(nwbfile) is None
 
 

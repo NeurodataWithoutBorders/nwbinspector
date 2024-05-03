@@ -46,9 +46,7 @@ def check_session_start_time_contains_time_zone(nwbfile: NWBFile):
     session_start_time = nwbfile.session_start_time
     if session_start_time.tzinfo is None:
         return InspectorMessage(
-            message=(
-                f"The session_start_time ({session_start_time}) does not contain a time zone."
-            )
+            message=(f"The session_start_time ({session_start_time}) does not contain a time zone.")
         )
 
 
