@@ -1,5 +1,10 @@
 # Upcoming
 
+
+### New Checks
+
+* Add check for missing timezone for `session_start_time` [#458](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/458).
+
 # v0.4.35
 
 ### Fixes
