@@ -68,6 +68,7 @@ neural acquisition systems from behavioral ones.
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_processing_module_name`
 
 
+.. _best_practice_file_metadata:
 
 File Metadata
 -------------
@@ -125,7 +126,7 @@ Institution
 ~~~~~~~~~~~
 
 The ``institution`` field should be specified. This allows metadata collection programs, such as those on the
-:dandi-archive:`DANDI archive <>` to easily scan NWBFiles to deliver summary statistics.
+:dandi-archive:`DANDI archive <>` to easily scan NWB files to deliver summary statistics.
 
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_institution`
 
