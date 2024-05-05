@@ -52,6 +52,8 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return o.__dict__
         if isinstance(o, Enum):
             return o.name
+        if isinstance(o, Version):
+            return str(o)
         else:
             return super().default(o)
 
