@@ -22,9 +22,8 @@ jobs:
           pip install pytest-cov
       - name: Install package
         run: |
-          pip install -e .
+          pip install -e ".[dandi]"
           pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
-          pip install dandi
       - name: Download testing data and set config path
         run: |
           dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
