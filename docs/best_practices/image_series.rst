@@ -30,4 +30,4 @@ Use relative path for external mode
 
 When using ``external_file`` the paths passed in the ``external_file`` option should be relative to the location of the nwb file.
 
-Check function: :py:meth:`~nwbinspector.checks.check_image_series_external_file_relative`
+Check function: :py:meth:`~nwbinspector.checks.image_series.check_image_series_external_file_relative`
