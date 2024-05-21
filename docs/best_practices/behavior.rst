@@ -5,6 +5,8 @@ Behavior
 SpatialSeries
 -------------
 
+:ref:`nwb-schema:sec-SpatialSeries` objects are specifically for the position (angular or translational) of a Subject over time. Related data such as velocity and acceleration should be placed in a different neurodata object.
+
 .. _best_practice_spatial_series_dimensionality:
 
 SpatialSeries Dimensionality
