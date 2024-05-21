@@ -14,7 +14,7 @@ If an extension is required, tutorials for the process may be found through the
 :nwb-overview:`NWB Overview for Extensions <extensions_tutorial/extensions_tutorial_home.html>`.
 
 It is also encouraged for extensions to contain their own check functions for their own best practices.
-See the` :ref:`adding_custom_checks` section of the Developer Guide for how to do this.
+See the :ref:`adding_custom_checks` section of the Developer Guide for how to do this.
 
 
 
