@@ -34,7 +34,7 @@ def test_check_regular_timestamps():
         )
     ) == InspectorMessage(
         message=(
-            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=0.5 "
             "instead of timestamps."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
