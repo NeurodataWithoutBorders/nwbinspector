@@ -24,5 +24,4 @@ extend-exclude = '''
 [tool.codespell]
 skip = '.git*,*.pdf,*.css'
 check-hidden = true
-# ignore-regex = ''
 ignore-words-list = 'assertin'

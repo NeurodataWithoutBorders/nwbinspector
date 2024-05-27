@@ -5,6 +5,10 @@
 
 * Add: `check_session_start_time_contains_time_zone` [#458](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/458).
 
+### Fixes
+
+* Fixed the suggested rate in `check_regular_timestamps` to be in Hz [#467](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/467)
+
 # v0.4.35
 
 ### Fixes

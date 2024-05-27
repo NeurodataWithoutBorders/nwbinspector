@@ -18,6 +18,7 @@ def check_regular_timestamps(
         time_series.timestamps is not None
         and len(time_series.timestamps) > 2
         and is_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
+        and (time_series.timestamps[1] - time_series.timestamps[0]) != 0
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
@@ -29,7 +30,7 @@ def check_regular_timestamps(
             message=(
                 "TimeSeries appears to have a constant sampling rate. "
                 f"Consider specifying starting_time={time_series.timestamps[0]} "
-                f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+                f"and rate={1 / (time_series.timestamps[1] - time_series.timestamps[0])} instead of timestamps."
             ),
         )
 

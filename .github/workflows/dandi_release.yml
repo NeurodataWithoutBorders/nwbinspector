@@ -42,8 +42,8 @@ jobs:
         python -m pip install --upgrade pip wheel
         pip install "dandi[extras,test]"
 
-    - name: Install dev versions of NWB Inspector
-      run: pip install git+https://github.com/NeurodataWithoutBorders/nwbinspector
+    - name: Install this branch of NWB Inspector
+      run: pip install -e .
 
-    - name: Run all tests
+    - name: Run all NWB Inspector tests
       run: python -m pytest -s -v

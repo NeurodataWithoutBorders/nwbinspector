@@ -158,7 +158,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -194,7 +194,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -225,7 +225,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -263,7 +263,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -292,7 +292,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and "
-                    "rate=2.0 instead of timestamps."
+                    "rate=0.5 instead of timestamps."
                 ),
                 severity=Severity.LOW,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -542,7 +542,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. "
-                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                    "Consider specifying starting_time=1.2 and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
