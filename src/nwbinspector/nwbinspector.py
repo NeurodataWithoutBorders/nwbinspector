@@ -391,6 +391,7 @@ def inspect_all(
             nwbfiles = [in_path]
         else:
             raise ValueError(f"{in_path} should be a directory or an NWB file.")
+    nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")] # skip macos sidecar files
     for module in modules:
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
