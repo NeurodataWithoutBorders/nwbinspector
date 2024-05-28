@@ -103,6 +103,8 @@ class TestInspector(TestCase):
         # Last file to be left without violations
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        nwbfiles.append(make_minimal_nwbfile())
+        cls.nwbfile_paths.append(str(cls.tempdir / "._testing0.nwb"))
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
