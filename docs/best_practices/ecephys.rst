@@ -58,6 +58,12 @@ For relative position of an electrode on a probe, use ``rel_x``, ``rel_y``, and 
 that are close enough to share a neuron.
 
 
+Avoid Duplication of Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``ElectrodeTable`` should not contain redundant information that is present somewhere else within the :ref:`nwb-schema:sec-NWBFile` . Avoid adding columns to the `ElectrodeTable` that correspond to properties of the :ref:`nwb-schema:sec-ElectricalSeries` such as ``unit``, ``offsets`` or ``channel gains`` These properties should be stored in the corresponding attributes of the :ref:`nwb-schema:sec-ElectricalSeries` object.
+
+As a concrete example, the package objects from the `SpikeInterface <https://spikeinterface.readthedocs.io/en/latest/>`__ package contain two properties named ``gain_to_uv`` and ``offset_to_uv`` that are used to convert the raw data to microvolts. These properties should not be stored in the `ElectrodeTable` but rather in the ``ElectricalSeries`` object as ``channel_conversion`` and ``offset`` respectively.
 
 Units Table
 -----------

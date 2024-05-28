@@ -1,5 +1,4 @@
 import os
-import pytest
 from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
@@ -8,7 +7,7 @@ from datetime import datetime
 
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.file import TimeIntervals
+from pynwb.file import TimeIntervals, Subject
 from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
 from natsort import natsorted
@@ -22,7 +21,7 @@ from nwbinspector import (
     check_subject_exists,
     load_config,
 )
-from nwbinspector import inspect_all, inspect_nwbfile, available_checks
+from nwbinspector import inspect_all, inspect_nwbfile, inspect_nwbfile_object, available_checks
 from nwbinspector.register_checks import Severity, InspectorMessage, register_check
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
@@ -159,7 +158,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -195,7 +194,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -226,7 +225,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -264,7 +263,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -293,7 +292,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and "
-                    "rate=2.0 instead of timestamps."
+                    "rate=0.5 instead of timestamps."
                 ),
                 severity=Severity.LOW,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -391,7 +390,8 @@ class TestInspector(TestCase):
         console_output_file = self.tempdir / "test_console_output.txt"
         os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
-            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
+            "--modules random,math,datetime"
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -542,7 +542,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. "
-                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                    "Consider specifying starting_time=1.2 and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
@@ -727,3 +727,26 @@ class TestCheckUniqueIdentifiersFail(TestCase):
                 file_path=str(self.tempdir),
             )
         ]
+
+
+def test_dandi_config_in_vitro_injection():
+    """Test that a subject_id starting with 'protein' excludes meaningless CRITICAL-elevated subject checks."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.subject = Subject(
+        subject_id="proteinCaMPARI3", description="A detailed description about the in vitro setup."
+    )
+    config = load_config(filepath_or_keyword="dandi")
+    importance_threshold = "CRITICAL"
+    messages = list(
+        inspect_nwbfile_object(nwbfile_object=nwbfile, config=config, importance_threshold=importance_threshold)
+    )
+    assert messages == []
+
+
+def test_dandi_config_in_vitro_injection():
+    """Test the safe subject ID retrieval of the in vitro injection."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.subject = Subject(subject_id=None, description="A detailed description about the in vitro setup.")
+    config = load_config(filepath_or_keyword="dandi")
+    messages = list(inspect_nwbfile_object(nwbfile_object=nwbfile, config=config))
+    assert len(messages) != 0

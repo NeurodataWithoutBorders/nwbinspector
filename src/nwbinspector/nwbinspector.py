@@ -1,4 +1,5 @@
 """Primary functions for inspecting NWBFiles."""
+
 import os
 import re
 import importlib
@@ -11,8 +12,8 @@ from typing import Union, Optional, List, Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
-from distutils.util import strtobool
 from collections import defaultdict
+from packaging.version import Version
 
 import click
 import pynwb
@@ -29,7 +30,15 @@ from .inspector_tools import (
 )
 from .register_checks import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
-from .utils import FilePathType, PathType, OptionalListOfStrings, robust_s3_read, calculate_number_of_cpu
+from .utils import (
+    FilePathType,
+    PathType,
+    OptionalListOfStrings,
+    robust_s3_read,
+    calculate_number_of_cpu,
+    get_package_version,
+    strtobool,
+)
 from nwbinspector import __version__
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
@@ -43,6 +52,8 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return o.__dict__
         if isinstance(o, Enum):
             return o.name
+        if isinstance(o, Version):
+            return str(o)
         else:
             return super().default(o)
 
@@ -55,12 +66,7 @@ def validate_config(config: dict):
 
 
 def _copy_function(function):
-    """
-    Copy the core parts of a given function, excluding wrappers, then return a new function.
-
-    Based off of
-    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
-    """
+    """Copy the core parts of a given function, excluding wrappers, then return a new function."""
     copied_function = FunctionType(
         function.__code__, function.__globals__, function.__name__, function.__defaults__, function.__closure__
     )
@@ -78,9 +84,6 @@ def copy_check(check):
 
     Also copies the wrapper for auto-parsing results,
     see https://github.com/NeurodataWithoutBorders/nwbinspector/pull/218 for explanation.
-
-    Taken from
-    https://stackoverflow.com/questions/6527633/how-can-i-make-a-deepcopy-of-a-function-in-python/30714299#30714299
     """
     copied_check = _copy_function(function=check)
     copied_check.__wrapped__ = _copy_function(function=check.__wrapped__)
@@ -251,6 +254,7 @@ def inspect_all_cli(
     DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a six-digit Dandiset ID.
     """
     levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    modules = [] if modules is None else modules.split(",")
     reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     progress_bar = strtobool(progress_bar) if progress_bar is not None else True
     if config is not None:
@@ -307,6 +311,7 @@ def inspect_all(
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
+    progress_bar_class: tqdm = tqdm,
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
@@ -353,8 +358,11 @@ def inspect_all(
     progress_bar : bool, optional
         Display a progress bar while scanning NWBFiles.
         Defaults to True.
+    progress_bar_class : type of tqdm.tqdm, optional
+        The specific child class of tqdm.tqdm to use to make progress bars.
+        Defaults to tqdm.tqdm, the most generic parent.
     progress_bar_options : dict, optional
-        Dictionary of keyword arguments to pass directly to tqdm.
+        Dictionary of keyword arguments to pass directly to the progress_bar_class.
     stream : bool, optional
         Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, setting this
         argument to True will force the data to be streamed instead of using the local copy.
@@ -423,7 +431,7 @@ def inspect_all(
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:
-        nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+        nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
     if n_jobs != 1:
         progress_bar_options.update(total=len(nwbfiles))
         futures = []
@@ -441,7 +449,7 @@ def inspect_all(
                 )
             nwbfiles_iterable = as_completed(futures)
             if progress_bar:
-                nwbfiles_iterable = tqdm(nwbfiles_iterable, **progress_bar_options)
+                nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
             for future in nwbfiles_iterable:
                 for message in future.result():
                     if stream:
@@ -551,8 +559,20 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
+    if not skip_validate and get_package_version("pynwb") >= Version("2.2.0"):
+        validation_error_list, _ = pynwb.validate(paths=[nwbfile_path], driver=driver)
+        for validation_namespace_errors in validation_error_list:
+            for validation_error in validation_namespace_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
+
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
-        if not skip_validate:
+        if not skip_validate and get_package_version("pynwb") < Version("2.2.0"):
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
                 yield InspectorMessage(
@@ -564,9 +584,10 @@ def inspect_nwbfile(
                 )
 
         try:
-            nwbfile_object = robust_s3_read(command=io.read, max_retries=max_retries)
+            in_memory_nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
+
             for inspector_message in inspect_nwbfile_object(
-                nwbfile_object=nwbfile_object,
+                nwbfile_object=in_memory_nwbfile,
                 checks=checks,
                 config=config,
                 ignore=ignore,
@@ -582,6 +603,38 @@ def inspect_nwbfile(
                 check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
                 file_path=nwbfile_path,
             )
+
+
+# TODO: deprecate once subject types and dandi schemas have been extended
+def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
+    """
+    If the special 'protein' subject_id is specified, return a truncated list of checks to run.
+
+    This is a temporary method for allowing upload of certain in vitro data to DANDI and
+    is expected to replaced in future versions.
+    """
+    subject_related_check_names = [
+        "check_subject_exists",
+        "check_subject_id_exists",
+        "check_subject_sex",
+        "check_subject_species_exists",
+        "check_subject_species_form",
+        "check_subject_age",
+        "check_subject_proper_age_range",
+    ]
+    subject_related_dandi_requirements = [
+        check.importance == Importance.CRITICAL for check in checks if check.__name__ in subject_related_check_names
+    ]
+
+    subject = getattr(nwbfile_object, "subject", None)
+    if (
+        any(subject_related_dandi_requirements)
+        and subject is not None
+        and (getattr(subject, "subject_id") or "").startswith("protein")
+    ):
+        non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
+        return non_subject_checks
+    return checks
 
 
 def inspect_nwbfile_object(
@@ -631,20 +684,45 @@ def inspect_nwbfile_object(
             checks=checks, config=config, ignore=ignore, select=select, importance_threshold=importance_threshold
         )
 
-    for inspector_message in run_checks(nwbfile=nwbfile_object, checks=checks):
+    subject_dependent_checks = _intercept_in_vitro_protein(nwbfile_object=nwbfile_object, checks=checks)
+
+    for inspector_message in run_checks(nwbfile=nwbfile_object, checks=subject_dependent_checks):
         yield inspector_message
 
 
-def run_checks(nwbfile: pynwb.NWBFile, checks: list):
+def run_checks(
+    nwbfile: pynwb.NWBFile,
+    checks: list,
+    progress_bar_class: Optional[tqdm] = None,
+    progress_bar_options: Optional[dict] = None,
+) -> Iterable[InspectorMessage]:
     """
     Run checks on an open NWBFile object.
 
     Parameters
     ----------
-    nwbfile : NWBFile
-    checks : list
+    nwbfile : pynwb.NWBFile
+        The in-memory pynwb.NWBFile object to run the checks on.
+    checks : list of check functions
+        The list of check functions that will be run on the in-memory pynwb.NWBFile object.
+    progress_bar_class : type of tqdm.tqdm, optional
+        The specific child class of tqdm.tqdm to use to make progress bars.
+        Defaults to not displaying progress per set of checks over an invidiual file.
+    progress_bar_options : dict, optional
+        Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
+
+    Yields
+    ------
+    results : a generator of InspectorMessage objects
+        A generator that returns a message on each iteration, if any are triggered by downstream conditions.
+        Otherwise, has length zero (if cast as `list`), or raises `StopIteration` (if explicitly calling `next`).
     """
-    for check_function in checks:
+    if progress_bar_class is not None:
+        check_progress = progress_bar_class(iterable=checks, total=len(checks), **progress_bar_options)
+    else:
+        check_progress = checks
+
+    for check_function in check_progress:
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
                 try:

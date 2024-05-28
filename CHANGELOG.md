@@ -1,5 +1,60 @@
 # Upcoming
 
+### Fixes
+
+* Fixed the suggested rate in `check_regular_timestamps` to be in Hz [#467](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/467)
+
+# v0.4.35
+
+### Fixes
+
+* Extended `check_session_start_time_future_date` and `check_session_start_time_old_date` to be timezone optional as allowed by PyNWB > 2.6.0 versions. [#452](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/452)
+
+### Improvements
+
+* Exposed progress bar control to `inspect_all` and `run_checks` to allow compatibility with more generic visualizations of inspection progress related to the NWB GUIDED. [#443](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/443)
+* Added Python 3.12 support. [#457](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/457)
+
+### Testing
+
+* Pinned action runners to MacOS x64 architecture; removed other deprecated steps of setup and continuous integration testing. [#450](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/450)
+
+
+
+# v0.4.34
+
+### Fixes
+
+* Fixed `--modules` flag in `nwbinspector` command line interface to allow for import of additional modules in the command line. This was necessary to be able to register new customized checks to the NWB Inspector. [#446](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/446)
+
+# v0.4.33
+
+### Fixes
+
+* Add safer retrieval of `subject_id` for _in vitro_ protein filtering. [#433](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/433)
+
+
+
+# v0.4.32
+
+### Fixes
+
+* Use cached extension namespaces when calling pynwb validate instead of just the core namespace. [#425](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/425)
+
+### Improvements
+
+* Added automatic suppression of certain subject related checks when inspecting files using the "dandi" configuration that have a `subject_id` that starts with the keyphrase "protein"; _e.g._, "proteinCaMPARI3" to indicate the _in vitro_ subject of the experiment is a purified CaMPARI3 protein.
+
+
+
+# v0.4.31
+
+### New Checks
+
+* Added `check_rate_is_not_zero` for ensuring non-zero rate value of `TimeSeries` that has more than one frame. [#389](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/389)
+
+
+
 # v0.4.30
 
 ### Fixes
@@ -157,7 +212,7 @@
 # v0.4.14
 
 ### Fixes
-* Fixed an error with attribute retrieval specific to the `cell_id` of the `IntracellularElectrode` neurodata type that occured with respect to older versions of PyNWB. [PR #264](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/264)
+* Fixed an error with attribute retrieval specific to the `cell_id` of the `IntracellularElectrode` neurodata type that occurred with respect to older versions of PyNWB. [PR #264](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/264)
 
 
 

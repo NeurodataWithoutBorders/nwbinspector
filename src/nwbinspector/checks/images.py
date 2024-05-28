@@ -1,4 +1,5 @@
 """Checks specific to the Images neurodata type."""
+
 from packaging.version import Version
 
 from pynwb.image import IndexSeries

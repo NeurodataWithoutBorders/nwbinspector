@@ -15,6 +15,7 @@ from nwbinspector import (
     check_missing_unit,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
+    check_rate_is_not_zero,
 )
 from nwbinspector.tools import make_minimal_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled
@@ -33,7 +34,7 @@ def test_check_regular_timestamps():
         )
     ) == InspectorMessage(
         message=(
-            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=0.5 "
             "instead of timestamps."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -195,6 +196,28 @@ def test_check_timestamps_empty_timestamps():
         check_function_name="check_timestamps_match_first_dimension",
         object_type="TimeSeries",
         object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_rate_is_not_zero_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_single_frame_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1], rate=0.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_fail():
+    time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=0.0)
+    assert check_rate_is_not_zero(time_series) == InspectorMessage(
+        message="TimeSeriesTest has a sampling rate value of 0.0Hz but the series has more than one frame.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_rate_is_not_zero",
+        object_type="TimeSeries",
+        object_name="TimeSeriesTest",
         location="/",
     )
 

@@ -1,4 +1,5 @@
 """Check functions specific to optical electrophysiology neurodata types."""
+
 from pynwb.ophys import (
     RoiResponseSeries,
     PlaneSegmentation,

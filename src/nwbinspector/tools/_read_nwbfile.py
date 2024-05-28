@@ -1,4 +1,5 @@
 """Temporary module for thorough testing and evaluation of the proposed `read_nwbfile` helper function."""
+
 from pathlib import Path
 from warnings import filterwarnings
 from typing import Optional, Literal, Union

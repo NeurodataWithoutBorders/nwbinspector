@@ -1,4 +1,5 @@
 """Check functions that can apply to any descendant of TimeSeries."""
+
 import numpy as np
 
 from pynwb import TimeSeries
@@ -17,6 +18,7 @@ def check_regular_timestamps(
         time_series.timestamps is not None
         and len(time_series.timestamps) > 2
         and is_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
+        and (time_series.timestamps[1] - time_series.timestamps[0]) != 0
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
@@ -28,7 +30,7 @@ def check_regular_timestamps(
             message=(
                 "TimeSeries appears to have a constant sampling rate. "
                 f"Consider specifying starting_time={time_series.timestamps[0]} "
-                f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+                f"and rate={1 / (time_series.timestamps[1] - time_series.timestamps[0])} instead of timestamps."
             ),
         )
 
@@ -128,4 +130,15 @@ def check_resolution(time_series: TimeSeries):
     if time_series.resolution <= 0:
         return InspectorMessage(
             message=f"'resolution' should use -1.0 or NaN for unknown instead of {time_series.resolution}."
+        )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_rate_is_not_zero(time_series: TimeSeries):
+    if time_series.data is None:
+        return
+    data_shape = get_data_shape(time_series.data)
+    if time_series.rate == 0.0 and data_shape[0] > 1:
+        return InspectorMessage(
+            f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame."
         )

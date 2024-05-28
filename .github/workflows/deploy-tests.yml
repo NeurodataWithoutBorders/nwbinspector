@@ -11,40 +11,60 @@ jobs:
         uses: styfle/cancel-workflow-action@0.11.0
 
   assess-file-changes:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/assess-file-changes.yml@dev
+    uses: catalystneuro/neuroconv/.github/workflows/assess-file-changes.yml@main
+
+  detect-changelog-updates:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    name: Auto-detecting CHANGELOG.md updates
+    runs-on: ubuntu-latest
+    steps:
+      - if:  ${{ needs.assess-file-changes.outputs.CHANGELOG_UPDATED == 'true' }}
+        run: echo "CHANGELOG.md has been updated."
+      - if:  ${{ needs.assess-file-changes.outputs.CHANGELOG_UPDATED == 'false' }}
+        run: |
+          echo "CHANGELOG.md has not been updated."
+          0
 
   run-doc-link-checks:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+    uses: ./.github/workflows/doc-link-checks.yml
 
   run-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+    uses: ./.github/workflows/testing.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   run-streaming-tests:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/streaming-tests.yml@dev
+    uses: ./.github/workflows/streaming-tests.yml
 
   run-past-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/version-gallery.yml@dev
+    uses: ./.github/workflows/version-gallery.yml
 
   run-dev-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dev-gallery.yml@dev
+    uses: ./.github/workflows/dev-gallery.yml
 
   test-dandi-latest:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
+    uses: ./.github/workflows/dandi_release.yml
 
   test-dandi-dev:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
+    uses: ./.github/workflows/dandi_dev.yml
+
+  test-dandi-dev-live:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    uses: ./.github/workflows/dandi_dev_live_service.yml
 
   check-final-status:
     name: All tests passing
@@ -56,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Decide whether the all jobs succeeded or at least one failed
+    - name: Decide whether all jobs succeeded or at least one failed
       uses: re-actors/alls-green@release/v1
       with:
         allowed-skips: run-tests  # Sometimes only docs are adjusted

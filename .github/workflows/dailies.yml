@@ -3,15 +3,26 @@ name: Daily workflows
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 16 * * *"  # Daily at noon EST
+    - cron: "0 14 * * *"  # Daily at 10am EST
 
 jobs:
 
   run-daily-tests:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   run-daily-doc-link-checks:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
+
+  test-dandi-latest:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_release.yml@dev
+
+  test-dandi-dev:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_dev.yml@dev
+
+  test-dandi-dev-live:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_dev_live_service.yml@dev
 
   notify:
     runs-on: ubuntu-latest

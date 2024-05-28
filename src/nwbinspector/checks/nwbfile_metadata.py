@@ -1,4 +1,5 @@
 """Check functions that examine general NWBFile metadata."""
+
 import re
 from datetime import datetime
 
@@ -25,12 +26,13 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
 
     Best Practice: :ref:`best_practice_global_time_reference`
     """
-    if nwbfile.session_start_time <= datetime(1980, 1, 1).astimezone():
+    session_start_time = nwbfile.session_start_time
+    dummy_time = datetime(1980, 1, 1)
+    if session_start_time.tzinfo is not None:
+        dummy_time = dummy_time.astimezone()
+    if session_start_time <= dummy_time:
         return InspectorMessage(
-            message=(
-                f"The session_start_time ({nwbfile.session_start_time}) may not be set to the true date of the "
-                "recording."
-            )
+            message=(f"The session_start_time ({session_start_time}) may not be set to the true date of the recording.")
         )
 
 
@@ -41,9 +43,13 @@ def check_session_start_time_future_date(nwbfile: NWBFile):
 
     Best Practice: :ref:`best_practice_global_time_reference`
     """
-    if nwbfile.session_start_time >= datetime.now().astimezone():
+    session_start_time = nwbfile.session_start_time
+    current_time = datetime.now()
+    if session_start_time.tzinfo is not None:
+        current_time = current_time.astimezone()
+    if session_start_time >= current_time:
         return InspectorMessage(
-            message=f"The session_start_time ({nwbfile.session_start_time}) is set to a future date and time."
+            message=f"The session_start_time ({session_start_time}) is set to a future date and time."
         )
 
 
@@ -132,11 +138,12 @@ def check_doi_publications(nwbfile: NWBFile):
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_age(subject: Subject):
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
-    if subject.age is None:
-        if subject.date_of_birth is None:
-            return InspectorMessage(message="Subject is missing age and date_of_birth.")
-        else:
-            return
+    if subject.age is None and subject.date_of_birth is None:
+        return InspectorMessage(
+            message="Subject is missing age and date_of_birth. Please specify at least one of these fields."
+        )
+    elif subject.age is None and subject.date_of_birth is not None:
+        return
     if re.fullmatch(pattern=duration_regex, string=subject.age):
         return
 
@@ -247,8 +254,8 @@ def check_subject_species_form(subject: Subject):
     if subject.species and not re.fullmatch(species_form_regex, subject.species):
         return InspectorMessage(
             message=(
-                f"Subject species '{subject.species}' should be in latin binomial form, e.g. 'Mus musculus' and "
-                "'Homo sapiens'"
+                f"Subject species '{subject.species}' should either be in Latin binomial form (e.g., 'Mus musculus' and "
+                "'Homo sapiens') or be a NCBI taxonomy link (e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
             ),
         )
 

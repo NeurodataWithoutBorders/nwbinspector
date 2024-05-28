@@ -140,7 +140,7 @@ The ``keywords`` field should be specified. This allows metadata collection prog
 :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to enhance keyword-based search functionality. Try to think
 of what combination of words might make your file(s) unique or descriptive to help users trying to search for it. This
 could include the general modality or approach, the general region of cortex you wanted to study, or the type of neural
-data properties you were examining. Some examples are``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
+data properties you were examining. Some examples are ``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
 ``"waveforms"``, ``"cell types"``, ``"granule cells"``, etc.
 
 If you are unsure of what keywords to use, try searching existing datasets on the :dandi-archive:`DANDI archive <>` for
@@ -184,6 +184,8 @@ A ``subject_id`` is required for upload to the :dandi-archive:`DANDI archive <>`
 not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified at all it should be given a
 ``subject_id`` for reference.
 
+In the special case of *in vitro* studies where the 'subject' of scientific interest was not a tissue sample obtained from a living subject but was instead a purified protein, this will be annotated by prepending the keyphrase "protein" to the subject ID; *e.g*, "proteinCaMPARI3". In the case where the *in vitro* experiment is performed on an extracted or cultured biological sample, the other subject attributes (such as age and sex) should be specified as their values at the time the sample was collected.
+
 Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_id_exists`
 
 
@@ -209,7 +211,7 @@ Subject Species
 
 The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
-Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species_form`
 
 
 
