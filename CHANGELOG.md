@@ -1,10 +1,13 @@
 # Upcoming
 
+# v0.4.36
+
 ### Fixes
 
-* Fixed the suggested rate in `check_regular_timestamps` to be in Hz [#467](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/467)
+* Fixed the suggested rate in `check_regular_timestamps` to be in Hz. [#467](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/467)
+* Added a skip for mac sidecar files (._*). [#470](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/470)
 
-* Added a skip for mac sidecar files (._*): [#470](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/470)
+
 
 # v0.4.35
 
