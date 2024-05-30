@@ -1,4 +1,9 @@
-# Upcoming
+# Upcoming (0.5.0)
+
+
+### New Checks
+
+* Add: `check_session_start_time_contains_time_zone` [#458](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/458).
 
 ### Fixes
 
