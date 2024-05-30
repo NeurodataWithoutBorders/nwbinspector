@@ -395,6 +395,9 @@ def inspect_all(
         in_path = Path(path)
         if in_path.is_dir():
             nwbfiles = list(in_path.rglob("*.nwb"))
+
+            # Remove any macOS sidecar files
+            nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
         elif in_path.is_file():
             nwbfiles = [in_path]
         else:
