@@ -100,11 +100,11 @@ class TestInspector(TestCase):
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_simple_table(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
-        add_non_matching_timestamps_dimension(nwbfiles[2])
-        # Last file to be left without violations
+        # Third file to be left without violations
+        add_non_matching_timestamps_dimension(nwbfiles[3])
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
-        cls.nwbfile_paths[2] = str(cls.tempdir / f"._testing2.nwb")
+        cls.nwbfile_paths[3] = str(cls.tempdir / f"._testing3.nwb")
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
