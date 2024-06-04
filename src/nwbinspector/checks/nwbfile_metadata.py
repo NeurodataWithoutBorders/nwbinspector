@@ -29,7 +29,7 @@ def check_session_start_time_old_date(nwbfile: NWBFile):
     session_start_time = nwbfile.session_start_time
     dummy_time = datetime(1980, 1, 1)
     if session_start_time.tzinfo is not None:
-        dummy_time = dummy_time.astimezone()
+        dummy_time.tzinfo = session_start_time.tzinfo
     if session_start_time <= dummy_time:
         return InspectorMessage(
             message=(f"The session_start_time ({session_start_time}) may not be set to the true date of the recording.")
