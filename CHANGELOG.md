@@ -1,5 +1,13 @@
 # Upcoming
 
+# v0.4.37
+
+### Fixes
+
+* Equivocated timezone handling to target fields when checking for past and future dates. [#471](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/471)
+
+
+
 # v0.4.36
 
 ### Fixes
