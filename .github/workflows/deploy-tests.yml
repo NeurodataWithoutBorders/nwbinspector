@@ -41,11 +41,6 @@ jobs:
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
     uses: ./.github/workflows/streaming-tests.yml
 
-  run-past-gallery:
-    needs: assess-file-changes
-    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: ./.github/workflows/version-gallery.yml
-
   run-dev-gallery:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
