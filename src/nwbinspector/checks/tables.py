@@ -161,6 +161,31 @@ def check_column_binary_capability(table: DynamicTable, nelems: Optional[int] = 
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
+def check_floats_could_be_ints(table: DynamicTable, nelems: Optional[int] = NELEMS):
+    """
+    Check if a column of a table could be an integer dtype instead of a float dtype.
+
+    Parameters
+    ----------
+    table: DynamicTable
+    nelems: int, optional
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long, so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+    """
+    for column in table.columns:
+        if column.data.dtype == float:
+            unique_values = np.unique(_cache_data_selection(data=column.data, selection=slice(nelems)))
+            if np.all(unique_values.astype(int) == unique_values):
+                yield InspectorMessage(
+                    message=(
+                        f"Column '{column.name}' uses floats but could be integers. Consider changing the dtype to "
+                        "integers to save space."
+                    )
+                )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_single_row(
     table: DynamicTable,
     exclude_types: Optional[list] = (Units,),
