@@ -36,3 +36,6 @@ dist/
 
 # Doc build
 /docs/_build/*
+
+# Spyder
+.spyproject/

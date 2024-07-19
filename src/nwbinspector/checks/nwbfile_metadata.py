@@ -215,8 +215,29 @@ def _check_subject_sex_defaults(sex: str):
         )
 
 
-def _check_subject_sex_c_elegans(sex: str):
-    """Check if the subject sex has been specified properly for the C. elegans species."""
+def _check_subject_sex_c_elegans_ndx_subjects(sex: str, c_elegens_sex: str):
+    """
+    Check if the subject sex has been specified properly for the C. elegans species.
+
+    Applies to the ndx_subjects.CElegensSubject, but not to the base pynwb.Subject or the
+    ndx_multichannel_volume.CElegensSubject.
+    """
+    if sex != "O" or c_elegens_sex not in ("XX", "XO"):
+        return InspectorMessage(
+            message=(
+                "When using the ndx_subjects.CElegansSubject type, set `sex` equal to 'O' for 'Other' and set "
+                "the more specific `c_elegans_sex` to 'XX' (hermaphrodite) or 'XO' (male)."
+            )
+        )
+
+
+def _check_subject_sex_c_elegans_basic(sex: str):
+    """
+    Check if the subject sex has been specified properly for the C. elegans species.
+
+    Applies to the base pynwb.Subject as well as the ndx_multichannel_volume.CElegensSubject, but not to the
+    ndx_subjects.CElegensSubject.
+    """
     if sex not in ("XO", "XX"):
         return InspectorMessage(message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).")
 
@@ -230,8 +251,10 @@ def check_subject_sex(subject: Subject):
     """
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
-    if subject.species in ("Caenorhabditis elegans", "C. elegans"):
-        return _check_subject_sex_c_elegans(sex=subject.sex)
+    if subject.species in ("Caenorhabditis elegans", "C. elegans") and subject.hasattr("c_elegans_sex"):
+        return _check_subject_sex_c_elegans_ndx_subjects(sex=subject.sex, c_elegens_sex=subject.c_elegans_sex)
+    elif subject.species in ("Caenorhabditis elegans", "C. elegans") and not subject.hasattr("c_elegans_sex"):
+        return _check_subject_sex_c_elegans_basic(sex=subject.sex)
     else:
         return _check_subject_sex_defaults(sex=subject.sex)
 
