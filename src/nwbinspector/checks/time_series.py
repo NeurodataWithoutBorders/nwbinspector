@@ -92,11 +92,13 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
     if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_timestamps_with_nans(time_series: TimeSeries):
     """Check if there are NaN values in the timestamps array."""
     if time_series.timestamps is not None and np.isnan(time_series.timestamps).any():
         return InspectorMessage(f"{time_series.name} timestamps contain NaN values.")
+
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
 def check_timestamp_of_the_first_sample_is_not_negative(time_series: TimeSeries):
