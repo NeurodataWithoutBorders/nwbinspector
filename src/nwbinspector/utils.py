@@ -96,6 +96,7 @@ def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional
         data = series[:nelems]
 
     # Remove NaN values from the series
+    data = np.array(data)
     valid_data = data[~np.isnan(data)]
 
     # Compute the differences between consecutive elements
