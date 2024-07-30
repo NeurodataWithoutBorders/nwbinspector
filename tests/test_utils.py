@@ -17,6 +17,7 @@ from nwbinspector.utils import (
 
 import pytest
 
+import numpy as np
 
 def test_format_byte_size():
     assert format_byte_size(byte_size=12345) == "12.35KB"
@@ -145,6 +146,7 @@ class TestCalulcateNumberOfCPU(TestCase):
 def test_is_ascending_series():
     assert is_ascending_series(series=[1, 1, 1])
     assert is_ascending_series(series=[1, 2, 3])
+    assert is_ascending_series(series=[1, np.nan, 3])
     assert not is_ascending_series(series=[1, 2, 1])
 
 
