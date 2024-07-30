@@ -19,6 +19,7 @@ import pytest
 
 import numpy as np
 
+
 def test_format_byte_size():
     assert format_byte_size(byte_size=12345) == "12.35KB"
 
