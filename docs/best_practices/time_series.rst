@@ -2,7 +2,7 @@ Time Series
 ===========
 
 When using :ref:`nwb-schema:sec-TimeSeries` or any subtype
-(*e.g.*, :ref`nwb-schema:sec-ElectricalSeries`, :ref:`nwb-schema:sec-SpatialSeries`,
+(*e.g.*, :ref:`nwb-schema:sec-ElectricalSeries`, :ref:`nwb-schema:sec-SpatialSeries`,
 :ref:`nwb-schema:sec-ImageSeries`, etc.) please ensure the following practices are followed.
 
 
