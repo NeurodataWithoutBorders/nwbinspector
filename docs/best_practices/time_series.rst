@@ -86,6 +86,23 @@ Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_asce
 
 
 
+.. _best_practice_timestamps_without_nans:
+
+Timestamps without NaNs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``timestamps`` field of a :ref:`nwb-schema:sec-TimeSeries` should not contain ``NaN`` values, as this can lead to
+ambiguity in time references and potential issues in downstream analyses.
+
+Ensure that all timestamps are valid numerical values. If gaps in time need to be represented, consider segmenting the
+data into separate :ref:`nwb-schema:sec-TimeSeries` objects with appropriate ``starting_time`` or use the ``timestamps``
+vector to explicitly represent time gaps.
+
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_with_nans`
+
+
+
+
 .. _best_practice_regular_timestamps:
 
 Timestamps vs. Start & Rate
