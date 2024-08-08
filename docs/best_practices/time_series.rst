@@ -98,7 +98,7 @@ Ensure that all timestamps are valid numerical values. If gaps in time need to b
 data into separate :ref:`nwb-schema:sec-TimeSeries` objects with appropriate ``starting_time`` or use the ``timestamps``
 vector to explicitly represent time gaps.
 
-Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_with_nans`
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_without_nans`
 
 
 

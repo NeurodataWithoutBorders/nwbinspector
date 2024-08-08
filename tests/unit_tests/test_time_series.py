@@ -12,7 +12,7 @@ from nwbinspector import (
     check_data_orientation,
     check_timestamps_match_first_dimension,
     check_timestamps_ascending,
-    check_timestamps_with_nans,
+    check_timestamps_without_nans,
     check_missing_unit,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
@@ -261,19 +261,19 @@ def test_check_timestamps_ascending_with_nans_fail():
     )
 
 
-def test_check_timestamps_with_nans_pass():
+def test_check_timestamps_without_nans_pass():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
-    assert check_timestamps_with_nans(time_series) is None
+    assert check_timestamps_without_nans(time_series) is None
 
 
-def test_check_timestamps_with_nans_fail():
+def test_check_timestamps_without_nans_fail():
     time_series = pynwb.TimeSeries(
         name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 2, 3]
     )
-    assert check_timestamps_with_nans(time_series) == InspectorMessage(
+    assert check_timestamps_without_nans(time_series) == InspectorMessage(
         message="test_time_series timestamps contain NaN values.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_timestamps_with_nans",
+        check_function_name="check_timestamps_without_nans",
         object_type="TimeSeries",
         object_name="test_time_series",
         location="/",

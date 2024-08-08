@@ -2,7 +2,7 @@
 
 ### Improvements
 
-* Update util function `is_ascending_series` to discard nan values and add `check_timestamps_with_nans` fun to check if timestamps contain NaN values [#476](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/476)
+* Update util function `is_ascending_series` to discard nan values and add `check_timestamps_without_nans` fun to check if timestamps contain NaN values [#476](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/476)
 
 # v0.4.37
 
