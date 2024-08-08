@@ -94,9 +94,9 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
-def check_timestamps_with_nans(time_series: TimeSeries):
+def check_timestamps_with_nans(time_series: TimeSeries, nelems=200):
     """Check if there are NaN values in the timestamps array."""
-    if time_series.timestamps is not None and np.isnan(time_series.timestamps).any():
+    if time_series.timestamps is not None and np.isnan(time_series.timestamps[:nelems]).any():
         return InspectorMessage(message=f"{time_series.name} timestamps contain NaN values.")
 
 
