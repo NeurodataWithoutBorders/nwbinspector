@@ -1,4 +1,4 @@
-Extracallular electrophysiology
+Extracellular electrophysiology
 ===============================
 
 

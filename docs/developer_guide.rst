@@ -48,7 +48,7 @@ Disable Tests That Require Network Connection
 
 Some of the tests in the suite require internet connectivity both to and from the DANDI archive S3 bucket.
 If this is failing for some reason, you can explicitly control all related tests by setting the environment variable
-``NWBI_SKIP_NETWORK_TESTS`` to some value able to be parsed by ``distutils.util.str2tool``. For example, to disable them on
+``NWBI_SKIP_NETWORK_TESTS`` to some value able to be parsed by ``nwbinspector.utils.strtobool``. For example, to disable them on
 a linux system, run
 
 .. code-block::

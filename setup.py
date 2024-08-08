@@ -11,10 +11,12 @@ with open(root / "src" / "nwbinspector" / "version.py") as f:
     version = f.read()
 
 # Instantiate the testing configuration file from the base file `base_test_config.json`
-base_test_config = Path.cwd() / "base_test_config.json"
-local_test_config = Path.cwd() / "tests" / "testing_config.json"
-if not local_test_config.exists():
-    copy(src=base_test_config, dst=local_test_config)
+# This requires the current working directory to be the top level
+# of a local copy of the NWB Inspector GitHub repository
+BASE_CONFIG_FILE_PATH = Path.cwd() / "base_test_config.json"
+TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
+if not TESTING_CONFIG_FILE_PATH.exists():
+    copy(src=str(BASE_CONFIG_FILE_PATH), dst=str(TESTING_CONFIG_FILE_PATH))
 
 setup(
     name="nwbinspector",
@@ -30,7 +32,8 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,  # Includes files described in MANIFEST.in in the installation
     install_requires=install_requires,
-    extras_require=dict(dandi=["dandi>=0.39.2"], zarr=["hdmf_zarr>=0.3.0"]),
+    # zarr<2.18.0 because of https://github.com/NeurodataWithoutBorders/nwbinspector/pull/460
+    extras_require=dict(dandi=["dandi>=0.39.2", "zarr<2.18.0"], zarr=["hdmf_zarr>=0.3.0", "zarr<2.18.0"]),
     entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
     license="BSD-3-Clause",
     classifiers=[
@@ -40,5 +43,6 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
 )

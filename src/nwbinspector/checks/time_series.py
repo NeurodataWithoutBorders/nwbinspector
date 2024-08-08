@@ -18,6 +18,7 @@ def check_regular_timestamps(
         time_series.timestamps is not None
         and len(time_series.timestamps) > 2
         and is_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
+        and (time_series.timestamps[1] - time_series.timestamps[0]) != 0
     ):
         timestamps = np.array(time_series.timestamps)
         if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
@@ -29,7 +30,7 @@ def check_regular_timestamps(
             message=(
                 "TimeSeries appears to have a constant sampling rate. "
                 f"Consider specifying starting_time={time_series.timestamps[0]} "
-                f"and rate={time_series.timestamps[1] - time_series.timestamps[0]} instead of timestamps."
+                f"and rate={1 / (time_series.timestamps[1] - time_series.timestamps[0])} instead of timestamps."
             ),
         )
 
@@ -90,6 +91,13 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems=200):
     """Check that the values in the timestamps array are strictly increasing."""
     if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_timestamps_without_nans(time_series: TimeSeries, nelems=200):
+    """Check if there are NaN values in the timestamps array."""
+    if time_series.timestamps is not None and np.isnan(time_series.timestamps[:nelems]).any():
+        return InspectorMessage(message=f"{time_series.name} timestamps contain NaN values.")
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)

@@ -2,7 +2,41 @@
 
 ### Improvements
 
+* Update util function `is_ascending_series` to discard nan values and add `check_timestamps_without_nans` fun to check if timestamps contain NaN values [#476](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/476)
+
+# v0.4.37
+
+### Fixes
+
+* Equivocated timezone handling to target fields when checking for past and future dates. [#471](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/471)
+
+
+
+# v0.4.36
+
+### Fixes
+
+* Fixed the suggested rate in `check_regular_timestamps` to be in Hz. [#467](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/467)
+* Added a skip for mac sidecar files (._*). [#470](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/470)
+
+
+
+# v0.4.35
+
+### Fixes
+
+* Extended `check_session_start_time_future_date` and `check_session_start_time_old_date` to be timezone optional as allowed by PyNWB > 2.6.0 versions. [#452](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/452)
+
+### Improvements
+
 * Exposed progress bar control to `inspect_all` and `run_checks` to allow compatibility with more generic visualizations of inspection progress related to the NWB GUIDED. [#443](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/443)
+* Added Python 3.12 support. [#457](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/457)
+
+### Testing
+
+* Pinned action runners to MacOS x64 architecture; removed other deprecated steps of setup and continuous integration testing. [#450](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/450)
+
+
 
 # v0.4.34
 

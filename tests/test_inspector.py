@@ -90,7 +90,7 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        num_nwbfiles = 3
+        num_nwbfiles = 4
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
@@ -100,9 +100,11 @@ class TestInspector(TestCase):
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_simple_table(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
-        # Last file to be left without violations
+        # Third file to be left without violations
+        add_non_matching_timestamps_dimension(nwbfiles[3])
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        cls.nwbfile_paths[3] = str(cls.tempdir / f"._testing3.nwb")
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
@@ -158,7 +160,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -194,7 +196,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -225,7 +227,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -263,7 +265,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -292,7 +294,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and "
-                    "rate=2.0 instead of timestamps."
+                    "rate=0.5 instead of timestamps."
                 ),
                 severity=Severity.LOW,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -542,7 +544,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. "
-                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                    "Consider specifying starting_time=1.2 and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
