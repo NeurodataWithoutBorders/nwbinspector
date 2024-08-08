@@ -69,6 +69,9 @@
 ### New Checks
 
 * Added `check_rate_is_not_zero` for ensuring non-zero rate value of `TimeSeries` that has more than one frame. [#389](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/389)
+* Added `check_electrical_series_conversion_factors` for ensuring non-default conversion/offset factors of any `ElectricalSeries` that has an integer data type. [#395](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/395)
+
+
 
 
 
