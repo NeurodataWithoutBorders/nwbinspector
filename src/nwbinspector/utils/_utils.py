@@ -33,7 +33,7 @@ def _cache_data_retrieval_command(
     return data[selection]
 
 
-def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
         return data[selection]
@@ -91,7 +91,7 @@ def is_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional[int] = None):
     """General purpose function for determining if a series is monotonic increasing."""
     if isinstance(series, h5py.Dataset):
-        data = _cache_data_selection(data=series, selection=slice(nelems))
+        data = cache_data_selection(data=series, selection=slice(nelems))
     else:
         data = series[:nelems]
 
