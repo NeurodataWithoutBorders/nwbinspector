@@ -33,9 +33,6 @@ class Severity(Enum):
     LOW = 1
 
 
-available_checks = list()
-
-
 @dataclass
 class InspectorMessage:
     """
