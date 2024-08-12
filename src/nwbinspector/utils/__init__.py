@@ -12,6 +12,9 @@ from ._utils import (
     robust_s3_read,
     calculate_number_of_cpu,
     get_data_shape,
+    PathType,  # TODO: deprecate in favor of explicit typing
+    FilePathType,  # TODO: deprecate in favor of explicit typing
+    OptionalListOfStrings,  # TODO: deprecate in favor of explicit typing
 )
 
 __all__ = [

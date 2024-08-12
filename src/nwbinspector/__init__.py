@@ -1,7 +1,7 @@
 from ._version import __version__
 from ._registration import available_checks, register_check
 from ._types import Importance, Severity, InspectorMessage
-from ._configuration import load_config, InspectorOutputJSONEncoder
+from ._configuration import load_config, InspectorOutputJSONEncoder, validate_config, configure_checks
 from ._inspection import (
     inspect_all,
     inspect_nwbfile,
@@ -33,6 +33,7 @@ __all__ = [
     "Severity",
     "InspectorMessage",
     "load_config",
+    "configure_checks",
     "InspectorOutputJSONEncoder",
     "inspect_all",
     "inspect_nwbfile",

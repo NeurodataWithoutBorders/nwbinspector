@@ -16,11 +16,12 @@ from numpy.typing import ArrayLike
 from hdmf.backends.hdf5.h5_utils import H5Dataset
 
 
+# TODO: deprecated these in favor of explicit typing
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
 
-dict_regex = r"({.+:.+})"
+dict_regex = r"({.+:.+})"  # TODO: remove this from global scope
 MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/output, but might need more to get use here
 
 

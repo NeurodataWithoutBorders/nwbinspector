@@ -11,6 +11,8 @@ from pynwb import NWBFile
 from pynwb.file import Subject
 from pynwb.ecephys import Device, ElectrodeGroup
 
+from ._types import Importance, Severity, InspectorMessage
+
 
 available_checks = list()
 

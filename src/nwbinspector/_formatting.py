@@ -12,7 +12,7 @@ from collections import defaultdict
 import numpy as np
 
 from ._registration import InspectorMessage, Importance
-from nwbinspector.utils._utils import FilePathType, get_package_version
+from .utils._utils import get_package_version, FilePathType
 
 
 def _get_report_header():
