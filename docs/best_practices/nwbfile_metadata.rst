@@ -140,7 +140,7 @@ The ``keywords`` field should be specified. This allows metadata collection prog
 :dandi-archive:`DANDI archive <>` to easily scan NWBFiles to enhance keyword-based search functionality. Try to think
 of what combination of words might make your file(s) unique or descriptive to help users trying to search for it. This
 could include the general modality or approach, the general region of cortex you wanted to study, or the type of neural
-data properties you were examining. Some examples are``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
+data properties you were examining. Some examples are ``"neuropixel"``, ``"hippocampus"``, ``"lateral septum"``,
 ``"waveforms"``, ``"cell types"``, ``"granule cells"``, etc.
 
 If you are unsure of what keywords to use, try searching existing datasets on the :dandi-archive:`DANDI archive <>` for
@@ -211,7 +211,7 @@ Subject Species
 
 The ``species`` of a :ref:`nwb-schema:sec-Subject` should be set to the proper :wikipedia:`Latin binomial <Binomial_nomenclature>` or otherwise a full link to the Term IRI for the :ncbi:`NCBI Taxonomy <>`, which can be easily found at the :ontobee:`Ontobee  <>` database. *E.g.*, a rat would be "Rattus norvegicus" or "http://purl.obolibrary.org/obo/NCBITaxon_10116".
 
-Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species`
+Check function: :py:meth:`~nwbinspector.checks.nwbfile_metadata.check_subject_species_form`
 
 
 

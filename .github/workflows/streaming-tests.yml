@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "windows-latest"]  # TODO: update mac and streaming methods
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: s-weigand/setup-conda@v1
         with:
@@ -23,9 +23,7 @@ jobs:
         run: pip install pytest
 
       - name: Install package
-        run: |
-          pip install .
-          pip install dandi
+        run: pip install ".[dandi]"
       - name: Install HDMF-zarr # temporary
         run: pip install hdmf-zarr
       - name: Install latest HDMF # temporary

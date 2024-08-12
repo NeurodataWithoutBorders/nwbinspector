@@ -2,7 +2,7 @@ Time Series
 ===========
 
 When using :ref:`nwb-schema:sec-TimeSeries` or any subtype
-(*e.g.*, :ref`nwb-schema:sec-ElectricalSeries`, :ref:`nwb-schema:sec-SpatialSeries`,
+(*e.g.*, :ref:`nwb-schema:sec-ElectricalSeries`, :ref:`nwb-schema:sec-SpatialSeries`,
 :ref:`nwb-schema:sec-ImageSeries`, etc.) please ensure the following practices are followed.
 
 
@@ -83,6 +83,23 @@ corresponding ordering of their indices in the :ref:`nwb-schema:TimeSeries.data 
 be strictly increasing.
 
 Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_ascending`
+
+
+
+.. _best_practice_timestamps_without_nans:
+
+Timestamps without NaNs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``timestamps`` field of a :ref:`nwb-schema:sec-TimeSeries` should not contain ``NaN`` values, as this can lead to
+ambiguity in time references and potential issues in downstream analyses.
+
+Ensure that all timestamps are valid numerical values. If gaps in time need to be represented, consider segmenting the
+data into separate :ref:`nwb-schema:sec-TimeSeries` objects with appropriate ``starting_time`` or use the ``timestamps``
+vector to explicitly represent time gaps.
+
+Check function: :py:meth:`~nwbinspector.checks.time_series.check_timestamps_without_nans`
+
 
 
 

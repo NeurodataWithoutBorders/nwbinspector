@@ -12,7 +12,6 @@ from typing import Union, Optional, List, Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from types import FunctionType
 from warnings import filterwarnings, warn
-from distutils.util import strtobool
 from collections import defaultdict
 from packaging.version import Version
 
@@ -38,6 +37,7 @@ from .utils import (
     robust_s3_read,
     calculate_number_of_cpu,
     get_package_version,
+    strtobool,
 )
 from nwbinspector import __version__
 
@@ -52,6 +52,8 @@ class InspectorOutputJSONEncoder(json.JSONEncoder):
             return o.__dict__
         if isinstance(o, Enum):
             return o.name
+        if isinstance(o, Version):
+            return str(o)
         else:
             return super().default(o)
 
@@ -393,6 +395,9 @@ def inspect_all(
         in_path = Path(path)
         if in_path.is_dir():
             nwbfiles = list(in_path.rglob("*.nwb"))
+
+            # Remove any macOS sidecar files
+            nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
         elif in_path.is_file():
             nwbfiles = [in_path]
         else:
