@@ -8,7 +8,7 @@ from gen_checks_by_importance import gen_checks_by_importance
 sys.path.insert(0, Path(__file__).resolve().parents[1])
 
 project = "NWBInspector"
-copyright = "2022, CatalystNeuro"
+copyright = "2022-2024, CatalystNeuro"
 author = "Cody Baker, Ryan Ly, and Ben Dichter"
 
 extensions = [
