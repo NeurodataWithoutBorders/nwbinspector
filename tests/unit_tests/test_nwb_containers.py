@@ -16,7 +16,7 @@ from nwbinspector import (
     check_large_dataset_compression,
     check_empty_string_for_optional_attribute,
 )
-from nwbinspector.register_checks import Severity
+from nwbinspector._registration import Severity
 
 
 class TestNWBContainers(TestCase):

@@ -6,7 +6,7 @@ from pathlib import Path
 from pynwb.image import ImageSeries
 from pynwb.ophys import TwoPhotonSeries
 
-from ..register_checks import register_check, Importance, InspectorMessage
+from .._registration import register_check, Importance, InspectorMessage
 from ..tools import get_nwbfile_path_from_internal_object
 
 

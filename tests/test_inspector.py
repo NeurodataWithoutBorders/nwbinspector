@@ -22,9 +22,9 @@ from nwbinspector import (
     load_config,
 )
 from nwbinspector import inspect_all, inspect_nwbfile, inspect_nwbfile_object, available_checks
-from nwbinspector.register_checks import Severity, InspectorMessage, register_check
+from nwbinspector._registration import Severity, InspectorMessage, register_check
 from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.utils import FilePathType
+from nwbinspector.utils._utils import FilePathType
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):

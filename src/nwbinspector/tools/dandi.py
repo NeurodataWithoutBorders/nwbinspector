@@ -5,7 +5,7 @@ from typing import Optional, Dict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
-from ..utils import is_module_installed, calculate_number_of_cpu
+from nwbinspector.utils._utils import is_module_installed, calculate_number_of_cpu
 
 
 def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:

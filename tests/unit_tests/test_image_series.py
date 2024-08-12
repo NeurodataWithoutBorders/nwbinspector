@@ -16,7 +16,7 @@ from nwbinspector import (
     check_timestamps_match_first_dimension,
 )
 from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import load_testing_config
+from nwbinspector.testing._testing import load_testing_config
 
 try:
     testing_config = load_testing_config()

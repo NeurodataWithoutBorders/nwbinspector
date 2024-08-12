@@ -4,7 +4,7 @@ from pynwb.icephys import IntracellularElectrode
 from pynwb.device import Device
 
 from nwbinspector import InspectorMessage, Importance, check_intracellular_electrode_cell_id_exists
-from nwbinspector.utils import get_package_version
+from nwbinspector.utils._utils import get_package_version
 
 PYNWB_VERSION_LOWER_2_1_0 = get_package_version(name="pynwb") < Version("2.1.0")
 PYNWB_VERSION_LOWER_SKIP_REASON = "This test requires PyNWB>=2.1.0"

@@ -21,7 +21,7 @@ from nwbinspector import (
     check_ids_unique,
     check_table_time_columns_are_not_negative,
 )
-from nwbinspector.utils import get_package_version
+from nwbinspector.utils._utils import get_package_version
 
 
 class TestCheckDynamicTableRegion(TestCase):

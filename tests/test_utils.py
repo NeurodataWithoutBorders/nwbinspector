@@ -4,7 +4,7 @@ from packaging import version
 from hdmf.testing import TestCase
 
 from nwbinspector import Importance
-from nwbinspector.utils import (
+from nwbinspector.utils._utils import (
     format_byte_size,
     is_regular_series,
     is_dict_in_string,

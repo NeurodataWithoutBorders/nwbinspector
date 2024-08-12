@@ -10,7 +10,7 @@ from nwbinspector import (
     available_checks,
     default_check_registry,
 )
-from nwbinspector.nwbinspector import validate_config, configure_checks, _copy_function, load_config
+from nwbinspector._inspection import validate_config, configure_checks, _copy_function, load_config
 
 
 class TestCheckConfiguration(TestCase):

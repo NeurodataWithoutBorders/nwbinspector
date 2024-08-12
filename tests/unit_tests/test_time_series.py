@@ -19,8 +19,8 @@ from nwbinspector import (
     check_rate_is_not_zero,
 )
 from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled
-from nwbinspector.utils import get_package_version, robust_s3_read
+from nwbinspector.testing._testing import check_streaming_tests_enabled
+from nwbinspector.utils._utils import get_package_version, robust_s3_read
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 

@@ -1,4 +1,4 @@
-from nwbinspector.testing import load_testing_config, update_testing_config
+from nwbinspector.testing._testing import load_testing_config, update_testing_config
 
 
 def test_update_testing_config():
