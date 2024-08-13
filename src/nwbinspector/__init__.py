@@ -1,7 +1,7 @@
 from ._version import __version__
 from ._registration import available_checks, register_check
 from ._types import Importance, Severity, InspectorMessage
-from ._configuration import load_config, InspectorOutputJSONEncoder, validate_config, configure_checks
+from ._configuration import load_config, validate_config, configure_checks
 from ._inspection import (
     inspect_all,
     inspect_nwbfile,
@@ -9,7 +9,14 @@ from ._inspection import (
     run_checks,
 )
 from ._inspection import inspect_nwb  # TODO: remove after 7/1/2023
-from ._formatting import format_messages, print_to_console, save_report, MessageFormatter, FormatterOptions
+from ._formatting import (
+    format_messages,
+    print_to_console,
+    save_report,
+    MessageFormatter,
+    FormatterOptions,
+    InspectorOutputJSONEncoder,
+)
 from ._organization import organize_messages
 from .checks import *
 

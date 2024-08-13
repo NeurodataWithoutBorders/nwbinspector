@@ -19,20 +19,6 @@ from nwbinspector.utils._utils import (
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
 
-class InspectorOutputJSONEncoder(json.JSONEncoder):
-    """Custom JSONEncoder for the NWBInspector."""
-
-    def default(self, o):  # noqa D102
-        if isinstance(o, InspectorMessage):
-            return o.__dict__
-        if isinstance(o, Enum):
-            return o.name
-        if isinstance(o, Version):
-            return str(o)
-        else:
-            return super().default(o)
-
-
 def validate_config(config: dict):
     """Validate an instance of configuration against the official schema."""
     with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:

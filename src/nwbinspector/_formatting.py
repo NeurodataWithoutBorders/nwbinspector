@@ -16,6 +16,20 @@ from ._organization import organize_messages
 from .utils import get_package_version, FilePathType
 
 
+class InspectorOutputJSONEncoder(json.JSONEncoder):
+    """Custom JSONEncoder for the NWBInspector."""
+
+    def default(self, o):  # noqa D102
+        if isinstance(o, InspectorMessage):
+            return o.__dict__
+        if isinstance(o, Enum):
+            return o.name
+        if isinstance(o, Version):
+            return str(o)
+        else:
+            return super().default(o)
+
+
 def _get_report_header():
     """Grab basic information from system at time of report generation."""
     return dict(
