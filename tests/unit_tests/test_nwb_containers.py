@@ -9,9 +9,8 @@ import numpy as np
 from pynwb import NWBContainer, NWBFile
 from pynwb.image import ImageSeries
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_small_dataset_compression,
     check_large_dataset_compression,
     check_empty_string_for_optional_attribute,

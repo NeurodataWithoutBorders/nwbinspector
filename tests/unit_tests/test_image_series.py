@@ -7,9 +7,8 @@ import numpy as np
 from pynwb import NWBHDF5IO, H5DataIO
 from pynwb.image import ImageSeries
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_image_series_external_file_valid,
     check_image_series_external_file_relative,
     check_image_series_data_size,

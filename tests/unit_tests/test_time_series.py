@@ -5,9 +5,8 @@ import numpy as np
 from packaging import version
 
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,

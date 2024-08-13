@@ -4,7 +4,7 @@ from hdmf.common import DynamicTable
 from hdmf.testing import TestCase
 from pynwb import TimeSeries
 
-from nwbinspector._registration import register_check, Importance, Severity, InspectorMessage
+from nwbinspector import register_check, Importance, Severity, InspectorMessage
 
 
 class TestRegisterClass(TestCase):

@@ -7,12 +7,10 @@ from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
 
-from nwbinspector import Importance
-from nwbinspector import inspect_all
-from nwbinspector._registration import InspectorMessage
+from nwbinspector import Importance, inspect_all, InspectorMessage
 from nwbinspector.tools import read_nwbfile
-from nwbinspector.testing._testing import check_streaming_tests_enabled, check_hdf5_io_open
-from nwbinspector.utils._utils import FilePathType
+from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open
+from nwbinspector.utils import FilePathType
 
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()

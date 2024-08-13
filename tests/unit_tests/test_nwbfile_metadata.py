@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_experimenter_exists,
     check_experimenter_form,
     check_experiment_description,

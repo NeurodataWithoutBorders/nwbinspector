@@ -8,9 +8,8 @@ from pynwb.ecephys import ElectricalSeries
 from pynwb.misc import Units
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_negative_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,

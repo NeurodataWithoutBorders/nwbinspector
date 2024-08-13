@@ -9,8 +9,10 @@ from nwbinspector import (
     check_timestamps_match_first_dimension,
     available_checks,
     default_check_registry,
+    validate_config,
+    configure_checks,
+    load_config,
 )
-from nwbinspector import validate_config, configure_checks, load_config
 from nwbinspector._configuration import _copy_function
 
 
