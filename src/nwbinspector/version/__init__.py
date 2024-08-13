@@ -5,7 +5,7 @@ message = (
     "Please import the version using `importlib.metadata.version('nwbinspector')`."
 )
 
-warnings.warn(message=message, category=DeprecationWarning)
+warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
 
 # Still keep imports functional with warning for soft deprecation cycle
 # TODO: remove after 9/15/2024
