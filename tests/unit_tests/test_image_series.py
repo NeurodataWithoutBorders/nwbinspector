@@ -7,16 +7,14 @@ import numpy as np
 from pynwb import NWBHDF5IO, H5DataIO
 from pynwb.image import ImageSeries
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_image_series_external_file_valid,
     check_image_series_external_file_relative,
     check_image_series_data_size,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import load_testing_config
+from nwbinspector.testing import make_minimal_nwbfile, load_testing_config
 
 try:
     testing_config = load_testing_config()

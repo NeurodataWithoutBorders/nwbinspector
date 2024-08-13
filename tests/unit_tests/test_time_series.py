@@ -5,9 +5,8 @@ import numpy as np
 from packaging import version
 
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
@@ -18,8 +17,7 @@ from nwbinspector import (
     check_timestamp_of_the_first_sample_is_not_negative,
     check_rate_is_not_zero,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled
+from nwbinspector.testing import make_minimal_nwbfile, check_streaming_tests_enabled
 from nwbinspector.utils import get_package_version, robust_s3_read
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()

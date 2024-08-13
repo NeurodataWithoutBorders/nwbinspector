@@ -15,9 +15,8 @@ from pynwb.ophys import (
 )
 from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
     check_excitation_lambda_in_nm,

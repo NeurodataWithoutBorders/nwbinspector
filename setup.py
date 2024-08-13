@@ -7,7 +7,7 @@ with open(root / "README.md", "r") as f:
     long_description = f.read()
 with open(root / "requirements.txt") as f:
     install_requires = f.readlines()
-with open(root / "src" / "nwbinspector" / "version.py") as f:
+with open(root / "src" / "nwbinspector" / "_version.py") as f:
     version = f.read()
 
 # Instantiate the testing configuration file from the base file `base_test_config.json`
@@ -34,7 +34,7 @@ setup(
     install_requires=install_requires,
     # zarr<2.18.0 because of https://github.com/NeurodataWithoutBorders/nwbinspector/pull/460
     extras_require=dict(dandi=["dandi>=0.39.2", "zarr<2.18.0"], zarr=["hdmf_zarr>=0.3.0", "zarr<2.18.0"]),
-    entry_points={"console_scripts": ["nwbinspector=nwbinspector.nwbinspector:inspect_all_cli"]},
+    entry_points={"console_scripts": ["nwbinspector=nwbinspector._inspection_cli:_inspect_all_cli"]},
     license="BSD-3-Clause",
     classifiers=[
         "Development Status :: 4 - Beta",

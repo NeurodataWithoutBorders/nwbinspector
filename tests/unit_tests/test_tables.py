@@ -7,9 +7,8 @@ import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from pynwb.file import TimeIntervals, Units, ElectrodeTable, ElectrodeGroup, Device
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_empty_table,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,

@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import InspectorMessage, Importance
+from nwbinspector.checks import (
     check_experimenter_exists,
     check_experimenter_form,
     check_experiment_description,
@@ -25,7 +24,7 @@ from nwbinspector import (
     check_session_start_time_future_date,
     PROCESSING_MODULE_CONFIG,
 )
-from nwbinspector.tools import make_minimal_nwbfile
+from nwbinspector.testing import make_minimal_nwbfile
 
 
 minimal_nwbfile = make_minimal_nwbfile()

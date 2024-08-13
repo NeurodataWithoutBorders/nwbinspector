@@ -7,9 +7,7 @@ from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
 
-from nwbinspector import Importance
-from nwbinspector import inspect_all
-from nwbinspector.register_checks import InspectorMessage
+from nwbinspector import Importance, inspect_all, InspectorMessage
 from nwbinspector.tools import read_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open
 from nwbinspector.utils import FilePathType

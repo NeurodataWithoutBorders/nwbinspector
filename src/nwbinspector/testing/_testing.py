@@ -15,7 +15,7 @@ from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
 
-from .utils import is_module_installed, get_package_version, strtobool
+from ..utils import is_module_installed, get_package_version, strtobool
 
 # The tests must be invoked at the outer level of the repository
 TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"

@@ -16,11 +16,12 @@ from numpy.typing import ArrayLike
 from hdmf.backends.hdf5.h5_utils import H5Dataset
 
 
+# TODO: deprecated these in favor of explicit typing
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
 OptionalListOfStrings = Optional[List[str]]
 
-dict_regex = r"({.+:.+})"
+dict_regex = r"({.+:.+})"  # TODO: remove this from global scope
 MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/output, but might need more to get use here
 
 
@@ -33,7 +34,7 @@ def _cache_data_retrieval_command(
     return data[selection]
 
 
-def _cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
         return data[selection]
@@ -91,7 +92,7 @@ def is_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
 def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional[int] = None):
     """General purpose function for determining if a series is monotonic increasing."""
     if isinstance(series, h5py.Dataset):
-        data = _cache_data_selection(data=series, selection=slice(nelems))
+        data = cache_data_selection(data=series, selection=slice(nelems))
     else:
         data = series[:nelems]
 
