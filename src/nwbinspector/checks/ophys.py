@@ -7,8 +7,7 @@ from pynwb.ophys import (
     ImagingPlane,
 )
 
-from nwbinspector.utils._utils import get_data_shape
-
+from ..utils import get_data_shape
 from .._registration import register_check, Importance, InspectorMessage
 
 MIN_LAMBDA = 10.0  # trigger warnings for wavelength values less than this value

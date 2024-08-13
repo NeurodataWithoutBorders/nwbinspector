@@ -8,7 +8,7 @@ from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from pynwb.file import TimeIntervals, Units
 
 from .._registration import register_check, InspectorMessage, Importance
-from nwbinspector.utils._utils import (
+from ..utils import (
     cache_data_selection,
     format_byte_size,
     is_ascending_series,
