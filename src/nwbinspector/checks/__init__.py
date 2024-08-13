@@ -9,3 +9,4 @@ from .ophys import *
 from .tables import *
 from .time_series import *
 from .icephys import *
+from .behavior import *
