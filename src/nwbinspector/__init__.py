@@ -11,17 +11,7 @@ from ._inspection import (
 from ._inspection import inspect_nwb  # TODO: remove after 7/1/2023
 from ._formatting import format_messages, print_to_console, save_report, MessageFormatter, FormatterOptions
 from ._organization import organize_messages
-from .checks.ecephys import *
-from .checks.general import *
-from .checks.image_series import *
-from .checks.images import *
-from .checks.nwb_containers import *
-from .checks.nwbfile_metadata import *
-from .checks.ogen import *
-from .checks.ophys import *
-from .checks.tables import *
-from .checks.time_series import *
-from .checks.icephys import *
+from .checks import *
 
 default_check_registry = {check.__name__: check for check in available_checks}
 

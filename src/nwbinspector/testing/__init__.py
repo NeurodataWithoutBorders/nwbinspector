@@ -7,7 +7,7 @@ from ._testing import (
     update_testing_config,
     generate_testing_files,
     generate_image_series_testing_files,
-    make_minimal_nwbfilem,
+    make_minimal_nwbfile,
     TESTING_CONFIG_FILE_PATH,
 )
 
@@ -20,6 +20,6 @@ __all__ = [
     "update_testing_config",
     "generate_testing_files",
     "generate_image_series_testing_files",
-    "make_minimal_nwbfilem",
+    "make_minimal_nwbfile",
     "TESTING_CONFIG_FILE_PATH",
 ]

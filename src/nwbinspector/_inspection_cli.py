@@ -9,18 +9,9 @@ from warnings import warn
 
 import click
 
-from ._formatting import (
-    _get_report_header,
-    format_messages,
-    print_to_console,
-    save_report,
-)
-from ._registration import Importance
-from nwbinspector.utils._utils import (
-    strtobool,
-)
-
-from ._inspection import inspect_all
+from ._formatting import _get_report_header
+from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__
+from .utils import strtobool
 
 
 @click.command()

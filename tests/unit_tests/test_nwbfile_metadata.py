@@ -25,7 +25,7 @@ from nwbinspector import (
     check_session_start_time_future_date,
     PROCESSING_MODULE_CONFIG,
 )
-from nwbinspector.tools import make_minimal_nwbfile
+from nwbinspector.testing import make_minimal_nwbfile
 
 
 minimal_nwbfile = make_minimal_nwbfile()

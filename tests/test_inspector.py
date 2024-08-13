@@ -14,17 +14,24 @@ from natsort import natsorted
 
 from nwbinspector import (
     Importance,
+    Severity,
+    InspectorMessage,
+    register_check,
+    load_config,
+    inspect_all,
+    inspect_nwbfile,
+    inspect_nwbfile_object,
+    available_checks,
+)
+from nwbinspector.checks import (
     check_small_dataset_compression,
     check_regular_timestamps,
     check_data_orientation,
     check_timestamps_match_first_dimension,
     check_subject_exists,
-    load_config,
 )
-from nwbinspector import inspect_all, inspect_nwbfile, inspect_nwbfile_object, available_checks
-from nwbinspector._registration import Severity, InspectorMessage, register_check
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.utils._utils import FilePathType
+from nwbinspector.testing import make_minimal_nwbfile
+from nwbinspector.utils import FilePathType
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -120,6 +127,7 @@ class TestInspector(TestCase):
     def assertLogFileContentsEqual(
         self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
     ):
+        skip_first_n_lines = 0
         with open(file=test_file_path, mode="r") as test_file:
             with open(file=true_file_path, mode="r") as true_file:
                 test_file_lines = test_file.readlines()

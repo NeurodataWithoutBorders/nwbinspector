@@ -5,9 +5,8 @@ from datetime import datetime
 import pynwb
 from hdmf.testing import TestCase
 
+from nwbinspector import InspectorMessage, Importance, Severity, organize_messages
 from nwbinspector.tools import all_of_type
-from nwbinspector._formatting import organize_messages
-from nwbinspector._registration import InspectorMessage, Importance, Severity
 
 
 def test_all_of_type():

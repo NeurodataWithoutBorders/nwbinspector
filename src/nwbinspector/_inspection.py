@@ -14,7 +14,7 @@ import pynwb
 from tqdm import tqdm
 from natsort import natsorted
 
-from . import available_checks
+from . import available_checks, configure_checks
 from ._registration import InspectorMessage, Importance
 from .tools import get_s3_urls_and_dandi_paths
 from .utils import (
