@@ -1,6 +1,7 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 
 import os
+import json
 import sys
 from typing import Dict, List, Optional, Union
 from pathlib import Path
