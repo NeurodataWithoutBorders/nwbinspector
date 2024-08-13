@@ -1,4 +1,4 @@
 Core Library
 ============
 
-.. automodule:: nwbinspector.nwbinspector
+.. automodule:: nwbinspector._nwbinspector
