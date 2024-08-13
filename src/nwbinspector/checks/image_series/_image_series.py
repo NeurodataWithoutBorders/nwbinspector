@@ -6,8 +6,8 @@ from pathlib import Path
 from pynwb.image import ImageSeries
 from pynwb.ophys import TwoPhotonSeries
 
-from .._registration import register_check, Importance, InspectorMessage
-from ..tools import get_nwbfile_path_from_internal_object
+from nwbinspector._registration import register_check, Importance, InspectorMessage
+from nwbinspector.tools import get_nwbfile_path_from_internal_object
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ImageSeries)

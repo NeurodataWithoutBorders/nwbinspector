@@ -4,7 +4,7 @@ from packaging.version import Version
 
 from pynwb.image import IndexSeries
 
-from .._registration import register_check, Importance, InspectorMessage
+from nwbinspector._registration import register_check, Importance, InspectorMessage
 from nwbinspector.utils._utils import get_package_version
 
 # The Images neurodata type was unavailable prior to PyNWB v.2.1.0

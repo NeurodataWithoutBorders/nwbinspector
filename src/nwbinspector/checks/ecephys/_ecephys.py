@@ -7,7 +7,7 @@ from pynwb.ecephys import ElectricalSeries
 
 from nwbinspector.utils._utils import get_data_shape
 
-from .._registration import register_check, Importance, InspectorMessage
+from nwbinspector._registration import register_check, Importance, InspectorMessage
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)

@@ -3,7 +3,7 @@
 import numpy as np
 from pynwb.behavior import SpatialSeries, CompassDirection
 
-from .._registration import register_check, Importance, InspectorMessage
+from nwbinspector._registration import register_check, Importance, InspectorMessage
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=SpatialSeries)

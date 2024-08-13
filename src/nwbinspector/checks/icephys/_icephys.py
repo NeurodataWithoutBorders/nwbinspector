@@ -2,7 +2,7 @@
 
 from pynwb.icephys import IntracellularElectrode
 
-from .._registration import register_check, Importance, InspectorMessage
+from nwbinspector._registration import register_check, Importance, InspectorMessage
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=IntracellularElectrode)

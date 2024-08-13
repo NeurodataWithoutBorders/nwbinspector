@@ -46,7 +46,7 @@ class InspectorMessage:
         If a check of non-CRITICAL importance has some basis of comparison, such as magnitude of affected data, then
         the developer of the check may set the severity as Severity.HIGH or Severity.LOW by calling
         `from nwbinspector.register_checks import Severity`. A good example is comparing if h5py.Dataset compression
-        has been enabled on smaller vs. larger objects (see nwbinspector/checks/nwb_containers.py for details).
+        has been enabled on smaller vs. larger objects (see nwbinspector/checks/_nwb_containers.py for details).
 
         The user will never directly see this severity, but it will prioritize the order in which check results are
         presented by the NWBInspector.

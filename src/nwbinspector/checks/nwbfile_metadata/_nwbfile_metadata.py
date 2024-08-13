@@ -7,7 +7,7 @@ from isodate import parse_duration, Duration
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
-from .._registration import register_check, InspectorMessage, Importance
+from nwbinspector._registration import register_check, InspectorMessage, Importance
 from nwbinspector.utils._utils import is_module_installed
 
 duration_regex = (

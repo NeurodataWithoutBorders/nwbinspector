@@ -5,7 +5,7 @@ import numpy as np
 from pynwb import TimeSeries
 from pynwb.image import ImageSeries, IndexSeries
 
-from .._registration import register_check, Importance, Severity, InspectorMessage
+from nwbinspector._registration import register_check, Importance, Severity, InspectorMessage
 from nwbinspector.utils._utils import is_regular_series, is_ascending_series, get_data_shape
 
 

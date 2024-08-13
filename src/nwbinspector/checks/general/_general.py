@@ -1,6 +1,6 @@
 """Check functions that examine any general neurodata_type with the available attributes."""
 
-from .._registration import register_check, InspectorMessage, Importance
+from nwbinspector._registration import register_check, InspectorMessage, Importance
 
 COMMON_DESCRIPTION_PLACEHOLDERS = ["no description", "no desc", "none", "placeholder"]
 

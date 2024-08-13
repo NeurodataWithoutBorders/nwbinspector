@@ -6,7 +6,7 @@ from pynwb.image import GrayscaleImage, IndexSeries
 from packaging.version import Version
 
 from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks.images import (
+from nwbinspector.checks.images._images import (
     check_order_of_images_unique,
     check_order_of_images_len,
     check_index_series_points_to_image,
