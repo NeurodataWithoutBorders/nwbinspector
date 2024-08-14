@@ -10,8 +10,6 @@ from ._general import (
 )
 from ._image_series import (
     check_image_series_data_size,
-    check_image_series_reference_images,
-    check_image_series_reference_optical_channel,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
 )
@@ -94,8 +92,6 @@ __all__ = [
     "check_description",
     "check_name_slashes",
     "check_image_series_data_size",
-    "check_image_series_reference_images",
-    "check_image_series_reference_optical_channel",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
     "check_order_of_images_unique",

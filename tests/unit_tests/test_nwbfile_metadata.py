@@ -22,9 +22,9 @@ from nwbinspector.checks import (
     check_processing_module_name,
     check_session_start_time_old_date,
     check_session_start_time_future_date,
-    PROCESSING_MODULE_CONFIG,
 )
 from nwbinspector.testing import make_minimal_nwbfile
+from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
 
 
 minimal_nwbfile = make_minimal_nwbfile()
