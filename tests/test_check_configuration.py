@@ -3,15 +3,17 @@ from unittest import TestCase
 
 from nwbinspector import (
     Importance,
-    check_small_dataset_compression,
-    check_regular_timestamps,
-    check_data_orientation,
-    check_timestamps_match_first_dimension,
     available_checks,
     default_check_registry,
     validate_config,
     configure_checks,
     load_config,
+)
+from nwbinspector.checks import (
+    check_small_dataset_compression,
+    check_regular_timestamps,
+    check_data_orientation,
+    check_timestamps_match_first_dimension,
 )
 from nwbinspector._configuration import _copy_function
 

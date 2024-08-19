@@ -18,7 +18,7 @@ from ._formatting import (
     InspectorOutputJSONEncoder,
 )
 from ._organization import organize_messages
-from .checks import *
+from .checks import *  # These need to be imported to trigger registration with 'available_checks', but are not exposed
 
 default_check_registry = {check.__name__: check for check in available_checks}
 
