@@ -1,5 +1,7 @@
 # Upcoming
 
+# v0.5.0
+
 ### Deprecation (API)
 * Certain low-level functions have been marked as private (such as the former `nwbinspector.register_checks.auto_parse`) indicating they should not have been imported by downstream users. [#485](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/485)
 * Various inappropriate imports from certain submodules have been hard deprecated (e.g., `from nwbinspector.inspector_tools import natsorted`). [#485](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/485)
@@ -8,7 +10,6 @@
 * The `inspector_tools`, `register_check`, and `` submodules have been soft deprecated and will be removed in the next major release. [#485](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/485)
 
 ### Improvements
-
 * Update util function `is_ascending_series` to discard nan values and add `check_timestamps_without_nans` fun to check if timestamps contain NaN values [#476](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/476)
 * Updated the import structure to match modern Python packaging standards. [#485](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/485)
 
