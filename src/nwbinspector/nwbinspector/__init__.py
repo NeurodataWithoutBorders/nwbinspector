@@ -11,7 +11,6 @@ warnings.warn(message=message, category=DeprecationWarning, stacklevel=2)
 # TODO: remove after 9/15/2024
 from .._configuration import (
     INTERNAL_CONFIGS,
-    InspectorOutputJSONEncoder,
     validate_config,
     copy_check,
     load_config,
@@ -24,3 +23,4 @@ from .._inspection import (
     inspect_nwbfile_object,
     run_checks,
 )
+from .._formatting import InspectorOutputJSONEncoder
