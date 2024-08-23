@@ -372,7 +372,7 @@ def inspect_nwbfile_object(
     ignore: Optional[List[str]] = None,
     select: Optional[List[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-) -> List[InspectorMessage]:
+) -> Iterable[InspectorMessage]:
     """
     Inspect an in-memory NWBFile object and return suggestions for improvements according to best practices.
 
