@@ -1,5 +1,11 @@
 # Upcoming
 
+# v0.5.2
+
+Introduced the `inspect_dandiset` and `inspect_dandi_file_path` API and CLI functions to replace the functionality `nwbinspector --stream`. The new feature uses `remfile` instead of `ros3`. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/490)
+
+
+
 # v0.5.0
 
 ### Deprecation (API)
