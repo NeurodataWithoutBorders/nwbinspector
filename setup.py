@@ -34,7 +34,13 @@ setup(
     install_requires=install_requires,
     # zarr<2.18.0 because of https://github.com/NeurodataWithoutBorders/nwbinspector/pull/460
     extras_require=dict(dandi=["dandi>=0.39.2", "zarr<2.18.0", "remfile"], zarr=["hdmf_zarr>=0.3.0", "zarr<2.18.0"]),
-    entry_points={"console_scripts": ["nwbinspector=nwbinspector._inspection_cli:_inspect_all_cli"]},
+    entry_points={
+        "console_scripts": [
+            "nwbinspector=nwbinspector._nwb_inspection_cli:_inspect_all_cli",
+            "inspect_dandiset=nwbinspector._inspect_dandiset_cli:_inspect_dandiset_cli",
+            "inspect_dandi_file_path=nwbinspector._inspect_dandi_file_path_cli:_inspect_dandi_file_path_cli",
+        ],
+    },
     license="BSD-3-Clause",
     classifiers=[
         "Development Status :: 4 - Beta",
