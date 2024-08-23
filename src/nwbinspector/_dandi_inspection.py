@@ -16,6 +16,8 @@ def inspect_dandiset(
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    skip_validate: bool = False,
+    show_progress_bar: bool = True,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
 ) -> Iterable[InspectorMessage]:
     """
@@ -47,6 +49,11 @@ def inspect_dandiset(
                 - improvable data representation
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    skip_validate : bool, default: False
+        Skip the PyNWB validation step.
+        This may be desired for older NWBFiles (< schema version v2.10).
+    show_progress_bar : bool, optional
+        Whether to display a progress bar while scanning the assets on the Dandiset.
     client: dandi.dandiapi.DandiAPIClient
         The client object can be passed to avoid re-instantiation over an iteration.
     """
@@ -63,11 +70,19 @@ def inspect_dandiset(
     ):
         yield iter([])
 
-    for asset in dandiset.get_assets():
-        if ".nwb" not in pathlib.Path(asset.path).suffixes:
-            continue
+    nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
 
+    nwb_assets_iterator = nwb_assets
+    if show_progress_bar is True:
+        import tqdm
+
+        nwb_assets_iterator = tqdm.tqdm(
+            iterable=nwb_assets, total=len(nwb_assets), desc="Inspecting NWB files", unit="file", position=0, leave=True
+        )
+
+    for asset in nwb_assets_iterator:
         dandi_s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
+
         yield _insect_dandi_s3_nwb(
             dandi_s3_url=dandi_s3_url,
             dandiset_id=dandiset_id,
@@ -76,6 +91,7 @@ def inspect_dandiset(
             ignore=ignore,
             select=select,
             importance_threshold=importance_threshold,
+            skip_validate=skip_validate,
             client=client,
         )
 
@@ -153,12 +169,26 @@ def _insect_dandi_s3_nwb(
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    skip_validate: bool = False,
 ) -> Iterable[InspectorMessage]:
     import remfile
 
     byte_stream = remfile.File(url=dandi_s3_url)
     file = h5py.File(name=byte_stream)
     io = pynwb.NWBHDF5IO(file=file)
+
+    if skip_validate is False:
+        validation_errors = pynwb.validate(io=io)
+
+        for validation_error in validation_errors:
+            yield InspectorMessage(
+                message=validation_error.reason,
+                importance=Importance.PYNWB_VALIDATION,
+                check_function_name=validation_error.name,
+                location=validation_error.location,
+                file_path=nwbfile_path,
+            )
+
     nwbfile = io.read()
 
     yield inspect_nwbfile_object(

@@ -37,8 +37,8 @@ setup(
     entry_points={
         "console_scripts": [
             "nwbinspector=nwbinspector._nwb_inspection_cli:_inspect_all_cli",
-            "inspect_dandiset=nwbinspector._inspect_dandiset_cli:_inspect_dandiset_cli",
-            "inspect_dandi_file_path=nwbinspector._inspect_dandi_file_path_cli:_inspect_dandi_file_path_cli",
+            "inspect_dandiset=nwbinspector._dandi_inspection_cli:_inspect_dandiset_cli",
+            "inspect_dandi_file_path=nwbinspector._dandi_inspection_cli:_inspect_dandi_file_path_cli",
         ],
     },
     license="BSD-3-Clause",
