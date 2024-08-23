@@ -1,5 +1,5 @@
 import pathlib
-from typing import Union, Iterable, Literal
+from typing import Union, Iterable, Literal, List
 
 import h5py
 import pynwb
@@ -24,7 +24,7 @@ def inspect_dandiset(
     Parameters
     ----------
     dandiset_id : six-digit string, "draft", or None
-        The six-digit ID of the Dandiset.
+        The six-digit ID of the Dandiset to inspect.
     dandiset_version : string
         The specific published version of the Dandiset to inspect.
         If None, the latest version is used.
