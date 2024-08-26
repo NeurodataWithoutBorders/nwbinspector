@@ -144,7 +144,7 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
             nwbfile = robust_s3_read(io.read)
             identifiers[nwbfile.identifier].append(nwbfile_path)
     if len(identifiers) != len(nwbfiles):
@@ -234,9 +234,7 @@ def inspect_nwb(
         ignore=ignore,
         select=select,
         importance_threshold=importance_threshold,
-        driver=driver,
         skip_validate=skip_validate,
-        max_retries=max_retries,
     ):
         yield inspector_message
 
@@ -245,7 +243,7 @@ def inspect_nwbfile(
     nwbfile_path: FilePathType,
     driver: Optional[str] = None,  # TODO: remove after 3/1/2025
     skip_validate: bool = False,
-    max_retries: int = 10,
+    max_retries: Optional[int] = None,  # TODO: remove after 3/1/2025
     checks: list = available_checks,
     config: dict = None,
     ignore: OptionalListOfStrings = None,
@@ -262,11 +260,6 @@ def inspect_nwbfile(
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
-    max_retries : int, optional
-        When using the ros3 driver to stream data from an s3 path, occasional curl issues can result.
-        AWS suggests using iterative retry with an exponential backoff of 0.1 * 2^retries.
-        This sets a hard bound on the number of times to attempt to retry the collection of messages.
-        Defaults to 10 (corresponds to 102.4s maximum delay on final attempt).
     checks : list, optional
         List of checks to run.
     config : dict
@@ -291,9 +284,9 @@ def inspect_nwbfile(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
     # TODO: remove error after 3/1/2025
-    if driver is not None:
+    if driver is not None or max_retries is not None:
         message = (
-            "The `driver` argument is deprecated and will be removed after 3/1/2025. "
+            "The `driver` and `max_retries` arguments are deprecated and will be removed after 3/1/2025. "
             "Please call `nwbinspector.inspect_dandi_file_path` instead."
         )
         raise ValueError(message)
@@ -303,7 +296,7 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
     if not skip_validate and get_package_version("pynwb") >= Version("2.2.0"):
-        validation_error_list, _ = pynwb.validate(paths=[nwbfile_path], driver=driver)
+        validation_error_list, _ = pynwb.validate(paths=[nwbfile_path])
         for validation_namespace_errors in validation_error_list:
             for validation_error in validation_namespace_errors:
                 yield InspectorMessage(
@@ -314,7 +307,7 @@ def inspect_nwbfile(
                     file_path=nwbfile_path,
                 )
 
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True, driver=driver) as io:
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
         if not skip_validate and get_package_version("pynwb") < Version("2.2.0"):
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
@@ -327,7 +320,7 @@ def inspect_nwbfile(
                 )
 
         try:
-            in_memory_nwbfile = robust_s3_read(command=io.read, max_retries=max_retries)
+            in_memory_nwbfile = robust_s3_read(command=io.read)
 
             for inspector_message in inspect_nwbfile_object(
                 nwbfile_object=in_memory_nwbfile,

@@ -9,10 +9,13 @@ from typing import Union, Literal
 
 import click
 
-from ._formatting import _get_report_header
-from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__
-from .utils import strtobool
+from ._formatting import _get_report_header, format_messages, print_to_console, save_report
+from ._version import __version__
+from ._types import Importance
+from ._nwb_inspection import inspect_all
 from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, inspect_url
+from ._configuration import load_config
+from .utils import strtobool
 
 
 @click.command()
@@ -78,9 +81,8 @@ from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, inspec
 )
 @click.version_option(__version__)
 def _nwbinspector_cli(
-    path: str,
-    /,
     *,
+    path: str,
     stream: bool = False,
     version_id: Union[str, None] = None,
     report_file_path: str = None,
@@ -124,7 +126,7 @@ def _nwbinspector_cli(
 
     dandiset_version = "draft" if stream is True and version_id is None else version_id
     handled_levels = ["importance", "file_path"] if levels is None else levels.split(",")
-    handled_reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
+    handled_reverse = [False] * len(handled_levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     handled_ignore = ignore if ignore is None else ignore.split(",")
     handled_select = select if select is None else select.split(",")
     handled_importance_threshold = Importance[threshold]
