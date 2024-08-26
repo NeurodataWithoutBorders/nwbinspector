@@ -36,6 +36,6 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: NWB Inspector Daily Failure
-        to: cody.c.baker.phd@gmail.com
+        to: cody.c.baker.phd@gmail.com,smprince@lbl.gov
         from: NWB Inspector
         body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
