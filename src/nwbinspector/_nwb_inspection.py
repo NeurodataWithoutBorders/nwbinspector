@@ -25,7 +25,6 @@ from .utils import (
     calculate_number_of_cpu,
     get_package_version,
 )
-from ._dandi_inspection import inspect_dandiset
 
 
 def inspect_all(
@@ -100,7 +99,7 @@ def inspect_all(
     for module in modules:
         importlib.import_module(module)
 
-    # TODO: remove after 3/1/2025
+    # TODO: remove these blocks after 3/1/2025
     if version_id is not None:
         message = (
             "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
@@ -108,6 +107,8 @@ def inspect_all(
         )
         warn(message=message, category=DeprecationWarning, stacklevel=2)
     if stream is True:
+        from ._dandi_inspection import inspect_dandiset
+
         message = (
             "The `stream` argument is deprecated and will be removed after 3/1/2025. "
             "Please call `nwbinspector.inspect_dandiset` instead."
@@ -289,13 +290,13 @@ def inspect_nwbfile(
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
-    # TODO: remove after 3/1/2025
+    # TODO: remove error after 3/1/2025
     if driver is not None:
         message = (
             "The `driver` argument is deprecated and will be removed after 3/1/2025. "
             "Please call `nwbinspector.inspect_dandi_file_path` instead."
         )
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        raise ValueError(message)
 
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")

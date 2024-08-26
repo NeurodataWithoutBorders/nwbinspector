@@ -2,6 +2,9 @@
 
 # v0.5.2
 
+### Deprecation (API)
+* The `driver` argument has been removed from `inspect_nwbfile`. Please use `nwbinspector.inspect_dandiset` or `nwbinspector.inspect_dandi_file_path` instead. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
+
 ### Pending Deprecation (API)
 * The `stream` and `version_id` arguments have been removed from `nwbinspector.inspect_all`. Please use `nwbinspector.inspect_dandiset` instead. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
 
