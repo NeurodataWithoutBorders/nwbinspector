@@ -97,7 +97,7 @@ def _nwbinspector_cli(
     detailed: bool = False,
     progress_bar: Union[str, None] = None,
     modules: Union[str, None] = None,
-):
+) -> None:
     """
     Run the NWB Inspector via the command line.
 
@@ -129,82 +129,63 @@ def _nwbinspector_cli(
     handled_select = select if select is None else select.split(",")
     handled_importance_threshold = Importance[threshold]
     config = load_config(filepath_or_keyword=config)
-    progress_bar = True if progress_bar is None else strtobool(progress_bar)
+    show_progress_bar = True if progress_bar is None else strtobool(progress_bar)
     modules = [] if modules is None else modules.split(",")
 
-    # Determine usage mode
-    # TODO: propagate extra arguments about ignore/select
-    if stream is True and path_is_url is True:  # Scan single NWB file at URL
-        dandi_s3_url = path
-        messages = list(
-            insect_dandi_s3_url(
-                dandi_s3_url=dandi_s3_url,
-                ignore=handled_ignore,
-                select=handled_select,
-                importance_threshold=handled_importance_threshold,
-                config=config,
-            )
-        )
-    elif stream is True and ":" not in path:  # Scan entire Dandiset
+    # Trigger the import of custom checks that have been registered and exposed to their respective modules
+    for module in modules:
+        importlib.import_module(name=module)
+
+    # Scan entire Dandiset
+    if stream is True and ":" not in path:
         dandiset_id = path
-        messages = list(
-            inspect_dandiset(
-                dandiset_id=dandiset_id,
-                dandiset_version=dandiset_version,
-                ignore=handled_ignore,
-                select=handled_select,
-                importance_threshold=handled_importance_threshold,
-                config=config,
-            )
+        messages_iterator = inspect_dandiset(
+            dandiset_id=dandiset_id,
+            dandiset_version=dandiset_version,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
+            show_progress_bar=show_progress_bar,
         )
-    elif stream is True and ":" in path:  # Scan a single NWB file in a Dandiset
+    # Scan a single NWB file in a Dandiset
+    elif stream is True and ":" in path:
         dandiset_id, dandi_file_path = path.split(":")
-        messages = list(
-            inspect_dandi_file_path(
-                dandi_file_path=dandi_file_path,
-                dandiset_id=dandiset_id,
-                dandiset_version=dandiset_version,
-                ignore=handled_ignore,
-                select=handled_select,
-                importance_threshold=handled_importance_threshold,
-                config=config,
-            )
+        messages_iterator = inspect_dandi_file_path(
+            dandi_file_path=dandi_file_path,
+            dandiset_id=dandiset_id,
+            dandiset_version=dandiset_version,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
         )
-    elif stream is False:  # Scan local file/folder
-        messages = list(
-            inspect_all(
-                path=path,
-                ignore=handled_ignore,
-                select=handled_select,
-                importance_threshold=handled_importance_threshold,
-                config=config,
-                n_jobs=n_jobs,
-                skip_validate=skip_validate,
-                progress_bar=progress_bar,
-                stream=stream,
-                version_id=version_id,
-                modules=modules,
-            )
+    # Scan single NWB file at URL
+    elif stream is True and path_is_url is True:
+        dandi_s3_url = path
+        messages_iterator = insect_dandi_s3_url(
+            dandi_s3_url=dandi_s3_url,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
         )
-
-    if config is not None:
-        config = load_config(filepath_or_keyword=config)
-
-    if dandifile is not None and dandifile.startswith("https://"):
-        message = list(insect_dandi_s3_url())
-
-        url_path = path if path.startswith("https://") else None
-        if url_path:
-            dandiset_id, version_id = url_path.split("/")[-2:]
-            path = dandiset_id
-        assert url_path or re.fullmatch(
-            pattern="^[0-9]{6}$", string=path
-        ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
-        # if Path(path).is_dir():
-        #     warn(
-        #         f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
-        #         "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--stream' flag."
-        #     )
+    # Scan local file/folder
+    elif stream is False:
+        messages_iterator = inspect_all(
+            path=path,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            n_jobs=n_jobs,
+            skip_validate=skip_validate,
+            progress_bar=show_progress_bar,
+        )
+    messages = list(messages_iterator)
 
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
@@ -213,7 +194,10 @@ def _nwbinspector_cli(
             json_report = dict(header=_get_report_header(), messages=messages)
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
-    formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
+
+    formatted_messages = format_messages(
+        messages=messages, levels=handled_levels, reverse=handled_reverse, detailed=detailed
+    )
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:
         save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)

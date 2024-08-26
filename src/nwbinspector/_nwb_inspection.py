@@ -38,8 +38,8 @@ def inspect_all(
     progress_bar: bool = True,
     progress_bar_class: tqdm = tqdm,
     progress_bar_options: Optional[dict] = None,
-    stream: bool = False,
-    version_id: Optional[str] = None,
+    stream: bool = False,  # TODO: remove after 3/1/2025
+    version_id: Optional[str] = None,  # TODO: remove after 3/1/2025
     modules: OptionalListOfStrings = None,
 ):
     """
@@ -86,19 +86,26 @@ def inspect_all(
         Defaults to tqdm.tqdm, the most generic parent.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to the progress_bar_class.
-    stream : bool, optional
-        Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, setting this
-        argument to True will force the data to be streamed instead of using the local copy.
-        Requires the Read Only S3 (ros3) driver to be installed with h5py.
-        Defaults to False.
-    version_id : str, optional
-        If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
-        Common options are 'draft' or 'published'.
-        Defaults to the most recent published version, or if not published then the most recent draft version.
     modules : list of strings, optional
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
     """
+    in_path = Path(path)
+
+    # TODO: remove after 3/1/2025
+    if stream is True:
+        message = (
+            "The `stream` argument is deprecated and will be removed after 3/1/2025. "
+            "Please call `nwbinspector.inspect_dandiset` instead."
+        )
+        warn(message=message, category=DeprecationWarning, stacklevel=2)
+    if version_id is not None:
+        message = (
+            "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
+            "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
+        )
+        warn(message=message, category=DeprecationWarning, stacklevel=2)
+
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
@@ -106,28 +113,16 @@ def inspect_all(
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
-        if stream:
-            progress_bar_options.update(desc="Inspecting NWBFiles with ROS3...")
-        else:
-            progress_bar_options.update(desc="Inspecting NWBFiles...")
-    if stream:
-        assert (
-            re.fullmatch(pattern="^[0-9]{6}$", string=str(path)) is not None
-        ), "'--stream' flag was enabled, but 'path' is not a DANDISet ID."
-        driver = "ros3"
-        nwbfiles = get_s3_urls_and_dandi_paths(dandiset_id=path, version_id=version_id, n_jobs=n_jobs)
-    else:
-        driver = None
-        in_path = Path(path)
-        if in_path.is_dir():
-            nwbfiles = list(in_path.rglob("*.nwb"))
 
-            # Remove any macOS sidecar files
-            nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
-        elif in_path.is_file():
-            nwbfiles = [in_path]
-        else:
-            raise ValueError(f"{in_path} should be a directory or an NWB file.")
+    if in_path.is_dir():
+        nwbfiles = list(in_path.rglob("*.nwb"))
+
+        # Remove any macOS sidecar files
+        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
+    elif in_path.is_file():
+        nwbfiles = [in_path]
+    else:
+        raise ValueError(f"{in_path} should be a directory or an NWB file.")
     for module in modules:
         importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
@@ -172,7 +167,6 @@ def inspect_all(
                         nwbfile_path=nwbfile_path,
                         checks=checks,
                         skip_validate=skip_validate,
-                        driver=driver,
                     )
                 )
             nwbfiles_iterable = as_completed(futures)
@@ -185,17 +179,19 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, driver=driver):
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks):
                 if stream:
                     message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
 def _pickle_inspect_nwb(
-    nwbfile_path: str, checks: list = available_checks, skip_validate: bool = False, driver: Optional[str] = None
+    nwbfile_path: str,
+    checks: list = available_checks,
+    skip_validate: bool = False,
 ):
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate, driver=driver))
+    return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 # TODO: remove after 7/1/2023
@@ -234,7 +230,7 @@ def inspect_nwb(
 
 def inspect_nwbfile(
     nwbfile_path: FilePathType,
-    driver: Optional[str] = None,
+    driver: Optional[str] = None,  # TODO: remove after 3/1/2025
     skip_validate: bool = False,
     max_retries: int = 10,
     checks: list = available_checks,
@@ -250,8 +246,6 @@ def inspect_nwbfile(
     ----------
     nwbfile_path : FilePathType
         Path to the NWB file on disk or on S3.
-    driver: str, optional
-        Forwarded to h5py.File(). Set to "ros3" for reading from s3 url.
     skip_validate : bool
         Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
         The default is False, which is also recommended.
@@ -283,6 +277,14 @@ def inspect_nwbfile(
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
+    # TODO: remove after 3/1/2025
+    if driver is not None:
+        message = (
+            "The `driver` argument is deprecated and will be removed after 3/1/2025. "
+            "Please call `nwbinspector.inspect_dandi_file_path` instead."
+        )
+        warn(message=message, category=DeprecationWarning, stacklevel=2)
+
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")

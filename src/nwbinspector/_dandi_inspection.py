@@ -115,6 +115,7 @@ def inspect_dandi_file_path(
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    skip_validate: bool = False,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
 ) -> Iterable[InspectorMessage]:
     """
@@ -152,6 +153,9 @@ def inspect_dandi_file_path(
                 - improvable data representation
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    skip_validate : bool, default: False
+        Skip the PyNWB validation step.
+        This may be desired for older NWBFiles (< schema version v2.10).
     client: dandi.dandiapi.DandiAPIClient
         The client object can be passed to avoid re-instantiation over an iteration.
     """
@@ -171,7 +175,7 @@ def inspect_dandi_file_path(
         ignore=ignore,
         select=select,
         importance_threshold=importance_threshold,
-        client=client,
+        skip_validate=skip_validate,
     )
 
 
