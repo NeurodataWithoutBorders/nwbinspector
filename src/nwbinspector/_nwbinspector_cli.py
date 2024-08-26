@@ -4,6 +4,7 @@ import os
 import re
 import json
 import warnings
+import importlib
 from pathlib import Path
 from typing import Union, Literal
 
@@ -40,6 +41,13 @@ from .utils import strtobool
     help="Save path for the report file.",
     type=click.Path(writable=True),
 )
+@click.option(
+    "--config",
+    help="Name of internal config or path to a custom YAML file.",
+    type=str,
+    required=False,
+    default=None,
+)
 @click.option("--levels", help="Comma-separated names of InspectorMessage attributes to organize by.")
 @click.option(
     "--reverse", help="Comma-separated booleans corresponding to reversing the order for each value of 'levels'."
@@ -52,13 +60,6 @@ from .utils import strtobool
     default="BEST_PRACTICE_SUGGESTION",
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
-)
-@click.option(
-    "--config",
-    help="Name of internal config or path to a custom YAML file.",
-    type=str,
-    required=False,
-    default="dandi",
 )
 @click.option("--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
@@ -86,13 +87,13 @@ def _nwbinspector_cli(
     stream: bool = False,
     version_id: Union[str, None] = None,
     report_file_path: str = None,
+    config: Union[str, None] = None,
     levels: str = None,
     reverse: Union[str, None] = None,
     overwrite: bool = False,
     ignore: Union[str, None] = None,
     select: Union[str, None] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
-    config: str = "dandi",
     json_file_path: Union[str, None] = None,
     n_jobs: int = 1,
     skip_validate: bool = False,
@@ -117,20 +118,22 @@ def _nwbinspector_cli(
     path_is_url = path.startswith("https://")
     stream = True if path_is_url else stream
 
-    if stream is True and config != "dandi":
+    if stream is True and config is not None and config != "dandi":
         message = (
             "File content originates from DANDI, but a custom config was specified. "
             "The 'dandi' config will be used instead."
         )
         raise ValueError(message)
+    elif stream is True and config is None:
+        config = "dandi"
 
     dandiset_version = "draft" if stream is True and version_id is None else version_id
+    handled_config = config if config is None else load_config(filepath_or_keyword=config)
     handled_levels = ["importance", "file_path"] if levels is None else levels.split(",")
     handled_reverse = [False] * len(handled_levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
     handled_ignore = ignore if ignore is None else ignore.split(",")
     handled_select = select if select is None else select.split(",")
     handled_importance_threshold = Importance[threshold]
-    config = load_config(filepath_or_keyword=config)
     show_progress_bar = True if progress_bar is None else strtobool(progress_bar)
     modules = [] if modules is None else modules.split(",")
 
@@ -144,7 +147,7 @@ def _nwbinspector_cli(
         messages_iterator = inspect_dandiset(
             dandiset_id=dandiset_id,
             dandiset_version=dandiset_version,
-            config=config,
+            config=handled_config,
             ignore=handled_ignore,
             select=handled_select,
             importance_threshold=handled_importance_threshold,
@@ -158,7 +161,7 @@ def _nwbinspector_cli(
             dandi_file_path=dandi_file_path,
             dandiset_id=dandiset_id,
             dandiset_version=dandiset_version,
-            config=config,
+            config=handled_config,
             ignore=handled_ignore,
             select=handled_select,
             importance_threshold=handled_importance_threshold,
@@ -169,7 +172,7 @@ def _nwbinspector_cli(
         dandi_s3_url = path
         messages_iterator = inspect_url(
             dandi_s3_url=dandi_s3_url,
-            config=config,
+            config=handled_config,
             ignore=handled_ignore,
             select=handled_select,
             importance_threshold=handled_importance_threshold,
@@ -179,7 +182,7 @@ def _nwbinspector_cli(
     elif stream is False:
         messages_iterator = inspect_all(
             path=path,
-            config=config,
+            config=handled_config,
             ignore=handled_ignore,
             select=handled_select,
             importance_threshold=handled_importance_threshold,
