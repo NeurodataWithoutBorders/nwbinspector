@@ -35,7 +35,7 @@ __all__ = [
     "InspectorOutputJSONEncoder",
     "inspect_dandiset",
     "inspect_dandi_file_path",
-    "insect_dandi_s3_url",
+    "inspect_dandi_s3_url",
     "inspect_all",
     "inspect_nwbfile",
     "inspect_nwbfile_object",
