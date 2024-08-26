@@ -76,8 +76,8 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 
 .. _simple_streaming_api:
 
-Inspect a DANDI set
--------------------
+Inspect a Dandiset
+------------------
 
 It is a common use case to inspect and review entire datasets of NWB files that have already been uploaded to the
 :dandi-archive:`DANDI Archive <>`. While it is possible to simply download the entire dandiset to your local computer and

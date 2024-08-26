@@ -73,10 +73,10 @@ function.
 
     from nwbinspector import inspect_url
 
-    dandiset_id = "000004"
     url = "https://dandiarchive.s3.amazonaws.com/blobs/3d7/39a/3d739ac0-10fb-41ef-80be-f1479cec44c0"
 
     messages = list(inspect_url(url=url))
+
 
 
 Format Reports
