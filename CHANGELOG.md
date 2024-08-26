@@ -3,12 +3,10 @@
 # v0.5.2
 
 ### Pending Deprecation (API)
-* The `stream` and `version_id` arguments have been removed from `nwbinspector.inspect_all`. Please use
-  `nwbinspector.inspect_dandiset` instead. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
+* The `stream` and `version_id` arguments have been removed from `nwbinspector.inspect_all`. Please use `nwbinspector.inspect_dandiset` instead. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
 
 ## New Features
-* Introduced the `inspect_dandiset` and `inspect_dandi_file_path` API functions to replace the functionality in
-  `nwbinspector --stream`. The new feature uses `remfile` instead of `ros3`. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
+* Introduced the `inspect_dandiset` and `inspect_dandi_file_path` API functions to replace the functionality in `nwbinspector --stream`. The new feature uses `remfile` instead of `ros3`. [#490](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/490)
 
 
 

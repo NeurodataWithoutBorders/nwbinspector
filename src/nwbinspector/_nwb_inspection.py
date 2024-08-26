@@ -25,6 +25,7 @@ from .utils import (
     calculate_number_of_cpu,
     get_package_version,
 )
+from ._dandi_inspection import inspect_dandiset
 
 
 def inspect_all(
@@ -99,6 +100,8 @@ def inspect_all(
             "Please call `nwbinspector.inspect_dandiset` instead."
         )
         warn(message=message, category=DeprecationWarning, stacklevel=2)
+
+        inspect_dandiset()
     if version_id is not None:
         message = (
             "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
