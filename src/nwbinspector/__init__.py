@@ -18,7 +18,7 @@ from ._formatting import (
     InspectorOutputJSONEncoder,
 )
 from ._organization import organize_messages
-from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, insect_dandi_s3_url
+from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, inspect_dandi_s3_url
 from .checks import *  # These need to be imported to trigger registration with 'available_checks', but are not exposed
 
 default_check_registry = {check.__name__: check for check in available_checks}
