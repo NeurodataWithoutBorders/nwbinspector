@@ -12,7 +12,7 @@ import click
 from ._formatting import _get_report_header
 from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__
 from .utils import strtobool
-from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, insect_dandi_s3_url
+from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, inspect_url
 
 
 @click.command()
@@ -165,7 +165,7 @@ def _nwbinspector_cli(
     # Scan single NWB file at URL
     elif stream is True and path_is_url is True:
         dandi_s3_url = path
-        messages_iterator = insect_dandi_s3_url(
+        messages_iterator = inspect_url(
             dandi_s3_url=dandi_s3_url,
             config=config,
             ignore=handled_ignore,
