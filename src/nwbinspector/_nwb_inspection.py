@@ -92,8 +92,21 @@ def inspect_all(
         These modules may also contain their own custom checks for their extensions.
     """
     in_path = Path(path)
+    importance_threshold = (
+        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
+    )
+    modules = modules or []
+
+    for module in modules:
+        importlib.import_module(module)
 
     # TODO: remove after 3/1/2025
+    if version_id is not None:
+        message = (
+            "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
+            "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
+        )
+        warn(message=message, category=DeprecationWarning, stacklevel=2)
     if stream is True:
         message = (
             "The `stream` argument is deprecated and will be removed after 3/1/2025. "
@@ -101,18 +114,16 @@ def inspect_all(
         )
         warn(message=message, category=DeprecationWarning, stacklevel=2)
 
-        inspect_dandiset()
-    if version_id is not None:
-        message = (
-            "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
-        )
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        for message in inspect_dandiset(
+            dandiset_id=path,
+            dandiset_version=version_id,
+            config=config,
+            ignore=ignore,
+            select=select,
+            skip_validate=skip_validate,
+        ):
+            yield message
 
-    importance_threshold = (
-        Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
-    )
-    modules = modules or []
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
@@ -126,8 +137,6 @@ def inspect_all(
         nwbfiles = [in_path]
     else:
         raise ValueError(f"{in_path} should be a directory or an NWB file.")
-    for module in modules:
-        importlib.import_module(module)
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
