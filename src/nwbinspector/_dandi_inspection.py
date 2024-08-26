@@ -5,6 +5,7 @@ import h5py
 import pynwb
 
 from ._types import InspectorMessage, Importance
+from ._configuration import load_config, validate_config
 from ._nwb_inspection import inspect_nwbfile_object
 
 
@@ -12,6 +13,7 @@ def inspect_dandiset(
     *,
     dandiset_id: str,
     dandiset_version: Union[str, Literal["draft"], None] = None,
+    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
@@ -31,6 +33,10 @@ def inspect_dandiset(
         The specific published version of the Dandiset to inspect.
         If None, the latest version is used.
         If there are no published versions, then 'draft' is used instead.
+    config : file path, dictionary, or "dandi", default: "dandi"
+        If a file path, loads the dictionary configuration from the file.
+        If a dictionary, it must be valid against the configuration schema.
+        If "dandi", uses the requirements for DANDI validation.
     checks : list, optional
         list of checks to run
     ignore: list, optional
@@ -83,10 +89,11 @@ def inspect_dandiset(
     for asset in nwb_assets_iterator:
         dandi_s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-        yield _insect_dandi_s3_nwb(
+        yield insect_dandi_s3_url(
             dandi_s3_url=dandi_s3_url,
             dandiset_id=dandiset_id,
             dandiset_version=dandiset_version,
+            config=config,
             checks=checks,
             ignore=ignore,
             select=select,
@@ -103,10 +110,12 @@ def inspect_dandi_file_path(
     dandi_file_path: str,
     dandiset_id: str,
     dandiset_version: Union[str, Literal["draft"], None] = None,
+    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
+    skip_validate: bool = False,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
 ) -> Iterable[InspectorMessage]:
     """
@@ -122,6 +131,10 @@ def inspect_dandi_file_path(
         The specific published version of the Dandiset to inspect.
         If None, the latest version is used.
         If there are no published versions, then 'draft' is used instead.
+    config : file path, dictionary, or "dandi", default: "dandi"
+        If a file path, loads the dictionary configuration from the file.
+        If a dictionary, it must be valid against the configuration schema.
+        If "dandi", uses the requirements for DANDI validation.
     checks : list, optional
         list of checks to run
     ignore: list, optional
@@ -140,6 +153,9 @@ def inspect_dandi_file_path(
                 - improvable data representation
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    skip_validate : bool, default: False
+        Skip the PyNWB validation step.
+        This may be desired for older NWBFiles (< schema version v2.10).
     client: dandi.dandiapi.DandiAPIClient
         The client object can be passed to avoid re-instantiation over an iteration.
     """
@@ -152,26 +168,64 @@ def inspect_dandi_file_path(
     asset = dandiset.get_asset_by_path(path=dandi_file_path)
     dandi_s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-    yield _insect_dandi_s3_nwb(
+    yield insect_dandi_s3_url(
         dandi_s3_url=dandi_s3_url,
+        config=config,
         checks=checks,
         ignore=ignore,
         select=select,
         importance_threshold=importance_threshold,
-        client=client,
+        skip_validate=skip_validate,
     )
 
 
-def _insect_dandi_s3_nwb(
+def insect_dandi_s3_url(
     *,
     dandi_s3_url: str,
+    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
 ) -> Iterable[InspectorMessage]:
+    """
+    Inspect an explicit S3 URL.
+
+    Parameters
+    ----------
+    dandi_s3_url : string
+        The S3 URL of the NWB file.
+    config : file path, dictionary, or "dandi", default: "dandi"
+        If a file path, loads the dictionary configuration from the file.
+        If a dictionary, it must be valid against the configuration schema.
+        If "dandi", uses the requirements for DANDI validation.
+    checks : list, optional
+        list of checks to run
+    ignore: list, optional
+        Names of functions to skip.
+    select: list, optional
+        Names of functions to pick out of available checks.
+    importance_threshold : string or Importance, optional
+        Ignores tests with an assigned importance below this threshold.
+        Importance has three levels:
+
+            CRITICAL
+                - potentially incorrect data
+            BEST_PRACTICE_VIOLATION
+                - very suboptimal data representation
+            BEST_PRACTICE_SUGGESTION
+                - improvable data representation
+
+        The default is the lowest level, BEST_PRACTICE_SUGGESTION.
+    skip_validate : bool, default: False
+        Whether to skip the PyNWB validation step.
+    """
     import remfile
+
+    if not isinstance(config, dict):
+        config = load_config(filepath_or_keyword=config)
+    validate_config(config=config)
 
     byte_stream = remfile.File(url=dandi_s3_url)
     file = h5py.File(name=byte_stream)
@@ -193,8 +247,8 @@ def _insect_dandi_s3_nwb(
 
     yield inspect_nwbfile_object(
         nwbfile_object=nwbfile,
+        config=config,
         checks=checks,
-        config="dandi",
         ignore=ignore,
         select=select,
         importance_threshold=importance_threshold,

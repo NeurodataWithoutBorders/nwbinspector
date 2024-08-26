@@ -3,20 +3,34 @@
 import os
 import re
 import json
+import warnings
 from pathlib import Path
-from typing import Optional
-from warnings import warn
+from typing import Union, Literal
 
 import click
 
 from ._formatting import _get_report_header
 from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__
 from .utils import strtobool
+from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, insect_dandi_s3_url
 
 
 @click.command()
-@click.argument("path")
-@click.option("--modules", help="Modules to import prior to reading the file(s).")
+@click.argument("path", nargs=1)
+@click.option(
+    "--stream",
+    help="Whether or not to stream file content from the DANDI archive. Automatically enabled if path is a URL.",
+    is_flag=True,
+    required=False,
+    default=False,
+)
+@click.option(
+    "--version-id",
+    help="The version ID of the Dandiset to inspect. Defaults to 'draft' if '--stream' is specified.",
+    type=str,
+    required=False,
+    default=None,
+)
 @click.option(
     "--report-file-path",
     default=None,
@@ -36,7 +50,13 @@ from .utils import strtobool
     type=click.Choice(["CRITICAL", "BEST_PRACTICE_VIOLATION", "BEST_PRACTICE_SUGGESTION"]),
     help="Ignores tests with an assigned importance below this threshold.",
 )
-@click.option("--config", help="Name of config or path of config .yaml file that overwrites importance of checks.")
+@click.option(
+    "--config",
+    help="Name of internal config or path to a custom YAML file.",
+    type=str,
+    required=False,
+    default="dandi",
+)
 @click.option("--json-file-path", help="Write json output to this location.")
 @click.option("--n-jobs", help="Number of jobs to use in parallel.", default=1)
 @click.option("--skip-validate", help="Skip the PyNWB validation step.", is_flag=True)
@@ -50,81 +70,123 @@ from .utils import strtobool
 )
 @click.option("--progress-bar", help="Set this flag to False to disable display of the progress bar.")
 @click.option(
-    "--stream",
-    help=(
-        "Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, specifying this "
-        "flag will still force the data to be streamed instead of using the local copy. To use the local copy, simply "
-        "remove this flag. Requires the Read Only S3 (ros3) driver to be installed with h5py."
-    ),
-    is_flag=True,
-)
-@click.option(
-    "--version-id",
-    help=(
-        "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
-    ),
+    "--modules",
+    help="Modules to import prior to reading the file(s). Necessary for registration of custom checks functions.",
+    type=str,
+    required=False,
+    default=None,
 )
 @click.version_option(__version__)
-def _inspect_all_cli(
+def _nwbinspector_cli(
     path: str,
-    modules: Optional[str] = None,
+    /,
+    *,
+    stream: bool = False,
+    version_id: Union[str, None] = None,
     report_file_path: str = None,
     levels: str = None,
-    reverse: Optional[str] = None,
+    reverse: Union[str, None] = None,
     overwrite: bool = False,
-    ignore: Optional[str] = None,
-    select: Optional[str] = None,
+    ignore: Union[str, None] = None,
+    select: Union[str, None] = None,
     threshold: str = "BEST_PRACTICE_SUGGESTION",
-    config: Optional[str] = None,
-    json_file_path: Optional[str] = None,
+    config: str = "dandi",
+    json_file_path: Union[str, None] = None,
     n_jobs: int = 1,
     skip_validate: bool = False,
     detailed: bool = False,
-    progress_bar: Optional[str] = None,
-    stream: bool = False,
-    version_id: Optional[str] = None,
-):
+    progress_bar: Union[str, None] = None,
+    modules: Union[str, None] = None,
+) -> None:
     """
-    Run the NWBInspector via the command line.
+    Run the NWB Inspector via the command line.
 
-    path :
-    Path to either a local NWBFile, a local folder containing NWBFiles, a link to a dataset on
-    DANDI archive (i.e., https://dandiarchive.org/dandiset/{dandiset_id}/{version_id}), or a six-digit Dandiset ID.
+    Example Usage
+    -------------
+    nwbinspector path/to/folder
+
+    nwbinspector path/to/file.nwb
+
+    nwbinspector 000003 --stream
+
+    nwbinspector 000003:sub-YutaMouse39/sub-YutaMouse39_ses-YutaMouse39-150727_behavior+ecephys.nwb  \
+      --stream --version-id draft
     """
-    levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    path_is_url = path.startswith("https://")
+    stream = True if path_is_url else stream
+
+    if stream is True and config != "dandi":
+        message = (
+            "File content originates from DANDI, but a custom config was specified. "
+            "The 'dandi' config will be used instead."
+        )
+        raise ValueError(message)
+
+    dandiset_version = "draft" if stream is True and version_id is None else version_id
+    handled_levels = ["importance", "file_path"] if levels is None else levels.split(",")
+    handled_reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
+    handled_ignore = ignore if ignore is None else ignore.split(",")
+    handled_select = select if select is None else select.split(",")
+    handled_importance_threshold = Importance[threshold]
+    config = load_config(filepath_or_keyword=config)
+    show_progress_bar = True if progress_bar is None else strtobool(progress_bar)
     modules = [] if modules is None else modules.split(",")
-    reverse = [False] * len(levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
-    progress_bar = strtobool(progress_bar) if progress_bar is not None else True
-    if config is not None:
-        config = load_config(filepath_or_keyword=config)
-    if stream:
-        url_path = path if path.startswith("https://") else None
-        if url_path:
-            dandiset_id, version_id = url_path.split("/")[-2:]
-            path = dandiset_id
-        assert url_path or re.fullmatch(
-            pattern="^[0-9]{6}$", string=path
-        ), "'--stream' flag was enabled, but 'path' is neither a full link to the DANDI archive nor a DANDISet ID."
-        if Path(path).is_dir():
-            warn(
-                f"The local DANDISet '{path}' exists, but the '--stream' flag was used. "
-                "NWBInspector will use S3 streaming from DANDI. To use local data, remove the '--stream' flag."
-            )
-    messages = list(
-        inspect_all(
-            path=path,
-            modules=modules,
-            ignore=ignore if ignore is None else ignore.split(","),
-            select=select if select is None else select.split(","),
-            importance_threshold=Importance[threshold],
+
+    # Trigger the import of custom checks that have been registered and exposed to their respective modules
+    for module in modules:
+        importlib.import_module(name=module)
+
+    # Scan entire Dandiset
+    if stream is True and ":" not in path:
+        dandiset_id = path
+        messages_iterator = inspect_dandiset(
+            dandiset_id=dandiset_id,
+            dandiset_version=dandiset_version,
             config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
+            show_progress_bar=show_progress_bar,
+        )
+    # Scan a single NWB file in a Dandiset
+    elif stream is True and ":" in path:
+        dandiset_id, dandi_file_path = path.split(":")
+        messages_iterator = inspect_dandi_file_path(
+            dandi_file_path=dandi_file_path,
+            dandiset_id=dandiset_id,
+            dandiset_version=dandiset_version,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
+        )
+    # Scan single NWB file at URL
+    elif stream is True and path_is_url is True:
+        dandi_s3_url = path
+        messages_iterator = insect_dandi_s3_url(
+            dandi_s3_url=dandi_s3_url,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
+            skip_validate=skip_validate,
+        )
+    # Scan local file/folder
+    elif stream is False:
+        messages_iterator = inspect_all(
+            path=path,
+            config=config,
+            ignore=handled_ignore,
+            select=handled_select,
+            importance_threshold=handled_importance_threshold,
             n_jobs=n_jobs,
             skip_validate=skip_validate,
-            progress_bar=progress_bar,
-            stream=stream,
-            version_id=version_id,
+            progress_bar=show_progress_bar,
         )
-    )
+    messages = list(messages_iterator)
+
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
             raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
@@ -132,7 +194,10 @@ def _inspect_all_cli(
             json_report = dict(header=_get_report_header(), messages=messages)
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
-    formatted_messages = format_messages(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
+
+    formatted_messages = format_messages(
+        messages=messages, levels=handled_levels, reverse=handled_reverse, detailed=detailed
+    )
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:
         save_report(report_file_path=report_file_path, formatted_messages=formatted_messages, overwrite=overwrite)
