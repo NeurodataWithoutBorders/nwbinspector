@@ -26,3 +26,6 @@ jobs:
 
       - name: Run pytest on stream tests
         run: pytest tests/ -rsx tests/streaming_tests.py
+
+      - name: Run pytest on streaming-based read_nwbfile tests
+        run: pytest tests/ -rsx tests/read_nwbfile_streaming_tests.py
