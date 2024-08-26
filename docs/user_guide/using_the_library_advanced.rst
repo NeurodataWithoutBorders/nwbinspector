@@ -47,35 +47,36 @@ Of course, the generator can be treated like any other iterable as well, such as
 
 .. _advanced_streaming_api:
 
-Fetching and inspecting individual DANDI assets (ROS3)
-------------------------------------------------------
+Fetching and inspecting individual DANDI assets
+-----------------------------------------------
 
-While the section explaining :ref:`basic steaming of a dandiset <simple_streaming_api>` covered the simplest and most convenient usage of the streaming feature, sometimes a greater degree of control or customization is required. The :py:attr:`driver` argument of the :py:class:`~pynwb.NWBHDF5IO` can be passed directly into our core inspection functions. In this case, the :py:attr:`path` or :py:attr:`nwbfile_path` arguments become the full S3 path on the DANDI archive. Resolution of these paths can be performed via the following code...
+While the section explaining :ref:`basic steaming of a dandiset <simple_streaming_api>` covered the simplest and most
+convenient usage of the streaming feature applied to an entire Dandiset, you might want to inspect only a single file.
 
+In this case, we will use the :py:meth:`nwbinspector.inspect_dandi_file_path` function.
 
 .. code-block:: python
 
-    from dandi.dandiapi import DandiAPIClient
-    from nwbinspector import inspect_nwb
+    from nwbinspector import inspect_dandi_file_path
 
-    dandiset_id = "..."  # for example, 000004
-    dandiset_type = "draft"  # or "published", if it has an official doi associated
+    dandiset_id = "000004"
+    dandi_file_path = "sub-P17HMH/sub-P17HMH_ses-20080501_ecephys+image.nwb"
 
-    messages = []
-    with DandiAPIClient() as client:
-        dandiset = client.get_dandiset(dandiset_id, dandiset_type)
-        for asset in dandiset.get_assets():
-            s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
-            messages.extend(list(inspect_nwb(nwbfile_path=s3_url, driver="ros3")))
+    messages = list(inspect_dandiset(dandi_file_path=dandi_file_path, dandiset_id=dandiset_id))
 
-.. note::
+Just like :py:meth:`nwbinspector.inspect_dandiset`, this function accepts a ``dandiset_version``.
 
-    Since the :py:attr:`driver` argument can be passed directly into PyNWB, it should also be possible to utilize :alternative-streaming-tutorial:`alternative streaming methods <>` with the NWB Insector API.
+In case your NWB file is accessible via some other cloud URL, you can also use the :py:meth:`nwbinspector.inspect_url`
+function.
 
-.. note::
+.. code-block:: python
 
-    More generally, you are able to specify any S3 path to any bucket to which you have the proper AWS access credentials for.
+    from nwbinspector import inspect_url
 
+    dandiset_id = "000004"
+    url = "https://dandiarchive.s3.amazonaws.com/blobs/3d7/39a/3d739ac0-10fb-41ef-80be-f1479cec44c0"
+
+    messages = list(inspect_url(url=url))
 
 
 Format Reports

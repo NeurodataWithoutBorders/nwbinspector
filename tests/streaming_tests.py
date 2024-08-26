@@ -17,13 +17,9 @@ STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests
 PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS = (
     "https://dandi-api-staging-dandisets.s3.amazonaws.com/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620"
 )
-PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3 = (
-    "s3://dandi-api-staging-dandisets/blobs/80d/80f/80d80f55-f8a1-4318-b17e-ce55f4dd2620"
-)
 PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = (
     "https://dandi-api-staging-dandisets.s3.amazonaws.com/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
 )
-PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = "s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")

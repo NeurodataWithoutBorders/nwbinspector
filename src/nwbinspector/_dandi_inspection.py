@@ -87,19 +87,16 @@ def inspect_dandiset(
         )
 
     for asset in nwb_assets_iterator:
-        dandi_s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
+        asset_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-        yield insect_dandi_s3_url(
-            dandi_s3_url=dandi_s3_url,
-            dandiset_id=dandiset_id,
-            dandiset_version=dandiset_version,
+        yield inspect_url(
+            url=asset_url,
             config=config,
             checks=checks,
             ignore=ignore,
             select=select,
             importance_threshold=importance_threshold,
             skip_validate=skip_validate,
-            client=client,
         )
 
     pass
@@ -166,10 +163,10 @@ def inspect_dandi_file_path(
 
     dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
     asset = dandiset.get_asset_by_path(path=dandi_file_path)
-    dandi_s3_url = asset.get_content_url(follow_redirects=1, strip_query=True)
+    asset_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-    yield insect_dandi_s3_url(
-        dandi_s3_url=dandi_s3_url,
+    yield inspect_url(
+        url=asset_url,
         config=config,
         checks=checks,
         ignore=ignore,
@@ -179,9 +176,9 @@ def inspect_dandi_file_path(
     )
 
 
-def insect_dandi_s3_url(
+def inspect_url(
     *,
-    dandi_s3_url: str,
+    url: str,
     config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[List[str], None] = None,
@@ -194,8 +191,12 @@ def insect_dandi_s3_url(
 
     Parameters
     ----------
-    dandi_s3_url : string
-        The S3 URL of the NWB file.
+    url : string
+        A URL referring to the cloud location of an NWB file.
+        Commonly used with DANDI, where the URL has a form similar to:
+        https://dandiarchive.s3.amazonaws.com/blobs/636/57e/63657e32-ad33-4625-b664-31699b5bf664
+
+        Note: this must be the `https` URL, not the 's3://' form.
     config : file path, dictionary, or "dandi", default: "dandi"
         If a file path, loads the dictionary configuration from the file.
         If a dictionary, it must be valid against the configuration schema.
@@ -227,7 +228,7 @@ def insect_dandi_s3_url(
         config = load_config(filepath_or_keyword=config)
     validate_config(config=config)
 
-    byte_stream = remfile.File(url=dandi_s3_url)
+    byte_stream = remfile.File(url=url)
     file = h5py.File(name=byte_stream)
     io = pynwb.NWBHDF5IO(file=file)
 
