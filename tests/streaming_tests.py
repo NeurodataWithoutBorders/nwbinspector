@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
 
-from nwbinspector import Importance, inspect_all, InspectorMessage
+from nwbinspector import Importance, inspect_all, InspectorMessage, inspect_dandiset
 from nwbinspector.tools import read_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open
 from nwbinspector.utils import FilePathType
@@ -24,8 +24,14 @@ PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = (
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_dandiset_streaming():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
-    assert messages[0] == InspectorMessage(
+    dandiset_id = "000126"
+    select = ["check_subject_species_exists"]
+
+    test_messages = list(inspect_dandiset(dandiset_id=dandiset_id, select=select))
+    assert len(test_messages) == 1
+
+    test_message = test_messages[0]
+    expected_message = InspectorMessage(
         message="Subject species is missing.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_exists",
@@ -35,19 +41,7 @@ def test_dandiset_streaming():
         file_path="sub-1/sub-1.nwb",
     )
 
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_dandiset_streaming_parallel():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
-    assert messages[0] == InspectorMessage(
-        message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_subject_species_exists",
-        object_type="Subject",
-        object_name="subject",
-        location="/general/subject",
-        file_path="sub-1/sub-1.nwb",
-    )
+    assert test_message == expected_message
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -73,82 +67,11 @@ class TestStreamingCLI(TestCase):
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
 
-    def test_dandiset_streaming_cli_parallel(self):
+    def test_dandiset_streaming_cli_with_version(self):
         console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
         os.system(
-            f"nwbinspector https://dandiarchive.org/dandiset/000126/0.210813.0327 --stream --n-jobs 2 "
+            f"nwbinspector 000126 --version-id 0.210813.0327 --stream "
             f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_7.txt'}"
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
-
-
-# These will move to PyNWB when the time is right
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_hdf5_fsspec_https():
-    nwbfile = read_nwbfile(
-        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
-        method="fsspec",
-    )
-    assert check_hdf5_io_open(io=nwbfile.read_io)
-
-    nwbfile.read_io.close()
-    assert not check_hdf5_io_open(io=nwbfile.read_io)
-
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_hdf5_fsspec_s3():
-    nwbfile = read_nwbfile(
-        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
-        method="fsspec",
-    )
-    assert check_hdf5_io_open(io=nwbfile.read_io)
-
-    nwbfile.read_io.close()
-    assert not check_hdf5_io_open(io=nwbfile.read_io)
-
-
-@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_hdf5_ros3_https():
-    nwbfile = read_nwbfile(
-        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
-        method="ros3",
-    )
-    assert check_hdf5_io_open(io=nwbfile.read_io)
-
-    nwbfile.read_io.close()
-    assert not check_hdf5_io_open(io=nwbfile.read_io)
-
-
-# Zarr files not working yet with streaming
-
-# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-# def test_zarr_fsspec_streaming_https():
-#     nwbfile = read_nwbfile(
-#         nwbfile_path=PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS,
-#         method="fsspec",
-#     )
-#     assert check_zarr_io_open(io=nwbfile.read_io)
-
-#     nwbfile.read_io.close()
-#     assert not check_zarr_io_open(io=nwbfile.read_io)
-
-
-# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-# def test_zarr_fsspec_streaming_s3():
-#     nwbfile = read_nwbfile(
-#         nwbfile_path=PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3,
-#         method="fsspec",
-#     )
-#     assert check_zarr_io_open(io=nwbfile.read_io)
-
-#     nwbfile.read_io.close()
-#     assert not check_zarr_io_open(io=nwbfile.read_io)
-
-
-# @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-# def test_zarr_ros3_error():
-#     test that an error is raised with ros3 driver on zarr (not applicable)
