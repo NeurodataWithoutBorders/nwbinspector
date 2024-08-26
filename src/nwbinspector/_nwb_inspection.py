@@ -29,7 +29,6 @@ from .utils import (
 
 def inspect_all(
     path: PathType,
-    modules: OptionalListOfStrings = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
@@ -41,6 +40,7 @@ def inspect_all(
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
+    modules: OptionalListOfStrings = None,
 ):
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
@@ -50,9 +50,6 @@ def inspect_all(
     path : PathType
         File path to an NWBFile, folder path to iterate over recursively and scan all NWBFiles present, or a
         six-digit identifier of the DANDISet.
-    modules : list of strings, optional
-        List of external module names to load; examples would be namespace extensions.
-        These modules may also contain their own custom checks for their extensions.
     config : dict, optional
         If a dictionary, it must be valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
@@ -98,6 +95,9 @@ def inspect_all(
         If the path is a DANDISet ID, version_id additionally specifies which version of the dataset to read from.
         Common options are 'draft' or 'published'.
         Defaults to the most recent published version, or if not published then the most recent draft version.
+    modules : list of strings, optional
+        List of external module names to load; examples would be namespace extensions.
+        These modules may also contain their own custom checks for their extensions.
     """
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
