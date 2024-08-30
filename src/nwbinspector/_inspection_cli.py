@@ -10,7 +10,7 @@ from warnings import warn
 import click
 
 from ._formatting import _get_report_header
-from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__
+from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__, load_config
 from .utils import strtobool
 
 
