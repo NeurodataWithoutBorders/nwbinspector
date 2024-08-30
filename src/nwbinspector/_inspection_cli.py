@@ -9,7 +9,7 @@ from warnings import warn
 
 import click
 
-from ._formatting import _get_report_header
+from ._formatting import _get_report_header, InspectorOutputJSONEncoder
 from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__, load_config
 from .utils import strtobool
 
@@ -140,4 +140,4 @@ def _inspect_all_cli(
 
 
 if __name__ == "__main__":
-    inspect_all_cli()
+    _inspect_all_cli()
