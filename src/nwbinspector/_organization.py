@@ -1,7 +1,7 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 
-from typing import List, Optional
 from enum import Enum
+from typing import List, Optional
 
 from natsort import natsorted
 

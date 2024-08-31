@@ -1,20 +1,20 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 
-import os
 import json
+import os
 import sys
-from typing import Dict, List, Optional, Union
-from pathlib import Path
-from enum import Enum
-from datetime import datetime
-from platform import platform
 from collections import defaultdict
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from platform import platform
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from ._types import InspectorMessage, Importance
 from ._organization import organize_messages
-from .utils import get_package_version, FilePathType
+from ._types import Importance, InspectorMessage
+from .utils import FilePathType, get_package_version
 
 
 class InspectorOutputJSONEncoder(json.JSONEncoder):

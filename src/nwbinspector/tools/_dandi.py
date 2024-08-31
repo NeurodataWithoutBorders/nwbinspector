@@ -1,11 +1,10 @@
 """Helper functions related to DANDI for internal use that rely on external dependencies (i.e., dandi)."""
 
 import re
-from typing import Optional, Dict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import Dict, Optional
 
-
-from ..utils import is_module_installed, calculate_number_of_cpu
+from ..utils import calculate_number_of_cpu, is_module_installed
 
 
 def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = None, n_jobs: int = 1) -> Dict[str, str]:

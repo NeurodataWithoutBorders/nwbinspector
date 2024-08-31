@@ -1,34 +1,34 @@
 import os
+from datetime import datetime
+from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
-from pathlib import Path
 from unittest import TestCase
-from datetime import datetime
 
 import numpy as np
-from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.file import TimeIntervals, Subject
-from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
 from natsort import natsorted
+from pynwb import NWBHDF5IO, NWBFile, TimeSeries
+from pynwb.behavior import Position, SpatialSeries
+from pynwb.file import Subject, TimeIntervals
 
 from nwbinspector import (
     Importance,
-    Severity,
     InspectorMessage,
-    register_check,
-    load_config,
+    Severity,
+    available_checks,
     inspect_all,
     inspect_nwbfile,
     inspect_nwbfile_object,
-    available_checks,
+    load_config,
+    register_check,
 )
 from nwbinspector.checks import (
-    check_small_dataset_compression,
-    check_regular_timestamps,
     check_data_orientation,
-    check_timestamps_match_first_dimension,
+    check_regular_timestamps,
+    check_small_dataset_compression,
     check_subject_exists,
+    check_timestamps_match_first_dimension,
 )
 from nwbinspector.testing import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType

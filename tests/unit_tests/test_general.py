@@ -1,7 +1,7 @@
 from hdmf.common import DynamicTable
 
-from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks import check_name_slashes, check_description
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import check_description, check_name_slashes
 
 
 def test_check_name_slashes_pass():

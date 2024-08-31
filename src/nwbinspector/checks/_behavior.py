@@ -1,9 +1,9 @@
 """Checks for types belonging to the pynwb.behavior module."""
 
 import numpy as np
-from pynwb.behavior import SpatialSeries, CompassDirection
+from pynwb.behavior import CompassDirection, SpatialSeries
 
-from .._registration import register_check, Importance, InspectorMessage
+from .._registration import Importance, InspectorMessage, register_check
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=SpatialSeries)

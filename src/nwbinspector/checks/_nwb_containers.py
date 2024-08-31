@@ -5,8 +5,7 @@ import os
 import h5py
 from pynwb import NWBContainer
 
-
-from .._registration import register_check, Importance, InspectorMessage, Severity
+from .._registration import Importance, InspectorMessage, Severity, register_check
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)

@@ -1,7 +1,7 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
 
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 
