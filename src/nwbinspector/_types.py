@@ -1,15 +1,9 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
 
-from collections.abc import Iterable
-from functools import wraps
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
 
-import h5py
-from pynwb import NWBFile
-from pynwb.file import Subject
-from pynwb.ecephys import Device, ElectrodeGroup
 
 
 class Importance(Enum):
