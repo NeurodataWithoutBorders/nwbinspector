@@ -1,12 +1,12 @@
 """Helper functions for internal use across the testing suite."""
 
-import os
 import json
-from uuid import uuid4
-from pathlib import Path
+import os
 from datetime import datetime
-from typing import Tuple, Optional
+from pathlib import Path
+from typing import Optional, Tuple
 from urllib import request
+from uuid import uuid4
 
 import h5py
 from hdmf.backends.hdf5 import HDF5IO
@@ -15,7 +15,7 @@ from packaging.version import Version
 from pynwb import NWBHDF5IO, NWBFile
 from pynwb.image import ImageSeries
 
-from ..utils import is_module_installed, get_package_version, strtobool
+from ..utils import get_package_version, is_module_installed, strtobool
 
 # The tests must be invoked at the outer level of the repository
 TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"

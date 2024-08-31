@@ -1,12 +1,12 @@
 import pathlib
-from typing import Union, Iterable, Literal, List
+from typing import Iterable, List, Literal, Union
 
 import h5py
 import pynwb
 
-from ._types import InspectorMessage, Importance
 from ._configuration import load_config, validate_config
 from ._nwb_inspection import inspect_nwbfile_object
+from ._types import Importance, InspectorMessage
 
 
 def inspect_dandiset(

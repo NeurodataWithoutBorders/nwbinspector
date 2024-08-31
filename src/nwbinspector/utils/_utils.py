@@ -1,20 +1,19 @@
 """Commonly reused logic for evaluating conditions; must not have external dependencies."""
 
+import json
 import os
 import re
-import json
-from typing import TypeVar, Union, Optional, List, Dict, Callable, Tuple
-from pathlib import Path
-from importlib import import_module
-from packaging import version
-from time import sleep
 from functools import lru_cache
+from importlib import import_module
+from pathlib import Path
+from time import sleep
+from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 import h5py
 import numpy as np
-from numpy.typing import ArrayLike
 from hdmf.backends.hdf5.h5_utils import H5Dataset
-
+from numpy.typing import ArrayLike
+from packaging import version
 
 # TODO: deprecated these in favor of explicit typing
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders

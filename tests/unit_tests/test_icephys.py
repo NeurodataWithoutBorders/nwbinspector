@@ -1,9 +1,9 @@
 import pytest
 from packaging.version import Version
-from pynwb.icephys import IntracellularElectrode
 from pynwb.device import Device
+from pynwb.icephys import IntracellularElectrode
 
-from nwbinspector import InspectorMessage, Importance
+from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import check_intracellular_electrode_cell_id_exists
 from nwbinspector.utils import get_package_version
 

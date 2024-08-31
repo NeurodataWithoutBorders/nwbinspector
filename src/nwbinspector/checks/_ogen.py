@@ -1,6 +1,6 @@
 from pynwb.ogen import OptogeneticSeries, OptogeneticStimulusSite
 
-from .._registration import register_check, Importance, InspectorMessage
+from .._registration import Importance, InspectorMessage, register_check
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=OptogeneticStimulusSite)

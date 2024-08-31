@@ -2,9 +2,8 @@
 
 import pytest
 
+from nwbinspector.testing import check_hdf5_io_open, check_streaming_tests_enabled
 from nwbinspector.tools import read_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open
-
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS = (
