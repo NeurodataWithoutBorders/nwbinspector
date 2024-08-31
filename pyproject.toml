@@ -21,6 +21,27 @@ extend-exclude = '''
 )/
 '''
 
+
+
+[tool.ruff]
+exclude = ["docs/*"]
+
+[tool.ruff.lint]
+select = ["F401", "I002"] # TODO: eventually, expand to other 'I', 'D', and other 'F' linting
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/nwbinspector/__init__.py" = ["I"]  # Must maintain explicit order for imports for check registration
+"src/nwbinspector/utils/__init__.py" = ["F401", "I"]  # Several items planned for long-term deprecation
+
+# Temporarily keeping all exposure below for back-compatibility
+# Deprecation scheduled for 9/15/2024
+"src/nwbinspector/nwbinspector/__init__.py" = ["F401", "I"]
+"src/nwbinspector/inspector_tools/__init__.py" = ["F401", "I"]
+"src/nwbinspector/version/__init__.py" = ["F401", "I"]
+"src/nwbinspector/register_checks/__init__.py" = ["F401", "I"]
+
+
 [tool.codespell]
 skip = '.git*,*.pdf,*.css'
 check-hidden = true
