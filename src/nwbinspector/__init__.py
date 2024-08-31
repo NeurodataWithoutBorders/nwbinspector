@@ -29,6 +29,7 @@ __all__ = [
     "Importance",
     "Severity",
     "InspectorMessage",
+    "validate_config",
     "load_config",
     "configure_checks",
     "InspectorOutputJSONEncoder",
