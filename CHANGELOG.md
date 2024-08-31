@@ -1,5 +1,14 @@
 # Upcoming
 
+# v0.5.2
+
+### Fixes
+
+* Fixed import error when using the CLI with `--config dandi`. [#494](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/494)
+* Removed unused imports throughout package. [#496](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/496)
+
+
+
 # v0.5.0
 
 ### Deprecation (API)
