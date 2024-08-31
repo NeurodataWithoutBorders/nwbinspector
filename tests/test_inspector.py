@@ -7,6 +7,7 @@ from unittest.mock import patch
 from datetime import datetime
 
 import numpy as np
+import pytest
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import TimeIntervals, Subject
 from pynwb.behavior import SpatialSeries, Position
@@ -686,7 +687,7 @@ class TestDANDIConfig(TestInspector):
             skip_first_newlines=True,
         )
 
-        return status
+        return pytest.ExitCode(status)
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):
