@@ -3,15 +3,13 @@
 import json
 import jsonschema
 from pathlib import Path
-from enum import Enum
 from typing import Optional, List
 from types import FunctionType
-from packaging.version import Version
 
 import yaml
 
 from . import available_checks
-from ._registration import InspectorMessage, Importance
+from ._registration import Importance
 from nwbinspector.utils._utils import (
     PathType,
 )
