@@ -686,7 +686,7 @@ class TestDANDIConfig(TestInspector):
             true_file_path=Path(__file__).parent / "true_nwbinspector_report_with_dandi_config.txt",
             skip_first_newlines=True,
         )
-
+        print(status)
         return pytest.ExitCode(status)
 
 
