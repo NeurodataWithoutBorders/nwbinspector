@@ -1,29 +1,29 @@
 """Primary functions for inspecting NWBFiles."""
 
-import re
 import importlib
+import re
 import traceback
-from pathlib import Path
-from typing import Union, Optional, List, Iterable
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from warnings import filterwarnings, warn
 from collections import defaultdict
-from packaging.version import Version
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
+from typing import Iterable, List, Optional, Union
+from warnings import filterwarnings, warn
 
 import pynwb
-from tqdm import tqdm
 from natsort import natsorted
+from packaging.version import Version
+from tqdm import tqdm
 
 from . import available_checks, configure_checks
-from ._registration import InspectorMessage, Importance
+from ._registration import Importance, InspectorMessage
 from .tools import get_s3_urls_and_dandi_paths
 from .utils import (
     FilePathType,
-    PathType,
     OptionalListOfStrings,
-    robust_s3_read,
+    PathType,
     calculate_number_of_cpu,
     get_package_version,
+    robust_s3_read,
 )
 
 

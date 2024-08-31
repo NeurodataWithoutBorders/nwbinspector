@@ -5,11 +5,10 @@ from typing import Optional
 
 import h5py
 from pynwb import NWBFile
-from pynwb.file import Subject
 from pynwb.ecephys import Device, ElectrodeGroup
+from pynwb.file import Subject
 
-from ._types import Importance, Severity, InspectorMessage
-
+from ._types import Importance, InspectorMessage, Severity
 
 available_checks = list()
 

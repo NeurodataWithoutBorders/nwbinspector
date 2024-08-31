@@ -1,23 +1,20 @@
 import os
-from packaging import version
 
+import numpy as np
+import pytest
 from hdmf.testing import TestCase
+from packaging import version
 
 from nwbinspector import Importance
 from nwbinspector.utils import (
-    format_byte_size,
-    is_regular_series,
-    is_dict_in_string,
-    get_package_version,
     calculate_number_of_cpu,
+    format_byte_size,
+    get_package_version,
     is_ascending_series,
+    is_dict_in_string,
+    is_regular_series,
     strtobool,
 )
-
-
-import pytest
-
-import numpy as np
 
 
 def test_format_byte_size():

@@ -1,21 +1,21 @@
-from pathlib import Path
-from tempfile import mkdtemp
-from shutil import rmtree
-from unittest import TestCase
 from datetime import datetime
+from pathlib import Path
+from shutil import rmtree
+from tempfile import mkdtemp
+from unittest import TestCase
 
 import h5py
 import numpy as np
 from pynwb import NWBContainer, NWBFile
 from pynwb.image import ImageSeries
 
-from nwbinspector import InspectorMessage, Importance
-from nwbinspector.checks import (
-    check_small_dataset_compression,
-    check_large_dataset_compression,
-    check_empty_string_for_optional_attribute,
-)
+from nwbinspector import Importance, InspectorMessage
 from nwbinspector._registration import Severity
+from nwbinspector.checks import (
+    check_empty_string_for_optional_attribute,
+    check_large_dataset_compression,
+    check_small_dataset_compression,
+)
 
 
 class TestNWBContainers(TestCase):

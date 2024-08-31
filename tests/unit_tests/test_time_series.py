@@ -1,23 +1,22 @@
 import h5py
+import numpy as np
 import pynwb
 import pytest
-import numpy as np
 from packaging import version
 
-
-from nwbinspector import InspectorMessage, Importance
+from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
-    check_regular_timestamps,
     check_data_orientation,
-    check_timestamps_match_first_dimension,
-    check_timestamps_ascending,
-    check_timestamps_without_nans,
     check_missing_unit,
+    check_rate_is_not_zero,
+    check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
-    check_rate_is_not_zero,
+    check_timestamps_ascending,
+    check_timestamps_match_first_dimension,
+    check_timestamps_without_nans,
 )
-from nwbinspector.testing import make_minimal_nwbfile, check_streaming_tests_enabled
+from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
 from nwbinspector.utils import get_package_version, robust_s3_read
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()

@@ -1,16 +1,24 @@
 """Primary functions for inspecting NWBFiles."""
 
+import json
 import os
 import re
-import json
 from pathlib import Path
 from typing import Optional
 from warnings import warn
 
 import click
 
-from ._formatting import _get_report_header, InspectorOutputJSONEncoder
-from . import Importance, inspect_all, format_messages, print_to_console, save_report, __version__, load_config
+from . import (
+    Importance,
+    __version__,
+    format_messages,
+    inspect_all,
+    load_config,
+    print_to_console,
+    save_report,
+)
+from ._formatting import InspectorOutputJSONEncoder, _get_report_header
 from .utils import strtobool
 
 

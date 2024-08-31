@@ -7,16 +7,15 @@ import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
 from pynwb.file import TimeIntervals, Units
 
-from .._registration import register_check, InspectorMessage, Importance
+from .._registration import Importance, InspectorMessage, register_check
 from ..utils import (
     cache_data_selection,
     format_byte_size,
+    get_data_shape,
     is_ascending_series,
     is_dict_in_string,
     is_string_json_loadable,
-    get_data_shape,
 )
-
 
 NELEMS = 200
 

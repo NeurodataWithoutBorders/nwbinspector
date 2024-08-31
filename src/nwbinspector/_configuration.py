@@ -1,18 +1,19 @@
 """Primary functions for inspecting NWBFiles."""
 
 import json
-import jsonschema
 from pathlib import Path
-from typing import Optional, List
 from types import FunctionType
+from typing import List, Optional
 
+import jsonschema
 import yaml
 
-from . import available_checks
-from ._registration import Importance
 from nwbinspector.utils._utils import (
     PathType,
 )
+
+from . import available_checks
+from ._registration import Importance
 
 INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
 
