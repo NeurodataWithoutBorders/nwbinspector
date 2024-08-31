@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-
 class Importance(Enum):
     """A definition of the valid importance levels for a given check function."""
 
