@@ -675,7 +675,7 @@ class TestDANDIConfig(TestInspector):
     def test_inspect_nwbfile_dandi_config_critical_only_entire_registry_cli(self):
         console_output_file_path = self.tempdir / "test_console_output.txt"
 
-        os.system(
+        status = os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --config dandi --threshold BEST_PRACTICE_VIOLATION"
             f"> {console_output_file_path}"
         )
@@ -685,6 +685,8 @@ class TestDANDIConfig(TestInspector):
             true_file_path=Path(__file__).parent / "true_nwbinspector_report_with_dandi_config.txt",
             skip_first_newlines=True,
         )
+
+        return status
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):
