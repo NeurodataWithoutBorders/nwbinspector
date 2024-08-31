@@ -8,9 +8,7 @@ from typing import List, Optional
 import jsonschema
 import yaml
 
-from nwbinspector.utils._utils import (
-    PathType,
-)
+from nwbinspector.utils import PathType
 
 from . import available_checks
 from ._registration import Importance
