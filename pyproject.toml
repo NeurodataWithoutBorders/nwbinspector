@@ -21,6 +21,16 @@ extend-exclude = '''
 )/
 '''
 
+
+
+[tool.ruff]
+
+[tool.ruff.lint]
+select = ["F401"] # TODO: eventually, expand to other 'I', 'D', and other 'F' linting
+fixable = ["ALL"]
+
+
+
 [tool.codespell]
 skip = '.git*,*.pdf,*.css'
 check-hidden = true
