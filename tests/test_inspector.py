@@ -3,11 +3,9 @@ from shutil import rmtree
 from tempfile import mkdtemp
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch
 from datetime import datetime
 
 import numpy as np
-import pytest
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.file import TimeIntervals, Subject
 from pynwb.behavior import SpatialSeries, Position
