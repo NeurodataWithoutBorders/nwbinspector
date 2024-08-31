@@ -88,7 +88,8 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspector(TestCase):
     """A common helper class for testing the NWBInspector."""
 
-    def assertFileExists(self, path: FilePathType):
+    @staticmethod
+    def assertFileExists(path: FilePathType):
         path = Path(path)
         assert path.exists()
 

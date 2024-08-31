@@ -106,7 +106,8 @@ class MessageFormatter:
         self.message_counter = 0
         self.formatted_messages = []
 
-    def _count_messages_by_importance(self, messages: List[InspectorMessage]) -> Dict[str, int]:
+    @staticmethod
+    def _count_messages_by_importance(messages: List[InspectorMessage]) -> Dict[str, int]:
         message_count_by_importance = {importance_level.name: 0 for importance_level in Importance}
         for message in messages:
             message_count_by_importance[message.importance.name] += 1
@@ -114,7 +115,8 @@ class MessageFormatter:
             message_count_by_importance.pop(key)
         return message_count_by_importance
 
-    def _get_name(self, obj) -> str:
+    @staticmethod
+    def _get_name(obj) -> str:
         if isinstance(obj, Enum):
             return obj.name
         if isinstance(obj, str):
