@@ -86,6 +86,44 @@ def add_simple_table(nwbfile: NWBFile):
 
 
 class TestInspector(TestCase):
+    """A common helper class for testing the NWBInspector."""
+
+    def assertFileExists(self, path: FilePathType):
+        path = Path(path)
+        assert path.exists()
+
+    def assertLogFileContentsEqual(
+        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
+    ):
+        skip_first_n_lines = 0
+        with open(file=test_file_path, mode="r") as test_file:
+            test_file_lines = test_file.readlines()
+        with open(file=true_file_path, mode="r") as true_file:
+            true_file_lines = true_file.readlines()
+
+        if skip_first_newlines:
+            for line_number, test_line in enumerate(test_file_lines):
+                if test_line != "\n":
+                    skip_first_n_lines = line_number
+                    break
+        else:
+            skip_first_n_lines = 0
+
+        for line_number, test_line in enumerate(test_file_lines):
+            if "Timestamp: " in test_line:
+                # Transform the test file header to match ground true example
+                test_file_lines[line_number] = "Timestamp: 2022-04-01 13:32:13.756390-04:00\n"
+                test_file_lines[line_number + 1] = "Platform: Windows-10-10.0.19043-SP0\n"
+                test_file_lines[line_number + 2] = "NWBInspector version: 0.3.6\n"
+            if ".nwb" in test_line:
+                # Transform temporary testing path and formatted to hardcoded fake path
+                str_loc = test_line.find(".nwb")
+                correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
+                test_file_lines[line_number] = correction_str
+        self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
+
+
+class TestInspectorAPI(TestInspector):
     maxDiff = None
 
     @classmethod
@@ -119,38 +157,6 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
-    def assertFileExists(self, path: FilePathType):
-        path = Path(path)
-        assert path.exists()
-
-    def assertLogFileContentsEqual(
-        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
-    ):
-        skip_first_n_lines = 0
-        with open(file=test_file_path, mode="r") as test_file:
-            with open(file=true_file_path, mode="r") as true_file:
-                test_file_lines = test_file.readlines()
-                if skip_first_newlines:
-                    for line_number, test_line in enumerate(test_file_lines):
-                        if test_line != "\n":
-                            skip_first_n_lines = line_number
-                            break
-                else:
-                    skip_first_n_lines = 0
-                true_file_lines = true_file.readlines()
-                for line_number, test_line in enumerate(test_file_lines):
-                    if "Timestamp: " in test_line:
-                        # Transform the test file header to match ground true example
-                        test_file_lines[line_number] = "Timestamp: 2022-04-01 13:32:13.756390-04:00\n"
-                        test_file_lines[line_number + 1] = "Platform: Windows-10-10.0.19043-SP0\n"
-                        test_file_lines[line_number + 2] = "NWBInspector version: 0.3.6\n"
-                    if ".nwb" in test_line:
-                        # Transform temporary testing path and formatted to hardcoded fake path
-                        str_loc = test_line.find(".nwb")
-                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
-                        test_file_lines[line_number] = correction_str
-                self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
     def test_inspect_all(self):
         test_results = list(inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks]))
@@ -574,7 +580,7 @@ class TestInspector(TestCase):
         self.assertCountEqual(first=test_results, second=true_results)
 
 
-class TestDANDIConfig(TestCase):
+class TestDANDIConfig(TestInspector):
     maxDiff = None
 
     @classmethod
@@ -666,6 +672,20 @@ class TestDANDIConfig(TestCase):
             ),
         ]
         self.assertCountEqual(first=test_results, second=true_results)
+
+    def test_inspect_nwbfile_dandi_config_critical_only_entire_registry_cli(self):
+        console_output_file_path = self.tempdir / "test_console_output.txt"
+
+        os.system(
+            f"nwbinspector {str(self.tempdir)} --overwrite --config dandi --threshold BEST_PRACTICE_VIOLATION"
+            f"> {console_output_file_path}"
+        )
+
+        self.assertLogFileContentsEqual(
+            test_file_path=console_output_file_path,
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report_with_dandi_config.txt",
+            skip_first_newlines=True,
+        )
 
 
 class TestCheckUniqueIdentifiersPass(TestCase):

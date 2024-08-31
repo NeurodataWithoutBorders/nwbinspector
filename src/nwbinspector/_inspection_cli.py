@@ -9,6 +9,15 @@ from warnings import warn
 
 import click
 
+from . import (
+    Importance,
+    __version__,
+    format_messages,
+    inspect_all,
+    load_config,
+    print_to_console,
+    save_report,
+)
 from ._configuration import load_config
 from ._formatting import (
     InspectorOutputJSONEncoder,
