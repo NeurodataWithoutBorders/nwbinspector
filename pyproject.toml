@@ -29,6 +29,10 @@ extend-exclude = '''
 select = ["F401"] # TODO: eventually, expand to other 'I', 'D', and other 'F' linting
 fixable = ["ALL"]
 
+[tool.ruff.lint.per-file-ignores]
+"nwbinspector/__init__.py" = ["I"]  # Must maintain explicit order for imports for check registration
+"nwbinspector/nwbinspector/__init__.py" = ["F401", "I"]  # Temporarily keeping all exposure for back-compatibility
+"nwbinspector/inspector_tools/__init__.py" = ["F401", "I"] # Temporarily keeping all exposure for back-compatibility
 
 
 [tool.codespell]
