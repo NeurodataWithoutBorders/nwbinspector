@@ -6,7 +6,7 @@ import traceback
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Iterable, List, Optional, Union, Type
+from typing import Iterable, List, Optional, Type, Union
 from warnings import filterwarnings, warn
 
 import pynwb
