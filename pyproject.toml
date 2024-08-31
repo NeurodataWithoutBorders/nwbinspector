@@ -41,6 +41,11 @@ fixable = ["ALL"]
 "src/nwbinspector/version/__init__.py" = ["F401", "I"]
 "src/nwbinspector/register_checks/__init__.py" = ["F401", "I"]
 
+[tool.ruff.lint.isort]
+relative-imports-order = "closest-to-furthest"
+known-first-party = ["nwbinspector"]
+
+
 
 [tool.codespell]
 skip = '.git*,*.pdf,*.css'
