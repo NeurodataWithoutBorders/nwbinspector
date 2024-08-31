@@ -24,6 +24,7 @@ extend-exclude = '''
 
 
 [tool.ruff]
+exclude = ["docs/*"]
 
 [tool.ruff.lint]
 select = ["F401", "I002"] # TODO: eventually, expand to other 'I', 'D', and other 'F' linting
