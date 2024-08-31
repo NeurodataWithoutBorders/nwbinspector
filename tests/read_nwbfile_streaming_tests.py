@@ -1,16 +1,9 @@
 """All tests that specifically require streaming to be enabled (i.e., ROS3 version of h5py, fsspec, etc.)."""
 
-import os
 import pytest
-from shutil import rmtree
-from tempfile import mkdtemp
-from pathlib import Path
-from unittest import TestCase
 
-from nwbinspector import Importance, inspect_all, InspectorMessage, inspect_dandiset
 from nwbinspector.tools import read_nwbfile
 from nwbinspector.testing import check_streaming_tests_enabled, check_hdf5_io_open
-from nwbinspector.utils import FilePathType
 
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()

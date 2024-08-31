@@ -1,12 +1,10 @@
 """Primary functions for inspecting NWBFiles."""
 
 import os
-import re
 import json
-import warnings
 import importlib
 from pathlib import Path
-from typing import Union, Literal
+from typing import Union
 
 import click
 
