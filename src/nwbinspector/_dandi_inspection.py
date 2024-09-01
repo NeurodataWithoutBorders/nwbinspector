@@ -100,7 +100,6 @@ def inspect_dandiset(
         )
 
 
-
 def inspect_dandi_file_path(
     *,
     dandi_file_path: str,
