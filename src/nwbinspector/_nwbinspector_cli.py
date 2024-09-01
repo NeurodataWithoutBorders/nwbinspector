@@ -130,7 +130,7 @@ def _nwbinspector_cli(
     elif stream is True and config is None:
         config = "dandi"
 
-    dandiset_version = "draft" if stream is True and version_id is None else version_id
+    dandiset_version = "draft" if stream and version_id is None else version_id
     handled_config = config if config is None else load_config(filepath_or_keyword=config)
     handled_levels = ["importance", "file_path"] if levels is None else levels.split(",")
     handled_reverse = [False] * len(handled_levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
@@ -145,7 +145,7 @@ def _nwbinspector_cli(
         importlib.import_module(name=module)
 
     # Scan entire Dandiset
-    if stream is True and ":" not in path:
+    if stream and ":" not in path:
         dandiset_id = path
         messages_iterator = inspect_dandiset(
             dandiset_id=dandiset_id,
@@ -158,7 +158,7 @@ def _nwbinspector_cli(
             show_progress_bar=show_progress_bar,
         )
     # Scan a single NWB file in a Dandiset
-    elif stream is True and ":" in path:
+    elif stream and ":" in path:
         dandiset_id, dandi_file_path = path.split(":")
         messages_iterator = inspect_dandi_file_path(
             dandi_file_path=dandi_file_path,
@@ -171,7 +171,7 @@ def _nwbinspector_cli(
             skip_validate=skip_validate,
         )
     # Scan single NWB file at URL
-    elif stream is True and path_is_url is True:
+    elif stream and path_is_url:
         dandi_s3_url = path
         messages_iterator = inspect_url(
             dandi_s3_url=dandi_s3_url,
@@ -182,7 +182,7 @@ def _nwbinspector_cli(
             skip_validate=skip_validate,
         )
     # Scan local file/folder
-    elif stream is False:
+    else:  # stream is False
         messages_iterator = inspect_all(
             path=path,
             config=handled_config,

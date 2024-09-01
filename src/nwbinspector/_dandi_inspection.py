@@ -79,7 +79,7 @@ def inspect_dandiset(
     nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
 
     nwb_assets_iterator = nwb_assets
-    if show_progress_bar is True:
+    if show_progress_bar:
         import tqdm
 
         nwb_assets_iterator = tqdm.tqdm(
@@ -99,7 +99,6 @@ def inspect_dandiset(
             skip_validate=skip_validate,
         )
 
-    pass
 
 
 def inspect_dandi_file_path(
