@@ -6,7 +6,7 @@ import traceback
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Type, Union
 from warnings import filterwarnings, warn
 
 import pynwb
@@ -37,7 +37,7 @@ def inspect_all(
     n_jobs: int = 1,
     skip_validate: bool = False,
     progress_bar: bool = True,
-    progress_bar_class: tqdm = tqdm,
+    progress_bar_class: Type[tqdm] = tqdm,
     progress_bar_options: Optional[dict] = None,
     stream: bool = False,
     version_id: Optional[str] = None,
@@ -421,7 +421,7 @@ def inspect_nwbfile_object(
 def run_checks(
     nwbfile: pynwb.NWBFile,
     checks: list,
-    progress_bar_class: Optional[tqdm] = None,
+    progress_bar_class: Optional[Type[tqdm]] = None,
     progress_bar_options: Optional[dict] = None,
 ) -> Iterable[InspectorMessage]:
     """
@@ -435,7 +435,7 @@ def run_checks(
         The list of check functions that will be run on the in-memory pynwb.NWBFile object.
     progress_bar_class : type of tqdm.tqdm, optional
         The specific child class of tqdm.tqdm to use to make progress bars.
-        Defaults to not displaying progress per set of checks over an invidiual file.
+        Defaults to not displaying progress per set of checks over an individual file.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
 

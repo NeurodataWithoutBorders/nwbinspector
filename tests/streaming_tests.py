@@ -64,7 +64,8 @@ class TestStreamingCLI(TestCase):
     def tearDownClass(cls):
         rmtree(cls.tempdir)
 
-    def assertFileExists(self, path: FilePathType):
+    @staticmethod
+    def assertFileExists(path: FilePathType):
         path = Path(path)
         assert path.exists()
 
