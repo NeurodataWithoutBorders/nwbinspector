@@ -226,22 +226,26 @@ def inspect_url(
         config = load_config(filepath_or_keyword=config)
     validate_config(config=config)
 
-    with (
-        remfile.File(url=url) as byte_stream,
-        h5py.File(name=byte_stream) as file,
-        pynwb.NWBHDF5IO(file=file) as io,
-    ):
-        if skip_validate is False:
-            validation_errors = pynwb.validate(io=io)
+    # TODO: when 3.8 support is removed, uncomment to replace block and de-indent
+    #with (
+    #    remfile.File(url=url) as byte_stream,
+    #    h5py.File(name=byte_stream) as file,
+    #    pynwb.NWBHDF5IO(file=file) as io,
+    #)
+    with remfile.File(url=url) as byte_stream:
+        with h5py.File(name=byte_stream) as file:
+            with pynwb.NWBHDF5IO(file=file) as io:
+                if skip_validate is False:
+                    validation_errors = pynwb.validate(io=io)
 
-            for validation_error in validation_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
+                    for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
 
         nwbfile = io.read()
 
