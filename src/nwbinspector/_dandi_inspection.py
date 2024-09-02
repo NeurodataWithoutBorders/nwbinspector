@@ -227,11 +227,11 @@ def inspect_url(
     validate_config(config=config)
 
     # TODO: when 3.8 support is removed, uncomment to replace block and de-indent
-    #with (
+    # with (
     #    remfile.File(url=url) as byte_stream,
     #    h5py.File(name=byte_stream) as file,
     #    pynwb.NWBHDF5IO(file=file) as io,
-    #)
+    # )
     with remfile.File(url=url) as byte_stream:
         with h5py.File(name=byte_stream) as file:
             with pynwb.NWBHDF5IO(file=file) as io:
