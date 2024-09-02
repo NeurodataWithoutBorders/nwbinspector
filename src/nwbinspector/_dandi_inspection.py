@@ -239,21 +239,21 @@ def inspect_url(
                     validation_errors = pynwb.validate(io=io)
 
                     for validation_error in validation_errors:
-                    yield InspectorMessage(
-                        message=validation_error.reason,
-                        importance=Importance.PYNWB_VALIDATION,
-                        check_function_name=validation_error.name,
-                        location=validation_error.location,
-                        file_path=nwbfile_path,
-                    )
+                        yield InspectorMessage(
+                            message=validation_error.reason,
+                            importance=Importance.PYNWB_VALIDATION,
+                            check_function_name=validation_error.name,
+                            location=validation_error.location,
+                            file_path=nwbfile_path,
+                        )
 
-        nwbfile = io.read()
+                nwbfile = io.read()
 
-        yield inspect_nwbfile_object(
-            nwbfile_object=nwbfile,
-            config=config,
-            checks=checks,
-            ignore=ignore,
-            select=select,
-            importance_threshold=importance_threshold,
-        )
+                yield inspect_nwbfile_object(
+                    nwbfile_object=nwbfile,
+                    config=config,
+                    checks=checks,
+                    ignore=ignore,
+                    select=select,
+                    importance_threshold=importance_threshold,
+                )
