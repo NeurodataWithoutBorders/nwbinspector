@@ -1,30 +1,36 @@
 import os
-import pytest
+from datetime import datetime
+from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
-from pathlib import Path
 from unittest import TestCase
-from datetime import datetime
 
 import numpy as np
-from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.file import TimeIntervals
-from pynwb.behavior import SpatialSeries, Position
 from hdmf.common import DynamicTable
 from natsort import natsorted
+from pynwb import NWBHDF5IO, NWBFile, TimeSeries
+from pynwb.behavior import Position, SpatialSeries
+from pynwb.file import Subject, TimeIntervals
 
 from nwbinspector import (
     Importance,
-    check_small_dataset_compression,
-    check_regular_timestamps,
-    check_data_orientation,
-    check_timestamps_match_first_dimension,
-    check_subject_exists,
+    InspectorMessage,
+    Severity,
+    available_checks,
+    inspect_all,
+    inspect_nwbfile,
+    inspect_nwbfile_object,
     load_config,
+    register_check,
 )
-from nwbinspector import inspect_all, inspect_nwbfile, available_checks
-from nwbinspector.register_checks import Severity, InspectorMessage, register_check
-from nwbinspector.tools import make_minimal_nwbfile
+from nwbinspector.checks import (
+    check_data_orientation,
+    check_regular_timestamps,
+    check_small_dataset_compression,
+    check_subject_exists,
+    check_timestamps_match_first_dimension,
+)
+from nwbinspector.testing import make_minimal_nwbfile
 from nwbinspector.utils import FilePathType
 
 
@@ -80,6 +86,45 @@ def add_simple_table(nwbfile: NWBFile):
 
 
 class TestInspector(TestCase):
+    """A common helper class for testing the NWBInspector."""
+
+    @staticmethod
+    def assertFileExists(path: FilePathType):
+        path = Path(path)
+        assert path.exists()
+
+    def assertLogFileContentsEqual(
+        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
+    ):
+        skip_first_n_lines = 0
+        with open(file=test_file_path, mode="r") as test_file:
+            test_file_lines = test_file.readlines()
+        with open(file=true_file_path, mode="r") as true_file:
+            true_file_lines = true_file.readlines()
+
+        if skip_first_newlines:
+            for line_number, test_line in enumerate(test_file_lines):
+                if test_line != "\n":
+                    skip_first_n_lines = line_number
+                    break
+        else:
+            skip_first_n_lines = 0
+
+        for line_number, test_line in enumerate(test_file_lines):
+            if "Timestamp: " in test_line:
+                # Transform the test file header to match ground true example
+                test_file_lines[line_number] = "Timestamp: 2022-04-01 13:32:13.756390-04:00\n"
+                test_file_lines[line_number + 1] = "Platform: Windows-10-10.0.19043-SP0\n"
+                test_file_lines[line_number + 2] = "NWBInspector version: 0.3.6\n"
+            if ".nwb" in test_line:
+                # Transform temporary testing path and formatted to hardcoded fake path
+                str_loc = test_line.find(".nwb")
+                correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
+                test_file_lines[line_number] = correction_str
+        self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
+
+
+class TestInspectorAPI(TestInspector):
     maxDiff = None
 
     @classmethod
@@ -91,7 +136,7 @@ class TestInspector(TestCase):
             check_data_orientation,
             check_timestamps_match_first_dimension,
         ]
-        num_nwbfiles = 3
+        num_nwbfiles = 4
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
@@ -101,9 +146,11 @@ class TestInspector(TestCase):
         add_non_matching_timestamps_dimension(nwbfiles[0])
         add_simple_table(nwbfiles[0])
         add_regular_timestamps(nwbfiles[1])
-        # Last file to be left without violations
+        # Third file to be left without violations
+        add_non_matching_timestamps_dimension(nwbfiles[3])
 
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        cls.nwbfile_paths[3] = str(cls.tempdir / f"._testing3.nwb")
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
@@ -111,37 +158,6 @@ class TestInspector(TestCase):
     @classmethod
     def tearDownClass(cls):
         rmtree(cls.tempdir)
-
-    def assertFileExists(self, path: FilePathType):
-        path = Path(path)
-        assert path.exists()
-
-    def assertLogFileContentsEqual(
-        self, test_file_path: FilePathType, true_file_path: FilePathType, skip_first_newlines: bool = False
-    ):
-        with open(file=test_file_path, mode="r") as test_file:
-            with open(file=true_file_path, mode="r") as true_file:
-                test_file_lines = test_file.readlines()
-                if skip_first_newlines:
-                    for line_number, test_line in enumerate(test_file_lines):
-                        if test_line != "\n":
-                            skip_first_n_lines = line_number
-                            break
-                else:
-                    skip_first_n_lines = 0
-                true_file_lines = true_file.readlines()
-                for line_number, test_line in enumerate(test_file_lines):
-                    if "Timestamp: " in test_line:
-                        # Transform the test file header to match ground true example
-                        test_file_lines[line_number] = "Timestamp: 2022-04-01 13:32:13.756390-04:00\n"
-                        test_file_lines[line_number + 1] = "Platform: Windows-10-10.0.19043-SP0\n"
-                        test_file_lines[line_number + 2] = "NWBInspector version: 0.3.6\n"
-                    if ".nwb" in test_line:
-                        # Transform temporary testing path and formatted to hardcoded fake path
-                        str_loc = test_line.find(".nwb")
-                        correction_str = test_line.replace(test_line[5 : str_loc - 8], "./")  # noqa: E203 (black)
-                        test_file_lines[line_number] = correction_str
-                self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
     def test_inspect_all(self):
         test_results = list(inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks]))
@@ -159,7 +175,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -195,7 +211,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                    "and rate=2.0 instead of timestamps."
+                    "and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -226,7 +242,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -264,7 +280,7 @@ class TestInspector(TestCase):
                 InspectorMessage(
                     message=(
                         "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 "
-                        "and rate=2.0 instead of timestamps."
+                        "and rate=0.5 instead of timestamps."
                     ),
                     importance=Importance.BEST_PRACTICE_VIOLATION,
                     severity=Severity.LOW,
@@ -293,7 +309,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and "
-                    "rate=2.0 instead of timestamps."
+                    "rate=0.5 instead of timestamps."
                 ),
                 severity=Severity.LOW,
                 importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -391,7 +407,8 @@ class TestInspector(TestCase):
         console_output_file = self.tempdir / "test_console_output.txt"
         os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
-            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
+            "--modules random,math,datetime"
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -542,7 +559,7 @@ class TestInspector(TestCase):
             InspectorMessage(
                 message=(
                     "TimeSeries appears to have a constant sampling rate. "
-                    "Consider specifying starting_time=1.2 and rate=2.0 instead of timestamps."
+                    "Consider specifying starting_time=1.2 and rate=0.5 instead of timestamps."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 check_function_name="check_regular_timestamps",
@@ -564,7 +581,7 @@ class TestInspector(TestCase):
         self.assertCountEqual(first=test_results, second=true_results)
 
 
-class TestDANDIConfig(TestCase):
+class TestDANDIConfig(TestInspector):
     maxDiff = None
 
     @classmethod
@@ -657,6 +674,20 @@ class TestDANDIConfig(TestCase):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+    def test_inspect_nwbfile_dandi_config_critical_only_entire_registry_cli(self):
+        console_output_file_path = self.tempdir / "test_console_output.txt"
+
+        os.system(
+            f"nwbinspector {str(self.tempdir)} --overwrite --config dandi --threshold BEST_PRACTICE_VIOLATION"
+            f"> {console_output_file_path}"
+        )
+
+        self.assertLogFileContentsEqual(
+            test_file_path=console_output_file_path,
+            true_file_path=Path(__file__).parent / "true_nwbinspector_report_with_dandi_config.txt",
+            skip_first_newlines=True,
+        )
+
 
 class TestCheckUniqueIdentifiersPass(TestCase):
     maxDiff = None
@@ -727,3 +758,26 @@ class TestCheckUniqueIdentifiersFail(TestCase):
                 file_path=str(self.tempdir),
             )
         ]
+
+
+def test_dandi_config_in_vitro_injection():
+    """Test that a subject_id starting with 'protein' excludes meaningless CRITICAL-elevated subject checks."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.subject = Subject(
+        subject_id="proteinCaMPARI3", description="A detailed description about the in vitro setup."
+    )
+    config = load_config(filepath_or_keyword="dandi")
+    importance_threshold = "CRITICAL"
+    messages = list(
+        inspect_nwbfile_object(nwbfile_object=nwbfile, config=config, importance_threshold=importance_threshold)
+    )
+    assert messages == []
+
+
+def test_dandi_config_in_vitro_injection():
+    """Test the safe subject ID retrieval of the in vitro injection."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.subject = Subject(subject_id=None, description="A detailed description about the in vitro setup.")
+    config = load_config(filepath_or_keyword="dandi")
+    messages = list(inspect_nwbfile_object(nwbfile_object=nwbfile, config=config))
+    assert len(messages) != 0

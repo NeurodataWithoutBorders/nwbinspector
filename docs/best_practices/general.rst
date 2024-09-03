@@ -68,3 +68,9 @@ Empty Strings
 Required free-text fields for neurodata types should not use placeholders such as empty strings (`""`), ``"no description"``, or ``"PLACEHOLDER"``. For example, the :py:attr:`description` field should always richly describe that particular neurodata type and its interpretation within the experiment.
 
 Many attributes of neurodata types in NWB are optional details to include. It is not necessary, therefore, to use placeholders for these attributes. Instead, they should not be specified at all.
+
+
+Avoid Duplication of Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid duplication of metadata across different objects. If a piece of metadata is shared between multiple objects, consider creating a separate object to store that metadata and linking to it from the other objects. This will help to keep the metadata consistent and reduce the risk of errors when updating the metadata.

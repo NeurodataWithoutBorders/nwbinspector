@@ -1,11 +1,11 @@
-from unittest import TestCase
 from datetime import datetime
+from unittest import TestCase
 
-from pynwb.ogen import OptogeneticSeries
 from pynwb.device import Device
 from pynwb.file import NWBFile
+from pynwb.ogen import OptogeneticSeries
 
-from nwbinspector import check_optogenetic_stimulus_site_has_optogenetic_series
+from nwbinspector.checks import check_optogenetic_stimulus_site_has_optogenetic_series
 
 
 class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):

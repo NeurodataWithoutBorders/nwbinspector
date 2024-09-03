@@ -1,22 +1,20 @@
 import unittest
 from pathlib import Path
-from tempfile import mkdtemp
 from shutil import rmtree
+from tempfile import mkdtemp
 
 import numpy as np
 from pynwb import NWBHDF5IO, H5DataIO
 from pynwb.image import ImageSeries
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_image_series_external_file_valid,
-    check_image_series_external_file_relative,
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import (
     check_image_series_data_size,
+    check_image_series_external_file_relative,
+    check_image_series_external_file_valid,
     check_timestamps_match_first_dimension,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import load_testing_config
+from nwbinspector.testing import load_testing_config, make_minimal_nwbfile
 
 try:
     testing_config = load_testing_config()

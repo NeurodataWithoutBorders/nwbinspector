@@ -27,7 +27,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v32.1.2
+        uses: tj-actions/changed-files@v41.0.0
 
       - name: Assess Source Code Changes
         id: flagged-changes
@@ -36,7 +36,7 @@ jobs:
           echo "::set-output name=TESTING_CHANGED::false"
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo $file
-            if [[ $file == "src/nwbinspector/"* || $file == "requirements"* || $file == "setup.py" || $file == "tests/"* ]]
+            if [[ $file == "src/nwbinspector/"* || $file == "requirements.txt" || $file == "setup.py" || $file == "tests/"* ]]
             then
               echo "Source changed"
               echo "::set-output name=SOURCE_CHANGED::true"

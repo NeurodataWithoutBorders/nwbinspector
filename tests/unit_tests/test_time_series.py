@@ -1,24 +1,22 @@
 import h5py
+import numpy as np
 import pynwb
 import pytest
-import numpy as np
 from packaging import version
 
-
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_regular_timestamps,
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import (
     check_data_orientation,
-    check_timestamps_match_first_dimension,
-    check_timestamps_ascending,
     check_missing_unit,
+    check_rate_is_not_zero,
+    check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
-    check_rate_is_not_zero,
+    check_timestamps_ascending,
+    check_timestamps_match_first_dimension,
+    check_timestamps_without_nans,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled
+from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
 from nwbinspector.utils import get_package_version, robust_s3_read
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
@@ -34,7 +32,7 @@ def test_check_regular_timestamps():
         )
     ) == InspectorMessage(
         message=(
-            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=0.5 "
             "instead of timestamps."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -227,12 +225,52 @@ def test_pass_check_timestamps_ascending_pass():
     assert check_timestamps_ascending(time_series) is None
 
 
+def test_pass_check_timestamps_ascending_with_nans_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, np.nan, 3]
+    )
+    assert check_timestamps_ascending(time_series) is None
+
+
 def test_check_timestamps_ascending_fail():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
         message="test_time_series timestamps are not ascending.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_timestamps_ascending",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamps_ascending_with_nans_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 3, 2]
+    )
+    assert check_timestamps_ascending(time_series) == InspectorMessage(
+        message="test_time_series timestamps are not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_ascending",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamps_without_nans_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_without_nans(time_series) is None
+
+
+def test_check_timestamps_without_nans_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 2, 3]
+    )
+    assert check_timestamps_without_nans(time_series) == InspectorMessage(
+        message="test_time_series timestamps contain NaN values.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_without_nans",
         object_type="TimeSeries",
         object_name="test_time_series",
         location="/",
