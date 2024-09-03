@@ -42,7 +42,11 @@ def check_roi_response_series_dims(roi_response_series: RoiResponseSeries):
 def check_roi_response_series_link_to_plane_segmentation(
     roi_response_series: RoiResponseSeries,
 ):
-    """Check that each ROI response series links to a plane segmentation."""
+    """
+    Check that each ROI response series links to a plane segmentation.
+
+    Best Practice: TODO
+    """
     if not isinstance(roi_response_series.rois.table, PlaneSegmentation):
         return InspectorMessage(message="rois field does not point to a PlaneSegmentation table.")
 
