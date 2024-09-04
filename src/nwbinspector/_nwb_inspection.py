@@ -123,6 +123,8 @@ def inspect_all(
         ):
             yield message
 
+        return None
+
     n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
@@ -191,8 +193,6 @@ def inspect_all(
     else:
         for nwbfile_path in nwbfiles_iterable:
             for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks):
-                if stream:
-                    message.file_path = nwbfiles[message.file_path]
                 yield message
 
 
@@ -477,7 +477,3 @@ def run_checks(
                     for x in output:
                         x.importance = check_function.importance
                         yield x
-
-
-if __name__ == "__main__":
-    inspect_all_cli()

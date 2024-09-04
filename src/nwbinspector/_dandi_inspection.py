@@ -1,5 +1,6 @@
 import pathlib
 from typing import Iterable, List, Literal, Union
+from warnings import filterwarnings
 
 import h5py
 import pynwb
@@ -13,7 +14,7 @@ def inspect_dandiset(
     *,
     dandiset_id: str,
     dandiset_version: Union[str, Literal["draft"], None] = None,
-    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
+    config: Union[str, pathlib.Path, dict, Literal["dandi"], None] = None,
     checks: Union[list, None] = None,
     ignore: Union[List[str], None] = None,
     select: Union[List[str], None] = None,
@@ -21,7 +22,7 @@ def inspect_dandiset(
     skip_validate: bool = False,
     show_progress_bar: bool = True,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandiset for common issues.
 
@@ -63,6 +64,8 @@ def inspect_dandiset(
     client: dandi.dandiapi.DandiAPIClient
         The client object can be passed to avoid re-instantiation over an iteration.
     """
+    config = config or "dandi"
+
     if client is None:
         import dandi.dandiapi
 
@@ -70,11 +73,11 @@ def inspect_dandiset(
 
     dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
 
-    if not any(
-        asset_type.get("identifier", "") != "RRID:SCR_015242"  # Identifier for NWB standard
-        for asset_type in dandiset.get_raw_metadata().get("assetsSummary", {}).get("dataStandard", [])
-    ):
-        yield iter([])
+    # if not any(
+    #     asset_type.get("identifier", "") != "RRID:SCR_015242"  # Identifier for NWB standard
+    #     for asset_type in dandiset.get_raw_metadata().get("assetsSummary", {}).get("dataStandard", [])
+    # ):
+    #     return None
 
     nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
 
@@ -89,7 +92,7 @@ def inspect_dandiset(
     for asset in nwb_assets_iterator:
         asset_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-        yield inspect_url(
+        for message in inspect_url(
             url=asset_url,
             config=config,
             checks=checks,
@@ -97,7 +100,9 @@ def inspect_dandiset(
             select=select,
             importance_threshold=importance_threshold,
             skip_validate=skip_validate,
-        )
+        ):
+            message.file_path = asset.path
+            yield message
 
 
 def inspect_dandi_file_path(
@@ -112,7 +117,7 @@ def inspect_dandi_file_path(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandifile for common issues.
 
@@ -163,7 +168,7 @@ def inspect_dandi_file_path(
     asset = dandiset.get_asset_by_path(path=dandi_file_path)
     asset_url = asset.get_content_url(follow_redirects=1, strip_query=True)
 
-    yield inspect_url(
+    for message in inspect_url(
         url=asset_url,
         config=config,
         checks=checks,
@@ -171,7 +176,9 @@ def inspect_dandi_file_path(
         select=select,
         importance_threshold=importance_threshold,
         skip_validate=skip_validate,
-    )
+    ):
+        message.file_path = dandi_file_path
+        yield message
 
 
 def inspect_url(
@@ -183,7 +190,7 @@ def inspect_url(
     select: Union[List[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect an explicit S3 URL.
 
@@ -222,38 +229,42 @@ def inspect_url(
     """
     import remfile
 
+    filterwarnings(action="ignore", message="No cached namespaces found in .*")
+    filterwarnings(action="ignore", message="Ignoring cached namespace .*")
+
     if not isinstance(config, dict):
         config = load_config(filepath_or_keyword=config)
     validate_config(config=config)
 
+    byte_stream = remfile.File(url=url)
     # TODO: when 3.8 support is removed, uncomment to replace block and de-indent
     # with (
-    #    remfile.File(url=url) as byte_stream,
     #    h5py.File(name=byte_stream) as file,
     #    pynwb.NWBHDF5IO(file=file) as io,
     # )
-    with remfile.File(url=url) as byte_stream:
-        with h5py.File(name=byte_stream) as file:
-            with pynwb.NWBHDF5IO(file=file) as io:
-                if skip_validate is False:
-                    validation_errors = pynwb.validate(io=io)
+    with h5py.File(name=byte_stream) as file:
+        with pynwb.NWBHDF5IO(file=file) as io:
+            if skip_validate is False:
+                validation_errors = pynwb.validate(io=io)
 
-                    for validation_error in validation_errors:
-                        yield InspectorMessage(
-                            message=validation_error.reason,
-                            importance=Importance.PYNWB_VALIDATION,
-                            check_function_name=validation_error.name,
-                            location=validation_error.location,
-                            file_path=nwbfile_path,
-                        )
+                for validation_error in validation_errors:
+                    yield InspectorMessage(
+                        message=validation_error.reason,
+                        importance=Importance.PYNWB_VALIDATION,
+                        check_function_name=validation_error.name,
+                        location=validation_error.location,
+                        file_path=nwbfile_path,
+                    )
 
-                nwbfile = io.read()
+            nwbfile = io.read()
 
-                yield inspect_nwbfile_object(
-                    nwbfile_object=nwbfile,
-                    config=config,
-                    checks=checks,
-                    ignore=ignore,
-                    select=select,
-                    importance_threshold=importance_threshold,
-                )
+            for message in inspect_nwbfile_object(
+                nwbfile_object=nwbfile,
+                config=config,
+                checks=checks,
+                ignore=ignore,
+                select=select,
+                importance_threshold=importance_threshold,
+            ):
+                message.file_path = url
+                yield message

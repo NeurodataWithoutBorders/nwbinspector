@@ -8,7 +8,6 @@ from typing import Optional, Tuple
 from urllib import request
 from uuid import uuid4
 
-import h5py
 from hdmf.backends.hdf5 import HDF5IO
 from hdmf.backends.io import HDMFIO
 from packaging.version import Version
@@ -44,6 +43,10 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
     have_dandi = is_module_installed("dandi")
     if not have_dandi:
         failure_reason += "The DANDI package is not installed on the system."
+
+    have_remfile = is_module_installed("remfile")
+    if not have_dandi:
+        failure_reason += "The `remfile` package is not installed on the system."
 
     failure_reason = None if failure_reason == "" else failure_reason
     return streaming_enabled and not environment_skip_flag_bool and have_dandi, failure_reason
@@ -144,8 +147,6 @@ def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
         request.urlopen("https://dandiarchive.s3.amazonaws.com/ros3test.nwb", timeout=1)
     except request.URLError:
         return False, "Internet access to DANDI failed."
-    if "ros3" not in h5py.registered_drivers():
-        return False, "ROS3 driver not installed."
     return True, None
 
 

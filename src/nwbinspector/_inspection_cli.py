@@ -70,16 +70,19 @@ from .utils import strtobool
 @click.option(
     "--stream",
     help=(
-        "Stream data from the DANDI archive. If the 'path' is a local copy of the target DANDISet, specifying this "
+        "Stream data from the DANDI archive. If the 'path' is a local copy of the target Dandiset, specifying this "
         "flag will still force the data to be streamed instead of using the local copy. To use the local copy, simply "
-        "remove this flag. Requires the Read Only S3 (ros3) driver to be installed with h5py."
+        "remove this flag."
     ),
     is_flag=True,
 )
 @click.option(
     "--version-id",
     help=(
-        "When 'path' is a six-digit DANDISet ID, this further specifies which version of " "the DANDISet to inspect."
+        "When `path` is a six-digit Dandiset ID, and the `--stream` flag is set, "
+        "this specifies which version of "
+        "the DANDISet to inspect. "
+        "The default is to use the latest published version or otherwise the current 'draft' state."
     ),
 )
 @click.version_option(__version__)
