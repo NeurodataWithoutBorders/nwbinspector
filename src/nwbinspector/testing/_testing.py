@@ -45,7 +45,7 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
         failure_reason += "The DANDI package is not installed on the system."
 
     have_remfile = is_module_installed("remfile")
-    if not have_dandi:
+    if not have_remfile:
         failure_reason += "The `remfile` package is not installed on the system."
 
     failure_reason = None if failure_reason == "" else failure_reason
