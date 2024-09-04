@@ -110,7 +110,7 @@ additionally specify this with the ``dandiset_version`` argument.
     dandiset_id = "000004"
     version_id = "0.220126.1851"
 
-    messages = list(inspect_dandiset(dandiset_id=dandiset_id, dandiset_version=dandiset_version))
+    messages = list(inspect_dandiset(dandiset_id=dandiset_id, dandiset_version=version_id))
 
 See the section on :ref:`advanced_streaming_api` for more customized usage of the streaming feature.
 
