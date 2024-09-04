@@ -30,7 +30,7 @@ jobs:
         run: conda install -c conda-forge h5py
 
       - name: Run pytest on streaming-based read_nwbfile tests
-        run: pytest tests/read_nwbfile_streaming_tests.py -rsx --cov=nwbinspector --cov-report xml:./coverage.xml
+        run: pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml tests/read_nwbfile_streaming_tests.py
 
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
