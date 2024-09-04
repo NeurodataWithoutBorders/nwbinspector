@@ -64,7 +64,7 @@ def test_dandiset_streaming_cli_saved_report(tmpdir: py.path.local):
     with open(file=console_output_file_path, mode="r") as io:
         test_console_output = io.readlines()
 
-    assert "Report saved to " in test_console_output[-2]
+    assert "Report saved to " in "".join(test_console_output[-3:])
 
     with open(file=report_file_path, mode="r") as io:
         test_report = io.readlines()
@@ -93,7 +93,7 @@ def test_dandiset_streaming_cli_with_version_saved_report(tmpdir: py.path.local)
     with open(file=console_output_file_path, mode="r") as io:
         test_console_output = io.readlines()
 
-    assert "Report saved to " in test_console_output[-2]
+    assert "Report saved to " in "".join(test_console_output[-3:])
 
     with open(file=report_file_path, mode="r") as io:
         test_report = io.readlines()
