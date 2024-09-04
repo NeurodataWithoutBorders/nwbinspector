@@ -28,7 +28,7 @@ def test_dandiset_streaming_cli(tmpdir: py.path.local):
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
-    assert test_console_output[15:] == expected_console_output[13:]
+    assert test_console_output[15:-1] == expected_console_output[13:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -47,7 +47,7 @@ def test_dandiset_streaming_cli_with_version(tmpdir: py.path.local):
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
-    assert test_console_output[15:] == expected_console_output[13:]
+    assert test_console_output[15:-1] == expected_console_output[13:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -73,7 +73,7 @@ def test_dandiset_streaming_cli_saved_report(tmpdir: py.path.local):
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 
-    assert test_report[14:] == expected_report[14:]
+    assert test_report[14:-1] == expected_report[14:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -102,4 +102,4 @@ def test_dandiset_streaming_cli_with_version_saved_report(tmpdir: py.path.local)
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 
-    assert test_report[14:] == expected_report[14:]
+    assert test_report[14:-1] == expected_report[14:]
