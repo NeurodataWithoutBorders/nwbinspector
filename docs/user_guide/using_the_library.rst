@@ -88,7 +88,7 @@ Begin by installing the dependencies for streaming:
 
 .. code-block:: bash
 
-    pip install nwbinspector[dandi]
+    pip install "nwbinspector[dandi]"
 
 Then, you can use the :py:meth:`~nwbinspector.inspect_dandiset` function to stream the data from the DANDI
 
