@@ -62,7 +62,7 @@ In this case, we will use the :py:meth:`nwbinspector.inspect_dandi_file_path` fu
     dandiset_id = "000004"
     dandi_file_path = "sub-P17HMH/sub-P17HMH_ses-20080501_ecephys+image.nwb"
 
-    messages = list(inspect_dandiset(dandi_file_path=dandi_file_path, dandiset_id=dandiset_id))
+    messages = list(inspect_dandi_file_path(dandi_file_path=dandi_file_path, dandiset_id=dandiset_id))
 
 Just like :py:meth:`nwbinspector.inspect_dandiset`, this function accepts a ``dandiset_version``.
 
