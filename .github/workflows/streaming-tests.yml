@@ -31,7 +31,9 @@ jobs:
         run: pip install ".[dandi]"
 
       - name: Run pytest on stream tests with coverage
-        run: pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml tests/streaming_tests.py
+        run: |
+          pytest -rsx --cov=nwbinspector --cov-report xml:./api_coverage.xml tests/streaming_tests.py
+          pytest -rsx --cov=nwbinspector --cov-report xml:./cli_coverage.xml tests/streaming_cli_tests.py
 
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
@@ -39,4 +41,12 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          file: ./coverage.xml
+          file: ./api_coverage.xml
+
+      - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
+        name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          file: ./cli_coverage.xml
