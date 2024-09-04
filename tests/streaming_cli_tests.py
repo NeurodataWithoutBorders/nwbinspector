@@ -28,7 +28,11 @@ def test_dandiset_streaming_cli(tmpdir: py.path.local):
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
-    assert test_console_output[15:-1] == expected_console_output[13:]
+    # Different platforms maybe have different indices for start and end of test reports
+    report_start = test_console_output.index(f"0  CRITICAL\n")
+    expected_report_length = 38
+    report_end = report_start + expected_report_length
+    assert test_console_output[report_start:report_end] == expected_console_output[14:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -47,7 +51,11 @@ def test_dandiset_streaming_cli_with_version(tmpdir: py.path.local):
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
-    assert test_console_output[15:-1] == expected_console_output[13:]
+    # Different platforms maybe have different indices for start and end of test reports
+    report_start = test_console_output.index(f"0  CRITICAL\n")
+    expected_report_length = 38
+    report_end = report_start + expected_report_length
+    assert test_console_output[report_start:report_end] == expected_console_output[14:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
