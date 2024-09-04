@@ -130,7 +130,6 @@ def _nwbinspector_cli(
     elif stream is True and config is None:
         config = "dandi"
 
-    dandiset_version = "draft" if stream and version_id is None else version_id
     handled_config = config if config is None else load_config(filepath_or_keyword=config)
     handled_levels = ["importance", "file_path"] if levels is None else levels.split(",")
     handled_reverse = [False] * len(handled_levels) if reverse is None else [strtobool(x) for x in reverse.split(",")]
@@ -147,6 +146,7 @@ def _nwbinspector_cli(
     # Scan entire Dandiset
     if stream and ":" not in path:
         dandiset_id = path
+        dandiset_version = version_id
         messages_iterator = inspect_dandiset(
             dandiset_id=dandiset_id,
             dandiset_version=dandiset_version,
