@@ -104,7 +104,7 @@ def inspect_all(
             "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
         )
         warn(message=message, category=DeprecationWarning, stacklevel=2)
-    if stream is True:
+    if stream:
         from ._dandi_inspection import inspect_dandiset
 
         message = (
