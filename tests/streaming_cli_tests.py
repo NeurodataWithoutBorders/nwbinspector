@@ -73,7 +73,11 @@ def test_dandiset_streaming_cli_saved_report(tmpdir: py.path.local):
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 
-    assert test_report[14:-1] == expected_report[14:]
+    # Different platforms maybe have different indices for start and end of test reports
+    report_start = test_report.index(f"0  CRITICAL{os.linesep}")
+    expected_report_length = 38
+    report_end = report_start + expected_report_length
+    assert test_report[report_start:report_end] == expected_report[14:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -102,4 +106,8 @@ def test_dandiset_streaming_cli_with_version_saved_report(tmpdir: py.path.local)
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 
-    assert test_report[14:-1] == expected_report[14:]
+    # Different platforms maybe have different indices for start and end of test reports
+    report_start = test_report.index(f"0  CRITICAL{os.linesep}")
+    expected_report_length = 38
+    report_end = report_start + expected_report_length
+    assert test_report[report_start:report_end] == expected_report[14:]
