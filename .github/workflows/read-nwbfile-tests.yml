@@ -24,5 +24,10 @@ jobs:
       - name: Install package
         run: pip install ".[dandi]"
 
-      - name: Run pytest on stream tests
-        run: pytest tests/ -rsx tests/streaming_tests.py
+      - name: Uninstall h5py
+        run: pip uninstall -y h5py
+      - name: Install ROS3
+        run: conda install -c conda-forge h5py
+
+      - name: Run pytest on streaming-based read_nwbfile tests
+        run: pytest tests/ -rsx tests/read_nwbfile_streaming_tests.py
