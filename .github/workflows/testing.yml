@@ -38,9 +38,8 @@ jobs:
           python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919/testing_files/')"
 
       - name: Run pytest with coverage
-        run: |
-          pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml
-          pytest tests/ -rsx tests/read_nwbfile_tests.py  # TODO when read_nwbfile is ported
+        run: pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml
+
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -48,4 +47,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           file: ./coverage.xml
-          flags: unittests
