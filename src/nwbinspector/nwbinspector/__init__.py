@@ -16,7 +16,7 @@ from .._configuration import (
     load_config,
     configure_checks,
 )
-from .._inspection import (
+from .._nwb_inspection import (
     inspect_all,
     inspect_nwb,  # TODO: remove
     inspect_nwbfile,

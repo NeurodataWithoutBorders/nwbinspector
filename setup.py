@@ -34,8 +34,8 @@ setup(
     include_package_data=True,  # Includes files described in MANIFEST.in in the installation
     install_requires=install_requires,
     # zarr<2.18.0 because of https://github.com/NeurodataWithoutBorders/nwbinspector/pull/460
-    extras_require=dict(dandi=["dandi>=0.39.2", "zarr<2.18.0"], zarr=["hdmf_zarr>=0.3.0", "zarr<2.18.0"]),
-    entry_points={"console_scripts": ["nwbinspector=nwbinspector._inspection_cli:_inspect_all_cli"]},
+    extras_require=dict(dandi=["dandi>=0.39.2", "zarr<2.18.0", "remfile"], zarr=["hdmf_zarr>=0.3.0", "zarr<2.18.0"]),
+    entry_points={"console_scripts": ["nwbinspector=nwbinspector._nwbinspector_cli:_nwbinspector_cli"]},
     license="BSD-3-Clause",
     classifiers=[
         "Development Status :: 4 - Beta",

@@ -58,7 +58,7 @@ def load_config(filepath_or_keyword: PathType) -> dict:
     """
     file = INTERNAL_CONFIGS.get(filepath_or_keyword, filepath_or_keyword)
     with open(file=file, mode="r") as stream:
-        config = yaml.load(stream=stream, Loader=yaml.Loader)
+        config = yaml.safe_load(stream=stream)
     return config
 
 
