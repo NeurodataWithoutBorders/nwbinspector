@@ -1,8 +1,5 @@
-name: Test against DANDI dev branch - no network
+name: Test against DANDI dev branch - all tests, including live services
 on: workflow_call
-
-#env:
-#  DANDI_TESTS_NONETWORK: "1"
 
 jobs:
   build-and-test:
@@ -21,7 +18,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Test local branch of NWB Inspector against DANDI dev branch
+      - name: Test against DANDI dev
         run: |
           pip install virtualenv
           virtualenv --system-site-packages --python=python3 venvs/dandi_dev_tests

@@ -63,11 +63,13 @@ jobs:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
     uses: ./.github/workflows/dandi-dev.yml
+    env:
+      DANDI_TESTS_NONETWORK: "1"
 
-#  test-dandi-dev-live:
-#    needs: assess-file-changes
-#    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-#    uses: ./.github/workflows/dandi_dev_live_service.yml
+  test-dandi-dev-live:
+    needs: assess-file-changes
+    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
+    uses: ./.github/workflows/dandi-dev.yml
 
 #  check-final-status:
 #    name: All tests passing
