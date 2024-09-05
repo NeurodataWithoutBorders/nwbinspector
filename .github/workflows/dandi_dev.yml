@@ -11,28 +11,24 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: s-weigand/setup-conda@v1
-        with:
-          update-conda: true
-          python-version: 3.9
-          conda-channels: conda-forge
-      - uses: actions/checkout@v3
+      - name: Checkout local branch of source repository
+        uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Test against DANDI dev
+      - name: Test local branch of NWB Inspector against DANDI dev branch
         run: |
           pip install virtualenv
-          git clone https://github.com/NeurodataWithoutBorders/nwbinspector
+          virtualenv --system-site-packages --python=python3 venvs/dandi_dev_tests
+          source venvs/dandi_dev_tests/bin/activate
+          cd nwbinspector
+          pip install -e .[dandi]
+          cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
-          # Test against a specific branch or commit if needed
-          # git checkout a50c4fe243f9a3b72fbcecaea095943be02616d6  # error_fix branch with iteration issue
-          virtualenv --system-site-packages --python=python3 venvs/dev3
-          source venvs/dev3/bin/activate
           pip install -e .[test]
-          cd ../nwbinspector
-          # Test against a specific branch or commit if needed
-          # git checkout add_downstream_ci
-          pip install -e .
-          cd ../dandi-cli
           pytest -vv
