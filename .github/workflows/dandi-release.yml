@@ -44,7 +44,9 @@ jobs:
         pip install "dandi[extras,test]"
 
     - name: Install this branch of NWB Inspector
-      run: pip install -e .
+      run: |
+        pip install -e .
+        pip install hdmf==3.14.3  # temporary: https://github.com/dandi/dandi-cli/issues/1494
 
     - name: Run all NWB Inspector tests
       run: pytest -rsx
