@@ -31,7 +31,6 @@ jobs:
         # Fetch all commits so that versioneer will return something compatible
         # with semantic-version
         fetch-depth: 0
-    - run: git fetch --prune --unshallow --tags
 
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v5
