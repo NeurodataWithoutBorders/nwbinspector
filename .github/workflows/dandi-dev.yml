@@ -31,4 +31,5 @@ jobs:
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           pip install -e .[test]
-          pytest -vv
+          pip install hdmf==3.14.3  # trying this
+          pytest -rsx
