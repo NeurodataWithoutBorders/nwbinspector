@@ -63,25 +63,25 @@ jobs:
   test-dandi-dev:
     needs: assess-file-changes
     if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
-    uses: ./.github/workflows/dandi_dev.yml
+    uses: ./.github/workflows/dandi-dev.yml
 
 #  test-dandi-dev-live:
 #    needs: assess-file-changes
 #    if: ${{ needs.assess-file-changes.outputs.SOURCE_CHANGED == 'true' }}
 #    uses: ./.github/workflows/dandi_dev_live_service.yml
 
-  check-final-status:
-    name: All tests passing
-    if: always()
-
-    needs:
-    - run-tests
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Decide whether all jobs succeeded or at least one failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        allowed-skips: run-tests  # Sometimes only docs are adjusted
-        jobs: ${{ toJSON(needs) }}
+#  check-final-status:
+#    name: All tests passing
+#    if: always()
+#
+#    needs:
+#    - run-tests
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - name: Decide whether all jobs succeeded or at least one failed
+#      uses: re-actors/alls-green@release/v1
+#      with:
+#        allowed-skips: run-tests  # Sometimes only docs are adjusted
+#        jobs: ${{ toJSON(needs) }}
