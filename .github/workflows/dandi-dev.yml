@@ -30,7 +30,7 @@ jobs:
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           pip install -e .[test]
-          cd ../nwbinpsector
+          cd ../nwbinspector
           pip install -e .[dandi]
           cd ../dandi-cli
           pytest -vv -rsx
