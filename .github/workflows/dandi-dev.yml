@@ -1,8 +1,8 @@
 name: Test against DANDI dev branch - no network
 on: workflow_call
 
-#env:
-#  DANDI_TESTS_NONETWORK: "1"
+env:
+  DANDI_TESTS_NONETWORK: "1"
 
 jobs:
   build-and-test:
