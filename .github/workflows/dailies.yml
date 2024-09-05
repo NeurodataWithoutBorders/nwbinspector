@@ -22,7 +22,7 @@ jobs:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
 
   test-dandi-dev-live:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev-live-service.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev-live-services.yml@dev
 
   notify:
     runs-on: ubuntu-latest
