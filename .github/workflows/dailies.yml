@@ -16,7 +16,7 @@ jobs:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
 
   test-dandi-latest:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_release.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
 
   test-dandi-dev:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev

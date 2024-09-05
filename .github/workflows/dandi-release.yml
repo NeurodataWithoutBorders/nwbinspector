@@ -1,4 +1,4 @@
-name: Test against latest DANDI release - no network
+name: Run NWB Inspector tests against latest DANDI release - no network
 on: workflow_call
 
 env:
@@ -25,12 +25,13 @@ jobs:
           - '3.11'
 
     steps:
-    - name: Set up environment
+    - name: Checkout local branch of source repository
       uses: actions/checkout@v4
       with:
         # Fetch all commits so that versioneer will return something compatible
         # with semantic-version
         fetch-depth: 0
+    - run: git fetch --prune --unshallow --tags
 
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v5
@@ -46,4 +47,4 @@ jobs:
       run: pip install -e .
 
     - name: Run all NWB Inspector tests
-      run: python -m pytest -s -v
+      run: pytest -rsx
