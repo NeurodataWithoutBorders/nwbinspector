@@ -26,11 +26,10 @@ jobs:
           pip install virtualenv
           virtualenv --system-site-packages --python=python3 venvs/dandi_dev_tests
           source venvs/dandi_dev_tests/bin/activate
+          pip install -e .[dandi]
           cd ..
           git clone https://github.com/dandi/dandi-cli
           cd dandi-cli
           pip install -e .[test]
-          cd ../nwbinspector
-          pip install -e .[dandi]
-          cd ../dandi-cli
-          pytest -vv -rsx
+          pip install hdmf==3.14.4  # trying this
+          pytest -rsx
