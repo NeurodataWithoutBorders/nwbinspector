@@ -1,10 +1,14 @@
 # Upcoming
 
 ### Deprecation
-* Support for Python 3.8 has been removed. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/507)
+* Support for Python 3.8 has been removed. [#508](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/508)
+
+### Deprecation (API)
+* The `inspect_nwb` method has been removed. Please use `inspect_nwbfile` or `inspect_nwbfile_object` instead. [#505](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/505)
 
 ### Improvements
-* Swapped setup approach to the modern `pyproject.toml` standard. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/507)
+* Removed the `robust_ros3_read` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/506)
+* Swapped setup approach to the modern `pyproject.toml` standard. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/507)
 
 
 

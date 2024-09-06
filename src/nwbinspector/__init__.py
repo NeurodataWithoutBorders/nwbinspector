@@ -9,7 +9,6 @@ from ._nwb_inspection import (
     inspect_nwbfile_object,
     run_checks,
 )
-from ._nwb_inspection import inspect_nwb  # TODO: remove after 7/1/2023
 from ._formatting import (
     format_messages,
     print_to_console,
@@ -44,7 +43,6 @@ __all__ = [
     "inspect_all",
     "inspect_nwbfile",
     "inspect_nwbfile_object",
-    "inspect_nwb",  # TODO: remove after 7/1/2023
     "run_checks",
     "format_messages",
     "print_to_console",
