@@ -7,10 +7,10 @@ This is a collection of tutorials illustrating some of the more advanced uses of
 Yielding and Iterating
 ----------------------
 
-Both the :py:class:`~nwbinspector.nwbinspector.inspect_all` and :py:class:`~nwbinspector.nwbinspector.inspect_nwb`
+Both the :py:class:`~nwbinspector.nwbinspector.inspect_all` and :py:class:`~nwbinspector.nwbinspector.inspect_nwbfile`
 functions return generators. That is, they do not actually run any checks on any NWBFile until the user
 performs an iteration command on them. The simplest way of doing this is to cast the generator as a ``list``,
-*i.e.*, ``list(inspect_nwb(...))`` which will automatically complete all checks.
+*i.e.*, ``list(inspect_nwbfile(...))`` which will automatically complete all checks.
 
 However, if a user chooses, they can harness these generators in more sophisticated ways. If you want to stop the
 checks early, the following will run the inspectors until the first
@@ -18,7 +18,7 @@ checks early, the following will run the inspectors until the first
 
 .. code-block:: python
 
-    results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
+    results_generator = inspect_nwbfile(nwbfile_path="path_to_single_nwbfile")
 
     first_message = next(results_generator)
 
@@ -27,7 +27,7 @@ This will return either the first :py:class:`~nwbinspector.register_checks.Inspe
 
 .. code-block:: python
 
-    results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
+    results_generator = inspect_nwbfile(nwbfile_path="path_to_single_nwbfile")
 
     try:
         first_message = next(results_generator)
@@ -38,7 +38,7 @@ Of course, the generator can be treated like any other iterable as well, such as
 
 .. code-block:: python
 
-    results_generator = inspect_nwb(nwbfile_path="path_to_single_nwbfile")
+    results_generator = inspect_nwbfile(nwbfile_path="path_to_single_nwbfile")
 
     for message in results_generator:
         print(message)
