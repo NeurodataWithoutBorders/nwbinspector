@@ -1,5 +1,10 @@
 # Upcoming
 
+### Improvements
+* Swapped setup approach to the modern `pyproject.toml` standard. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/507)
+
+
+
 # v0.5.2
 
 ### Deprecation (API)
