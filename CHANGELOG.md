@@ -5,6 +5,7 @@
 
 ### Improvements
 * Removed the `robust_ros3_read` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/506)
+* Cleaned old references to non-recent PyNWB and HDMF versions. Current policy is that latest NWB Inspector releases should only support compatibility with latest PyNWB and HDMF. [#](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/)
 
 
 
