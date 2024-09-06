@@ -1,5 +1,5 @@
 import pathlib
-from typing import Iterable, List, Literal, Union
+from typing import Iterable, Literal, Union
 from warnings import filterwarnings
 
 import h5py
@@ -16,8 +16,8 @@ def inspect_dandiset(
     dandiset_version: Union[str, Literal["draft"], None] = None,
     config: Union[str, pathlib.Path, dict, Literal["dandi"], None] = None,
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     show_progress_bar: bool = True,
@@ -112,8 +112,8 @@ def inspect_dandi_file_path(
     dandiset_version: Union[str, Literal["draft"], None] = None,
     config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,

@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from types import FunctionType
-from typing import List, Optional
+from typing import Optional
 
 import jsonschema
 import yaml
@@ -65,8 +65,8 @@ def load_config(filepath_or_keyword: PathType) -> dict:
 def configure_checks(
     checks: list = available_checks,
     config: Optional[dict] = None,
-    ignore: Optional[List[str]] = None,
-    select: Optional[List[str]] = None,
+    ignore: Optional[list[str]] = None,
+    select: Optional[list[str]] = None,
     importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
 ) -> list:
     """

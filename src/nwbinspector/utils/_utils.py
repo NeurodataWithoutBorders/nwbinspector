@@ -7,7 +7,7 @@ from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
 from time import sleep
-from typing import Callable, Dict, List, Optional, Tuple, TypeVar, Union
+from typing import Callable, Optional, TypeVar, Union
 
 import h5py
 import numpy as np
@@ -15,10 +15,10 @@ from hdmf.backends.hdf5.h5_utils import H5Dataset
 from numpy.typing import ArrayLike
 from packaging import version
 
-# TODO: deprecated these in favor of explicit typing
+# TODO: deprecat these in favor of explicit typing
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
 FilePathType = TypeVar("FilePathType", str, Path)
-OptionalListOfStrings = Optional[List[str]]
+OptionalListOfStrings = Optional[list[str]]
 
 dict_regex = r"({.+:.+})"  # TODO: remove this from global scope
 MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/output, but might need more to get use here
@@ -26,14 +26,14 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
 def _cache_data_retrieval_command(
-    data: h5py.Dataset, reduced_selection: Tuple[Tuple[Optional[int], Optional[int], Optional[int]]]
+    data: h5py.Dataset, reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
 ) -> np.ndarray:
     """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
     selection = tuple([slice(*reduced_slice) for reduced_slice in reduced_selection])  # reconstitute the slices
     return data[selection]
 
 
-def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, Tuple[slice]]) -> np.ndarray:
+def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
         return data[selection]
@@ -166,7 +166,7 @@ def get_package_version(name: str) -> version.Version:
 
 
 def robust_s3_read(
-    command: Callable, max_retries: int = 10, command_args: Optional[list] = None, command_kwargs: Optional[Dict] = None
+    command: Callable, max_retries: int = 10, command_args: Optional[list] = None, command_kwargs: Optional[dict] = None
 ):
     """Attempt the command (usually acting on an S3 IO) up to the number of max_retries using exponential backoff."""
     command_args = command_args or []
