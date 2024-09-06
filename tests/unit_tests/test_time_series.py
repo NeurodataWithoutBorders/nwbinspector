@@ -17,7 +17,7 @@ from nwbinspector.checks import (
     check_timestamps_without_nans,
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
-from nwbinspector.utils import get_package_version, robust_s3_read
+from nwbinspector.utils import get_package_version
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
@@ -353,6 +353,7 @@ def test_check_unknown_resolution_pass():
         assert check_resolution(time_series) is None
 
 
+# TODO: remove test when past version HDMF/PyNWB testing is removed
 @pytest.mark.skipif(
     not STREAMING_TESTS_ENABLED or get_package_version("hdmf") >= version.parse("3.3.1"),
     reason=f"{DISABLED_STREAMING_TESTS_REASON or ''}. Also needs 'hdmf<3.3.1'.",
@@ -371,12 +372,10 @@ def test_check_none_matnwb_resolution_pass():
         load_namespaces=True,
         driver="ros3",
     ) as io:
-        nwbfile = robust_s3_read(command=io.read)
-        time_series = robust_s3_read(
-            command=nwbfile.processing["video_files"]["video"].time_series.get,
-            command_args=["20170203_KIB_01_s1.1.h264"],
-        )
-    assert check_resolution(time_series) is None
+        nwbfile = io.read()
+        time_series = nwbfile.processing["video_files"]["video"]["20170203_KIB_01_s1.1.h264"]
+
+        assert check_resolution(time_series=time_series) is None
 
 
 def test_check_resolution_fail():

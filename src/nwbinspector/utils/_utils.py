@@ -7,7 +7,7 @@ from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
 from time import sleep
-from typing import Callable, Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 import h5py
 import numpy as np
@@ -164,22 +164,6 @@ def get_package_version(name: str) -> version.Version:
         package_version = get_distribution(name).version
     return version.parse(package_version)
 
-
-def robust_s3_read(
-    command: Callable, max_retries: int = 10, command_args: Optional[list] = None, command_kwargs: Optional[dict] = None
-):
-    """Attempt the command (usually acting on an S3 IO) up to the number of max_retries using exponential backoff."""
-    command_args = command_args or []
-    command_kwargs = command_kwargs or dict()
-    for retry in range(max_retries):
-        try:
-            return command(*command_args, **command_kwargs)
-        except Exception as exc:
-            if "curl" in str(exc):  # 'cannot curl request' can show up in potentially many different return error types
-                sleep(0.1 * 2**retry)
-            else:
-                raise exc
-    raise TimeoutError(f"Unable to complete the command ({command.__name__}) after {max_retries} attempts!")
 
 
 def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
