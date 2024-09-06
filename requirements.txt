@@ -1,4 +1,4 @@
-pynwb
+pynwb>=2.8  # NWB Inspector should always be used with most recent minor versions of PyNWB
 hdmf-zarr
 fsspec
 s3fs
