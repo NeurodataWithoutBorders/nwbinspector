@@ -340,7 +340,7 @@ def inspect_nwbfile(
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
-def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
+def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> list[callable]:
     """
     If the special 'protein' subject_id is specified, return a truncated list of checks to run.
 
