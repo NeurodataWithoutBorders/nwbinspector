@@ -136,7 +136,7 @@ def make_minimal_nwbfile():
     return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
 
 
-def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
+def check_streaming_enabled() -> tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the environment can support S3 DANDI streaming.
 

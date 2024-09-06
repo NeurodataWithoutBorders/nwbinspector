@@ -44,7 +44,7 @@ class FormatterOptions:
     """Class structure for defining all free attributes for the design of a report format."""
 
     def __init__(
-        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: List[str] = ["=", "-", "~"]
+        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: list[str] = ["=", "-", "~"]
     ):
         """
         Class that defines all the format parameters used by the generic MessageFormatter.
@@ -107,7 +107,7 @@ class MessageFormatter:
         self.formatted_messages = []
 
     @staticmethod
-    def _count_messages_by_importance(messages: list[InspectorMessage]) -> Dict[str, int]:
+    def _count_messages_by_importance(messages: list[InspectorMessage]) -> dict[str, int]:
         message_count_by_importance = {importance_level.name: 0 for importance_level in Importance}
         for message in messages:
             message_count_by_importance[message.importance.name] += 1
@@ -221,7 +221,7 @@ def format_messages(
     levels: list[str] = None,
     reverse: Optional[list[bool]] = None,
     detailed: bool = False,
-) -> List[str]:
+) -> list[str]:
     """Print InspectorMessages in order specified by the organization structure."""
     if levels is None:
         levels = ["file_path", "importance"]
@@ -230,14 +230,14 @@ def format_messages(
     return formatted_messages
 
 
-def print_to_console(formatted_messages: List[str]):
+def print_to_console(formatted_messages: list[str]):
     """Print report file contents to console."""
     sys.stdout.write(os.linesep * 2)
     for line in formatted_messages:
         sys.stdout.write(line + "\n")
 
 
-def save_report(report_file_path: FilePathType, formatted_messages: List[str], overwrite=False):
+def save_report(report_file_path: FilePathType, formatted_messages: list[str], overwrite=False):
     """Write the list of organized check results to a nicely formatted text file."""
     report_file_path = Path(report_file_path)
     if report_file_path.exists() and not overwrite:

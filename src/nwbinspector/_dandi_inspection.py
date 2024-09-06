@@ -186,8 +186,8 @@ def inspect_url(
     url: str,
     config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
 ) -> Iterable[Union[InspectorMessage, None]]:
