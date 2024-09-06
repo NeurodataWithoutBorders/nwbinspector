@@ -1,5 +1,8 @@
 # Upcoming
 
+### Deprecation
+* Support for Python 3.8 has been removed. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/507)
+
 ### Improvements
 * Swapped setup approach to the modern `pyproject.toml` standard. [#507](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/507)
 
