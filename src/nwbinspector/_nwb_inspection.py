@@ -205,38 +205,6 @@ def _pickle_inspect_nwb(
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
-# TODO: remove after 7/1/2023
-def inspect_nwb(
-    nwbfile_path: FilePathType,
-    checks: list = available_checks,
-    config: dict = None,
-    ignore: OptionalListOfStrings = None,
-    select: OptionalListOfStrings = None,
-    importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-    driver: Optional[str] = None,
-    skip_validate: bool = False,
-    max_retries: int = 10,
-) -> Iterable[InspectorMessage]:
-    warn(
-        "The API function 'inspect_nwb' has been deprecated and will be removed in a future release! "
-        "To remove ambiguity, please call either "
-        "'inspect_nwbfile' giving a path to the unopened file on a system, or "
-        "'inspect_nwbfile_object' passing an already open pynwb.NWBFile object.",
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    for inspector_message in inspect_nwbfile(
-        nwbfile_path=nwbfile_path,
-        checks=checks,
-        config=config,
-        ignore=ignore,
-        select=select,
-        importance_threshold=importance_threshold,
-        skip_validate=skip_validate,
-    ):
-        yield inspector_message
-
-
 def inspect_nwbfile(
     nwbfile_path: FilePathType,
     driver: Optional[str] = None,  # TODO: remove after 3/1/2025

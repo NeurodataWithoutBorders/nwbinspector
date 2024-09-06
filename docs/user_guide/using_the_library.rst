@@ -22,7 +22,7 @@ Inspect a single NWBFile
 ------------------------
 
 The most basic function to use when inspecting a single NWB file is the
-:py:class:`~nwbinspector.nwbinspector.inspect_nwb` function.
+:py:class:`~nwbinspector.nwbinspector.inspect_nwbfile` function.
 
 .. code-block:: python
 
@@ -65,7 +65,7 @@ function.
 
     all_results = list(inspect_all(path=file_paths_or_folder, ...))
 
-This has the same return structure as :py:class:`~nwbinspector.nwbinspector.inspect_nwb`.
+This has the same return structure as :py:class:`~nwbinspector.nwbinspector.inspect_nwbfile`.
 
 
 .. note::
