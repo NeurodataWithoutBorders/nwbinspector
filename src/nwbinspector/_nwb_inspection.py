@@ -279,26 +279,27 @@ def inspect_nwbfile(
                     file_path=nwbfile_path,
                 )
 
-    try:
-        in_memory_nwbfile = io.read()
+    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
+        try:
+            in_memory_nwbfile = io.read()
 
-        for inspector_message in inspect_nwbfile_object(
-            nwbfile_object=in_memory_nwbfile,
-            checks=checks,
-            config=config,
-            ignore=ignore,
-            select=select,
-            importance_threshold=importance_threshold,
-        ):
-            inspector_message.file_path = nwbfile_path
-            yield inspector_message
-    except Exception as exception:
-        yield InspectorMessage(
-            message=traceback.format_exc(),
-            importance=Importance.ERROR,
-            check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-            file_path=nwbfile_path,
-        )
+            for inspector_message in inspect_nwbfile_object(
+                nwbfile_object=in_memory_nwbfile,
+                checks=checks,
+                config=config,
+                ignore=ignore,
+                select=select,
+                importance_threshold=importance_threshold,
+            ):
+                inspector_message.file_path = nwbfile_path
+                yield inspector_message
+        except Exception as exception:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+                file_path=nwbfile_path,
+            )
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
