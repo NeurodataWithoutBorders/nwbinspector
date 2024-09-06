@@ -1,7 +1,7 @@
 # Upcoming
 
 ### Improvements
-* Removed the `robust_ros3_retry` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/506)
+* Removed the `robust_ros3_read` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/506)
 
 
 
