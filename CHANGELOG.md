@@ -5,7 +5,7 @@
 
 ### Improvements
 * Removed the `robust_ros3_read` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/506)
-* Simplified the `nwbinspector.testing` configuration framework.
+* Simplified the `nwbinspector.testing` configuration framework. [#509](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/509)
 
 
 
