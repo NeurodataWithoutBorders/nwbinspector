@@ -21,7 +21,6 @@ from .utils import (
     PathType,
     calculate_number_of_cpu,
     get_package_version,
-    robust_s3_read,
 )
 
 
@@ -145,8 +144,17 @@ def inspect_all(
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
         with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
-            nwbfile = robust_s3_read(io.read)
-            identifiers[nwbfile.identifier].append(nwbfile_path)
+            try:
+                nwbfile = io.read()
+                identifiers[nwbfile.identifier].append(nwbfile_path)
+            except Exception as exception:
+                yield InspectorMessage(
+                    message=traceback.format_exc(),
+                    importance=Importance.ERROR,
+                    check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+                    file_path=nwbfile_path,
+                )
+
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
@@ -286,7 +294,7 @@ def inspect_nwbfile(
                 )
 
         try:
-            in_memory_nwbfile = robust_s3_read(command=io.read)
+            in_memory_nwbfile = io.read()
 
             for inspector_message in inspect_nwbfile_object(
                 nwbfile_object=in_memory_nwbfile,
@@ -298,11 +306,11 @@ def inspect_nwbfile(
             ):
                 inspector_message.file_path = nwbfile_path
                 yield inspector_message
-        except Exception as ex:
+        except Exception as exception:
             yield InspectorMessage(
                 message=traceback.format_exc(),
                 importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(ex)}: {str(ex)}",
+                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
                 file_path=nwbfile_path,
             )
 
@@ -426,22 +434,30 @@ def run_checks(
 
     for check_function in check_progress:
         for nwbfile_object in nwbfile.objects.values():
-            if check_function.neurodata_type is None or issubclass(type(nwbfile_object), check_function.neurodata_type):
-                try:
-                    output = robust_s3_read(command=check_function, command_args=[nwbfile_object])
-                # if an individual check fails, include it in the report and continue with the inspection
-                except Exception:
-                    output = InspectorMessage(
-                        message=traceback.format_exc(),
-                        importance=Importance.ERROR,
-                        check_function_name=check_function.__name__,
-                    )
-                if isinstance(output, InspectorMessage):
-                    # temporary solution to https://github.com/dandi/dandi-cli/issues/1031
-                    if output.importance != Importance.ERROR:
-                        output.importance = check_function.importance
-                    yield output
-                elif output is not None:
-                    for x in output:
-                        x.importance = check_function.importance
-                        yield x
+            if check_function.neurodata_type is not None and not issubclass(
+                type(nwbfile_object), check_function.neurodata_type
+            ):
+                continue
+
+            try:
+                output = check_function(nwbfile_object)
+            # if an individual check fails, include it in the report and continue with the inspection
+            except Exception as exception:
+                check_function_name = (
+                    f"During evaluation of '{check_function.__name__}' - {type(exception)}: {str(exception)}"
+                )
+                output = InspectorMessage(
+                    message=traceback.format_exc(),
+                    importance=Importance.ERROR,
+                    check_function_name=check_function_name,
+                    file_path=nwbfile_path,
+                )
+            if isinstance(output, InspectorMessage):
+                # temporary solution to https://github.com/dandi/dandi-cli/issues/1031
+                if output.importance != Importance.ERROR:
+                    output.importance = check_function.importance
+                yield output
+            elif output is not None:
+                for x in output:
+                    x.importance = check_function.importance
+                    yield x
