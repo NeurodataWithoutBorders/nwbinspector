@@ -1,6 +1,5 @@
 import importlib.metadata
 
-from ._version import __version__
 from ._registration import available_checks, register_check
 from ._types import Importance, Severity, InspectorMessage
 from ._configuration import load_config, validate_config, configure_checks
