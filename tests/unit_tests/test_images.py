@@ -1,5 +1,6 @@
 import numpy as np
 from pynwb import TimeSeries
+from pynwb.base import ImageReferences, Images
 from pynwb.image import GrayscaleImage, IndexSeries
 
 from nwbinspector import Importance, InspectorMessage
