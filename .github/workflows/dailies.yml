@@ -16,13 +16,13 @@ jobs:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
 
   test-dandi-latest:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_release.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
 
   test-dandi-dev:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_dev.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
 
   test-dandi-dev-live:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi_dev_live_service.yml@dev
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev-live-services.yml@dev
 
   notify:
     runs-on: ubuntu-latest
