@@ -3,6 +3,9 @@
 ### Deprecation
 * Support for Python 3.8 has been removed. [#508](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/508)
 
+### Deprecation (API)
+* The `inspect_nwb` method has been removed. Please use `inspect_nwbfile` or `inspect_nwbfile_object` instead. [#505](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/505)
+
 
 
 # v0.5.2
