@@ -6,7 +6,6 @@ import re
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
-from time import sleep
 from typing import Optional, TypeVar, Union
 
 import h5py
@@ -163,7 +162,6 @@ def get_package_version(name: str) -> version.Version:
 
         package_version = get_distribution(name).version
     return version.parse(package_version)
-
 
 
 def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
