@@ -3,9 +3,11 @@ from datetime import datetime
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
+from typing import Type
 from unittest import TestCase
 
 import numpy as np
+from hdmf.backends.io import HDMFIO
 from hdmf.common import DynamicTable
 from natsort import natsorted
 from pynwb import NWBHDF5IO, NWBFile, TimeSeries
@@ -91,7 +93,7 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspectorOnBackend(TestCase):
     """A common helper class for testing the NWBInspector on files of a specific backend (HDF5 or Zarr)."""
 
-    BackendIOClass: HDMFIO
+    BackendIOClass: Type[HDMFIO]
 
     @staticmethod
     def assertFileExists(path: FilePathType):
