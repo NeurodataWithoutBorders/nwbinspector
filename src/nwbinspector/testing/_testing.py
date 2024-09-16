@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 from urllib import request
 from uuid import uuid4
 
@@ -20,7 +20,7 @@ from ..utils import get_package_version, is_module_installed, strtobool
 TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
 
 
-def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
+def check_streaming_tests_enabled() -> tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the testing environment can support S3 DANDI streaming.
 
@@ -136,7 +136,7 @@ def make_minimal_nwbfile():
     return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
 
 
-def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
+def check_streaming_enabled() -> tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the environment can support S3 DANDI streaming.
 
