@@ -1,7 +1,7 @@
 """Internally used tools specifically for rendering more human-readable output from collected check results."""
 
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from natsort import natsorted
 
@@ -16,7 +16,7 @@ def _sort_unique_values(unique_values: list, reverse: bool = False):
         return natsorted(unique_values, reverse=reverse)
 
 
-def organize_messages(messages: List[InspectorMessage], levels: List[str], reverse: Optional[List[bool]] = None):
+def organize_messages(messages: list[InspectorMessage], levels: list[str], reverse: Optional[list[bool]] = None):
     """
     General function for organizing list of InspectorMessages.
 
