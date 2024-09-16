@@ -1,5 +1,5 @@
 import pathlib
-from typing import Iterable, List, Literal, Union
+from typing import Iterable, Literal, Union
 from warnings import filterwarnings
 
 import h5py
@@ -16,8 +16,8 @@ def inspect_dandiset(
     dandiset_version: Union[str, Literal["draft"], None] = None,
     config: Union[str, pathlib.Path, dict, Literal["dandi"], None] = None,
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     show_progress_bar: bool = True,
@@ -112,8 +112,8 @@ def inspect_dandi_file_path(
     dandiset_version: Union[str, Literal["draft"], None] = None,
     config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
@@ -186,8 +186,8 @@ def inspect_url(
     url: str,
     config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
     checks: Union[list, None] = None,
-    ignore: Union[List[str], None] = None,
-    select: Union[List[str], None] = None,
+    ignore: Union[list[str], None] = None,
+    select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
 ) -> Iterable[Union[InspectorMessage, None]]:
@@ -237,33 +237,30 @@ def inspect_url(
     validate_config(config=config)
 
     byte_stream = remfile.File(url=url)
-    # TODO: when 3.8 support is removed, uncomment to replace block and de-indent
-    # with (
-    #    h5py.File(name=byte_stream) as file,
-    #    pynwb.NWBHDF5IO(file=file) as io,
-    # )
-    with h5py.File(name=byte_stream) as file:
-        with pynwb.NWBHDF5IO(file=file) as io:
-            if skip_validate is False:
-                validation_errors = pynwb.validate(io=io)
-                for validation_error in validation_errors:
-                    yield InspectorMessage(
-                        message=validation_error.reason,
-                        importance=Importance.PYNWB_VALIDATION,
-                        check_function_name=validation_error.name,
-                        location=validation_error.location,
-                        file_path=nwbfile_path,
-                    )
+    with (
+        h5py.File(name=byte_stream) as file,
+        pynwb.NWBHDF5IO(file=file) as io,
+    ):
+        if skip_validate is False:
+            validation_errors = pynwb.validate(io=io)
+            for validation_error in validation_errors:
+                yield InspectorMessage(
+                    message=validation_error.reason,
+                    importance=Importance.PYNWB_VALIDATION,
+                    check_function_name=validation_error.name,
+                    location=validation_error.location,
+                    file_path=nwbfile_path,
+                )
 
-            nwbfile = io.read()
+        nwbfile = io.read()
 
-            for message in inspect_nwbfile_object(
-                nwbfile_object=nwbfile,
-                config=config,
-                checks=checks,
-                ignore=ignore,
-                select=select,
-                importance_threshold=importance_threshold,
-            ):
-                message.file_path = url
-                yield message
+        for message in inspect_nwbfile_object(
+            nwbfile_object=nwbfile,
+            config=config,
+            checks=checks,
+            ignore=ignore,
+            select=select,
+            importance_threshold=importance_threshold,
+        ):
+            message.file_path = url
+            yield message

@@ -5,7 +5,7 @@ import traceback
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Iterable, List, Optional, Type, Union
+from typing import Iterable, Optional, Type, Union
 from warnings import filterwarnings, warn
 
 import pynwb
@@ -303,7 +303,7 @@ def inspect_nwbfile(
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
-def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> List[callable]:
+def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> list[callable]:
     """
     If the special 'protein' subject_id is specified, return a truncated list of checks to run.
 
@@ -338,8 +338,8 @@ def inspect_nwbfile_object(
     nwbfile_object: pynwb.NWBFile,
     checks: Optional[list] = None,
     config: Optional[dict] = None,
-    ignore: Optional[List[str]] = None,
-    select: Optional[List[str]] = None,
+    ignore: Optional[list[str]] = None,
+    select: Optional[list[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
 ) -> Iterable[InspectorMessage]:
     """

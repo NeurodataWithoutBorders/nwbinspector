@@ -1,12 +1,14 @@
 # Upcoming
 
+### Deprecation
+* Support for Python 3.8 has been removed. [#508](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/508)
+
 ### Deprecation (API)
 * The `inspect_nwb` method has been removed. Please use `inspect_nwbfile` or `inspect_nwbfile_object` instead. [#505](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/505)
 
 ### Improvements
 * Removed the `robust_ros3_read` utility helper. [#506](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/506)
 * Cleaned old references to non-recent PyNWB and HDMF versions. Current policy is that latest NWB Inspector releases should only support compatibility with latest PyNWB and HDMF. [#](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/)
-
 
 
 # v0.5.2
