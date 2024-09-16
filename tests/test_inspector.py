@@ -31,7 +31,10 @@ from nwbinspector.checks import (
     check_timestamps_match_first_dimension,
 )
 from nwbinspector.testing import make_minimal_nwbfile
+from nwbinspector.tools import BACKEND_IO_CLASSES
 from nwbinspector.utils import FilePathType
+
+IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -85,8 +88,10 @@ def add_simple_table(nwbfile: NWBFile):
     nwbfile.add_acquisition(time_intervals)
 
 
-class TestInspector(TestCase):
-    """A common helper class for testing the NWBInspector."""
+class TestInspectorOnBackend(TestCase):
+    """A common helper class for testing the NWBInspector on files of a specific backend (HDF5 or Zarr)."""
+
+    BackendIOClass: HDMFIO
 
     @staticmethod
     def assertFileExists(path: FilePathType):
@@ -124,7 +129,8 @@ class TestInspector(TestCase):
         self.assertEqual(first=test_file_lines[skip_first_n_lines:-1], second=true_file_lines)
 
 
-class TestInspectorAPI(TestInspector):
+class TestInspectorAPIHDF5(TestInspectorOnBackend):
+    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
     maxDiff = None
 
     @classmethod
@@ -149,10 +155,11 @@ class TestInspectorAPI(TestInspector):
         # Third file to be left without violations
         add_non_matching_timestamps_dimension(nwbfiles[3])
 
-        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb") for j in range(num_nwbfiles)]
+        suffix = IO_CLASSES_TO_BACKEND[cls.BackendIOClass]
+        cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb.{suffix}") for j in range(num_nwbfiles)]
         cls.nwbfile_paths[3] = str(cls.tempdir / f"._testing3.nwb")
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
-            with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+            with cls.BackendIOClass(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
     @classmethod
@@ -579,6 +586,10 @@ class TestInspectorAPI(TestInspector):
             ),
         ]
         self.assertCountEqual(first=test_results, second=true_results)
+
+
+class TestInspectorAPIHZarr(TestInspectorAPIHDF5):
+    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
 
 
 class TestDANDIConfig(TestInspector):

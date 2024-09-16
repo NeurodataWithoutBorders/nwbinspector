@@ -10,17 +10,17 @@ from warnings import filterwarnings, warn
 
 import pynwb
 from natsort import natsorted
-from packaging.version import Version
 from tqdm import tqdm
 
-from . import available_checks, configure_checks
+from . import available_checks
+from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage
+from .tools._read_nwbfile import read_nwbfile
 from .utils import (
     FilePathType,
     OptionalListOfStrings,
     PathType,
     calculate_number_of_cpu,
-    get_package_version,
 )
 
 
@@ -143,17 +143,16 @@ def inspect_all(
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
-        with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
-            try:
-                nwbfile = io.read()
-                identifiers[nwbfile.identifier].append(nwbfile_path)
-            except Exception as exception:
-                yield InspectorMessage(
-                    message=traceback.format_exc(),
-                    importance=Importance.ERROR,
-                    check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-                    file_path=nwbfile_path,
-                )
+        try:
+            nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
+            identifiers[nwbfile.identifier].append(nwbfile_path)
+        except Exception as exception:
+            yield InspectorMessage(
+                message=traceback.format_exc(),
+                importance=Importance.ERROR,
+                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+                file_path=nwbfile_path,
+            )
 
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
@@ -239,7 +238,7 @@ def inspect_nwbfile(
     config : dict
         Dictionary valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
-        Typically loaded via json.load from a valid .json file
+        Typically loaded via `json.load` from a valid .json file.
     ignore: list, optional
         Names of functions to skip.
     select: list, optional
@@ -269,20 +268,10 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    if not skip_validate and get_package_version("pynwb") >= Version("2.2.0"):
-        validation_error_list, _ = pynwb.validate(paths=[nwbfile_path])
-        for validation_namespace_errors in validation_error_list:
-            for validation_error in validation_namespace_errors:
-                yield InspectorMessage(
-                    message=validation_error.reason,
-                    importance=Importance.PYNWB_VALIDATION,
-                    check_function_name=validation_error.name,
-                    location=validation_error.location,
-                    file_path=nwbfile_path,
-                )
+    try:
+        in_memory_nwbfile, io = read_nwbfile(nwbfile_path=nwbfile_path)
 
-    with pynwb.NWBHDF5IO(path=nwbfile_path, mode="r", load_namespaces=True) as io:
-        if not skip_validate and get_package_version("pynwb") < Version("2.2.0"):
+        if not skip_validate:
             validation_errors = pynwb.validate(io=io)
             for validation_error in validation_errors:
                 yield InspectorMessage(
@@ -293,26 +282,23 @@ def inspect_nwbfile(
                     file_path=nwbfile_path,
                 )
 
-        try:
-            in_memory_nwbfile = io.read()
-
-            for inspector_message in inspect_nwbfile_object(
-                nwbfile_object=in_memory_nwbfile,
-                checks=checks,
-                config=config,
-                ignore=ignore,
-                select=select,
-                importance_threshold=importance_threshold,
-            ):
-                inspector_message.file_path = nwbfile_path
-                yield inspector_message
-        except Exception as exception:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-                file_path=nwbfile_path,
-            )
+        for inspector_message in inspect_nwbfile_object(
+            nwbfile_object=in_memory_nwbfile,
+            checks=checks,
+            config=config,
+            ignore=ignore,
+            select=select,
+            importance_threshold=importance_threshold,
+        ):
+            inspector_message.file_path = nwbfile_path
+            yield inspector_message
+    except Exception as exception:
+        yield InspectorMessage(
+            message=traceback.format_exc(),
+            importance=Importance.ERROR,
+            check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+            file_path=nwbfile_path,
+        )
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
