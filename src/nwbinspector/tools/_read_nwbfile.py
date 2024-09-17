@@ -70,7 +70,8 @@ def read_nwbfile(
     nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
-) -> tuple[NWBFile, HDMFIO]:
+    return_io: bool = False,
+) -> Union[NWBFile, tuple[NWBFile, HDMFIO]]:
     """
     Read an NWB file using the specified (or auto-detected) method and specified (or auto-detected) backend.
 
@@ -86,12 +87,15 @@ def read_nwbfile(
     backend : "hdf5", "zarr", or None (default)
         Type of backend used to write the file.
         The default auto-detects the type of the file.
+    return_io : bool, default: False
+        Whether to return the HDMFIO object used to open the file.
 
     Returns
     -------
     nwbfile : pynwb.NWBFile
         The in-memory NWBFile object.
-    io : hdmf.backends.io.HDMFIO
+    io : hdmf.backends.io.HDMFIO, optional
+        Only passed if `return_io` is True.
         The initialized HDMFIO object used to read the file.
     """
     nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
@@ -134,4 +138,7 @@ def read_nwbfile(
     io = BACKEND_IO_CLASSES[backend](**io_kwargs)
     nwbfile = io.read()
 
-    return (nwbfile, io)
+    if return_io:
+        return (nwbfile, io)
+    else:  # Note: do not be concerned about io object closing due to garbage collection here
+        return nwbfile  # (it is attached as an attribute to the NWBFile object)

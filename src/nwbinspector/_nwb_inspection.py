@@ -269,7 +269,7 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
     try:
-        in_memory_nwbfile, io = read_nwbfile(nwbfile_path=nwbfile_path)
+        in_memory_nwbfile, io = read_nwbfile(nwbfile_path=nwbfile_path, return_io=True)
 
         if not skip_validate:
             validation_errors = pynwb.validate(io=io)
