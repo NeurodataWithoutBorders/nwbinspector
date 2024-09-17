@@ -1,5 +1,4 @@
 from pathlib import Path
-from shutil import copy
 
 from setuptools import find_packages, setup
 
@@ -10,14 +9,6 @@ with open(root / "requirements.txt") as f:
     install_requires = f.readlines()
 with open(root / "src" / "nwbinspector" / "_version.py") as f:
     version = f.read()
-
-# Instantiate the testing configuration file from the base file `base_test_config.json`
-# This requires the current working directory to be the top level
-# of a local copy of the NWB Inspector GitHub repository
-BASE_CONFIG_FILE_PATH = Path.cwd() / "base_test_config.json"
-TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
-if not TESTING_CONFIG_FILE_PATH.exists():
-    copy(src=str(BASE_CONFIG_FILE_PATH), dst=str(TESTING_CONFIG_FILE_PATH))
 
 setup(
     name="nwbinspector",
