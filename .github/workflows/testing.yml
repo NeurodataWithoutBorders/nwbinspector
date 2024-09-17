@@ -31,8 +31,6 @@ jobs:
           pip install pytest
           pip install pytest-cov
 
-      - name: Install ROS3
-        run: conda install -c conda-forge h5py
       - name: Install package
         run: pip install ".[dandi]"
       - name: Download testing data and set config path
