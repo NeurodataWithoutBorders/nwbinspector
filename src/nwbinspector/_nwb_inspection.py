@@ -73,8 +73,8 @@ def inspect_all(
         all available CPUs minus x.
         Set to 1 (also the default) to disable.
     skip_validate : bool, optional
-        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
-        The default is False, which is also recommended.
+        Skip the PyNWB validation step.
+        The default is False, which is recommended.
     progress_bar : bool, optional
         Display a progress bar while scanning NWBFiles.
         Defaults to True.
@@ -231,8 +231,8 @@ def inspect_nwbfile(
     nwbfile_path : FilePathType
         Path to the NWB file on disk or on S3.
     skip_validate : bool
-        Skip the PyNWB validation step. This may be desired for older NWBFiles (< schema version v2.10).
-        The default is False, which is also recommended.
+        Skip the PyNWB validation step.
+        The default is False, which is recommended.
     checks : list, optional
         List of checks to run.
     config : dict
@@ -307,7 +307,7 @@ def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[
     If the special 'protein' subject_id is specified, return a truncated list of checks to run.
 
     This is a temporary method for allowing upload of certain in vitro data to DANDI and
-    is expected to replaced in future versions.
+    is expected to be replaced in future versions.
     """
     subject_related_check_names = [
         "check_subject_exists",
