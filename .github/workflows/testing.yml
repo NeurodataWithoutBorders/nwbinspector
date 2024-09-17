@@ -5,6 +5,9 @@ on:
       CODECOV_TOKEN:
         required: true
 
+env:
+  TESTING_FILES_FOLDER_PATH: ./204919/testing_files/
+
 jobs:
   build-and-test:
     name: Testing using ${{ matrix.os }} with ${{ matrix.python-version }}
@@ -33,9 +36,7 @@ jobs:
       - name: Install package
         run: pip install ".[dandi]"
       - name: Download testing data and set config path
-        run: |
-          dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
-          python -c "from nwbinspector.testing import update_testing_config; update_testing_config(key='LOCAL_PATH', value='./204919/testing_files/')"
+        run: dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
 
       - name: Run pytest with coverage
         run: pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml

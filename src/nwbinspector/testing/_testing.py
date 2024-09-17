@@ -1,10 +1,9 @@
 """Helper functions for internal use across the testing suite."""
 
-import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 from urllib import request
 from uuid import uuid4
 
@@ -16,11 +15,8 @@ from pynwb.image import ImageSeries
 
 from ..utils import get_package_version, is_module_installed, strtobool
 
-# The tests must be invoked at the outer level of the repository
-TESTING_CONFIG_FILE_PATH = Path.cwd() / "tests" / "testing_config.json"
 
-
-def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
+def check_streaming_tests_enabled() -> tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the testing environment can support S3 DANDI streaming.
 
@@ -50,34 +46,6 @@ def check_streaming_tests_enabled() -> Tuple[bool, Optional[str]]:
 
     failure_reason = None if failure_reason == "" else failure_reason
     return streaming_enabled and not environment_skip_flag_bool and have_dandi, failure_reason
-
-
-def load_testing_config() -> dict:
-    """Helper function for loading the testing configuration file as a dictionary."""
-    # This error would only occur if someone installed a previous version
-    # directly from GitHub and then updated the branch/commit in-place
-    if not TESTING_CONFIG_FILE_PATH.exists():  # pragma: no cover
-        raise FileNotFoundError(
-            f"The testing configuration file not found at the location '{TESTING_CONFIG_FILE_PATH}'! "
-            "Please try reinstalling the package."
-        )
-
-    with open(file=TESTING_CONFIG_FILE_PATH) as file:
-        test_config = json.load(file)
-
-    return test_config
-
-
-def update_testing_config(key: str, value):
-    """Update a key/value pair in the testing configuration file through the API."""
-    testing_config = load_testing_config()
-
-    if key not in testing_config:
-        raise KeyError("Updating the testing configuration file via the API is only possible for the pre-defined keys!")
-    testing_config[key] = value
-
-    with open(file=TESTING_CONFIG_FILE_PATH, mode="w") as file:
-        json.dump(testing_config, file)
 
 
 def generate_testing_files():  # pragma: no cover
@@ -136,7 +104,7 @@ def make_minimal_nwbfile():
     return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
 
 
-def check_streaming_enabled() -> Tuple[bool, Optional[str]]:
+def check_streaming_enabled() -> tuple[bool, Optional[str]]:
     """
     General purpose helper for determining if the environment can support S3 DANDI streaming.
 
