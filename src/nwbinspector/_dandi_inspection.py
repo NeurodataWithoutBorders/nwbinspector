@@ -241,9 +241,8 @@ def inspect_url(
         h5py.File(name=byte_stream) as file,
         pynwb.NWBHDF5IO(file=file) as io,
     ):
-        if not skip_validate:
+        if skip_validate is False:
             validation_errors = pynwb.validate(io=io)
-
             for validation_error in validation_errors:
                 yield InspectorMessage(
                     message=validation_error.reason,
