@@ -199,7 +199,7 @@ def inspect_all(
                     yield message
     else:
         for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks):
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate):
                 yield message
 
 

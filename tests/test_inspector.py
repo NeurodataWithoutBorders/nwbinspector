@@ -780,7 +780,8 @@ class TestCheckUniqueIdentifiersFailHDF5(TestCase):
         rmtree(cls.tempdir, ignore_errors=True)
 
     def test_check_unique_identifiers_fail(self):
-        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == [
+        test_messages = list(inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=True))
+        expected_messages = [
             InspectorMessage(
                 message=(
                     "The identifier 'not a unique identifier!' is used across the .nwb files: "
@@ -796,6 +797,8 @@ class TestCheckUniqueIdentifiersFailHDF5(TestCase):
                 file_path=str(self.tempdir),
             )
         ]
+
+        assert test_messages == expected_messages
 
 
 class TestCheckUniqueIdentifiersPassZarr(TestCheckUniqueIdentifiersPassHDF5):
