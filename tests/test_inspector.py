@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 from typing import Type
 from unittest import TestCase
 
+import hdmf_zarr
 import numpy as np
 from hdmf.backends.io import HDMFIO
 from hdmf.common import DynamicTable
@@ -40,7 +41,20 @@ IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
 EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
-def add_big_dataset_no_compression(nwbfile: NWBFile):
+def add_big_dataset_no_compression(nwbfile: NWBFile, zarr: bool = False) -> None:
+    # Zarr automatically compresses by default
+    # So to get a test case that is not compressed, forcibly disable the compressor
+    if zarr:
+        time_series = TimeSeries(
+            name="test_time_series_1",
+            data=hdmf_zarr.ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
+            rate=1.0,
+            unit="",
+        )
+        nwbfile.add_acquisition(time_series)
+
+        return
+
     time_series = TimeSeries(
         name="test_time_series_1", data=np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), rate=1.0, unit=""
     )
@@ -161,7 +175,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
-        add_big_dataset_no_compression(nwbfiles[0])
+        add_big_dataset_no_compression(nwbfiles[0], zarr=cls.BackendIOClass is BACKEND_IO_CLASSES["zarr"])
         add_regular_timestamps(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
@@ -442,7 +456,8 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
             "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
-            "--modules random,math,datetime"
+            "--modules random,math,datetime "
+            f"--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -455,7 +470,8 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         console_output_file = self.tempdir / "test_console_output_2.txt"
         os.system(
             f"nwbinspector {str(self.tempdir)} --n-jobs 2 --overwrite --select check_timestamps_match_first_dimension,"
-            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
+            "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
+            f"--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -468,7 +484,8 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         console_output_file = self.tempdir / "test_console_output_3.txt"
         os.system(
             f"nwbinspector {str(self.nwbfile_paths[0])} "
-            f"--report-file-path {self.tempdir / 'test_nwbinspector_report_1.txt'}"
+            f"--report-file-path {self.tempdir / 'test_nwbinspector_report_1.txt'} "
+            f"--skip-validate "
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_report_1.txt")
@@ -478,14 +495,15 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         os.system(
             f"nwbinspector {str(self.nwbfile_paths[0])} "
             f"--report-file-path {self.tempdir / 'test_nwbinspector_report_2.txt'} "
-            "--levels importance,check_function_name,file_path"
+            "--levels importance,check_function_name,file_path "
+            f"--skip-validate "
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_report_2.txt")
 
     def test_command_line_runs_saves_json(self):
         json_fpath = self.tempdir / "nwbinspector_results.json"
-        os.system(f"nwbinspector {str(self.nwbfile_paths[0])} --json-file-path {json_fpath}")
+        os.system(f"nwbinspector {str(self.nwbfile_paths[0])} --json-file-path {json_fpath} " f"--skip-validate ")
         self.assertFileExists(path=json_fpath)
 
     def test_command_line_on_directory_matches_file(self):
@@ -493,7 +511,8 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         os.system(
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
             "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
-            f" --report-file-path {self.tempdir / 'test_nwbinspector_report_3.txt'}"
+            f" --report-file-path {self.tempdir / 'test_nwbinspector_report_3.txt'} "
+            f"--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -733,7 +752,8 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
         console_output_file_path = self.tempdir / "test_console_output.txt"
 
         os.system(
-            f"nwbinspector {str(self.tempdir)} --overwrite --config dandi --threshold BEST_PRACTICE_VIOLATION"
+            f"nwbinspector {str(self.tempdir)} --overwrite --config dandi --threshold BEST_PRACTICE_VIOLATION "
+            f"--skip-validate "
             f"> {console_output_file_path}"
         )
 

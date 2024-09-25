@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Optional
 
 import h5py
+import zarr
 from pynwb import NWBFile
 from pynwb.ecephys import Device, ElectrodeGroup
 from pynwb.file import Subject
@@ -105,13 +106,16 @@ def _parse_location(neurodata_object) -> Optional[str]:
     for key, val in known_locations.items():
         if isinstance(neurodata_object, key):
             return val
-    """Infer the human-readable path of the object within an NWBFile by tracing its parents."""
+
+    # Infer the human-readable path of the object within an NWBFile by tracing its parents
     if neurodata_object.parent is None:
         return "/"
     # Best solution: object is or has a HDF5 Dataset
-    if isinstance(neurodata_object, h5py.Dataset):
+    if isinstance(neurodata_object, (h5py.Dataset, zarr.Array)):
         return neurodata_object.name
     else:
-        for field in neurodata_object.fields.values():
+        for field_name, field in neurodata_object.fields.items():
             if isinstance(field, h5py.Dataset):
                 return field.parent.name
+            elif isinstance(field, zarr.Array):
+                return field.name.removesuffix(f"/{field_name}")
