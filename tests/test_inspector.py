@@ -133,6 +133,7 @@ class TestInspectorOnBackend(TestCase):
 
 class TestInspectorAPIHDF5(TestInspectorOnBackend):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_hdf5.txt"
     maxDiff = None
 
     @classmethod
@@ -422,7 +423,7 @@ class TestInspectorAPIHDF5(TestInspectorOnBackend):
         )
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file,
-            true_file_path=Path(__file__).parent / "true_nwbinspector_default_report.txt",
+            true_file_path=self.true_report_file_path,
             skip_first_newlines=True,
         )
 
@@ -435,7 +436,7 @@ class TestInspectorAPIHDF5(TestInspectorOnBackend):
         )
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file,
-            true_file_path=Path(__file__).parent / "true_nwbinspector_default_report.txt",
+            true_file_path=self.true_report_file_path,
             skip_first_newlines=True,
         )
 
@@ -473,7 +474,7 @@ class TestInspectorAPIHDF5(TestInspectorOnBackend):
         )
         self.assertLogFileContentsEqual(
             test_file_path=self.tempdir / "test_nwbinspector_report_3.txt",
-            true_file_path=Path(__file__).parent / "true_nwbinspector_default_report.txt",
+            true_file_path=self.true_report_file_path,
             skip_first_newlines=True,
         )
 
@@ -592,6 +593,7 @@ class TestInspectorAPIHDF5(TestInspectorOnBackend):
 
 class TestInspectorAPIHZarr(TestInspectorAPIHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_zarr.txt"
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):

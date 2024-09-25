@@ -129,7 +129,7 @@ def inspect_all(
         progress_bar_options = dict(position=0, leave=False)
 
     if in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb"))
+        nwbfiles = list(in_path.rglob("*.nwb*"))
 
         # Remove any macOS sidecar files
         nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
