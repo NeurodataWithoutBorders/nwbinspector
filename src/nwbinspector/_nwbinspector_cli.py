@@ -1,6 +1,7 @@
 """Primary functions for inspecting NWBFiles."""
 
 import importlib
+import importlib.metadata
 import json
 import os
 from pathlib import Path
@@ -18,7 +19,6 @@ from ._formatting import (
 )
 from ._nwb_inspection import inspect_all
 from ._types import Importance
-from ._version import __version__
 from .utils import strtobool
 
 
@@ -83,7 +83,7 @@ from .utils import strtobool
     required=False,
     default=None,
 )
-@click.version_option(__version__)
+@click.version_option(version=importlib.metadata.version(distribution_name="nwbinspector"))
 def _nwbinspector_cli(
     *,
     path: str,

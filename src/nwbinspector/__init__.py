@@ -1,4 +1,5 @@
-from ._version import __version__
+import importlib.metadata
+
 from ._registration import available_checks, register_check
 from ._types import Importance, Severity, InspectorMessage
 from ._configuration import load_config, validate_config, configure_checks
@@ -21,6 +22,9 @@ from ._dandi_inspection import inspect_dandiset, inspect_dandi_file_path, inspec
 from .checks import *  # These need to be imported to trigger registration with 'available_checks', but are not exposed
 
 default_check_registry = {check.__name__: check for check in available_checks}
+
+# Still keeping the legacy magic version attribute requested by some users
+__version__ = importlib.metadata.version(distribution_name="nwbinspector")
 
 __all__ = [
     "available_checks",
