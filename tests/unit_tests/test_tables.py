@@ -442,7 +442,7 @@ def test_table_time_columns_are_not_negative_fail():
 
     assert check_table_time_columns_are_not_negative(test_table) == [
         InspectorMessage(
-            message=f"Timestamps in column test_time should not be negative."
+            message="Timestamps in column test_time should not be negative."
             " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
             importance=Importance.BEST_PRACTICE_SUGGESTION,
             check_function_name="check_table_time_columns_are_not_negative",
@@ -451,7 +451,7 @@ def test_table_time_columns_are_not_negative_fail():
             location="/",
         ),
         InspectorMessage(
-            message=f"Timestamps in column start_time should not be negative."
+            message="Timestamps in column start_time should not be negative."
             " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
             importance=Importance.BEST_PRACTICE_SUGGESTION,
             check_function_name="check_table_time_columns_are_not_negative",

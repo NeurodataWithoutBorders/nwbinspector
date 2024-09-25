@@ -23,7 +23,7 @@ TESTING_FILES_FOLDER_PATH = os.environ.get("TESTING_FILES_FOLDER_PATH", None)
 @unittest.skipIf(
     TESTING_FILES_FOLDER_PATH is None,
     reason=(
-        f"These ImageSeries unit tests were skipped because the environment variable "
+        "These ImageSeries unit tests were skipped because the environment variable "
         "'TESTING_FILES_FOLDER_PATH' was not set!"
     ),
 )
