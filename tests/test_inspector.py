@@ -140,7 +140,7 @@ class TestInspectorOnBackend(TestCase):
         self.assertEqual(first=test_file_lines[skip_first_n_lines : -(1 + skip_last_n_lines)], second=true_file_lines)
 
 
-class TestInspectorAPIHDF5(TestInspectorOnBackend):
+class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
     true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_hdf5.txt"
     maxDiff = None
@@ -600,13 +600,14 @@ class TestInspectorAPIHDF5(TestInspectorOnBackend):
         self.assertCountEqual(first=test_results, second=true_results)
 
 
-class TestInspectorAPIHZarr(TestInspectorAPIHDF5):
+class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
     true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_zarr.txt"
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    true_report_file_path = Path(__file__).parent / "true_nwbinspector_report_with_dandi_config_hdf5.txt"
     maxDiff = None
 
     @classmethod
@@ -632,7 +633,7 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls.tempdir)
+        rmtree(cls.tempdir, ignore_errors=True)
 
     def test_inspect_nwbfile_dandi_config_critical_only_entire_registry(self):
         test_results = list(
@@ -710,13 +711,14 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
 
         self.assertLogFileContentsEqual(
             test_file_path=console_output_file_path,
-            true_file_path=Path(__file__).parent / "true_nwbinspector_report_with_dandi_config.txt",
+            true_file_path=self.true_report_file_path,
             skip_first_newlines=True,
         )
 
 
-class TestDANDIConfigZarr(TestInspectorOnBackend):
+class TestDANDIConfigZarr(TestDANDIConfigHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    true_report_file_path = Path(__file__).parent / "true_nwbinspector_report_with_dandi_config_zarr.txt"
 
 
 class TestCheckUniqueIdentifiersPassHDF5(TestCase):
@@ -736,19 +738,15 @@ class TestCheckUniqueIdentifiersPassHDF5(TestCase):
             str(cls.tempdir / f"unique_id_testing{j}.nwb.{suffix}") for j in range(num_nwbfiles)
         ]
         for nwbfile_path, nwbfile in zip(cls.unique_id_nwbfile_paths, unique_id_nwbfiles):
-            with BackendIOClass(path=nwbfile_path, mode="w") as io:
+            with cls.BackendIOClass(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls.tempdir)
+        rmtree(cls.tempdir, ignore_errors=True)
 
     def test_check_unique_identifiers_pass(self):
         assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == []
-
-
-class TestCheckUniqueIdentifiersPassZarr(TestCase):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestCase):
@@ -774,12 +772,12 @@ class TestCheckUniqueIdentifiersFailHDF5(TestCase):
             str(cls.tempdir / f"non_unique_id_testing{j}.nwb.{suffix}") for j in range(num_nwbfiles)
         ]
         for nwbfile_path, nwbfile in zip(cls.non_unique_id_nwbfile_paths, non_unique_id_nwbfiles):
-            with BackendIOClass(path=nwbfile_path, mode="w") as io:
+            with cls.BackendIOClass(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls.tempdir)
+        rmtree(cls.tempdir, ignore_errors=True)
 
     def test_check_unique_identifiers_fail(self):
         assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == [
@@ -798,6 +796,14 @@ class TestCheckUniqueIdentifiersFailHDF5(TestCase):
                 file_path=str(self.tempdir),
             )
         ]
+
+
+class TestCheckUniqueIdentifiersPassZarr(TestCheckUniqueIdentifiersPassHDF5):
+    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+
+
+class TestCheckUniqueIdentifiersFailZarr(TestCheckUniqueIdentifiersFailHDF5):
+    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
 
 
 def test_dandi_config_in_vitro_injection():
