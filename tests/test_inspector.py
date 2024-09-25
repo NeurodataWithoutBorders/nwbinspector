@@ -186,7 +186,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
 
         suffix = IO_CLASSES_TO_BACKEND[cls.BackendIOClass]
         cls.nwbfile_paths = [str(cls.tempdir / f"testing{j}.nwb.{suffix}") for j in range(num_nwbfiles)]
-        cls.nwbfile_paths[3] = str(cls.tempdir / f"._testing3.nwb")
+        cls.nwbfile_paths[3] = str(cls.tempdir / "._testing3.nwb")
         for nwbfile_path, nwbfile in zip(cls.nwbfile_paths, nwbfiles):
             with cls.BackendIOClass(path=nwbfile_path, mode="w") as io:
                 io.write(nwbfile)
@@ -457,7 +457,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
             "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
             "--modules random,math,datetime "
-            f"--skip-validate "
+            "--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -471,7 +471,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         os.system(
             f"nwbinspector {str(self.tempdir)} --n-jobs 2 --overwrite --select check_timestamps_match_first_dimension,"
             "check_data_orientation,check_regular_timestamps,check_small_dataset_compression "
-            f"--skip-validate "
+            "--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
@@ -485,7 +485,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         os.system(
             f"nwbinspector {str(self.nwbfile_paths[0])} "
             f"--report-file-path {self.tempdir / 'test_nwbinspector_report_1.txt'} "
-            f"--skip-validate "
+            "--skip-validate "
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_report_1.txt")
@@ -496,7 +496,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             f"nwbinspector {str(self.nwbfile_paths[0])} "
             f"--report-file-path {self.tempdir / 'test_nwbinspector_report_2.txt'} "
             "--levels importance,check_function_name,file_path "
-            f"--skip-validate "
+            "--skip-validate "
             f"> {console_output_file}"
         )
         self.assertFileExists(path=self.tempdir / "test_nwbinspector_report_2.txt")
@@ -512,7 +512,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             f"nwbinspector {str(self.tempdir)} --overwrite --select check_timestamps_match_first_dimension,"
             "check_data_orientation,check_regular_timestamps,check_small_dataset_compression"
             f" --report-file-path {self.tempdir / 'test_nwbinspector_report_3.txt'} "
-            f"--skip-validate "
+            "--skip-validate "
             f"> {console_output_file}"
         )
         self.assertLogFileContentsEqual(
