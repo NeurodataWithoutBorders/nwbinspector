@@ -40,7 +40,7 @@ def test_check_order_of_images_len():
     images = Images(name="my_images", images=imgs, order_of_images=img_refs)
 
     assert check_order_of_images_len(images) == InspectorMessage(
-        message=f"Length of order_of_images (6) does not match the number of images (5).",
+        message="Length of order_of_images (6) does not match the number of images (5).",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_order_of_images_len",
         object_type="Images",
