@@ -13,12 +13,15 @@ from nwbinspector.utils import PathType
 from . import available_checks
 from ._registration import Importance
 
-INTERNAL_CONFIGS = dict(dandi=Path(__file__).parent / "internal_configs" / "dandi.inspector_config.yaml")
+INTERNAL_CONFIGS = dict(
+    dandi=Path(__file__).parent / "_internal_configs" / "dandi.inspector_config.yaml",
+)
 
 
 def validate_config(config: dict):
     """Validate an instance of configuration against the official schema."""
-    with open(file=Path(__file__).parent / "config.schema.json", mode="r") as fp:
+    config_schema_file_path = Path(__file__).parent / "_internal_configs" / "config.schema.json"
+    with open(file=config_schema_file_path, mode="r") as fp:
         schema = json.load(fp=fp)
     jsonschema.validate(instance=config, schema=schema)
 

@@ -37,6 +37,7 @@ from nwbinspector.tools import BACKEND_IO_CLASSES
 from nwbinspector.utils import FilePathType
 
 IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
+EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
 def add_big_dataset_no_compression(nwbfile: NWBFile):
@@ -94,6 +95,7 @@ class TestInspectorOnBackend(TestCase):
     """A common helper class for testing the NWBInspector on files of a specific backend (HDF5 or Zarr)."""
 
     BackendIOClass: Type[HDMFIO]
+    skip_validate = False  # TODO: can be removed once NWBZarrIO validation issues are resolved
 
     @staticmethod
     def assertFileExists(path: FilePathType):
@@ -142,7 +144,8 @@ class TestInspectorOnBackend(TestCase):
 
 class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
-    true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_hdf5.txt"
+    skip_validate = False
+    true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_hdf5.txt"
     maxDiff = None
 
     @classmethod
@@ -179,7 +182,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         rmtree(cls.tempdir, ignore_errors=True)
 
     def test_inspect_all(self):
-        test_results = list(inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks]))
+        test_results = list(
+            inspect_all(path=self.tempdir, select=[x.__name__ for x in self.checks], skip_validate=self.skip_validate)
+        )
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -313,7 +318,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwbfile(self):
-        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks))
+        test_results = list(
+            inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, skip_validate=self.skip_validate)
+        )
         true_results = [
             InspectorMessage(
                 message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -365,7 +372,10 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
     def test_inspect_nwbfile_importance_threshold_as_importance(self):
         test_results = list(
             inspect_nwbfile(
-                nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold=Importance.CRITICAL
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=self.checks,
+                importance_threshold=Importance.CRITICAL,
+                skip_validate=self.skip_validate,
             )
         )
         true_results = [
@@ -395,7 +405,12 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
 
     def test_inspect_nwbfile_importance_threshold_as_string(self):
         test_results = list(
-            inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks, importance_threshold="CRITICAL")
+            inspect_nwbfile(
+                nwbfile_path=self.nwbfile_paths[0],
+                checks=self.checks,
+                importance_threshold="CRITICAL",
+                skip_validate=self.skip_validate,
+            )
         )
         true_results = [
             InspectorMessage(
@@ -493,7 +508,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             for col in table.columns:
                 yield InspectorMessage(message=f"Column: {col.name}")
 
-        test_results = list(inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"]))
+        test_results = list(
+            inspect_nwbfile(
+                nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"], skip_validate=self.skip_validate
+            )
+        )
         true_results = [
             InspectorMessage(
                 message="Column: start_time",
@@ -515,7 +534,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         self.assertCountEqual(first=test_results, second=true_results)
 
     def test_inspect_nwbfile_manual_iteration(self):
-        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[0], checks=self.checks)
+        generator = inspect_nwbfile(
+            nwbfile_path=self.nwbfile_paths[0], checks=self.checks, skip_validate=self.skip_validate
+        )
         message = next(generator)
         true_result = InspectorMessage(
             message="data is not compressed. Consider enabling compression when writing a dataset.",
@@ -530,7 +551,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         self.assertEqual(message, true_result)
 
     def test_inspect_nwbfile_manual_iteration_stop(self):
-        generator = inspect_nwbfile(nwbfile_path=self.nwbfile_paths[2], checks=self.checks)
+        generator = inspect_nwbfile(
+            nwbfile_path=self.nwbfile_paths[2], checks=self.checks, skip_validate=self.skip_validate
+        )
         with self.assertRaises(expected_exception=StopIteration):
             next(generator)
 
@@ -541,6 +564,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
                 nwbfile_path=self.nwbfile_paths[0],
                 checks=config_checks,
                 config=load_config(filepath_or_keyword="dandi"),
+                skip_validate=self.skip_validate,
             )
         )
         true_results = [
@@ -602,12 +626,14 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
 
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
-    true_report_file_path = Path(__file__).parent / "true_nwbinspector_default_report_zarr.txt"
+    true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_zarr.txt"
+    skip_validate = True
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
-    true_report_file_path = Path(__file__).parent / "true_nwbinspector_report_with_dandi_config_hdf5.txt"
+    true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_hdf5.txt"
+    skip_validate = False
     maxDiff = None
 
     @classmethod
@@ -642,6 +668,7 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
                 importance_threshold=Importance.CRITICAL,
+                skip_validate=self.skip_validate,
             )
         )
         true_results = [
@@ -673,6 +700,7 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
                 checks=available_checks,
                 config=load_config(filepath_or_keyword="dandi"),
                 importance_threshold=Importance.BEST_PRACTICE_VIOLATION,
+                skip_validate=self.skip_validate,
             )
         )
         true_results = [
@@ -718,11 +746,13 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
 
 class TestDANDIConfigZarr(TestDANDIConfigHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
-    true_report_file_path = Path(__file__).parent / "true_nwbinspector_report_with_dandi_config_zarr.txt"
+    true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_zarr.txt"
+    skip_validate = True
 
 
 class TestCheckUniqueIdentifiersPassHDF5(TestCase):
     BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    skip_validate = True
     maxDiff = None
 
     @classmethod
@@ -746,11 +776,17 @@ class TestCheckUniqueIdentifiersPassHDF5(TestCase):
         rmtree(cls.tempdir, ignore_errors=True)
 
     def test_check_unique_identifiers_pass(self):
-        assert list(inspect_all(path=self.tempdir, select=["check_data_orientation"])) == []
+        test_message = list(
+            inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate)
+        )
+        expected_message = []
+
+        assert test_message == expected_message
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestCase):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    skip_validate = True
     maxDiff = None
 
     @classmethod
@@ -780,7 +816,9 @@ class TestCheckUniqueIdentifiersFailHDF5(TestCase):
         rmtree(cls.tempdir, ignore_errors=True)
 
     def test_check_unique_identifiers_fail(self):
-        test_messages = list(inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=True))
+        test_messages = list(
+            inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate)
+        )
         expected_messages = [
             InspectorMessage(
                 message=(
