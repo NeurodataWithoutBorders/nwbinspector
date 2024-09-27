@@ -20,7 +20,7 @@ def check_image_series_external_file_valid(image_series: ImageSeries) -> Optiona
     """
     if image_series.external_file is None:
         return None
-    nwbfile_path = Path(get_nwbfile_path_from_internal_object(obj=image_series))
+    nwbfile_path = Path(get_nwbfile_path_from_internal_object(neurodata_object=image_series))
     for file_path in image_series.external_file:
         file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
         if not Path(file_path).is_absolute() and not (nwbfile_path.parent / file_path).exists():
