@@ -8,9 +8,9 @@ from importlib import import_module
 from pathlib import Path
 from typing import Optional, TypeVar, Union
 
-import zarr
 import h5py
 import numpy as np
+import zarr
 from hdmf.backends.hdf5.h5_utils import H5Dataset
 from numpy.typing import ArrayLike
 from packaging import version
@@ -33,7 +33,9 @@ def _cache_data_retrieval_command(
     return data[selection]
 
 
-def cache_data_selection(data: Union[h5py.Dataset, zarr.Array, ArrayLike], selection: Union[slice, tuple[slice]]) -> np.ndarray:
+def cache_data_selection(
+    data: Union[h5py.Dataset, zarr.Array, ArrayLike], selection: Union[slice, tuple[slice]]
+) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
         return data[selection]
