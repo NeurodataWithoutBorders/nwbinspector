@@ -10,6 +10,7 @@ from typing import Optional, TypeVar, Union
 
 import h5py
 import numpy as np
+import zarr
 from hdmf.backends.hdf5.h5_utils import H5Dataset
 from numpy.typing import ArrayLike
 from packaging import version
@@ -25,7 +26,7 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
 def _cache_data_retrieval_command(
-    data: h5py.Dataset, reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
+    data: Union[h5py.Dataset, zarr.Array], reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
 ) -> np.ndarray:
     """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
     selection = tuple([slice(*reduced_slice) for reduced_slice in reduced_selection])  # reconstitute the slices

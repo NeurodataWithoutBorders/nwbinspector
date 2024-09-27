@@ -5,17 +5,14 @@ from typing import Literal, Optional, Union
 from warnings import filterwarnings
 
 import h5py
+from hdmf.backends.io import HDMFIO
+from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile
 
-_BACKEND_IO_CLASSES = dict(hdf5=NWBHDF5IO)
-
-try:
-    from hdmf_zarr import NWBZarrIO
-
-    _BACKEND_IO_CLASSES.update(zarr=NWBZarrIO)
-except ModuleNotFoundError as exception:
-    if str(exception) != "No module named 'hdmf_zarr'":  # not the exception we're looking for, so re-raise
-        raise exception
+BACKEND_IO_CLASSES = dict(
+    hdf5=NWBHDF5IO,
+    zarr=NWBZarrIO,
+)
 
 
 def _get_method(path: str):
@@ -47,11 +44,11 @@ def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]):
     if method == "fsspec":
         fs = _init_fsspec(path=path)
         with fs.open(path=path, mode="rb") as file:
-            for backend_name, backend_class in _BACKEND_IO_CLASSES.items():
+            for backend_name, backend_class in BACKEND_IO_CLASSES.items():
                 if backend_class.can_read(path=file):
                     possible_backends.append(backend_name)
     else:
-        for backend_name, backend_class in _BACKEND_IO_CLASSES.items():
+        for backend_name, backend_class in BACKEND_IO_CLASSES.items():
             if backend_class.can_read(path):
                 possible_backends.append(backend_name)
 
@@ -69,7 +66,8 @@ def read_nwbfile(
     nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
-) -> NWBFile:
+    return_io: bool = False,
+) -> Union[NWBFile, tuple[NWBFile, HDMFIO]]:
     """
     Read an NWB file using the specified (or auto-detected) method and specified (or auto-detected) backend.
 
@@ -85,10 +83,16 @@ def read_nwbfile(
     backend : "hdf5", "zarr", or None (default)
         Type of backend used to write the file.
         The default auto-detects the type of the file.
+    return_io : bool, default: False
+        Whether to return the HDMFIO object used to open the file.
 
     Returns
     -------
-    pynwb.NWBFile
+    nwbfile : pynwb.NWBFile
+        The in-memory NWBFile object.
+    io : hdmf.backends.io.HDMFIO, optional
+        Only passed if `return_io` is True.
+        The initialized HDMFIO object used to read the file.
     """
     nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
 
@@ -109,7 +113,7 @@ def read_nwbfile(
         )
 
     backend = backend or _get_backend(nwbfile_path, method)
-    if method == "local" and not _BACKEND_IO_CLASSES[  # Temporary until .can_read() is able to work on streamed bytes
+    if method == "local" and not BACKEND_IO_CLASSES[  # Temporary until .can_read() is able to work on streamed bytes
         backend
     ].can_read(path=nwbfile_path):
         raise IOError(f"The chosen backend ({backend}) is unable to read the file! Please select a different backend.")
@@ -127,7 +131,10 @@ def read_nwbfile(
         io_kwargs.update(path=nwbfile_path)
     if method == "ros3":
         io_kwargs.update(driver="ros3")
-    io = _BACKEND_IO_CLASSES[backend](**io_kwargs)
+    io = BACKEND_IO_CLASSES[backend](**io_kwargs)
     nwbfile = io.read()
 
-    return nwbfile
+    if return_io:
+        return (nwbfile, io)
+    else:  # Note: do not be concerned about io object closing due to garbage collection here
+        return nwbfile  # (it is attached as an attribute to the NWBFile object)

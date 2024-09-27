@@ -26,6 +26,10 @@ default_check_registry = {check.__name__: check for check in available_checks}
 # Still keeping the legacy magic version attribute requested by some users
 __version__ = importlib.metadata.version(distribution_name="nwbinspector")
 
+# Note: this is not exposed at this outer level, but is used here to trigger the automatic submodule import
+# (otherwise someone would have to import nwbinspector.testing explicitly)
+from .testing import check_streaming_tests_enabled  # noqa: F401
+
 __all__ = [
     "available_checks",
     "default_check_registry",
@@ -51,4 +55,8 @@ __all__ = [
     "FormatterOptions",
     "organize_messages",
     "__version__",
+    # Public submodules
+    "checks",
+    "testing",
+    "utils",
 ]

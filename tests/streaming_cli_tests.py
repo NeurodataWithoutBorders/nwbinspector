@@ -10,6 +10,7 @@ import pytest
 from nwbinspector.testing import check_streaming_tests_enabled
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
+EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -24,7 +25,7 @@ def test_dandiset_streaming_cli(tmpdir: py.path.local):
     with open(file=console_output_file_path, mode="r") as io:
         test_console_output = io.readlines()
 
-    expected_output_file_path = Path(__file__).parent / "000126_report.txt"
+    expected_output_file_path = EXPECTED_REPORTS_FOLDER_PATH / "000126_report.txt"
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
@@ -47,7 +48,7 @@ def test_dandiset_streaming_cli_with_version(tmpdir: py.path.local):
     with open(file=console_output_file_path, mode="r") as io:
         test_console_output = io.readlines()
 
-    expected_output_file_path = Path(__file__).parent / "000126_report.txt"
+    expected_output_file_path = EXPECTED_REPORTS_FOLDER_PATH / "000126_report.txt"
     with open(file=expected_output_file_path, mode="r") as io:
         expected_console_output = io.readlines()
 
@@ -77,7 +78,7 @@ def test_dandiset_streaming_cli_saved_report(tmpdir: py.path.local):
     with open(file=report_file_path, mode="r") as io:
         test_report = io.readlines()
 
-    expected_report_file_path = Path(__file__).parent / "000126_report.txt"
+    expected_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "000126_report.txt"
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 
@@ -110,7 +111,7 @@ def test_dandiset_streaming_cli_with_version_saved_report(tmpdir: py.path.local)
     with open(file=report_file_path, mode="r") as io:
         test_report = io.readlines()
 
-    expected_report_file_path = Path(__file__).parent / "000126_report.txt"
+    expected_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "000126_report.txt"
     with open(file=expected_report_file_path, mode="r") as io:
         expected_report = io.readlines()
 

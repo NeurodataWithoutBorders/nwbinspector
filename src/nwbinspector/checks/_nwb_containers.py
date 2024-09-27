@@ -3,6 +3,7 @@
 import os
 
 import h5py
+import zarr
 from pynwb import NWBContainer
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
@@ -19,9 +20,16 @@ def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound:
     Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
-        if not isinstance(field, h5py.Dataset):
+        if not isinstance(field, (h5py.Dataset, zarr.Array)):
             continue
-        if field.compression is None and field.size * field.dtype.itemsize > gb_lower_bound * 1e9:
+
+        compression_indicator = None
+        if isinstance(field, h5py.Dataset):
+            compression_indicator = field.compression
+        elif isinstance(field, zarr.Array):
+            compression_indicator = field.compressor
+
+        if compression_indicator is not None and field.size * field.dtype.itemsize > gb_lower_bound * 1e9:
             return InspectorMessage(
                 severity=Severity.HIGH,
                 message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
@@ -44,10 +52,17 @@ def check_small_dataset_compression(
     Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
-        if not isinstance(field, h5py.Dataset):
+        if not isinstance(field, (h5py.Dataset, zarr.Array)):
             continue
+
+        compression_indicator = None
+        if isinstance(field, h5py.Dataset):
+            compression_indicator = field.compression
+        elif isinstance(field, zarr.Array):
+            compression_indicator = field.compressor
+
         if (
-            field.compression is None
+            compression_indicator is None
             and mb_lower_bound * 1e6 < field.size * field.dtype.itemsize < gb_upper_bound * 1e9
         ):
             if field.size * field.dtype.itemsize > gb_severity_threshold * 1e9:
