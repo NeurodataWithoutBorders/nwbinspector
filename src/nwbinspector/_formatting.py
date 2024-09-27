@@ -76,14 +76,14 @@ class MessageFormatter:
 
     def __init__(
         self,
-        messages: list[InspectorMessage],
+        messages: list[Optional[InspectorMessage]],
         levels: list[str],
         reverse: Optional[list[bool]] = None,
         detailed: bool = False,
         formatter_options: Optional[FormatterOptions] = None,
     ) -> None:
         self.nmessages = len(messages)
-        self.nfiles = len(set(message.file_path for message in messages))
+        self.nfiles = len(set(message.file_path for message in messages))  # type: ignore
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels, reverse=reverse)
         self.detailed = detailed
@@ -108,10 +108,10 @@ class MessageFormatter:
         self.formatted_messages: list = []
 
     @staticmethod
-    def _count_messages_by_importance(messages: list[InspectorMessage]) -> dict[str, int]:
+    def _count_messages_by_importance(messages: list[Optional[InspectorMessage]]) -> dict[str, int]:
         message_count_by_importance = {importance_level.name: 0 for importance_level in Importance}
         for message in messages:
-            message_count_by_importance[message.importance.name] += 1
+            message_count_by_importance[message.importance.name] += 1  # type: ignore
         for key in [keys for keys, count in message_count_by_importance.items() if count == 0]:
             message_count_by_importance.pop(key)
         return message_count_by_importance
@@ -218,7 +218,7 @@ class MessageFormatter:
 
 
 def format_messages(
-    messages: list[InspectorMessage],
+    messages: list[Optional[InspectorMessage]],
     levels: Optional[list[str]] = None,
     reverse: Optional[list[bool]] = None,
     detailed: bool = False,

@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
-from typing import Type
+from typing import Type, Union
 from unittest import TestCase
 
 import hdmf_zarr
@@ -118,7 +118,7 @@ class TestInspectorOnBackend(TestCase):
     skip_validate = False  # TODO: can be removed once NWBZarrIO validation issues are resolved
 
     @staticmethod
-    def assertFileExists(path: FilePathType):
+    def assertFileExists(path: Union[str, Path]):
         path = Path(path)
         assert path.exists()
 
@@ -882,7 +882,7 @@ def test_dandi_config_in_vitro_injection():
     assert messages == []
 
 
-def test_dandi_config_in_vitro_injection():
+def test_dandi_config_in_vitro_injection_safe():
     """Test the safe subject ID retrieval of the in vitro injection."""
     nwbfile = make_minimal_nwbfile()
     nwbfile.subject = Subject(subject_id=None, description="A detailed description about the in vitro setup.")

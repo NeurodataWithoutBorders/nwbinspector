@@ -17,7 +17,7 @@ def _sort_unique_values(unique_values: list, reverse: bool = False) -> list:
 
 
 def organize_messages(
-    messages: list[InspectorMessage], levels: list[str], reverse: Optional[list[bool]] = None
+    messages: list[Optional[InspectorMessage]], levels: list[str], reverse: Optional[list[bool]] = None
 ) -> dict:
     """
     General function for organizing list of InspectorMessages.
