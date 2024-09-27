@@ -206,7 +206,7 @@ def _pickle_inspect_nwb(
     nwbfile_path: str,
     checks: Optional[list] = None,
     skip_validate: bool = False,
-) -> Iterable[Union[InspectorMessage | None]]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
     checks = checks or available_checks
 
