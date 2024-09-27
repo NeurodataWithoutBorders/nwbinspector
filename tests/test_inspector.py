@@ -809,7 +809,7 @@ class TestCheckUniqueIdentifiersPassHDF5(TestCase):
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestCase):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
     skip_validate = True
     maxDiff = None
 
