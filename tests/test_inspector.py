@@ -41,6 +41,12 @@ IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
 EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def iterable_check_function(table: DynamicTable):
+    for col in table.columns:
+        yield InspectorMessage(message=f"Column: {col.name}")
+
+
 def add_big_dataset_no_compression(nwbfile: NWBFile, zarr: bool = False) -> None:
     # Zarr automatically compresses by default
     # So to get a test case that is not compressed, forcibly disable the compressor
@@ -522,11 +528,6 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         )
 
     def test_iterable_check_function(self):
-        @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
-        def iterable_check_function(table: DynamicTable):
-            for col in table.columns:
-                yield InspectorMessage(message=f"Column: {col.name}")
-
         test_results = list(
             inspect_nwbfile(
                 nwbfile_path=self.nwbfile_paths[0], select=["iterable_check_function"], skip_validate=self.skip_validate
@@ -647,10 +648,6 @@ class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_zarr.txt"
     skip_validate = True
-
-    # TODO: undo this override
-    def test_iterable_check_function(self):
-        pass
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):

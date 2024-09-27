@@ -6,17 +6,13 @@ from warnings import filterwarnings
 
 import h5py
 from hdmf.backends.io import HDMFIO
+from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile
 
-BACKEND_IO_CLASSES = dict(hdf5=NWBHDF5IO)
-
-try:
-    from hdmf_zarr import NWBZarrIO
-
-    BACKEND_IO_CLASSES.update(zarr=NWBZarrIO)
-except ModuleNotFoundError as exception:
-    if str(exception) != "No module named 'hdmf_zarr'":  # not the exception we're looking for, so re-raise
-        raise exception
+BACKEND_IO_CLASSES = dict(
+    hdf5=NWBHDF5IO,
+    zarr=NWBZarrIO,
+)
 
 
 def _get_method(path: str):
