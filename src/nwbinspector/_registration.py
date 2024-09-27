@@ -94,7 +94,7 @@ def _auto_parse(check_function, obj, result: Optional[InspectorMessage] = None):
 
 
 def _parse_location(neurodata_object) -> Optional[str]:
-    """Grab the object location from a h5py.Dataset or a container content that is an h5py.Dataset object."""
+    """Grab the object location from a dataset or a container content that is an dataset object."""
     known_locations = {
         NWBFile: "/",
         Subject: "/general/subject",
