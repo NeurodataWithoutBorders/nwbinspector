@@ -6,7 +6,7 @@ import re
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
-from typing import Optional, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 import h5py
 import numpy as np
@@ -52,7 +52,7 @@ def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[
     return _cache_data_retrieval_command(data=data, reduced_selection=reduced_selection)
 
 
-def format_byte_size(byte_size: int, units: str = "SI"):
+def format_byte_size(byte_size: int, units: str = "SI") -> str:
     """
     Format a number representing a total number of bytes into a convenient unit.
 
@@ -65,7 +65,7 @@ def format_byte_size(byte_size: int, units: str = "SI"):
         May be either SI (orders of 1000) or binary (in memory, orders of 1024).
         The default is SI.
     """
-    num = byte_size
+    num = float(byte_size)
     prefixes = ["", "K", "M", "G", "T", "P", "E", "Z"]
     if units == "SI":
         order = 1000.0
@@ -79,16 +79,18 @@ def format_byte_size(byte_size: int, units: str = "SI"):
         if abs(num) < order:
             return f"{num:3.2f}{prefix}{suffix}"
         num /= order
+
     return f"{num:.2f}Y{suffix}"
 
 
-def is_regular_series(series: np.ndarray, tolerance_decimals: int = 9):
+def is_regular_series(series: np.ndarray, tolerance_decimals: int = 9) -> bool:
     """General purpose function for checking if the difference between all consecutive points in a series are equal."""
     uniq_diff_ts = np.unique(np.diff(series).round(decimals=tolerance_decimals))
+
     return len(uniq_diff_ts) == 1
 
 
-def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional[int] = None):
+def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional[int] = None) -> bool:
     """General purpose function for determining if a series is monotonic increasing."""
     if isinstance(series, h5py.Dataset):
         data = cache_data_selection(data=series, selection=slice(nelems))
@@ -105,7 +107,7 @@ def is_ascending_series(series: Union[h5py.Dataset, ArrayLike], nelems: Optional
     return np.all(differences >= 0)
 
 
-def is_dict_in_string(string: str):
+def is_dict_in_string(string: str) -> bool:
     """
     Determine if the string value contains an encoded Python dictionary.
 
@@ -114,7 +116,7 @@ def is_dict_in_string(string: str):
     return any(re.findall(pattern=dict_regex, string=string))
 
 
-def is_string_json_loadable(string: str):
+def is_string_json_loadable(string: str) -> bool:
     """
     Determine if the serialized dictionary is a JSON object.
 
@@ -127,7 +129,7 @@ def is_string_json_loadable(string: str):
         return False
 
 
-def is_module_installed(module_name: str):
+def is_module_installed(module_name: str) -> bool:
     """
     Check if the given module is installed on the system.
 
@@ -162,6 +164,7 @@ def get_package_version(name: str) -> version.Version:
         from pkg_resources import get_distribution
 
         package_version = get_distribution(name).version
+
     return version.parse(package_version)
 
 
@@ -176,7 +179,7 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
 
         The default is 1.
     """
-    total_cpu = os.cpu_count()
+    total_cpu = os.cpu_count() or 1  # Annotations say os.cpu_count can return None for some reason
     assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
     assert requested_cpu >= -(
         total_cpu - 1
@@ -187,10 +190,11 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
         return total_cpu + requested_cpu
 
 
-def get_data_shape(data, strict_no_data_load=False):
+def get_data_shape(data: Any, strict_no_data_load: bool = False) -> Optional[tuple[int, ...]]:
     """
-    modified from hdmf.utils.get_data_shape to return shape instead of maxshape
     Helper function used to determine the shape of the given array.
+
+    Modified from hdmf.utils.get_data_shape to return shape instead of maxshape.
 
     In order to determine the shape of nested tuples, lists, and sets, this function
     recursively inspects elements along the dimensions, assuming that the data has a regular,
@@ -199,15 +203,22 @@ def get_data_shape(data, strict_no_data_load=False):
     to enforce that this does not happen, at the cost that we may not be able to determine
     the shape of the array.
 
-    :param data: Array for which we should determine the shape.
-    :type data: List, numpy.ndarray, DataChunkIterator, any object that support __len__ or .shape.
-    :param strict_no_data_load: If True and data is an out-of-core iterator, None may be returned. If False (default),
-                                the first element of data may be loaded into memory.
-    :return: Tuple of ints indicating the size of known dimensions. Dimensions for which the size is unknown
-             will be set to None.
+    Parameters
+    ----------
+    data : list, numpy.ndarray, DataChunkIterator, any object that support __len__ or .shape.
+        Array for which we should determine the shape.
+    strict_no_data_load : bool
+        If True and data is an out-of-core iterator, None may be returned.
+        If False (default), the first element of data may be loaded into memory.
+
+    Returns
+    -------
+    data_shape : tuple[int], optional
+        Tuple of ints indicating the size of known dimensions.
+        Dimensions for which the size is unknown will be set to None.
     """
 
-    def __get_shape_helper(local_data):
+    def __get_shape_helper(local_data: Any) -> tuple[int, ...]:
         shape = list()
         if hasattr(local_data, "__len__"):
             shape.append(len(local_data))
@@ -220,10 +231,12 @@ def get_data_shape(data, strict_no_data_load=False):
     if hasattr(data, "shape") and data.shape is not None:
         return data.shape
     if isinstance(data, dict):
-        return
+        return None
     if hasattr(data, "__len__") and not isinstance(data, (str, bytes)):
         if not strict_no_data_load or isinstance(data, (list, tuple, set)):
             return __get_shape_helper(data)
+
+    return None
 
 
 def strtobool(val: str) -> bool:

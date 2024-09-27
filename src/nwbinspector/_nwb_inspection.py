@@ -12,12 +12,10 @@ import pynwb
 from natsort import natsorted
 from tqdm import tqdm
 
-from . import available_checks
 from ._configuration import configure_checks
-from ._registration import Importance, InspectorMessage
-from .tools._read_nwbfile import read_nwbfile
+from ._registration import Importance, InspectorMessage, available_checks
+from .tools._read_nwbfile import read_nwbfile, read_nwbfile_and_io
 from .utils import (
-    FilePathType,
     OptionalListOfStrings,
     PathType,
     calculate_number_of_cpu,
@@ -38,7 +36,7 @@ def inspect_all(
     stream: bool = False,  # TODO: remove after 3/1/2025
     version_id: Optional[str] = None,  # TODO: remove after 3/1/2025
     modules: OptionalListOfStrings = None,
-):
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
 
@@ -98,22 +96,22 @@ def inspect_all(
 
     # TODO: remove these blocks after 3/1/2025
     if version_id is not None:
-        message = (
+        deprecation_message = (
             "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
             "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
         )
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        warn(message=deprecation_message, category=DeprecationWarning, stacklevel=2)
     if stream:
         from ._dandi_inspection import inspect_dandiset
 
-        message = (
+        warning_message = (
             "The `stream` argument is deprecated and will be removed after 3/1/2025. "
             "Please call `nwbinspector.inspect_dandiset` instead."
         )
-        warn(message=message, category=DeprecationWarning, stacklevel=2)
+        warn(message=warning_message, category=DeprecationWarning, stacklevel=2)
 
         for message in inspect_dandiset(
-            dandiset_id=path,
+            dandiset_id=str(path),
             dandiset_version=version_id,
             config=config,
             ignore=ignore,
@@ -124,7 +122,7 @@ def inspect_all(
 
         return None
 
-    n_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
+    calculated_number_of_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
 
@@ -151,7 +149,7 @@ def inspect_all(
                 message=traceback.format_exc(),
                 importance=Importance.ERROR,
                 check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-                file_path=nwbfile_path,
+                file_path=str(nwbfile_path),
             )
 
     if len(identifiers) != len(nwbfiles):
@@ -175,54 +173,57 @@ def inspect_all(
     nwbfiles_iterable = nwbfiles
     if progress_bar:
         nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
-    if n_jobs != 1:
+    if calculated_number_of_jobs == 1:
+        for nwbfile_path in nwbfiles_iterable:  # type: ignore
+            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate):
+                yield message
+    else:
         progress_bar_options.update(total=len(nwbfiles))
         futures = []
-        n_jobs = None if n_jobs == -1 else n_jobs  # concurrents uses None instead of -1 for 'auto' mode
-        with ProcessPoolExecutor(max_workers=n_jobs) as executor:
+        # concurrents uses None instead of -1 for 'auto' mode
+        max_workers = None if calculated_number_of_jobs == -1 else calculated_number_of_jobs
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
             for nwbfile_path in nwbfiles:
                 futures.append(
                     executor.submit(
                         _pickle_inspect_nwb,
-                        nwbfile_path=nwbfile_path,
+                        nwbfile_path=str(nwbfile_path),
                         checks=checks,
                         skip_validate=skip_validate,
                     )
                 )
-            nwbfiles_iterable = as_completed(futures)
+            async_nwbfiles_iterable = as_completed(futures)
             if progress_bar:
-                nwbfiles_iterable = progress_bar_class(nwbfiles_iterable, **progress_bar_options)
-            for future in nwbfiles_iterable:
+                async_nwbfiles_iterable = progress_bar_class(async_nwbfiles_iterable, **progress_bar_options)
+            for future in async_nwbfiles_iterable:
                 for message in future.result():
                     if stream:
                         message.file_path = nwbfiles[message.file_path]
                     yield message
-    else:
-        for nwbfile_path in nwbfiles_iterable:
-            for message in inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate):
-                yield message
 
 
 def _pickle_inspect_nwb(
     nwbfile_path: str,
-    checks: list = available_checks,
+    checks: Optional[list] = None,
     skip_validate: bool = False,
-):
+) -> Iterable[Union[InspectorMessage | None]]:
     """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
+    checks = checks or available_checks
+
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 def inspect_nwbfile(
-    nwbfile_path: FilePathType,
+    nwbfile_path: Union[str, Path],
     driver: Optional[str] = None,  # TODO: remove after 3/1/2025
     skip_validate: bool = False,
     max_retries: Optional[int] = None,  # TODO: remove after 3/1/2025
-    checks: list = available_checks,
-    config: dict = None,
+    checks: Optional[list] = None,
+    config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
     select: OptionalListOfStrings = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Open an NWB file, inspect the contents, and return suggestions for improvements according to best practices.
 
@@ -256,6 +257,7 @@ def inspect_nwbfile(
 
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
+    checks = checks or available_checks
     # TODO: remove error after 3/1/2025
     if driver is not None or max_retries is not None:
         message = (
@@ -269,7 +271,7 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
     try:
-        in_memory_nwbfile, io = read_nwbfile(nwbfile_path=nwbfile_path, return_io=True)
+        in_memory_nwbfile, io = read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
             validation_errors = pynwb.validate(io=io)
@@ -290,7 +292,7 @@ def inspect_nwbfile(
             select=select,
             importance_threshold=importance_threshold,
         ):
-            inspector_message.file_path = nwbfile_path
+            inspector_message.file_path = nwbfile_path  # type: ignore
             yield inspector_message
     except Exception as exception:
         yield InspectorMessage(
@@ -302,13 +304,15 @@ def inspect_nwbfile(
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
-def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> list[callable]:
+def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[list] = None) -> list:
     """
     If the special 'protein' subject_id is specified, return a truncated list of checks to run.
 
     This is a temporary method for allowing upload of certain in vitro data to DANDI and
     is expected to be replaced in future versions.
     """
+    checks = checks or available_checks
+
     subject_related_check_names = [
         "check_subject_exists",
         "check_subject_id_exists",
@@ -319,7 +323,9 @@ def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[
         "check_subject_proper_age_range",
     ]
     subject_related_dandi_requirements = [
-        check.importance == Importance.CRITICAL for check in checks if check.__name__ in subject_related_check_names
+        check.importance == Importance.CRITICAL  # type: ignore
+        for check in checks
+        if check.__name__ in subject_related_check_names
     ]
 
     subject = getattr(nwbfile_object, "subject", None)
@@ -330,6 +336,7 @@ def _intercept_in_vitro_protein(nwbfile_object: pynwb.NWBFile, checks: Optional[
     ):
         non_subject_checks = [check for check in checks if check.__name__ not in subject_related_check_names]
         return non_subject_checks
+
     return checks
 
 
@@ -340,7 +347,7 @@ def inspect_nwbfile_object(
     ignore: Optional[list[str]] = None,
     select: Optional[list[str]] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect an in-memory NWBFile object and return suggestions for improvements according to best practices.
 
@@ -391,7 +398,7 @@ def run_checks(
     checks: list,
     progress_bar_class: Optional[Type[tqdm]] = None,
     progress_bar_options: Optional[dict] = None,
-) -> Iterable[InspectorMessage]:
+) -> Iterable[Union[InspectorMessage, None]]:
     """
     Run checks on an open NWBFile object.
 
@@ -436,7 +443,7 @@ def run_checks(
                     message=traceback.format_exc(),
                     importance=Importance.ERROR,
                     check_function_name=check_function_name,
-                    file_path=nwbfile_path,
+                    file_path="unknown",
                 )
             if isinstance(output, InspectorMessage):
                 # temporary solution to https://github.com/dandi/dandi-cli/issues/1031

@@ -21,7 +21,7 @@ def inspect_dandiset(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     show_progress_bar: bool = True,
-    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
+    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,  # type: ignore
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandiset for common issues.
@@ -73,12 +73,6 @@ def inspect_dandiset(
 
     dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
 
-    # if not any(
-    #     asset_type.get("identifier", "") != "RRID:SCR_015242"  # Identifier for NWB standard
-    #     for asset_type in dandiset.get_raw_metadata().get("assetsSummary", {}).get("dataStandard", [])
-    # ):
-    #     return None
-
     nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
 
     nwb_assets_iterator = nwb_assets
@@ -101,7 +95,7 @@ def inspect_dandiset(
             importance_threshold=importance_threshold,
             skip_validate=skip_validate,
         ):
-            message.file_path = asset.path
+            message.file_path = asset.path  # type: ignore
             yield message
 
 
@@ -116,7 +110,7 @@ def inspect_dandi_file_path(
     select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
+    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,  # type: ignore
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandifile for common issues.
@@ -177,7 +171,7 @@ def inspect_dandi_file_path(
         importance_threshold=importance_threshold,
         skip_validate=skip_validate,
     ):
-        message.file_path = dandi_file_path
+        message.file_path = dandi_file_path  # type: ignore
         yield message
 
 
@@ -249,7 +243,7 @@ def inspect_url(
                     importance=Importance.PYNWB_VALIDATION,
                     check_function_name=validation_error.name,
                     location=validation_error.location,
-                    file_path=nwbfile_path,
+                    file_path=url,
                 )
 
         nwbfile = io.read()
@@ -262,5 +256,5 @@ def inspect_url(
             select=select,
             importance_threshold=importance_threshold,
         ):
-            message.file_path = url
+            message.file_path = url  # type: ignore
             yield message
