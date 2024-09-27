@@ -1,6 +1,7 @@
 """Check functions that can apply to any object inside an NWBContainer."""
 
 import os
+from typing import Iterable, Optional
 
 import h5py
 import zarr
@@ -10,7 +11,9 @@ from .._registration import Importance, InspectorMessage, Severity, register_che
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
-def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound: float = 20.0):
+def check_large_dataset_compression(
+    nwb_container: NWBContainer, gb_lower_bound: float = 20.0
+) -> Optional[InspectorMessage]:
     """
     If the data in the Container object is a 'large' h5py.Dataset, check if it has compression enabled.
 
@@ -35,6 +38,8 @@ def check_large_dataset_compression(nwb_container: NWBContainer, gb_lower_bound:
                 message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
             )
 
+    return None
+
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_small_dataset_compression(
@@ -42,7 +47,7 @@ def check_small_dataset_compression(
     gb_severity_threshold: float = 10.0,
     mb_lower_bound: float = 50.0,
     gb_upper_bound: float = 20.0,  # 20 GB upper bound to prevent double-raise
-):
+) -> Optional[InspectorMessage]:
     """
     If the data in the Container object is a h5py.Dataset, check if it has compression enabled.
 
@@ -77,9 +82,11 @@ def check_small_dataset_compression(
                 ),
             )
 
+    return None
+
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
-def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
+def check_empty_string_for_optional_attribute(nwb_container: NWBContainer) -> Optional[Iterable[InspectorMessage]]:
     """
     Check if any NWBContainer has optional fields that are written as an empty string.
 
@@ -101,3 +108,5 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer):
             message=f'The attribute "{field}" is optional and you have supplied an empty string. Improve my omitting '
             "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
         )
+
+    return None
