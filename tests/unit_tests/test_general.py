@@ -4,12 +4,12 @@ from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import check_description, check_name_slashes
 
 
-def test_check_name_slashes_pass() -> None:
+def test_check_name_slashes_pass():
     table = DynamicTable(name="test_name", description="")
     assert check_name_slashes(neurodata_object=table) is None
 
 
-def test_check_name_slashes_fail() -> None:
+def test_check_name_slashes_fail():
     """HDMF/PyNWB forbid "/" in the object names. Might need an external file written in MATLAB to test that?"""
     for x in ["\\"]:
         table = DynamicTable(name=f"test{x}ing", description="")
@@ -23,12 +23,12 @@ def test_check_name_slashes_fail() -> None:
         )
 
 
-def test_check_description_pass() -> None:
+def test_check_description_pass():
     table = DynamicTable(name="test", description="testing")
     assert check_description(neurodata_object=table) is None
 
 
-def test_check_description_fail() -> None:
+def test_check_description_fail():
     table = DynamicTable(name="test", description="No Description.")
     assert check_description(neurodata_object=table) == InspectorMessage(
         message="Description ('No Description.') is a placeholder.",
@@ -40,7 +40,7 @@ def test_check_description_fail() -> None:
     )
 
 
-def test_check_description_missing() -> None:
+def test_check_description_missing():
     table = DynamicTable(name="test", description=" ")
     assert check_description(neurodata_object=table) == InspectorMessage(
         message="Description is missing.",

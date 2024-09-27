@@ -115,6 +115,7 @@ fixable = ["ALL"]
 "src/nwbinspector/inspector_tools/__init__.py" = ["F401", "I"]
 "src/nwbinspector/version/__init__.py" = ["F401", "I"]
 "src/nwbinspector/register_checks/__init__.py" = ["F401", "I"]
+"tests/*" = ["ANN"]
 
 [tool.ruff.lint.isort]
 relative-imports-order = "closest-to-furthest"
