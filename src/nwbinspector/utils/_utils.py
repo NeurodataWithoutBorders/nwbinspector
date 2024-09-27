@@ -8,6 +8,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Optional, TypeVar, Union
 
+import zarr
 import h5py
 import numpy as np
 from hdmf.backends.hdf5.h5_utils import H5Dataset
@@ -25,19 +26,19 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
 def _cache_data_retrieval_command(
-    data: h5py.Dataset, reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
+    data: Union[h5py.Dataset, zarr.Array], reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
 ) -> np.ndarray:
     """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
     selection = tuple([slice(*reduced_slice) for reduced_slice in reduced_selection])  # reconstitute the slices
     return data[selection]
 
 
-def cache_data_selection(data: Union[h5py.Dataset, ArrayLike], selection: Union[slice, tuple[slice]]) -> np.ndarray:
+def cache_data_selection(data: Union[h5py.Dataset, zarr.Array, ArrayLike], selection: Union[slice, tuple[slice]]) -> np.ndarray:
     """Extract the selection lazily from the data object for efficient caching (most beneficial during streaming)."""
     if isinstance(data, np.memmap):  # np.memmap objects are not hashable - simply return the selection lazily
         return data[selection]
     if not (
-        isinstance(data, h5py.Dataset) or isinstance(data, H5Dataset)
+        isinstance(data, (h5py.Dataset, zarr.Array)) or isinstance(data, H5Dataset)
     ):  # No need to attempt to cache if data is already in-memory
         # Cast as numpy array for efficient fancy indexing
         # Note that this technically copies the entire data, so could use more than 2x RAM for that object
