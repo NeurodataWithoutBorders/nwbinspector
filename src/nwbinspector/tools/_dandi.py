@@ -46,7 +46,11 @@ def get_s3_urls_and_dandi_paths(dandiset_id: str, version_id: Optional[str] = No
     return s3_urls_to_dandi_paths
 
 
-def _get_content_url_and_path(asset, follow_redirects: int = 1, strip_query: bool = True) -> dict[str, str]:
+def _get_content_url_and_path(
+    asset: "dandi.dandiapi.BaseRemoteAsset",  # type: ignore
+    follow_redirects: int = 1,
+    strip_query: bool = True,
+) -> dict[str, str]:
     """
     Private helper function for parallelization in 'get_s3_urls_and_dandi_paths'.
 

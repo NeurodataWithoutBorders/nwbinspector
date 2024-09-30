@@ -12,6 +12,7 @@ import click
 from ._configuration import load_config
 from ._dandi_inspection import inspect_dandi_file_path, inspect_dandiset, inspect_url
 from ._formatting import (
+    InspectorOutputJSONEncoder,
     _get_report_header,
     format_messages,
     print_to_console,
@@ -89,9 +90,9 @@ def _nwbinspector_cli(
     path: str,
     stream: bool = False,
     version_id: Union[str, None] = None,
-    report_file_path: str = None,
+    report_file_path: Union[str, None] = None,
     config: Union[str, None] = None,
-    levels: str = None,
+    levels: Union[str, None] = None,
     reverse: Union[str, None] = None,
     overwrite: bool = False,
     ignore: Union[str, None] = None,
@@ -137,16 +138,17 @@ def _nwbinspector_cli(
     handled_select = select if select is None else select.split(",")
     handled_importance_threshold = Importance[threshold]
     show_progress_bar = True if progress_bar is None else strtobool(progress_bar)
-    modules = [] if modules is None else modules.split(",")
+    handled_modules = [] if modules is None else modules.split(",")
 
     # Trigger the import of custom checks that have been registered and exposed to their respective modules
-    for module in modules:
+    for module in handled_modules:
         importlib.import_module(name=module)
 
     # Scan entire Dandiset
     if stream and ":" not in path:
         dandiset_id = path
         dandiset_version = version_id
+
         messages_iterator = inspect_dandiset(
             dandiset_id=dandiset_id,
             dandiset_version=dandiset_version,
@@ -160,6 +162,8 @@ def _nwbinspector_cli(
     # Scan a single NWB file in a Dandiset
     elif stream and ":" in path:
         dandiset_id, dandi_file_path = path.split(":")
+        dandiset_version = version_id
+
         messages_iterator = inspect_dandi_file_path(
             dandi_file_path=dandi_file_path,
             dandiset_id=dandiset_id,
@@ -173,8 +177,9 @@ def _nwbinspector_cli(
     # Scan single NWB file at URL
     elif stream and path_is_url:
         dandi_s3_url = path
+
         messages_iterator = inspect_url(
-            dandi_s3_url=dandi_s3_url,
+            url=dandi_s3_url,
             config=handled_config,
             ignore=handled_ignore,
             select=handled_select,

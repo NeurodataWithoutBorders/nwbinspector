@@ -92,7 +92,17 @@ extend-exclude = '''
 exclude = ["docs/*"]
 
 [tool.ruff.lint]
-select = ["F401", "F541", "I"] # TODO: eventually, expand to other 'D', and other 'F' linting
+# TODO: eventually, expand to other 'D', and other 'F' linting
+select = [
+    "F401",
+    "F541",
+    "I",
+    "ANN001",
+    "ANN201",
+    "ANN202",
+    "ANN205",
+    "ANN206",
+]
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
@@ -105,6 +115,7 @@ fixable = ["ALL"]
 "src/nwbinspector/inspector_tools/__init__.py" = ["F401", "I"]
 "src/nwbinspector/version/__init__.py" = ["F401", "I"]
 "src/nwbinspector/register_checks/__init__.py" = ["F401", "I"]
+"tests/*" = ["ANN"]
 
 [tool.ruff.lint.isort]
 relative-imports-order = "closest-to-furthest"

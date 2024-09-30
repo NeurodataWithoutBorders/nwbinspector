@@ -21,7 +21,7 @@ def inspect_dandiset(
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
     show_progress_bar: bool = True,
-    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
+    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,  # type: ignore
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandiset for common issues.
@@ -73,12 +73,6 @@ def inspect_dandiset(
 
     dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
 
-    # if not any(
-    #     asset_type.get("identifier", "") != "RRID:SCR_015242"  # Identifier for NWB standard
-    #     for asset_type in dandiset.get_raw_metadata().get("assetsSummary", {}).get("dataStandard", [])
-    # ):
-    #     return None
-
     nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
 
     nwb_assets_iterator = nwb_assets
@@ -101,7 +95,7 @@ def inspect_dandiset(
             importance_threshold=importance_threshold,
             skip_validate=skip_validate,
         ):
-            message.file_path = asset.path
+            message.file_path = asset.path  # type: ignore
             yield message
 
 
@@ -110,13 +104,13 @@ def inspect_dandi_file_path(
     dandi_file_path: str,
     dandiset_id: str,
     dandiset_version: Union[str, Literal["draft"], None] = None,
-    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
+    config: Union[str, pathlib.Path, dict, Literal["dandi"], None] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[list[str], None] = None,
     select: Union[list[str], None] = None,
     importance_threshold: Union[str, Importance] = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,
+    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,  # type: ignore
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a Dandifile for common issues.
@@ -131,7 +125,7 @@ def inspect_dandi_file_path(
         The specific published version of the Dandiset to inspect.
         If None, the latest version is used.
         If there are no published versions, then 'draft' is used instead.
-    config : file path, dictionary, or "dandi", default: "dandi"
+    config : file path, dictionary, "dandi", or None, default: "dandi"
         If a file path, loads the dictionary configuration from the file.
         If a dictionary, it must be valid against the configuration schema.
         If "dandi", uses the requirements for DANDI validation.
@@ -177,14 +171,14 @@ def inspect_dandi_file_path(
         importance_threshold=importance_threshold,
         skip_validate=skip_validate,
     ):
-        message.file_path = dandi_file_path
+        message.file_path = dandi_file_path  # type: ignore
         yield message
 
 
 def inspect_url(
     *,
     url: str,
-    config: Union[str, pathlib.Path, dict, Literal["dandi"]] = "dandi",
+    config: Union[str, pathlib.Path, dict, Literal["dandi"], None] = "dandi",
     checks: Union[list, None] = None,
     ignore: Union[list[str], None] = None,
     select: Union[list[str], None] = None,
@@ -202,7 +196,7 @@ def inspect_url(
         https://dandiarchive.s3.amazonaws.com/blobs/636/57e/63657e32-ad33-4625-b664-31699b5bf664
 
         Note: this must be the `https` URL, not the 's3://' form.
-    config : file path, dictionary, or "dandi", default: "dandi"
+    config : file path, dictionary, "dandi", or None, default: "dandi"
         If a file path, loads the dictionary configuration from the file.
         If a dictionary, it must be valid against the configuration schema.
         If "dandi", uses the requirements for DANDI validation.
@@ -232,9 +226,10 @@ def inspect_url(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
-    if not isinstance(config, dict):
+    if isinstance(config, (str, pathlib.Path)):
         config = load_config(filepath_or_keyword=config)
-    validate_config(config=config)
+    if isinstance(config, dict):
+        validate_config(config=config)
 
     byte_stream = remfile.File(url=url)
     with (
@@ -249,7 +244,7 @@ def inspect_url(
                     importance=Importance.PYNWB_VALIDATION,
                     check_function_name=validation_error.name,
                     location=validation_error.location,
-                    file_path=nwbfile_path,
+                    file_path=url,
                 )
 
         nwbfile = io.read()
@@ -262,5 +257,5 @@ def inspect_url(
             select=select,
             importance_threshold=importance_threshold,
         ):
-            message.file_path = url
+            message.file_path = url  # type: ignore
             yield message
