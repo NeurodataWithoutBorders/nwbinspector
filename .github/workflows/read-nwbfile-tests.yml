@@ -9,6 +9,9 @@ jobs:
   build-and-test:
     name: Streaming tests using ${{ matrix.os }} with ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
+    defaults:
+     run:
+       shell: bash -l {0}  # necessary for conda
     strategy:
       fail-fast: false
       matrix:

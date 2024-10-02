@@ -11,18 +11,19 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          channels: conda-forge
       - uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install pytest
         run: |
           pip install pytest
           pip install pytest-cov
+          
       - name: Install package
         run: |
           pip install -e ".[dandi]"
