@@ -1,13 +1,13 @@
 """Primary functions for inspecting NWBFiles."""
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from types import FunctionType
 from typing import Optional, Union
 
 import jsonschema
 import yaml
-from typing_extensions import Callable
 
 from ._registration import Importance, available_checks
 

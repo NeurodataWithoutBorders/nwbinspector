@@ -1,5 +1,6 @@
 """Primary decorator used on a check function to add it to the registry and automatically parse its output."""
 
+from collections.abc import Callable
 from functools import wraps
 from typing import List, Optional, Union
 
@@ -8,7 +9,6 @@ import zarr
 from pynwb import NWBFile
 from pynwb.ecephys import Device, ElectrodeGroup
 from pynwb.file import Subject
-from typing_extensions import Callable
 
 from ._types import Importance, InspectorMessage, Severity
 
