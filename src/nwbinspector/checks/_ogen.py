@@ -16,4 +16,4 @@ def check_optogenetic_stimulus_site_has_optogenetic_series(
             if obj.site == ogen_site:
                 return None
 
-    return InspectorMessage(message="OptogeneticStimulusSite is not referenced by any OptogeneticStimulusSite.")
+    return InspectorMessage(message="OptogeneticStimulusSite is not referenced by any OptogeneticSeries.")
