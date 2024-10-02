@@ -11,12 +11,12 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: s-weigand/setup-conda@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          update-conda: true
-          python-version: 3.9
-          conda-channels: conda-forge
-      - uses: actions/checkout@v3
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+      - uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
 
       - name: Install pytest

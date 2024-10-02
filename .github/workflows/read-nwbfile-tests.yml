@@ -15,11 +15,12 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]  # TODO: update mac and streaming methods
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
-      - uses: s-weigand/setup-conda@v1
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          update-conda: true
+          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-      - uses: actions/checkout@v3
+          channels: conda-forge
+      - uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
 
       - name: Install pytest
