@@ -71,4 +71,4 @@ jobs:
         run: pip install .
 
       - name: Run pytest with coverage
-        run: pytest -rsx 
+        run: pytest -rsx
