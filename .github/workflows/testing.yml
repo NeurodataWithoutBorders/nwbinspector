@@ -70,5 +70,8 @@ jobs:
       - name: Install package
         run: pip install .
 
+      - name: Download testing data and set config path
+        run: dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
+
       - name: Run pytest with coverage
         run: pytest -rsx
