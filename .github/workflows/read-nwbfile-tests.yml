@@ -31,8 +31,8 @@ jobs:
           pip install pytest
           pip install pytest-cov
 
-      - name: Install package
-        run: pip install ".[dandi]"
+      - name: Install package and s3fs
+        run: pip install ".[dandi]" s3fs
 
       - name: Uninstall h5py
         run: pip uninstall -y h5py
