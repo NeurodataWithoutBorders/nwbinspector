@@ -116,8 +116,8 @@ def add_simple_table(nwbfile: NWBFile):
 class TestInspectorOnBackend(TestCase):
     """A common helper class for testing the NWBInspector on files of a specific backend (HDF5 or Zarr)."""
 
-    backend_name: str  # To be set by subclasses
-    BackendIOClass: Type[HDMFIO]  # Will be set based on backend_name
+    backend_name: str = "hdf5"  # default to HDF5
+    BackendIOClass: Type[HDMFIO] = BACKEND_IO_CLASSES[backend_name]
     skip_validate = False  # TODO: can be removed once NWBZarrIO validation issues are resolved
 
     _backend_extensions = {"zarr": ".nwb.zarr", "hdf5": ".hdf5.nwb"}
@@ -174,7 +174,6 @@ class TestInspectorOnBackend(TestCase):
 
 class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
     backend_name = "hdf5"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     skip_validate = False
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / f"true_nwbinspector_default_report_{backend_name}.txt"
     maxDiff = None
@@ -669,14 +668,12 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
 
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     backend_name = "zarr"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / f"true_nwbinspector_default_report_{backend_name}.txt"
     skip_validate = True
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
     backend_name = "hdf5"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     true_report_file_path = (
         EXPECTED_REPORTS_FOLDER_PATH / f"true_nwbinspector_report_with_dandi_config_{backend_name}.txt"
     )
@@ -794,7 +791,6 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
 
 class TestDANDIConfigZarr(TestDANDIConfigHDF5):
     backend_name = "zarr"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     true_report_file_path = (
         EXPECTED_REPORTS_FOLDER_PATH / f"true_nwbinspector_report_with_dandi_config_{backend_name}.txt"
     )
@@ -803,7 +799,6 @@ class TestDANDIConfigZarr(TestDANDIConfigHDF5):
 
 class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
     backend_name = "hdf5"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     skip_validate = True
     maxDiff = None
 
@@ -836,7 +831,6 @@ class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
 
 class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
     backend_name = "hdf5"
-    BackendIOClass = BACKEND_IO_CLASSES[backend_name]
     skip_validate = True
     maxDiff = None
 
@@ -892,12 +886,10 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
 
 class TestCheckUniqueIdentifiersPassZarr(TestCheckUniqueIdentifiersPassHDF5):
     backend = "zarr"
-    BackendIOClass = BACKEND_IO_CLASSES[backend]
 
 
 class TestCheckUniqueIdentifiersFailZarr(TestCheckUniqueIdentifiersFailHDF5):
     backend = "zarr"
-    BackendIOClass = BACKEND_IO_CLASSES[backend]
 
 
 def test_dandi_config_in_vitro_injection():
