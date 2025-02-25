@@ -1,4 +1,4 @@
-# v.0.6.3 (February 25, 2025)
+# v0.6.3 (February 25, 2025)
 
 ### Improvements
 * Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
