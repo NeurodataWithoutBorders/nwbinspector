@@ -2,6 +2,7 @@
 
 ### Improvements
 * Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
+* Added support for Python 3.13 [#564](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/564)
 
 
 # v0.6.2
