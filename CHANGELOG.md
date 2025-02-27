@@ -1,13 +1,24 @@
-# Upcoming
+# v0.6.3 (February 25, 2025)
+
+### Improvements
+* Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
+* Added support for Python 3.13 [#564](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/564)
+
+
+# v0.6.2
 
 ### Deprecation
 * Remove s3fs dependency, which was causing dependency management issues [#549](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/549)
 
 ### Fixes
 * Fix wrongly triggered compression check [#552](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/552)
+* Fixed URL inspection using the CLI [#559](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/559)
 
-## Improvements
+### Improvements
 * Added a section for describing the issues with negative timestamps in `TimeSeries` [#545](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/545)
+* Use alternate way of generating `TimeSeries` objects to avoid new pynwb error when the shape of the first dimension of
+  data does not match the length of timestamps [#556](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/556)
+
 
 # v0.6.1
 
@@ -17,6 +28,7 @@
 
 ### Fixes
 * Fixed issue where the description check failed if the description was a list. [#535](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/535)
+
 
 # v0.6.0
 
