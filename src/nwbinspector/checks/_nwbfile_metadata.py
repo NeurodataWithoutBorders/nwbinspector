@@ -312,3 +312,39 @@ def check_processing_module_name(processing_module: ProcessingModule) -> Optiona
         )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_session_id_no_slashes(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check if session_id contains slash characters, which can cause problems when constructing paths in DANDI.
+    
+    Best Practice: :ref:`best_practice_session_id`
+    """
+    if nwbfile.session_id and "/" in nwbfile.session_id:
+        return InspectorMessage(
+            message=(
+                f"The session_id '{nwbfile.session_id}' contains slash character(s) '/', which can cause problems "
+                f"when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
+def check_subject_id_no_slashes(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if subject_id contains slash characters, which can cause problems when constructing paths in DANDI.
+    
+    Best Practice: :ref:`best_practice_subject_id`
+    """
+    if subject.subject_id and "/" in subject.subject_id:
+        return InspectorMessage(
+            message=(
+                f"The subject_id '{subject.subject_id}' contains slash character(s) '/', which can cause problems "
+                f"when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+            )
+        )
+
+    return None
