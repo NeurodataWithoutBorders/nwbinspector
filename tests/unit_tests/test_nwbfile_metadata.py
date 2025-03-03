@@ -574,7 +574,7 @@ def test_pass_check_session_id_no_slashes():
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
-        session_id="session001"
+        session_id="session001",
     )
     assert check_session_id_no_slashes(nwbfile) is None
 
@@ -584,7 +584,7 @@ def test_check_session_id_with_slashes():
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
-        session_id="session/001"
+        session_id="session/001",
     )
     assert check_session_id_no_slashes(nwbfile) == InspectorMessage(
         message=(

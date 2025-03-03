@@ -85,7 +85,7 @@ a standard structure for their own naming schemes so that sessions are unique wi
 human-readable.
 
 The ``session_id`` should not contain slash characters (``/``) as these can cause problems when constructing paths in
-the DANDI archive. If your session IDs normally include slash characters, consider replacing them with hyphens (``-``) 
+the DANDI archive. If your session IDs normally include slash characters, consider replacing them with hyphens (``-``)
 or underscores (``_``).
 
 Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_session_id_no_slashes`
@@ -193,11 +193,11 @@ not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified
 
 In the special case of *in vitro* studies where the 'subject' of scientific interest was not a tissue sample obtained from a living subject but was instead a purified protein, this will be annotated by prepending the keyphrase "protein" to the subject ID; *e.g*, "proteinCaMPARI3". In the case where the *in vitro* experiment is performed on an extracted or cultured biological sample, the other subject attributes (such as age and sex) should be specified as their values at the time the sample was collected.
 
-Similar to session IDs, the ``subject_id`` should not contain slash characters (``/``) as these can cause problems when 
-constructing paths in the DANDI archive. If your subject IDs normally include slash characters, consider replacing them 
+Similar to session IDs, the ``subject_id`` should not contain slash characters (``/``) as these can cause problems when
+constructing paths in the DANDI archive. If your subject IDs normally include slash characters, consider replacing them
 with hyphens (``-``) or underscores (``_``).
 
-Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_exists` and 
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_exists` and
 :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_no_slashes`
 
 
