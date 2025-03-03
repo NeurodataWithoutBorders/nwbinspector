@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "windows-latest"]  # TODO: update mac and streaming methods
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: conda-incubator/setup-miniconda@v3
         with:
@@ -32,6 +32,8 @@ jobs:
           pip install pytest-cov
 
       - name: Install package and s3fs
+        run: pip install ".[dandi]" s3fs
+      - name: Install package
         run: pip install ".[dandi]" s3fs
 
       - name: Uninstall h5py
