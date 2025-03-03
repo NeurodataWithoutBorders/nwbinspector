@@ -591,7 +591,7 @@ def test_check_session_id_with_slashes():
             "The session_id 'session/001' contains slash character(s) '/', which can cause problems "
             "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
         ),
-        importance=Importance.CRITICAL,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_session_id_no_slashes",
         object_type="NWBFile",
         object_name="root",
@@ -611,7 +611,7 @@ def test_check_subject_id_with_slashes():
             "The subject_id 'subject/001' contains slash character(s) '/', which can cause problems "
             "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
         ),
-        importance=Importance.CRITICAL,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_id_no_slashes",
         object_type="Subject",
         object_name="subject",
