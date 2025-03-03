@@ -318,7 +318,7 @@ def check_processing_module_name(processing_module: ProcessingModule) -> Optiona
 def check_session_id_no_slashes(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """
     Check if session_id contains slash characters, which can cause problems when constructing paths in DANDI.
-    
+
     Best Practice: :ref:`best_practice_session_id`
     """
     if nwbfile.session_id and "/" in nwbfile.session_id:
@@ -336,7 +336,7 @@ def check_session_id_no_slashes(nwbfile: NWBFile) -> Optional[InspectorMessage]:
 def check_subject_id_no_slashes(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if subject_id contains slash characters, which can cause problems when constructing paths in DANDI.
-    
+
     Best Practice: :ref:`best_practice_subject_id`
     """
     if subject.subject_id and "/" in subject.subject_id:
