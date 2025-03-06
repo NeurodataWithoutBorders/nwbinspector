@@ -82,6 +82,7 @@ from ._time_series import (
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
+    check_rate_is_not_negative
 )
 
 __all__ = [
