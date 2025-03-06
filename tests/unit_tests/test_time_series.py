@@ -6,6 +6,7 @@ from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_data_orientation,
     check_missing_unit,
+    check_rate_is_not_negative,
     check_rate_is_not_zero,
     check_regular_timestamps,
     check_resolution,
@@ -13,7 +14,6 @@ from nwbinspector.checks import (
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
-    check_rate_is_not_negative
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
 import pytest
@@ -237,9 +237,11 @@ def test_check_rate_is_not_zero_fail():
         location="/",
     )
 
+
 def test_check_rate_is_not_negative_pass():
     time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
     assert check_rate_is_not_negative(time_series) is None
+
 
 def test_check_rate_is_not_negative_fail():
     # TODO: Install pynwb < 2.5.0 to test this
@@ -250,13 +252,14 @@ def test_check_rate_is_not_negative_fail():
     time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=-4.0)
 
     assert check_rate_is_not_negative(time_series) == InspectorMessage(
-        message= f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz.The sampling rate should have a positive value.",
+        message=f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz.The sampling rate should have a positive value.",
         importance=Importance.CRITICAL,
-        check_function_name="check_rate_is_not_negative",   
+        check_function_name="check_rate_is_not_negative",
         object_type="TimeSeries",
         object_name="TimeSeriesTest",
         location="/",
     )
+
 
 def test_pass_check_timestamps_ascending_pass():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
