@@ -75,6 +75,7 @@ from ._tables import (
 from ._time_series import (
     check_data_orientation,
     check_missing_unit,
+    check_rate_is_not_negative,
     check_rate_is_not_zero,
     check_regular_timestamps,
     check_resolution,
@@ -82,7 +83,6 @@ from ._time_series import (
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
-    check_rate_is_not_negative
 )
 
 __all__ = [

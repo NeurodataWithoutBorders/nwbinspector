@@ -180,17 +180,18 @@ def check_rate_is_not_zero(time_series: TimeSeries) -> Optional[InspectorMessage
         return InspectorMessage(
             f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame."
         )
-    
+
     return None
+
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_rate_is_not_negative(time_series: TimeSeries) -> Optional[InspectorMessage]:
     if time_series.data is None:
         return None
-    
-    if time_series.rate < 0.0 :
+
+    if time_series.rate < 0.0:
         return InspectorMessage(
             f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz.The sampling rate should have a positive value."
         )
-    
+
     return None
