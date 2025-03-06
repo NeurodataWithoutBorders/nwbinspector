@@ -22,6 +22,7 @@ from nwbinspector.checks import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight_format,
 )
 from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
 from nwbinspector.testing import make_minimal_nwbfile
@@ -408,6 +409,46 @@ def test_check_subject_age_iso8601_range_fail_2():
         location="/general/subject",
     )
 
+def test_check_subject_weight_format_pass():
+    subject = Subject(weight="70 kg")
+    assert check_subject_weight_format(subject) is None
+
+def test_check_subject_weight_format_invalid_no_unit():
+    subject = Subject(weight="70")
+    assert check_subject_weight_format(subject) == InspectorMessage(
+        message="Subject weight should have the form '[numeric] [string]'.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight_format",
+        object_type="Subject",
+        object_name=subject.name,
+        location="/",
+    )
+
+def test_check_subject_weight_format_invalid_no_space():
+    subject = Subject(weight="70kg")
+    assert check_subject_weight_format(subject) == InspectorMessage(
+        message="Subject weight should have the form '[numeric] [string]'.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight_format",
+        object_type="Subject",
+        object_name=subject.name,
+        location="/",
+    )
+
+def test_check_subject_weight_format_invalid_non_numeric():
+    subject = Subject(weight="seventy kg")
+    assert check_subject_weight_format(subject) == InspectorMessage(
+        message="Subject weight should have the form '[numeric] [string]'.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight_format",
+        object_type="Subject",
+        object_name=subject.name,
+        location="/",
+    )
+
+def test_check_subject_weight_format_none():
+    subject = Subject(weight=None)
+    assert check_subject_weight_format(subject) is None
 
 def test_check_subject_proper_age_range_pass():
     subject = Subject(subject_id="001", age="P1D/P3D")

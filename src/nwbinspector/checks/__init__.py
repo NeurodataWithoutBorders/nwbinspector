@@ -49,6 +49,7 @@ from ._nwbfile_metadata import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight_format,
 )
 from ._ogen import (
     check_optogenetic_stimulus_site_has_optogenetic_series,
@@ -148,4 +149,5 @@ __all__ = [
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
     "check_rate_is_not_negative",
+    "check_subject_weight_format",
 ]
