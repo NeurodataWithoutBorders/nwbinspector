@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
 import pynwb
+import pytest
+from packaging import version
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -16,8 +18,6 @@ from nwbinspector.checks import (
     check_timestamps_without_nans,
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
-import pytest
-from packaging import version
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
