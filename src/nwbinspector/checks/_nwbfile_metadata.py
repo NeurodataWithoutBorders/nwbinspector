@@ -299,6 +299,7 @@ def check_subject_species_form(subject: Subject) -> Optional[InspectorMessage]:
 
     return None
 
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_weight_format(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the subject weight has the form '[numeric] [string]'."""
