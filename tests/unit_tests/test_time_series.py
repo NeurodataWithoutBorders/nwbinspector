@@ -16,6 +16,8 @@ from nwbinspector.checks import (
     check_rate_is_not_negative
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
+import pytest
+from packaging import version
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
@@ -240,7 +242,13 @@ def test_check_rate_is_not_negative_pass():
     assert check_rate_is_not_negative(time_series) is None
 
 def test_check_rate_is_not_negative_fail():
+    # TODO: Install pynwb < 2.5.0 to test this
+    # Check pynwb version and skip this test if pynwb >= 2.5.0
+    if version.parse(pynwb.__version__) >= version.parse("2.5.0"):
+        pytest.skip("This test is not applicable for pynwb >= 2.5.0")
+
     time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=-4.0)
+
     assert check_rate_is_not_negative(time_series) == InspectorMessage(
         message= f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz.The sampling rate should have a positive value.",
         importance=Importance.CRITICAL,
