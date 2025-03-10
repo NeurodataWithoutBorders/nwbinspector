@@ -225,7 +225,11 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
-    """Check if subject_id is defined."""
+    """
+    Check if subject_id is defined.
+    
+    Best Practice: :ref:`best_practice_subject_id`
+    """
     if subject.subject_id is None:
         return InspectorMessage(message="subject_id is missing.")
 
