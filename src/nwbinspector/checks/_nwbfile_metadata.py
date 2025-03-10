@@ -227,7 +227,7 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if subject_id is defined.
-    
+
     Best Practice: :ref:`best_practice_subject_id`
     """
     if subject.subject_id is None:
