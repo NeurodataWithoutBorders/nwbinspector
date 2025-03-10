@@ -99,11 +99,13 @@ class TestCheckConfiguration(TestCase):
                 CRITICAL=[
                     "check_subject_exists",
                     "check_subject_id_exists",
+                    "check_subject_id_no_slashes",
                     "check_subject_sex",
                     "check_subject_species_exists",
                     "check_subject_species_form",
                     "check_subject_age",
                     "check_subject_proper_age_range",
+                    "check_session_id_no_slashes",
                 ],
                 BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
