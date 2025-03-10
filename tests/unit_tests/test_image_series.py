@@ -56,6 +56,7 @@ class TestExternalFileValid(unittest.TestCase):
             name="TestImageSeries",
             rate=1.0,
             external_file=[bytes("/".join([".", good_external_path.name]), "utf-8")],
+            format="external",
         )
         assert check_image_series_external_file_relative(image_series=image_series) is None
 
