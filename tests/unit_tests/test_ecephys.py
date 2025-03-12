@@ -10,6 +10,7 @@ from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
+    check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
@@ -210,6 +211,66 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_spike_times_not_in_unobserved_interval",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+
+def test_check_ascending_spike_times_pass():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 2, 3, 4])
+    assert check_ascending_spike_times(units_table=units_table) is None
+
+
+def test_check_ascending_spike_times_fail():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[1, 3, 2, 4])
+    assert check_ascending_spike_times(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that are not in ascending order. "
+            "Spike times should be sorted in ascending order."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_ascending_spike_times",
+        object_type="Units",
+        object_name="TestUnits",
+        location="/",
+    )
+
+
+def test_check_ascending_spike_times_empty():
+    units_table = Units(name="TestUnits")
+    units_table.add_unit(spike_times=[])
+    assert check_ascending_spike_times(units_table=units_table) is None
+
+
+def test_check_ascending_spike_times_missing_column():
+    units_table = Units(name="TestUnits")
+    assert check_ascending_spike_times(units_table=units_table) is None
+
+
+def test_check_ascending_spike_times_nelems():
+    """Test that only nelems units are checked."""
+    units_table = Units(name="TestUnits")
+    # First unit has ordered spike times
+    units_table.add_unit(spike_times=[1, 2, 3, 4])
+    # Second unit has ordered spike times 
+    units_table.add_unit(spike_times=[1, 2, 3, 4])
+    # Third unit has disordered spike times, but won't be checked if nelems=2
+    units_table.add_unit(spike_times=[1, 3, 2, 4])
+    
+    # With nelems=2, check passes because only first two units are checked
+    assert check_ascending_spike_times(units_table=units_table, nelems=2) is None
+    
+    # With default nelems=4, check fails because third unit is checked
+    assert check_ascending_spike_times(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table contains spike times that are not in ascending order. "
+            "Spike times should be sorted in ascending order."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_ascending_spike_times",
         object_type="Units",
         object_name="TestUnits",
         location="/",

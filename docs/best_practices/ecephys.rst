@@ -89,3 +89,13 @@ Observation Intervals
 The ``obs_intervals`` field of the :ref:`nwb-schema:sec-units-src` table is used to indicate periods of time where the underlying electrical signal(s) were not observed. This can happen if the recording site moves away from the unit, or if the recording is stopped. Since the channel is not observed, it is not determinable whether a spike occurred during this time. Therefore, there should not be any identified spike times for units matched to those electrical signal(s) occurring outside of the defined ``obs_intervals``. If this variable is not set, it is assumed that all time is observed.
 
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_not_in_unobserved_interval`
+
+
+.. _best_practice_ascending_spike_times:
+
+Ascending Spike Times
+~~~~~~~~~~~~~~~~~~~~~
+
+Spike times within a unit should be sorted in ascending order. This is important for many analysis algorithms and ensures consistent temporal representation of spiking activity. Unsorted spike times can lead to errors in spike train analysis, burst detection, and other temporal analyses of neural activity.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times`

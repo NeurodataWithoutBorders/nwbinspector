@@ -11,6 +11,26 @@ from ..utils import get_data_shape
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_ascending_spike_times(units_table: Units, nelems: int = 4) -> Optional[InspectorMessage]:
+    """Check if the Units table contains spike times that are in ascending order."""
+    if "spike_times" not in units_table:
+        return None
+    
+    for i, unit_spike_times in enumerate(units_table["spike_times"][:nelems]):
+        spike_times_array = np.array(unit_spike_times)
+        if len(spike_times_array) > 1:
+            if not np.all(np.diff(spike_times_array) >= 0):
+                return InspectorMessage(
+                    message=(
+                        "This Units table contains spike times that are not in ascending order. "
+                        "Spike times should be sorted in ascending order."
+                    )
+                )
+    
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]:
     """Check if the Units table contains negative spike times."""
     if "spike_times" not in units_table:

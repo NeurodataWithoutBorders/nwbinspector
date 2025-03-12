@@ -5,6 +5,7 @@ from ._behavior import (
     check_spatial_series_radians_magnitude,
 )
 from ._ecephys import (
+    check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
@@ -85,6 +86,7 @@ from ._time_series import (
 )
 
 __all__ = [
+    "check_ascending_spike_times",
     "check_negative_spike_times",
     "check_electrical_series_dims",
     "check_electrical_series_reference_electrodes_table",
