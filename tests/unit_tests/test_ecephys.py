@@ -255,14 +255,14 @@ def test_check_ascending_spike_times_nelems():
     units_table = Units(name="TestUnits")
     # First unit has ordered spike times
     units_table.add_unit(spike_times=[1, 2, 3, 4])
-    # Second unit has ordered spike times 
+    # Second unit has ordered spike times
     units_table.add_unit(spike_times=[1, 2, 3, 4])
     # Third unit has disordered spike times, but won't be checked if nelems=2
     units_table.add_unit(spike_times=[1, 3, 2, 4])
-    
+
     # With nelems=2, check passes because only first two units are checked
     assert check_ascending_spike_times(units_table=units_table, nelems=2) is None
-    
+
     # With default nelems=4, check fails because third unit is checked
     assert check_ascending_spike_times(units_table=units_table) == InspectorMessage(
         message=(
