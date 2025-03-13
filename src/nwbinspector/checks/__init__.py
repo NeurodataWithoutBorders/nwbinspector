@@ -9,6 +9,7 @@ from ._ecephys import (
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_ascending_spike_times,
 )
 from ._general import (
     check_description,
@@ -146,4 +147,5 @@ __all__ = [
     "check_spatial_series_radians_magnitude",
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
+    "check_ascending_spike_times",
 ]
