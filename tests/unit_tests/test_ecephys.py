@@ -10,11 +10,11 @@ from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
+    check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
-    check_ascending_spike_times,
 )
 
 
@@ -216,6 +216,7 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         location="/",
     )
 
+
 class TestCheckAscendingSpikeTimes(TestCase):
     def setUp(self):
         self.units_table = Units()
@@ -233,7 +234,7 @@ class TestCheckAscendingSpikeTimes(TestCase):
             check_function_name="check_ascending_spike_times",
             object_type="Units",
             object_name="Units",
-            location="/"
+            location="/",
         )
 
     def test_ascending_spike_times_empty(self):

@@ -98,9 +98,9 @@ Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_not_in
 Ascending Spike Times
 ~~~~~~~~~~~~~~~~~~~~
 
-The spike times within each unit of the :ref:`nwb-schema:sec-units-src` table should be sorted in ascending order. 
-Non-ascending spike times can indicate errors in the spike sorting process or in the temporal alignment of the data. 
-Properly ordered spike times are essential for analyzing temporal patterns of neural activity and for calculating 
+The spike times within each unit of the :ref:`nwb-schema:sec-units-src` table should be sorted in ascending order.
+Non-ascending spike times can indicate errors in the spike sorting process or in the temporal alignment of the data.
+Properly ordered spike times are essential for analyzing temporal patterns of neural activity and for calculating
 intervals between spikes (inter-spike intervals).
 
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times`

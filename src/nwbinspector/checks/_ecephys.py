@@ -9,7 +9,8 @@ from pynwb.misc import Units
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
 
-NELEMS = 200 
+NELEMS = 200
+
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]:
@@ -67,7 +68,7 @@ def check_electrical_series_reference_electrodes_table(
     if electrical_series.electrodes.table.name != "electrodes":
         return InspectorMessage(message="electrodes does not  reference an electrodes table.")
 
-    return None 
+    return None
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
@@ -95,6 +96,7 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
             )
 
     return None
+
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
