@@ -10,6 +10,7 @@ from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
+    check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
@@ -214,3 +215,31 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         object_name="TestUnits",
         location="/",
     )
+
+
+class TestCheckAscendingSpikeTimes(TestCase):
+    def setUp(self):
+        self.units_table = Units()
+
+    def test_ascending_spike_times_valid(self):
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.2])
+        self.units_table.add_unit(spike_times=[1.0, 1.1, 1.2])
+        assert check_ascending_spike_times(units_table=self.units_table) is None
+
+    def test_ascending_spike_times_invalid(self):
+        self.units_table.add_unit(spike_times=[0.2, 0.1, 0.3])  # Non-ascending
+        assert check_ascending_spike_times(units_table=self.units_table) == InspectorMessage(
+            message="Unit 0 contains non-ascending spike times. Spike times should be sorted in ascending order.",
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_ascending_spike_times",
+            object_type="Units",
+            object_name="Units",
+            location="/",
+        )
+
+    def test_ascending_spike_times_empty(self):
+        assert check_ascending_spike_times(units_table=self.units_table) is None
+
+    def test_ascending_spike_times_nelems(self):
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.05])
+        assert check_ascending_spike_times(units_table=self.units_table, nelems=2) is None
