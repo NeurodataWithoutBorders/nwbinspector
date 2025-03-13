@@ -9,6 +9,8 @@ from pynwb.misc import Units
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
 
+NELEMS = 200
+
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]:
@@ -93,4 +95,28 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                 )
             )
 
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
+    """
+    Check that the values in the timestamps array are strictly increasing.
+
+    Best Practice :ref:`best_practice_ascending_spike_times`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    for unit_id in range(len(units_table)):
+        spike_times = units_table["spike_times"][unit_id]
+        if nelems is not None:
+            spike_times = spike_times[:nelems]
+        if not np.all(np.diff(spike_times) >= 0):
+            return InspectorMessage(
+                message=(
+                    f"Unit {unit_id} contains non-ascending spike times. "
+                    "Spike times should be sorted in ascending order."
+                )
+            )
     return None
