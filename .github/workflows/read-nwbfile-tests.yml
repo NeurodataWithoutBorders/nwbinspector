@@ -31,8 +31,6 @@ jobs:
           pip install pytest
           pip install pytest-cov
 
-      - name: Install package and s3fs
-        run: pip install ".[dandi]" s3fs
       - name: Install package
         run: pip install ".[dandi]" s3fs
 
