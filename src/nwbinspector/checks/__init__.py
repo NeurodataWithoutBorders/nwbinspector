@@ -77,13 +77,13 @@ from ._time_series import (
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
+    check_rate_is_positive,
     check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
-    check_rate_is_positive,
 )
 
 __all__ = [

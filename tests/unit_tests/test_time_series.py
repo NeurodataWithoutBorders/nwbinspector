@@ -7,13 +7,13 @@ from nwbinspector.checks import (
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
+    check_rate_is_positive,
     check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
-    check_rate_is_positive,
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
 
@@ -380,40 +380,31 @@ def test_check_resolution_fail():
         location="/",
     )
 
+
 def test_check_rate_is_positive_pass():
-    time_series = pynwb.TimeSeries(
-        name="test",
-        unit="test_units",
-        data=np.array([1, 2, 3]),
-        rate=4.0
-    )
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=np.array([1, 2, 3]), rate=4.0)
     assert check_rate_is_positive(time_series) is None
+
 
 def test_check_rate_is_positive_none_pass():
     time_series = pynwb.TimeSeries(
-        name="test",
-        unit="test_units",
-        data=np.array([1, 2, 3]),
-        timestamps=np.array([1, 2, 3])
+        name="test", unit="test_units", data=np.array([1, 2, 3]), timestamps=np.array([1, 2, 3])
     )
     assert check_rate_is_positive(time_series) is None
 
-#@pytest.mark.skipif(
+
+# @pytest.mark.skipif(
 #    version.parse(pynwb.__version__) >= version.parse("2.5.0"),
 #    reason="pynwb >= 2.5.0 prevents setting negative rates"
-#)
+# )
+
 
 def test_check_rate_is_positive_fail():
     # Use __new__ and in_construct_mode=True to bypass pynwb validation
     rate = -2.0
     time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
-    time_series.__init__(
-        name="TimeSeriesTest",
-        unit="n.a.",
-        data=np.array([1, 2, 3]),
-        rate=rate
-    )
-    
+    time_series.__init__(name="TimeSeriesTest", unit="n.a.", data=np.array([1, 2, 3]), rate=rate)
+
     assert check_rate_is_positive(time_series) == InspectorMessage(
         message=f"TimeSeriesTest has a negative sampling rate value of {rate}Hz which is not valid.",
         importance=Importance.CRITICAL,
