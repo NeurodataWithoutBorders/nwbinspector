@@ -83,6 +83,7 @@ from ._time_series import (
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
+    check_rate_is_positive,
 )
 
 __all__ = [
@@ -148,4 +149,5 @@ __all__ = [
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
     "check_ascending_spike_times",
+    "check_rate_is_positive",
 ]
