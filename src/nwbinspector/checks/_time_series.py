@@ -182,3 +182,16 @@ def check_rate_is_not_zero(time_series: TimeSeries) -> Optional[InspectorMessage
         )
 
     return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_rate_is_positive(time_series: TimeSeries) -> Optional[InspectorMessage]:
+    if not hasattr(time_series, "rate"):
+        return None
+
+    if time_series.rate is not None and time_series.rate < 0.0:
+        return InspectorMessage(
+            message=f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz which is not valid."
+        )
+
+    return None
