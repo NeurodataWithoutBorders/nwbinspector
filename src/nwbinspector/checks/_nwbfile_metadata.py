@@ -232,6 +232,38 @@ def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     return None
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
+def check_subject_id_no_slashes(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if subject_id contains any slash characters.
+    
+    Slashes in subject_id can cause problems when constructing file paths in DANDI.
+    """
+    if subject.subject_id is not None and "/" in subject.subject_id:
+        return InspectorMessage(
+            message=f"subject_id '{subject.subject_id}' contains slash characters ('/'). "
+                    f"Slashes in subject_id can cause problems when constructing file paths in DANDI."
+        )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
+def check_session_id_no_slashes(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check if session_id contains any slash characters.
+    
+    Slashes in session_id can cause problems when constructing file paths in DANDI.
+    """
+    if nwbfile.session_id is not None and "/" in nwbfile.session_id:
+        return InspectorMessage(
+            message=f"session_id '{nwbfile.session_id}' contains slash characters ('/'). "
+                    f"Slashes in session_id can cause problems when constructing file paths in DANDI."
+        )
+
+    return None
+
+
 def _check_subject_sex_defaults(sex: str) -> Optional[InspectorMessage]:
     """Check if the subject sex has been specified properly for the C. elegans species."""
     if sex not in ("M", "F", "O", "U"):
