@@ -1,6 +1,7 @@
 # v0.6.3 (March 13, 2025)
 
 ### Improvements
+* Added check for negative rates in TimeSeries [#423](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/XXX)
 * Added check for ascending spike times in Units table [#575](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/575)
 * Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
 * Added support for Python 3.13 [#564](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/564)

@@ -77,6 +77,7 @@ from ._time_series import (
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
+    check_rate_is_positive,
     check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
@@ -148,4 +149,5 @@ __all__ = [
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
     "check_ascending_spike_times",
+    "check_rate_is_positive",
 ]
