@@ -5,7 +5,7 @@ from uuid import uuid4
 import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
-from pynwb.ecephys import ElectricalSeries
+from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
@@ -154,6 +154,47 @@ class TestCheckElectricalSeries(TestCase):
             check_electrical_series_reference_electrodes_table(electrical_series).message
             == "electrodes does not  reference an electrodes table."
         )
+
+def test_spikeeventseries_dims_check():
+    """
+    Test that 2D SpikeEventSeries does not trigger a warning,
+    but 3D SpikeEventSeries with mismatched electrodes does.
+    """
+
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone()
+    )
+    device = nwbfile.create_device(name="dev")
+    group = nwbfile.create_electrode_group(
+        name="electrode_group", description="desc", location="loc", device=device
+    )
+    for _ in range(3):
+        nwbfile.add_electrode(
+            x=3.0, y=3.0, z=3.0, imp=-1.0, location="unknown", filtering="unknown", group=group
+        )
+    electrodes = nwbfile.create_electrode_table_region(region=[0, 1, 2], description="three elecs")
+
+    # 2D data: [num_events, num_samples] (should NOT trigger warning)
+    ses_2d = SpikeEventSeries(
+        name="spike_events_2d",
+        data=np.zeros((10, 5)),
+        electrodes=electrodes,
+        timestamps=[0.1 * i for i in range(10)],
+    )
+    assert check_electrical_series_dims(ses_2d) is None
+
+    # 3D data: [num_events, num_channels, num_samples] with mismatched num_channels (should trigger warning)
+    ses_3d = SpikeEventSeries(
+        name="spike_events_3d",
+        data=np.zeros((10, 4, 5)),  # 4 != 3 electrodes
+        electrodes=electrodes,
+        timestamps=[0.1 * i for i in range(10)],
+    )
+    result = check_electrical_series_dims(ses_3d)
+    assert isinstance(result, InspectorMessage)
+    assert "The second dimension of data does not match the length of electrodes" in result.message
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
