@@ -299,6 +299,7 @@ def check_subject_species_form(subject: Subject) -> Optional[InspectorMessage]:
 
     return None
 
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_weight_format(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the subject weight has the form '[numeric] [string]'."""
@@ -308,15 +309,9 @@ def check_subject_weight_format(subject: Subject) -> Optional[InspectorMessage]:
     weight_str = str(subject.weight)
     if not re.match(r"^\d+(\.\d+)?\s?\w+$", weight_str):
         return InspectorMessage(
-            message="Subject weight should have the form '[numeric] [string]'.",
-            importance=Importance.CRITICAL,
-            check_function_name="check_subject_weight_format",
-            object_type="Subject",
-            object_name=subject.name,
-            location="/",
+            message="Subject weight should have the form '[numeric] [string]'."
         )
     return None
-
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ProcessingModule)
 def check_processing_module_name(processing_module: ProcessingModule) -> Optional[InspectorMessage]:

@@ -409,9 +409,11 @@ def test_check_subject_age_iso8601_range_fail_2():
         location="/general/subject",
     )
 
+
 def test_check_subject_weight_format_pass():
     subject = Subject(weight="70 kg")
     assert check_subject_weight_format(subject) is None
+
 
 def test_check_subject_weight_format_invalid_no_unit():
     subject = Subject(weight="70")
@@ -424,6 +426,7 @@ def test_check_subject_weight_format_invalid_no_unit():
         location="/",
     )
 
+
 def test_check_subject_weight_format_no_space():
     subject = Subject(weight="70kg")
     assert check_subject_weight_format(subject) == InspectorMessage(
@@ -434,6 +437,7 @@ def test_check_subject_weight_format_no_space():
         object_name=subject.name,
         location="/",
     )
+
 
 def test_check_subject_weight_format_invalid_non_numeric():
     subject = Subject(weight="seventy kg")
@@ -446,9 +450,11 @@ def test_check_subject_weight_format_invalid_non_numeric():
         location="/",
     )
 
+
 def test_check_subject_weight_format_none():
     subject = Subject(weight=None)
     assert check_subject_weight_format(subject) is None
+
 
 def test_check_subject_proper_age_range_pass():
     subject = Subject(subject_id="001", age="P1D/P3D")
