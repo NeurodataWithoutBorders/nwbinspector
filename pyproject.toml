@@ -54,8 +54,8 @@ dandi = [
     "remfile",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build]
+packages = ["src/nwbinspector"]
 
 [project.scripts]
 nwbinspector = "nwbinspector._nwbinspector_cli:_nwbinspector_cli"
