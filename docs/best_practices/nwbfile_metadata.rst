@@ -238,6 +238,16 @@ Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_a
 
 
 
+.. _best_practice_subject_weight:
+
+Subject Weight
+~~~~~~~~~~~~~
+
+The ``weight`` of a :ref:`nwb-schema:sec-Subject` should have the form '[numeric] [string]', where the numeric part is the weight value and the string part is the unit. For example, "70 kg" or "250 g". This format ensures that both the weight value and its unit are clearly specified and can be easily parsed.
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_weight_format`
+
+
 .. _best_practice_subject_dob:
 
 Date of Birth
