@@ -306,7 +306,7 @@ def check_subject_weight_format(subject: Subject) -> Optional[InspectorMessage]:
         return None
 
     weight_str = str(subject.weight)
-    if not re.match(r"^\d+(\.\d+)?\s+\w+$", weight_str):
+    if not re.match(r"^\d+(\.\d+)?\s?\w+$", weight_str):
         return InspectorMessage(
             message="Subject weight should have the form '[numeric] [string]'.",
             importance=Importance.CRITICAL,

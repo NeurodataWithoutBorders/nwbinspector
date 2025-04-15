@@ -424,7 +424,7 @@ def test_check_subject_weight_format_invalid_no_unit():
         location="/",
     )
 
-def test_check_subject_weight_format_invalid_no_space():
+def test_check_subject_weight_format_no_space():
     subject = Subject(weight="70kg")
     assert check_subject_weight_format(subject) == InspectorMessage(
         message="Subject weight should have the form '[numeric] [string]'.",
