@@ -4,6 +4,7 @@ import os
 from typing import Iterable, Optional
 
 import h5py
+import numpy as np
 import zarr
 from pynwb import NWBContainer
 
@@ -37,6 +38,39 @@ def check_large_dataset_compression(
             return InspectorMessage(
                 severity=Severity.HIGH,
                 message=f"{os.path.split(field.name)[1]} is a large uncompressed dataset! Please enable compression.",
+            )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBContainer)
+def check_dataset_not_empty(nwb_container: NWBContainer) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if any datasets in the container are empty (have zero elements).
+
+    Empty datasets can cause issues with analysis and visualization tools, and generally indicate
+    missing or incomplete data.
+
+    Parameters
+    ----------
+    nwb_container: NWBContainer
+        The NWB container to check for empty datasets.
+
+    Returns
+    -------
+    Optional[Iterable[InspectorMessage]]
+        Inspector messages for each empty dataset found, or None if no empty datasets are found.
+    """
+    for field_name, field in getattr(nwb_container, "fields", dict()).items():
+        if not isinstance(field, (h5py.Dataset, zarr.Array)):
+            continue
+
+        # Check if the dataset has zero elements
+        if field.size == 0:
+            yield InspectorMessage(
+                severity=Severity.HIGH,
+                message=f"The dataset '{os.path.split(field.name)[1]}' is empty (has zero elements). "
+                f"Datasets should contain data."
             )
 
     return None

@@ -28,6 +28,7 @@ from ._images import (
     check_order_of_images_unique,
 )
 from ._nwb_containers import (
+    check_dataset_not_empty,
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
     check_small_dataset_compression,
@@ -97,6 +98,7 @@ __all__ = [
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
+    "check_dataset_not_empty",
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",
