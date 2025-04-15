@@ -4,7 +4,6 @@ import os
 from typing import Iterable, Optional
 
 import h5py
-import numpy as np
 import zarr
 from pynwb import NWBContainer
 
@@ -70,7 +69,7 @@ def check_dataset_not_empty(nwb_container: NWBContainer) -> Optional[Iterable[In
             yield InspectorMessage(
                 severity=Severity.HIGH,
                 message=f"The dataset '{os.path.split(field.name)[1]}' is empty (has zero elements). "
-                f"Datasets should contain data."
+                f"Datasets should contain data.",
             )
 
     return None
