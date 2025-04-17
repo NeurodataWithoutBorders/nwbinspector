@@ -193,7 +193,7 @@ def test_spikeeventseries_dims_check():
         object_type="SpikeEventSeries",
         object_name="spike_events_3d",
         location="/",
-        )
+    )
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
