@@ -186,8 +186,14 @@ def test_spikeeventseries_dims_check():
         timestamps=[0.1 * i for i in range(10)],
     )
     result = check_electrical_series_dims(ses_3d)
-    assert isinstance(result, InspectorMessage)
-    assert "The second dimension of data does not match the length of electrodes" in result.message
+    assert result == InspectorMessage(
+        message=("The second dimension of data does not match the length of electrodes. Your data may be transposed."),
+        importance=Importance.CRITICAL,
+        check_function_name="check_electrical_series_dims",
+        object_type="SpikeEventSeries",
+        object_name="spike_events_3d",
+        location="/",
+        )
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
