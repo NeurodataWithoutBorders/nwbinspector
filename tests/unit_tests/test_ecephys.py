@@ -173,7 +173,7 @@ class TestCheckSpikeEventSeries(TestCase):
     def test_check_data_orientation_spike_event_series(self):
         """Test that SpikeEventSeries with more waveform samples than events doesn't trigger the data orientation check."""
 
-        # Create data with shape (events, channels, waveform_samples) where waveform_samples > events
+        # create data with shape (events, channels, waveform_samples) where waveform_samples > events
         data = np.zeros((5, 3, 10))
         timestamps = np.arange(5)
         electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2], description="three elecs")
@@ -186,8 +186,6 @@ class TestCheckSpikeEventSeries(TestCase):
             electrodes=electrodes,
         )
 
-        # Verify that the check_data_orientation function returns None for this SpikeEventSeries
-        # This confirms our fix is working correctly
         assert check_data_orientation(spike_event_series) is None
 
 
