@@ -1,3 +1,8 @@
+# v0.6.4 (Upcoming)
+
+### Fixes
+* Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
+
 # v0.6.3 (March 13, 2025)
 
 ### Improvements
