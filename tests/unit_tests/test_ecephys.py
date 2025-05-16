@@ -188,6 +188,42 @@ class TestCheckSpikeEventSeries(TestCase):
 
         assert check_data_orientation(spike_event_series) is None
 
+    def test_spikeeventseries_dims_check(self):
+        """
+        Test that 2D SpikeEventSeries does not trigger a warning,
+        but 3D SpikeEventSeries with mismatched electrodes does.
+        """
+
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2], description="three elecs")
+
+        # 2D data: [num_events, num_samples] (should NOT trigger warning)
+        ses_2d = SpikeEventSeries(
+            name="spike_events_2d",
+            data=np.zeros((10, 5)),
+            electrodes=electrodes,
+            timestamps=[0.1 * i for i in range(10)],
+        )
+        assert check_electrical_series_dims(ses_2d) is None
+
+        # 3D data: [num_events, num_channels, num_samples] with mismatched num_channels (should trigger warning)
+        ses_3d = SpikeEventSeries(
+            name="spike_events_3d",
+            data=np.zeros((10, 4, 5)),  # 4 != 3 electrodes
+            electrodes=electrodes,
+            timestamps=[0.1 * i for i in range(10)],
+        )
+        result = check_electrical_series_dims(ses_3d)
+        assert result == InspectorMessage(
+            message=(
+                "The second dimension of data does not match the length of electrodes. Your data may be transposed."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_electrical_series_dims",
+            object_type="SpikeEventSeries",
+            object_name="spike_events_3d",
+            location="/",
+        )
+
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
     units_table = Units(name="TestUnits")
