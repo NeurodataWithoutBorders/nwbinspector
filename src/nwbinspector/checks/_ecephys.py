@@ -3,7 +3,7 @@
 from typing import Optional
 
 import numpy as np
-from pynwb.ecephys import ElectricalSeries
+from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
 from .._registration import Importance, InspectorMessage, register_check
@@ -39,6 +39,26 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optiona
     electrodes = electrical_series.electrodes
 
     data_shape = get_data_shape(data, strict_no_data_load=True)
+
+    # For SpikeEventSeries, only perform the check for 3D data
+    if isinstance(electrical_series, SpikeEventSeries):
+        if data_shape and len(data_shape) == 3 and data_shape[1] != len(electrodes.data):
+            if data_shape[0] == len(electrodes.data):
+                return InspectorMessage(
+                    message=(
+                        "The second dimension of data does not match the length of electrodes, "
+                        "but instead the first does. Data is oriented incorrectly and should be transposed."
+                    )
+                )
+            return InspectorMessage(
+                message=(
+                    "The second dimension of data does not match the length of electrodes. Your data may be transposed."
+                )
+            )
+        # Do not warn for 2D SpikeEventSeries
+        return None
+
+    # For other ElectricalSeries, keep the original logic
     if data_shape and len(data_shape) == 2 and data_shape[1] != len(electrodes.data):
         if data_shape[0] == len(electrodes.data):
             return InspectorMessage(
@@ -49,7 +69,7 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optiona
             )
         return InspectorMessage(
             message=(
-                "The second dimension of data does not match the length of electrodes. Your " "data may be transposed."
+                "The second dimension of data does not match the length of electrodes. Your data may be transposed."
             )
         )
 
