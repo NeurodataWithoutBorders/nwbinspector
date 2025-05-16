@@ -5,12 +5,13 @@ from uuid import uuid4
 import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
-from pynwb.ecephys import ElectricalSeries
+from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_ascending_spike_times,
+    check_data_orientation,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
@@ -154,6 +155,40 @@ class TestCheckElectricalSeries(TestCase):
             check_electrical_series_reference_electrodes_table(electrical_series).message
             == "electrodes does not  reference an electrodes table."
         )
+
+
+class TestCheckSpikeEventSeries(TestCase):
+    def setUp(self):
+        nwbfile = NWBFile(
+            session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+        )
+        device = nwbfile.create_device(name="dev")
+        group = nwbfile.create_electrode_group(
+            name="electrode_group", description="desc", location="loc", device=device
+        )
+        for _ in range(3):
+            nwbfile.add_electrode(location="unknown", group=group)
+        self.nwbfile = nwbfile
+
+    def test_check_data_orientation_spike_event_series(self):
+        """Test that SpikeEventSeries with more waveform samples than events doesn't trigger the data orientation check."""
+
+        # Create data with shape (events, channels, waveform_samples) where waveform_samples > events
+        data = np.zeros((5, 3, 10))
+        timestamps = np.arange(5)
+        electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2], description="three elecs")
+
+        spike_event_series = SpikeEventSeries(
+            name="spike_events",
+            description="test spike events",
+            data=data,
+            timestamps=timestamps,
+            electrodes=electrodes,
+        )
+
+        # Verify that the check_data_orientation function returns None for this SpikeEventSeries
+        # This confirms our fix is working correctly
+        assert check_data_orientation(spike_event_series) is None
 
 
 def test_check_spike_times_not_in_unobserved_interval_pass():
