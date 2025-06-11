@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 from pynwb import TimeSeries
+from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
@@ -41,6 +42,12 @@ def check_regular_timestamps(
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_data_orientation(time_series: TimeSeries) -> Optional[InspectorMessage]:
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
+
+    # Skip this check for SpikeEventSeries since its data structure is (events, channels, waveform samples)
+    # and it's valid for the number of waveform samples to be larger than the number of events
+    if isinstance(time_series, SpikeEventSeries):
+        return None
+
     if time_series.data is None:
         return None
 
