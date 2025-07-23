@@ -86,9 +86,9 @@ def test_check_description_missing():
 def test_check_description_feature_extraction():
     import numpy as np
     from pynwb.ecephys import FeatureExtraction
-    from pynwb.testing.mock.ecephys import mock_ElectrodeTable
+    from pynwb.testing.mock.ecephys import mock_ElectrodesTable
 
-    electrodes = mock_ElectrodeTable()
+    electrodes = mock_ElectrodesTable()
 
     dynamic_table_region = DynamicTableRegion(
         name="electrodes", description="I am wrong", data=[0, 1, 2, 3, 4], table=electrodes
