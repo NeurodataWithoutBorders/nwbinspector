@@ -13,11 +13,13 @@ from nwbinspector.checks import (
     check_institution,
     check_keywords,
     check_processing_module_name,
+    check_session_id_no_slashes,
     check_session_start_time_future_date,
     check_session_start_time_old_date,
     check_subject_age,
     check_subject_exists,
     check_subject_id_exists,
+    check_subject_id_no_slashes,
     check_subject_proper_age_range,
     check_subject_sex,
     check_subject_species_exists,
@@ -565,3 +567,53 @@ def test_check_processing_module_name():
 def test_pass_check_processing_module_name():
     processing_module = ProcessingModule(name="ecephys", description="desc")
     assert check_processing_module_name(processing_module) is None
+
+
+def test_pass_check_session_id_no_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session001",
+    )
+    assert check_session_id_no_slashes(nwbfile) is None
+
+
+def test_check_session_id_with_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session/001",
+    )
+    assert check_session_id_no_slashes(nwbfile) == InspectorMessage(
+        message=(
+            "The session_id 'session/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_session_id_no_slashes",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_pass_check_subject_id_no_slashes():
+    subject = Subject(subject_id="subject001")
+    assert check_subject_id_no_slashes(subject) is None
+
+
+def test_check_subject_id_with_slashes():
+    subject = Subject(subject_id="subject/001")
+    assert check_subject_id_no_slashes(subject) == InspectorMessage(
+        message=(
+            "The subject_id 'subject/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_id_no_slashes",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )

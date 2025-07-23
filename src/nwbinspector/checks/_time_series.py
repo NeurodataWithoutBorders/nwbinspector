@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 from pynwb import TimeSeries
+from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
@@ -41,6 +42,12 @@ def check_regular_timestamps(
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
 def check_data_orientation(time_series: TimeSeries) -> Optional[InspectorMessage]:
     """If the TimeSeries has data, check if the longest axis (almost always time) is also the zero-axis."""
+
+    # Skip this check for SpikeEventSeries since its data structure is (events, channels, waveform samples)
+    # and it's valid for the number of waveform samples to be larger than the number of events
+    if isinstance(time_series, SpikeEventSeries):
+        return None
+
     if time_series.data is None:
         return None
 
@@ -179,6 +186,19 @@ def check_rate_is_not_zero(time_series: TimeSeries) -> Optional[InspectorMessage
     if time_series.rate == 0.0 and data_shape[0] > 1:
         return InspectorMessage(
             f"{time_series.name} has a sampling rate value of 0.0Hz but the series has more than one frame."
+        )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_rate_is_positive(time_series: TimeSeries) -> Optional[InspectorMessage]:
+    if not hasattr(time_series, "rate"):
+        return None
+
+    if time_series.rate is not None and time_series.rate < 0.0:
+        return InspectorMessage(
+            message=f"{time_series.name} has a negative sampling rate value of {time_series.rate}Hz which is not valid."
         )
 
     return None

@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   assess-file-changes:
-    uses: catalystneuro/neuroconv/.github/workflows/assess-file-changes.yml@main
+    uses: ./.github/workflows/assess-file-changes.yml
 
   detect-changelog-updates:
     needs: assess-file-changes

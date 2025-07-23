@@ -200,3 +200,14 @@ Zero Rate
 If the ``data`` field of :ref:`nwb-schema:sec-TimeSeries` has more than one frame, and according to :ref:`best_practice_data_orientation` this axis ought to be time, then the ``rate`` field should not be ``0.0``.
 
 Check function: :py::meth:`~nwbinspector.checks._time_series.check_rate_is_not_zero`
+
+
+
+. _best_practice_positive_rate:
+
+Positive Rate
+~~~~~~~~~~~~~
+
+The ``rate`` field of :ref:`nwb-schema:sec-TimeSeries` must be positive when specified. Negative sampling rates are not physically meaningful and indicate an error in the data.
+
+Check function: :py::meth:`~nwbinspector.checks._time_series.check_rate_is_positive`
