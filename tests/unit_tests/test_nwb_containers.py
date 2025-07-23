@@ -114,7 +114,9 @@ def test_no_error_raised_when_dataset_is_compressed():
 
 
 def test_hit_check_empty_string_for_optional_attribute():
-    nwbfile = NWBFile(session_description="aa", identifier="aa", session_start_time=datetime.now(), pharmacology="")
+    nwbfile = NWBFile(
+        session_description="aa", identifier="aa", session_start_time=datetime.now().astimezone(), pharmacology=""
+    )
 
     assert check_empty_string_for_optional_attribute(nwb_container=nwbfile)[0] == InspectorMessage(
         message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve my omitting '
@@ -128,7 +130,7 @@ def test_hit_check_empty_string_for_optional_attribute():
 
 
 def test_miss_check_empty_string_for_optional_attribute():
-    nwbfile = NWBFile(session_description="aa", identifier="aa", session_start_time=datetime.now())
+    nwbfile = NWBFile(session_description="aa", identifier="aa", session_start_time=datetime.now().astimezone())
     assert check_empty_string_for_optional_attribute(nwb_container=nwbfile) is None
 
 

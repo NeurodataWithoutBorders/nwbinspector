@@ -52,7 +52,9 @@ def test_check_session_start_time_old_date_fail():
 
 
 def test_check_session_start_time_future_date_pass():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1))
+    nwbfile = NWBFile(
+        session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1).astimezone()
+    )
     assert check_session_start_time_future_date(nwbfile) is None
 
 
@@ -329,7 +331,7 @@ def test_check_subject_sex_c_elegans_xx_sex():
 
 
 def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now())
+    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now().astimezone())
     assert check_subject_age(subject) is None
 
 
