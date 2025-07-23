@@ -3,11 +3,13 @@
 from typing import Optional
 
 import numpy as np
-from pynwb.ecephys import ElectricalSeries
+from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
+
+NELEMS = 200
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
@@ -37,6 +39,26 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optiona
     electrodes = electrical_series.electrodes
 
     data_shape = get_data_shape(data, strict_no_data_load=True)
+
+    # For SpikeEventSeries, only perform the check for 3D data
+    if isinstance(electrical_series, SpikeEventSeries):
+        if data_shape and len(data_shape) == 3 and data_shape[1] != len(electrodes.data):
+            if data_shape[0] == len(electrodes.data):
+                return InspectorMessage(
+                    message=(
+                        "The second dimension of data does not match the length of electrodes, "
+                        "but instead the first does. Data is oriented incorrectly and should be transposed."
+                    )
+                )
+            return InspectorMessage(
+                message=(
+                    "The second dimension of data does not match the length of electrodes. Your data may be transposed."
+                )
+            )
+        # Do not warn for 2D SpikeEventSeries
+        return None
+
+    # For other ElectricalSeries, keep the original logic
     if data_shape and len(data_shape) == 2 and data_shape[1] != len(electrodes.data):
         if data_shape[0] == len(electrodes.data):
             return InspectorMessage(
@@ -47,7 +69,7 @@ def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optiona
             )
         return InspectorMessage(
             message=(
-                "The second dimension of data does not match the length of electrodes. Your " "data may be transposed."
+                "The second dimension of data does not match the length of electrodes. Your data may be transposed."
             )
         )
 
@@ -93,4 +115,28 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
                 )
             )
 
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
+    """
+    Check that the values in the timestamps array are strictly increasing.
+
+    Best Practice :ref:`best_practice_ascending_spike_times`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    for unit_id in range(len(units_table)):
+        spike_times = units_table["spike_times"][unit_id]
+        if nelems is not None:
+            spike_times = spike_times[:nelems]
+        if not np.all(np.diff(spike_times) >= 0):
+            return InspectorMessage(
+                message=(
+                    f"Unit {unit_id} contains non-ascending spike times. "
+                    "Spike times should be sorted in ascending order."
+                )
+            )
     return None

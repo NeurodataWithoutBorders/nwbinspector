@@ -5,6 +5,7 @@ from ._behavior import (
     check_spatial_series_radians_magnitude,
 )
 from ._ecephys import (
+    check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
@@ -12,6 +13,7 @@ from ._ecephys import (
 )
 from ._general import (
     check_description,
+    check_name_colons,
     check_name_slashes,
 )
 from ._icephys import (
@@ -78,6 +80,7 @@ from ._time_series import (
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
+    check_rate_is_positive,
     check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
@@ -93,6 +96,7 @@ __all__ = [
     "check_spike_times_not_in_unobserved_interval",
     "check_description",
     "check_name_slashes",
+    "check_name_colons",
     "check_image_series_data_size",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
@@ -150,4 +154,6 @@ __all__ = [
     "check_spatial_series_radians_magnitude",
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
+    "check_ascending_spike_times",
+    "check_rate_is_positive",
 ]

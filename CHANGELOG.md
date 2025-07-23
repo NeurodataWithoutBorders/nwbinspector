@@ -1,22 +1,26 @@
-# v0.7.0 (Upcoming)
+# v0.6.4 (Upcoming)
 
 ### New Checks
 * Added checks to make sure subject_id and session_id do not contain slashes [#570](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/570)
 
+### Fixes
+* Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
+* Fix dimensionality check for SpikeEventSeries validation [#581](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/581)
 
-# v0.6.3 (February 25, 2025)
+# v0.6.3 (March 13, 2025)
 
 ### Improvements
+* Added check for negative rates in TimeSeries [#423](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/423)
+* Added check for ascending spike times in Units table [#575](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/575)
 * Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
 * Added support for Python 3.13 [#564](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/564)
-
 
 # v0.6.2
 
 ### Deprecation
 * Remove s3fs dependency, which was causing dependency management issues [#549](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/549)
 
-### Fixes
+### Fixe
 * Fix wrongly triggered compression check [#552](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/552)
 * Fixed URL inspection using the CLI [#559](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/559)
 
@@ -30,6 +34,7 @@
 
 ### Improvements
 * Added support for Numpy 2 and h5py 3.12, and pinned PyNWB to <3.0 temporarily. [#536](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/536)
+* Added best practice around not using colons in object names. [#532](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/532)
 
 ### Fixes
 * Fixed issue where the description check failed if the description was a list. [#535](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/535)
