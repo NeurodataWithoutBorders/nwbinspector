@@ -1,5 +1,8 @@
 # v0.6.4 (Upcoming)
 
+### New Checks
+* Added checks to make sure subject_id and session_id do not contain slashes [#570](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/570)
+
 ### Fixes
 * Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
 * Fixed dimensionality check for SpikeEventSeries validation [#581](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/581)
