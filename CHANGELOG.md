@@ -20,7 +20,7 @@
 ### Deprecation
 * Remove s3fs dependency, which was causing dependency management issues [#549](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/549)
 
-### Fixe
+### Fixes
 * Fix wrongly triggered compression check [#552](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/552)
 * Fixed URL inspection using the CLI [#559](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/559)
 
