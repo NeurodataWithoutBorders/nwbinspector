@@ -7,6 +7,9 @@
 * Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
 * Fix dimensionality check for SpikeEventSeries validation [#581](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/581)
 
+### Improvements
+* Added support for PyNWB 3.1 and NWB Schema 2.9 [#602](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/602)
+
 # v0.6.3 (March 13, 2025)
 
 ### Improvements
