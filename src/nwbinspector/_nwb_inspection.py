@@ -148,12 +148,7 @@ def inspect_all(
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
         except Exception as exception:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-                file_path=str(nwbfile_path),
-            )
+            continue  # read failure errors will be returned as part of inspect_nwbfile
 
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
@@ -304,10 +299,15 @@ def inspect_nwbfile(
             inspector_message.file_path = nwbfile_path  # type: ignore
             yield inspector_message
     except Exception as exception:
+        exception_name = f"{type(exception).__module__}.{type(exception).__name__}"
         yield InspectorMessage(
             message=traceback.format_exc(),
             importance=Importance.ERROR,
-            check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+            check_function_name=(
+                f"During io.read(), an error occurred: {exception_name}. "
+                f"This indicates that PyNWB was unable to read the file. "
+                f"See the traceback message for more details."
+            ),
             file_path=nwbfile_path,
         )
     finally:
