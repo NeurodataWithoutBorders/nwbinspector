@@ -664,6 +664,27 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+    def test_inspect_nwbfile_io_closed_after_inspection(self):
+        """Test that the IO object is properly closed after inspection by verifying the file can be opened."""
+        # Create new minimal NWBFile to ensure file is not open by other tests
+        nwbfile = make_minimal_nwbfile()
+        add_regular_timestamps(nwbfile)
+        nwbfile_path = self.tempdir / f"testing_io_closed{self.get_extension()}"
+        with self.BackendIOClass(path=nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+        # Run inspection and consume the entire generator
+        test_results = list(
+            inspect_nwbfile(nwbfile_path=nwbfile_path, checks=self.checks, skip_validate=self.skip_validate)
+        )
+        self.assertGreater(len(test_results), 0)
+
+        # If the IO object was properly closed, we should be able to open the file in append mode
+        # This will fail if the file handle is still open
+        with self.BackendIOClass(path=nwbfile_path, mode="a") as io:
+            nwbfile = io.read()
+            self.assertIsNotNone(nwbfile)
+
 
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     BackendIOClass = BACKEND_IO_CLASSES["zarr"]

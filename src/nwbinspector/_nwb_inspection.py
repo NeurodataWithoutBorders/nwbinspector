@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
-from .tools._read_nwbfile import read_nwbfile
+from .tools._read_nwbfile import read_nwbfile, read_nwbfile_and_io
 from .utils import (
     OptionalListOfStrings,
     PathType,
@@ -273,8 +273,9 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
+    io = None
     try:
-        in_memory_nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
+        in_memory_nwbfile, io = read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
             # TODO - update validation call when pynwb 3.0 is the minimal
@@ -310,6 +311,9 @@ def inspect_nwbfile(
             check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
             file_path=nwbfile_path,
         )
+    finally:
+        if io is not None:
+            io.close()  # close the io object in case of exceptions or when inspection is complete
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended

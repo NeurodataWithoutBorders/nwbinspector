@@ -7,6 +7,7 @@
 * Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
 * Fixed dimensionality check for SpikeEventSeries validation [#581](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/581)
 * Fixed error when checking for negative values in a time column with array data [#600](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/600)
+* Fixed issue where the io object remained open after inspection was completed. [#601](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/601)
 
 # v0.6.3 (March 13, 2025)
 
