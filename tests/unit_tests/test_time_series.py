@@ -140,7 +140,7 @@ def test_check_timestamps_match_first_dimension_special_skip(tmp_path):
     index_series.__init__(
         name="IndexSeries",
         unit="N/A",
-        data=[0, 1],
+        data=np.array([0, 1], dtype=np.uint32),
         indexed_timeseries=image_series,
         timestamps=[0.5, 0.6],
     )

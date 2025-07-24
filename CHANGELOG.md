@@ -9,6 +9,9 @@
 * Fixed error when checking for negative values in a time column with array data [#600](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/600)
 * Fixed issue where the io object remained open after inspection was completed. [#601](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/601)
 
+### Improvements
+* Added support for PyNWB 3.1 and NWB Schema 2.9 [#602](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/602)
+
 # v0.6.3 (March 13, 2025)
 
 ### Improvements

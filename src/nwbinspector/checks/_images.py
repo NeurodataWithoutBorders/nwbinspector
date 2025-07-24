@@ -37,8 +37,8 @@ def check_order_of_images_len(images: Images) -> Optional[InspectorMessage]:
 def check_index_series_points_to_image(index_series: IndexSeries) -> Optional[InspectorMessage]:
     if index_series.indexed_timeseries is not None:
         return InspectorMessage(
-            message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images "
+            message="Pointing an IndexSeries to a TimeSeries is deprecated. Please point to an Images "
             "container instead."
-        )  # TODO - update when pynwb 3.0 is the minimum version
+        )
 
     return None
