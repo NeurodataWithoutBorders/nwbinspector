@@ -470,3 +470,33 @@ def test_table_time_columns_are_not_negative_pass():
     test_table.add_row(test_time=1.0)
 
     assert check_table_time_columns_are_not_negative(test_table) is None
+
+
+def test_table_time_columns_are_not_negative_multidimensional_fail():
+    """Test that the function handles multidimensional time data with negative values."""
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_row(test_time=[-1.0, -1.0, -1.0, -1.0])
+    test_table.add_row(test_time=[-1.0, -1.0, -1.0, -1.0])
+
+    assert check_table_time_columns_are_not_negative(test_table) == [
+        InspectorMessage(
+            message="Timestamps in column test_time should not be negative."
+            " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_table_time_columns_are_not_negative",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        )
+    ]
+
+
+def test_table_time_columns_are_not_negative_multidimensional_pass():
+    """Test that the function handles multidimensional time data with positive values."""
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
+    test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
+
+    assert check_table_time_columns_are_not_negative(test_table) is None
