@@ -284,7 +284,8 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
     for column_name in table.colnames:
         if column_name.endswith("_time"):
             first_timestamp = table[column_name][0]
-            if first_timestamp < 0:
+            first_timestamp_array = np.asarray(first_timestamp)  # handle array or scalar data
+            if np.any(first_timestamp_array < 0):
                 yield InspectorMessage(
                     message=f"Timestamps in column {column_name} should not be negative."
                     " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
