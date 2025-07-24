@@ -273,8 +273,7 @@ def inspect_nwbfile(
         in_memory_nwbfile, io = read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
-            # TODO - update validation call when pynwb 3.0 is the minimal
-            validation_result = pynwb.validate(paths=[nwbfile_path])
+            validation_result = pynwb.validate(path=nwbfile_path)
             if isinstance(validation_result, tuple):
                 validation_errors = validation_result[0]
             else:

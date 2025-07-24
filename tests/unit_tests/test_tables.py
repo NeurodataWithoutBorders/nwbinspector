@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from numpy.lib import NumpyVersion
-from pynwb.file import Device, ElectrodeGroup, ElectrodeTable, TimeIntervals, Units
+from pynwb.file import Device, ElectrodeGroup, ElectrodesTable, TimeIntervals, Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -260,9 +260,7 @@ def test_check_single_row_ignore_units():
 
 
 def test_check_single_row_ignore_electrodes():
-    table = ElectrodeTable(
-        name="electrodes",
-    )  # default name when building through nwbfile
+    table = ElectrodesTable()
     table.add_row(
         location="unknown",
         group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
