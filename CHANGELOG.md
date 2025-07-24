@@ -1,4 +1,4 @@
-# v0.6.4 (Upcoming)
+# v0.6.4 (July 24, 2025)
 
 ### New Checks
 * Added checks to make sure subject_id and session_id do not contain slashes [#570](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/570)
