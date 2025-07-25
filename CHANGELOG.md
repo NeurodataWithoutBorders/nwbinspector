@@ -1,3 +1,8 @@
+# v0.6.5 (July 25, 2025)
+
+### Fixes
+* Fixed build configuration error in pyproject.toml [#605](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/605)
+
 # v0.6.4 (July 24, 2025)
 
 ### New Checks
