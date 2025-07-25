@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nwbinspector"
-version = "0.6.4"
+version = "0.6.5"
 description = "Tool to inspect NWB files for best practices compliance."
 readme = "README.md"
 authors = [
@@ -54,13 +54,9 @@ dandi = [
     "remfile",
 ]
 
-[tool.hatch.build.targets.sdist]
-packages = ["src/nwbinspector"]
-[tool.hatch.build.targets.sdist.force-include]
-"license.txt" = "license.txt"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nwbinspector"]
+sources = ["src"]
 
 
 
