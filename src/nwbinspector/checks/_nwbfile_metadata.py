@@ -20,6 +20,54 @@ species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBI
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_nwb_schema_version_official_release(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check if the NWB schema version used is an official release version.
+    
+    Unofficial versions include development versions (e.g., '2.8.0-dev'), 
+    pre-release versions (e.g., '2.8.0-alpha', '2.8.0-beta', '2.8.0-rc1'), 
+    or any version containing non-standard suffixes.
+    
+    Best Practice: Use only official, released versions of the NWB schema for 
+    production data to ensure compatibility and reproducibility.
+    """
+    try:
+        import pynwb
+        
+        # Get the schema version from the namespace catalog
+        manager = pynwb.get_manager()
+        core_namespace = manager.namespace_catalog.get_namespace('core')
+        schema_version = core_namespace.version
+        
+        # Define pattern for official release versions (semantic versioning)
+        # Official versions should match pattern: MAJOR.MINOR.PATCH (e.g., "2.8.0")
+        official_version_pattern = r'^\d+\.\d+\.\d+$'
+        
+        # Check if the version matches the official pattern
+        if not re.match(official_version_pattern, schema_version):
+            # Define common unofficial version patterns for better error messages
+            if re.match(r'^\d+\.\d+\.\d+-(dev|alpha|beta|rc\d*|pre).*$', schema_version):
+                version_type = "development or pre-release"
+            else:
+                version_type = "non-standard"
+            
+            return InspectorMessage(
+                message=(
+                    f"The NWB schema version '{schema_version}' appears to be a {version_type} version. "
+                    f"For production data, it is recommended to use only official release versions "
+                    f"(e.g., '2.8.0') to ensure compatibility and reproducibility."
+                )
+            )
+    
+    except Exception as exception:
+        # If we can't determine the schema version, don't report an error
+        # This could happen with very old versions of PyNWB or in unusual setups
+        return None
+    
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time_old_date(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """

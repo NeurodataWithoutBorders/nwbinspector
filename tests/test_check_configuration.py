@@ -106,6 +106,7 @@ class TestCheckConfiguration(TestCase):
                     "check_subject_age",
                     "check_subject_proper_age_range",
                     "check_session_id_no_slashes",
+                    "check_nwb_schema_version_official_release",
                 ],
                 BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",
