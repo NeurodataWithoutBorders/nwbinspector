@@ -24,34 +24,34 @@ PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "
 def check_nwb_schema_version_official_release(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """
     Check if the NWB schema version used is an official release version.
-    
-    Unofficial versions include development versions (e.g., '2.8.0-dev'), 
-    pre-release versions (e.g., '2.8.0-alpha', '2.8.0-beta', '2.8.0-rc1'), 
+
+    Unofficial versions include development versions (e.g., '2.8.0-dev'),
+    pre-release versions (e.g., '2.8.0-alpha', '2.8.0-beta', '2.8.0-rc1'),
     or any version containing non-standard suffixes.
-    
-    Best Practice: Use only official, released versions of the NWB schema for 
+
+    Best Practice: Use only official, released versions of the NWB schema for
     production data to ensure compatibility and reproducibility.
     """
     try:
         import pynwb
-        
+
         # Get the schema version from the namespace catalog
         manager = pynwb.get_manager()
-        core_namespace = manager.namespace_catalog.get_namespace('core')
+        core_namespace = manager.namespace_catalog.get_namespace("core")
         schema_version = core_namespace.version
-        
+
         # Define pattern for official release versions (semantic versioning)
         # Official versions should match pattern: MAJOR.MINOR.PATCH (e.g., "2.8.0")
-        official_version_pattern = r'^\d+\.\d+\.\d+$'
-        
+        official_version_pattern = r"^\d+\.\d+\.\d+$"
+
         # Check if the version matches the official pattern
         if not re.match(official_version_pattern, schema_version):
             # Define common unofficial version patterns for better error messages
-            if re.match(r'^\d+\.\d+\.\d+-(dev|alpha|beta|rc\d*|pre).*$', schema_version):
+            if re.match(r"^\d+\.\d+\.\d+-(dev|alpha|beta|rc\d*|pre).*$", schema_version):
                 version_type = "development or pre-release"
             else:
                 version_type = "non-standard"
-            
+
             return InspectorMessage(
                 message=(
                     f"The NWB schema version '{schema_version}' appears to be a {version_type} version. "
@@ -59,12 +59,12 @@ def check_nwb_schema_version_official_release(nwbfile: NWBFile) -> Optional[Insp
                     f"(e.g., '2.8.0') to ensure compatibility and reproducibility."
                 )
             )
-    
+
     except Exception as exception:
         # If we can't determine the schema version, don't report an error
         # This could happen with very old versions of PyNWB or in unusual setups
         return None
-    
+
     return None
 
 
