@@ -106,7 +106,7 @@ def make_minimal_nwbfile() -> NWBFile:
 
     TODO: replace with pynwb.mock if we can require minimal PyNWB version (or perhaps just for a testing)
     """
-    return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+    return NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1).astimezone())
 
 
 def check_streaming_enabled() -> tuple[bool, Optional[str]]:
