@@ -30,7 +30,7 @@ jobs:
           pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
 
       - name: Download testing data and set config path
-        run: dandi download "https://gui-staging.dandiarchive.org/#/dandiset/204919"
+        run: dandi download "https://sandbox.dandiarchive.org/#/dandiset/204919"
 
       - name: Run pytest
         run: pytest -rsx
