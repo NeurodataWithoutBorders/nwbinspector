@@ -8,6 +8,7 @@
   <p align="center">
     <a href="https://pypi.org/project/nwbinpsector/"><img alt="PyPI latest release version" src="https://badge.fury.io/py/nwbinspector.svg?id=py&kill_cache=1"></a>
     <a href="https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/license.txt"><img alt="License: BSD-3" src="https://img.shields.io/pypi/l/nwbinspector.svg"></a>
+    <a href="https://doi.org/10.5281/zenodo.10611726"><img src="https://zenodo.org/badge/221989104.svg" alt="DOI"></a>
   </p>
   <p align="center">
     <a href="https://github.com/psf/black"><img alt="Python code style: Black" src="https://img.shields.io/badge/python_code_style-black-000000.svg"></a>
