@@ -1,3 +1,8 @@
+# v0.6.6 (Upcoming)
+
+### Improvements
+* Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
+
 # v0.6.5 (July 25, 2025)
 
 ### Fixes
