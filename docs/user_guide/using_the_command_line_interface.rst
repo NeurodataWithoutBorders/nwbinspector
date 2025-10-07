@@ -26,8 +26,8 @@ Using the DANDI Configuration
 ------------------------------
 
 The NWBInspector includes a built-in DANDI configuration that adjusts the importance levels of certain checks to match
-DANDI archive requirements. This is useful when preparing files for upload to DANDI, as it ensures that critical
-checks required for DANDI validation are properly prioritized.
+:dandi-archive:`DANDI Archive <>` requirements. This is useful when preparing files for upload to DANDI, as it
+ensures that critical checks required for DANDI validation are properly prioritized.
 
 To use the DANDI configuration from the command line, use the ``--config`` flag with the keyword ``dandi``:
 
