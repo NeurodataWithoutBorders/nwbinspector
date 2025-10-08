@@ -1,3 +1,8 @@
+# v0.6.6 (Upcoming)
+
+### New Checks
+* Added `check_file_extension` to validate that NWB file extensions follow best practices (`.nwb`, `.nwb.h5`, or `.nwb.zarr`)
+
 # v0.6.5 (July 25, 2025)
 
 ### Fixes
