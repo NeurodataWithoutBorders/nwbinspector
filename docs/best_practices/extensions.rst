@@ -144,9 +144,9 @@ anybody who receives the data also receives the necessary data to interpret it.
 Use Attributes for small metadata related to a particular data object (Group or Dataset)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Attributes should be used mainly to store small metadata (usually less than 64 Kbytes) that
-is associated with a particular Group or Dataset. Typical uses of attributes are, e.g., to
-define the ``unit`` of measurement of a dataset or to store a short ``description`` of
+Attributes should be used mainly to store small metadata (usually less than 64 Kbytes, which is approximately 1900
+characters for a string attribute) that is associated with a particular Group or Dataset. Typical uses of
+attributes are, e.g., to define the ``unit`` of measurement of a dataset or to store a short ``description`` of
 a group or dataset. For larger data, datasets should be used instead.
 
 In practice, the main difference is that in PyNWB and MatNWB all attributes are read into memory when reading the
