@@ -22,6 +22,27 @@ the most useful of these options.
 
 
 
+Using the DANDI Configuration
+------------------------------
+
+The NWBInspector includes a built-in DANDI `configuration file <https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/src/nwbinspector/_internal_configs/dandi.inspector_config.yaml>`_
+that adjusts the importance levels of certain checks to match
+:dandi-archive:`DANDI Archive <>` requirements. This is useful when preparing files for upload to DANDI, as it
+ensures that critical checks required for DANDI validation are properly prioritized.
+
+To use the DANDI configuration from the command line, use the ``--config`` flag with the keyword ``dandi``:
+
+::
+
+    nwbinspector path/to/my/data.nwb --config dandi
+
+
+The DANDI configuration elevates certain checks (e.g. ``check_subject_exists``, ``check_subject_species_exists``, etc.)
+to ``CRITICAL`` importance, meaning they must pass for DANDI validation to succeed. A full list of the additional DANDI requirements
+can be found in the `DANDI documentation <https://docs.dandiarchive.org/user-guide-sharing/validating-files/#missing-dandi-metadata>`_.
+
+
+
 Streaming
 ---------
 
