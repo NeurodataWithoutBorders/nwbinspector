@@ -74,6 +74,37 @@ This has the same return structure as :py:class:`~nwbinspector.nwbinspector.insp
 
 
 
+Using the DANDI Configuration
+------------------------------
+
+The NWBInspector includes a built-in DANDI
+`configuration file <https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/src/nwbinspector/_internal_configs/dandi.inspector_config.yaml>`_
+that adjusts the importance levels of certain checks to match :dandi-archive:`DANDI Archive <>` requirements.
+This is useful when preparing files for upload to DANDI, as it ensures that critical checks required for DANDI
+validation are properly prioritized.
+
+To use the DANDI configuration with the library functions, use the :py:class:`~nwbinspector._configuration.load_config`
+function:
+
+.. code-block:: python
+
+    from nwbinspector import inspect_nwbfile, load_config
+
+    dandi_config = load_config("dandi")
+    results = list(inspect_nwbfile(nwbfile_path="path_to_single_nwbfile", config=dandi_config))
+
+The DANDI configuration elevates certain checks (e.g. ``check_subject_exists``, ``check_subject_species_exists``, etc.)
+to ``CRITICAL`` importance, meaning they must pass for DANDI validation to succeed. A full list of the additional DANDI
+requirements can be found in the
+`DANDI documentation <https://docs.dandiarchive.org/user-guide-sharing/validating-files/#missing-dandi-metadata>`_.
+
+.. note::
+
+    The DANDI configuration can also be used as a keyword argument with other inspection functions
+    (e.g. ``inspect_all`` and ``inspect_nwbfile_object``)
+
+
+
 .. _simple_streaming_api:
 
 Inspect a Dandiset

@@ -1,7 +1,10 @@
 # v0.6.6 (Upcoming)
 
 ### New Checks
-* Added `check_file_extension` to validate that NWB file extensions follow best practices (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
+* Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
+
+### Improvements
+* Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
 
 # v0.6.5 (July 25, 2025)
 
