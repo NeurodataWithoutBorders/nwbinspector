@@ -11,10 +11,11 @@ File Extensions
 
 NWB file paths should contain `.nwb` in their file extension to indicate that they are NWB files.
 To further help tools and users quickly identify the underlying backend type, an additional option is to attach the backend as a second suffix.
+Recommended file extensions are:
 
-- ``.nwb`` (minimum recommendation)
-- ``.nwb.h5`` (acceptable for NWB HDF5 files)
-- ``.nwb.zarr`` (acceptable for NWB Zarr stores)
+1. ``.nwb`` (minimum recommendation)
+2. ``.nwb.h5`` (also acceptable for NWB HDF5 files)
+3. ``.nwb.zarr`` (also acceptable for NWB Zarr stores)
 
 Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_file_extension`
 
