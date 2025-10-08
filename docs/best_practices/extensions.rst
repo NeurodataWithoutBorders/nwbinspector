@@ -115,6 +115,12 @@ similar scope, it is preferable to use that extension rather than creating a new
 * Extend ``DynamicTable`` to store tabular data.
 * Extend ``TimeIntervals`` to store specific annotations of intervals in time.
 
+Strive for backward compatible changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NWB is already incorporated in many tools - proposing a change that will make already released NWB datasets non-compliant will cause a lot of confusion and will lead to significant cost to update codes.
+
+
 
 Provide Documentation
 ~~~~~~~~~~~~~~~~~~~~~
