@@ -372,7 +372,7 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
 
     # Only perform the check if we can determine the file path
     if file_path is not None:
-        file_extension = "".join(Path(file_path).suffixes)  # Get all suffixes for multi-part extensions
+        file_extension = "".join(Path(file_path).suffixes)  # Concatenate all suffixes for multi-part extensions
         all_valid_extensions = [".nwb", ".nwb.h5", ".nwb.zarr"]
 
         read_io = nwbfile.get_read_io()
