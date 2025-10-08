@@ -199,3 +199,9 @@ Use the ``ndx-template`` to create new extensions
 
 By using the :nwb_extension_git:`ndx-template` to create new extensions helps ensure
 that extensions can be easily shared and reused and published via the :ndx-catalog:`NDX Catalog <>`.
+
+
+Get the community involved
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Try to reach out to colleagues working with the type of data you are trying to add support for. The more eyes you will get on your extension the better it will get.
