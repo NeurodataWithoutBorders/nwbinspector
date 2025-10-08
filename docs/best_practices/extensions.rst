@@ -2,7 +2,7 @@ Extensions
 ==========
 
 Extend the core NWB schema only when necessary. Extensions are an essential mechanism to integrate
-data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
+data with NWB that is otherwise not supported. However, we need to consider that there are certain costs associated
 with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
 to use and learn already-created extensions. As such, users should attempt to use core ``neurodata_types`` or
 pre-existing extensions before creating new ones. :ref:`hdmf-schema:sec-dynamictable`, which are used throughout the
@@ -47,7 +47,7 @@ use the ``neurodata_type_inc`` key instead. For example:
                     doc='Example extension type 2',
                     neurodata_type_def='MyNewType2',
                     groups=[NWBGroupSpec(neurodata_type_inc='MyNewType1',
-                                         doc='Included group of ype MyNewType1')]
+                                         doc='Included group of type MyNewType1')]
                 )
 
             .. code-tab:: yaml YAML
@@ -63,9 +63,9 @@ use the ``neurodata_type_inc`` key instead. For example:
                   doc: Example extension type 2
                   groups:
                   - neurodata_type_inc: MyNewType1
-                    doc: Included group of ype MyNewType1
+                    doc: Included group of type MyNewType1
 
-    .. tab:: DON'T do this
+    .. tab:: Do NOT do this
 
         .. tabs::
 
@@ -101,7 +101,7 @@ use the ``neurodata_type_inc`` key instead. For example:
                     name: custom_type1
                     doc: Example extension type 1
 
-Build on and Reuse Existing Neurodata Types
+Build on and reuse existing neurodata types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When possible, use existing types when creating extensions either by creating new ``neurodata_types`` that inherit from
@@ -115,13 +115,14 @@ similar scope, it is preferable to use that extension rather than creating a new
 * Extend :ref:`hdmf-schema:sec-dynamictable` to store tabular data.
 * Extend :ref:`nwb-schema:sec-TimeIntervals` to store specific annotations of intervals in time.
 
+
 Strive for backward compatible changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 NWB is already incorporated in many tools - proposing a change that will make already released NWB datasets non-compliant will cause a lot of confusion and will lead to significant cost to update codes.
 
 
-Provide Documentation
+Provide documentation
 ~~~~~~~~~~~~~~~~~~~~~
 
 When creating extensions be sure to provide thorough, meaningful documentation as part of the extension specification.
@@ -129,7 +130,7 @@ Explain all fields (groups, datasets, attributes, links etc.) and describe what 
 should be used.
 
 
-Write the Specification to the NWBFile
+Write the specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can store the specification (core and extension) within the NWBFile through caching.
@@ -179,7 +180,7 @@ Best practices for object names
 Names for groups, datasets, attributes, or links should typically:
 
 * **Use lowercase letters only**
-* **Use ``_`` instead of `` `` to separate parts in names**. E.g., use the name
+* **Use underscores instead of spaces to separate parts in names**. E.g., use the name
   ``starting_time`` instead of ``starting time``
 * **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
 
@@ -198,6 +199,7 @@ For defining new types via ``neurodata_type_def`` use:
 * **Use the postfix "Table" when extending a DynamicTable type.** e.g.,
   ``neurodata_type_def: LaserSettingsTable``
 * **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
+
 
 Limit flexibility: Consider data reuse and tool developers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
