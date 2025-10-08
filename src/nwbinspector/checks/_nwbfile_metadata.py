@@ -375,10 +375,11 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
         file_extension = "".join(Path(file_path).suffixes)  # Get all suffixes for multi-part extensions
         all_valid_extensions = [".nwb", ".nwb.h5", ".nwb.zarr"]
 
-        if isinstance(nwbfile.get_read_io(), NWBHDF5IO):
+        read_io = nwbfile.get_read_io()
+        if isinstance(read_io, NWBHDF5IO):
             valid_extensions = [".nwb", ".nwb.h5"]
             backend = "HDF5"
-        elif isinstance(nwbfile.get_read_io(), NWBZarrIO):
+        elif isinstance(read_io, NWBZarrIO):
             valid_extensions = [".nwb", ".nwb.zarr"]
             backend = "Zarr"
 
