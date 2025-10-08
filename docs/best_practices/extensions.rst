@@ -194,6 +194,11 @@ For defining new types via ``neurodata_type_def`` use:
   ``neurodata_type_def: LaserSettingsTable``
 * **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
 
+Limit flexibility: Consider data reuse and tool developers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One of the aims of NWB is to make reusing data easier. This means that when proposing an extension you need to put yourself in the shoes of someone who will receive an NWB dataset and attempt to analyze it. Additionally, consider developers that will try to write tools that take NWB datasets as inputs. It’s worth assessing how much additional code different ways of approaching your extension will lead to.
+
 Use the ``ndx-template`` to create new extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
