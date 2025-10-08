@@ -382,18 +382,21 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
         elif isinstance(read_io, NWBZarrIO):
             valid_extensions = [".nwb", ".nwb.zarr"]
             backend = "Zarr"
+        else:
+            valid_extensions = all_valid_extensions
+            backend = ""
 
         # check the extension contains .nwb or .nwb.h5/.nwb.zarr
         msg = (
             f"The file extension '{file_extension}' does not follow the recommended naming convention. "
             f"{backend} NWB files should use one of the following file name extensions: {', '.join(valid_extensions)}."
         )
-        if not any(pattern in file_extension for pattern in valid_extensions):
+        if not any(file_extension.endswith(pattern) for pattern in valid_extensions):
             return InspectorMessage(message=msg)
 
         # check the extension matches the backend storage type
         invalid_extensions = set(all_valid_extensions) - set(valid_extensions)
-        if any(pattern in file_extension for pattern in invalid_extensions):
+        if any(file_extension.endswith(pattern) for pattern in invalid_extensions):
             return InspectorMessage(message=msg)
 
     return None
