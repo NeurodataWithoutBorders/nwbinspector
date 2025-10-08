@@ -109,17 +109,16 @@ existing ones, or by creating ``neurodata_types`` that contain existing ones. Bu
 reuse of existing functionality and interpretation of the data. If a community extension already exists that has a
 similar scope, it is preferable to use that extension rather than creating a new one. For example:
 
-* Extend ``TimeSeries`` for storing timeseries data. NWB provides main types of ``TimeSeries``
-  and you should identify the most specific type of ``TimeSeries`` relevant for your use case
-  (e.g., extend ``ElectricalSeries`` to define a new kind of electrical recording).
-* Extend ``DynamicTable`` to store tabular data.
-* Extend ``TimeIntervals`` to store specific annotations of intervals in time.
+* Extend :ref:`nwb-schema:sec-TimeSeries` for storing timeseries data. NWB provides main types of :ref:`nwb-schema:sec-TimeSeries`
+  and you should identify the most specific type of :ref:`nwb-schema:sec-TimeSeries` relevant for your use case
+  (e.g., extend :ref:`nwb-schema:sec-ElectricalSeries` to define a new kind of electrical recording).
+* Extend :ref:`hdmf-schema:sec-dynamictable` to store tabular data.
+* Extend :ref:`nwb-schema:sec-TimeIntervals` to store specific annotations of intervals in time.
 
 Strive for backward compatible changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 NWB is already incorporated in many tools - proposing a change that will make already released NWB datasets non-compliant will cause a lot of confusion and will lead to significant cost to update codes.
-
 
 
 Provide Documentation
@@ -162,10 +161,10 @@ Often metadata relevant to a particular type of data is stored elsewhere, e.g., 
 about the ``Device`` used. To ensure relevant metadata can be uniquely identified, the data
 should include links to the relevant metadata. NWB provides a few key mechanisms for linking:
 
-* Use ``links`` (defined via ``NWBLinkSpec``) to link to a particular dataset or group
-* Use ``DynamicTableRegion`` to link to a set of rows in a ``DynamicTable``
+* Use ``links`` (defined via :py:class:`~pynwb.spec.NWBLinkSpec`) to link to a particular dataset or group
+* Use :ref:`hdmf-schema:sec-dynamictableregion` to link to a set of rows in a :ref:`hdmf-schema:sec-dynamictable`
 * Use a ``dataset`` with an object reference data type to store collections of links
-  to other objects, e.g., the following dtype to define a dataset of links to ``TimeSeries``
+  to other objects, e.g., the following dtype to define a dataset of links to :ref:`nwb-schema:sec-TimeSeries`
 
 .. code-block:: yaml
 
@@ -193,10 +192,10 @@ For defining new types via ``neurodata_type_def`` use:
 * **Use camelcase:**  notation, i.e., names of types should NOT include spaces,
   always start with an uppercase letter, and use a single capitalized letter to
   separate parts of the name. E.g,. ``neurodata_type_def: LaserMeasurement``
-* **Use the postfix ``Series`` when extending a ``TimeSeries`` type.** E.g., when
-  creating a new ``TimeSeries`` for laser measurements then add ``Series`` to
+* **Use the postfix "Series" when extending a TimeSeries type.** E.g., when
+  creating a new :ref:`nwb-schema:sec-TimeSeries` for laser measurements then add ``Series`` to
   the type name, e.g,. ``neurodata_type_def: LaserMeasurementSeries``
-* **Use the postfix ``Table`` when extending a ``DynamicTable`` type.** e.g.,
+* **Use the postfix "Table" when extending a DynamicTable type.** e.g.,
   ``neurodata_type_def: LaserSettingsTable``
 * **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
 
@@ -204,6 +203,7 @@ Limit flexibility: Consider data reuse and tool developers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 One of the aims of NWB is to make reusing data easier. This means that when proposing an extension you need to put yourself in the shoes of someone who will receive an NWB dataset and attempt to analyze it. Additionally, consider developers that will try to write tools that take NWB datasets as inputs. It’s worth assessing how much additional code different ways of approaching your extension will lead to.
+
 
 Use the ``ndx-template`` to create new extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
