@@ -1,24 +1,21 @@
 import h5py
-import pynwb
-import pytest
 import numpy as np
-from packaging import version
+import pynwb
 
-
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
-    check_regular_timestamps,
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import (
     check_data_orientation,
-    check_timestamps_match_first_dimension,
-    check_timestamps_ascending,
     check_missing_unit,
+    check_rate_is_not_zero,
+    check_rate_is_positive,
+    check_regular_timestamps,
     check_resolution,
     check_timestamp_of_the_first_sample_is_not_negative,
+    check_timestamps_ascending,
+    check_timestamps_match_first_dimension,
+    check_timestamps_without_nans,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-from nwbinspector.testing import check_streaming_tests_enabled
-from nwbinspector.utils import get_package_version, robust_s3_read
+from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
@@ -33,7 +30,7 @@ def test_check_regular_timestamps():
         )
     ) == InspectorMessage(
         message=(
-            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=2.0 "
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=0.5 "
             "instead of timestamps."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -128,22 +125,27 @@ def test_check_timestamps_match_first_dimension_special_skip(tmp_path):
     image_height = 15
     num_channels = 3
     dtype = "uint8"
-    image_series = pynwb.image.ImageSeries(
+
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    image_series = pynwb.image.ImageSeries.__new__(pynwb.image.ImageSeries, in_construct_mode=True)
+    image_series.__init__(
         name="ImageSeries",
-        unit="n.a.",
+        unit="N/A",
         data=np.empty(shape=(num_images, image_width, image_height, num_channels), dtype=dtype),
         timestamps=[],
     )
-    nwbfile.add_acquisition(image_series)
-    nwbfile.add_acquisition(
-        pynwb.image.IndexSeries(
-            name="IndexSeries",
-            unit="n.a.",
-            data=[0, 1],
-            indexed_timeseries=image_series,
-            timestamps=[0.5, 0.6],
-        )
+
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for deprecated indexed_timeseries
+    index_series = pynwb.image.IndexSeries.__new__(pynwb.image.IndexSeries, in_construct_mode=True)
+    index_series.__init__(
+        name="IndexSeries",
+        unit="N/A",
+        data=np.array([0, 1], dtype=np.uint32),
+        indexed_timeseries=image_series,
+        timestamps=[0.5, 0.6],
     )
+    nwbfile.add_acquisition(image_series)
+    nwbfile.add_acquisition(index_series)
 
     with pynwb.NWBHDF5IO(path=nwbfile_path, mode="w") as io:
         io.write(nwbfile)
@@ -156,14 +158,15 @@ def test_check_timestamps_match_first_dimension_special_skip(tmp_path):
 
 
 def test_check_timestamps_match_first_dimension_bad():
-    assert check_timestamps_match_first_dimension(
-        time_series=pynwb.TimeSeries(
-            name="test_time_series",
-            unit="test_units",
-            data=np.empty(shape=4),
-            timestamps=[1.0, 2.0, 3.0],
-        )
-    ) == InspectorMessage(
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(
+        name="test_time_series",
+        unit="test_units",
+        data=np.empty(shape=4),
+        timestamps=[1.0, 2.0, 3.0],
+    )
+    assert check_timestamps_match_first_dimension(time_series=time_series) == InspectorMessage(
         message="The length of the first dimension of data (4) does not match the length of timestamps (3).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -174,9 +177,15 @@ def test_check_timestamps_match_first_dimension_bad():
 
 
 def test_check_timestamps_empty_data():
-    assert check_timestamps_match_first_dimension(
-        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[], timestamps=[1.0, 2.0, 3.0])
-    ) == InspectorMessage(
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(
+        name="test_time_series",
+        unit="test_units",
+        data=[],
+        timestamps=[1.0, 2.0, 3.0],
+    )
+    assert check_timestamps_match_first_dimension(time_series=time_series) == InspectorMessage(
         message="The length of the first dimension of data (0) does not match the length of timestamps (3).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -187,9 +196,15 @@ def test_check_timestamps_empty_data():
 
 
 def test_check_timestamps_empty_timestamps():
-    assert check_timestamps_match_first_dimension(
-        time_series=pynwb.TimeSeries(name="test_time_series", unit="test_units", data=np.empty(shape=4), timestamps=[])
-    ) == InspectorMessage(
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(
+        name="test_time_series",
+        unit="test_units",
+        data=np.empty(shape=4),
+        timestamps=[],
+    )
+    assert check_timestamps_match_first_dimension(time_series=time_series) == InspectorMessage(
         message="The length of the first dimension of data (4) does not match the length of timestamps (0).",
         importance=Importance.CRITICAL,
         check_function_name="check_timestamps_match_first_dimension",
@@ -199,8 +214,37 @@ def test_check_timestamps_empty_timestamps():
     )
 
 
+def test_check_rate_is_not_zero_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1, 2, 3], rate=4.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_single_frame_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=[1], rate=0.0)
+    assert check_rate_is_not_zero(time_series) is None
+
+
+def test_check_rate_is_not_zero_fail():
+    time_series = pynwb.TimeSeries(name="TimeSeriesTest", unit="n.a.", data=[1, 2, 3], rate=0.0)
+    assert check_rate_is_not_zero(time_series) == InspectorMessage(
+        message="TimeSeriesTest has a sampling rate value of 0.0Hz but the series has more than one frame.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_rate_is_not_zero",
+        object_type="TimeSeries",
+        object_name="TimeSeriesTest",
+        location="/",
+    )
+
+
 def test_pass_check_timestamps_ascending_pass():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_ascending(time_series) is None
+
+
+def test_pass_check_timestamps_ascending_with_nans_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, np.nan, 3]
+    )
     assert check_timestamps_ascending(time_series) is None
 
 
@@ -216,12 +260,44 @@ def test_check_timestamps_ascending_fail():
     )
 
 
+def test_check_timestamps_ascending_with_nans_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 3, 2]
+    )
+    assert check_timestamps_ascending(time_series) == InspectorMessage(
+        message="test_time_series timestamps are not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_ascending",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamps_without_nans_pass():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
+    assert check_timestamps_without_nans(time_series) is None
+
+
+def test_check_timestamps_without_nans_fail():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 2, 3]
+    )
+    assert check_timestamps_without_nans(time_series) == InspectorMessage(
+        message="test_time_series timestamps contain NaN values.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_without_nans",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
 def test_check_timestamp_of_the_first_sample_is_not_negative_with_timestamps_fail():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[-1, 0, 1])
     message = (
-        "Timestamps should not be negative."
-        " It is recommended to align the `session_start_time` or `timestamps_reference_time` "
-        "to be the earliest time value that occurs in the data, and shift all other signals accordingly."
+        "Timestamps should not be negative. This usually indicates a temporal misalignment of the data. "
+        "It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
     )
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
         message=message,
@@ -239,14 +315,15 @@ def test_check_timestamp_of_the_first_sample_is_not_negative_with_timestamps_pas
 
 
 def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_fail():
+
     time_series = pynwb.TimeSeries(
         name="test_time_series", unit="test_units", data=[1, 2, 3], starting_time=-1.0, rate=30.0
     )
     message = (
-        "Timestamps should not be negative."
-        " It is recommended to align the `session_start_time` or `timestamps_reference_time` "
-        "to be the earliest time value that occurs in the data, and shift all other signals accordingly."
+        "Timestamps should not be negative. This usually indicates a temporal misalignment of the data. "
+        "It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
     )
+
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) == InspectorMessage(
         message=message,
         importance=Importance.BEST_PRACTICE_SUGGESTION,
@@ -292,32 +369,6 @@ def test_check_unknown_resolution_pass():
         assert check_resolution(time_series) is None
 
 
-@pytest.mark.skipif(
-    not STREAMING_TESTS_ENABLED or get_package_version("hdmf") >= version.parse("3.3.1"),
-    reason=f"{DISABLED_STREAMING_TESTS_REASON or ''}. Also needs 'hdmf<3.3.1'.",
-)
-def test_check_none_matnwb_resolution_pass():
-    """
-    Special test on the original problematic file found at
-
-    https://dandiarchive.org/dandiset/000065/draft/files?location=sub-Kibbles%2F
-
-    produced with MatNWB, when read with PyNWB~=2.0.1 and HDMF<=3.2.1 contains a resolution value of None.
-    """
-    with pynwb.NWBHDF5IO(
-        path="https://dandiarchive.s3.amazonaws.com/blobs/da5/107/da510761-653e-4b81-a330-9cdae4838180",
-        mode="r",
-        load_namespaces=True,
-        driver="ros3",
-    ) as io:
-        nwbfile = robust_s3_read(command=io.read)
-        time_series = robust_s3_read(
-            command=nwbfile.processing["video_files"]["video"].time_series.get,
-            command_args=["20170203_KIB_01_s1.1.h264"],
-        )
-    assert check_resolution(time_series) is None
-
-
 def test_check_resolution_fail():
     time_series = pynwb.TimeSeries(name="test", unit="test", data=[1, 2, 3], timestamps=[1, 2, 3], resolution=-2.0)
     assert check_resolution(time_series) == InspectorMessage(
@@ -326,5 +377,39 @@ def test_check_resolution_fail():
         check_function_name="check_resolution",
         object_type="TimeSeries",
         object_name="test",
+        location="/",
+    )
+
+
+def test_check_rate_is_positive_pass():
+    time_series = pynwb.TimeSeries(name="test", unit="test_units", data=np.array([1, 2, 3]), rate=4.0)
+    assert check_rate_is_positive(time_series) is None
+
+
+def test_check_rate_is_positive_none_pass():
+    time_series = pynwb.TimeSeries(
+        name="test", unit="test_units", data=np.array([1, 2, 3]), timestamps=np.array([1, 2, 3])
+    )
+    assert check_rate_is_positive(time_series) is None
+
+
+# @pytest.mark.skipif(
+#    version.parse(pynwb.__version__) >= version.parse("2.5.0"),
+#    reason="pynwb >= 2.5.0 prevents setting negative rates"
+# )
+
+
+def test_check_rate_is_positive_fail():
+    # Use __new__ and in_construct_mode=True to bypass pynwb validation
+    rate = -2.0
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(name="TimeSeriesTest", unit="n.a.", data=np.array([1, 2, 3]), rate=rate)
+
+    assert check_rate_is_positive(time_series) == InspectorMessage(
+        message=f"TimeSeriesTest has a negative sampling rate value of {rate}Hz which is not valid.",
+        importance=Importance.CRITICAL,
+        check_function_name="check_rate_is_positive",
+        object_type="TimeSeries",
+        object_name="TimeSeriesTest",
         location="/",
     )

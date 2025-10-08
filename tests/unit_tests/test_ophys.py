@@ -3,27 +3,26 @@ from unittest import TestCase
 from uuid import uuid4
 
 import numpy as np
+from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
-from pynwb.device import Device
+from pynwb.device import Device, DeviceModel
 from pynwb.ophys import (
-    OpticalChannel,
     ImageSegmentation,
-    RoiResponseSeries,
     ImagingPlane,
+    OpticalChannel,
     PlaneSegmentation,
+    RoiResponseSeries,
     TwoPhotonSeries,
 )
-from hdmf.common.table import DynamicTableRegion, DynamicTable
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import (
+    check_emission_lambda_in_nm,
+    check_excitation_lambda_in_nm,
+    check_image_series_data_size,  # Technically an ImageSeries check, but test is more convenient here
+    check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
-    check_excitation_lambda_in_nm,
-    check_emission_lambda_in_nm,
-    check_plane_segmentation_image_mask_shape_against_ref_images,
-    check_image_series_data_size,  # Technically an ImageSeries check, but test is more convenient here
 )
 
 
@@ -33,9 +32,12 @@ class TestCheckRoiResponseSeries(TestCase):
             session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
         )
 
-        device = nwbfile.create_device(
-            name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+        device_model = nwbfile.create_device_model(
+            name="My Microscope",
+            description="My two-photon microscope",
+            manufacturer="The best microscope manufacturer",
         )
+        device = nwbfile.create_device(name="Microscope", description="My two-photon microscope", model=device_model)
         optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
         imaging_plane = nwbfile.create_imaging_plane(
             name="ImagingPlane",
@@ -181,9 +183,10 @@ class TestCheckRoiResponseSeries(TestCase):
 
 
 def test_check_excitation_lambda_in_nm():
-    device = Device(
-        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    device_model = DeviceModel(
+        name="My Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
+    device = Device(name="Microscope", description="My two-photon microscope", model=device_model)
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     imaging_plane = ImagingPlane(
         name="ImagingPlane",
@@ -204,9 +207,10 @@ def test_check_excitation_lambda_in_nm():
 
 
 def test_pass_check_excitation_lambda_in_nm():
-    device = Device(
-        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    device_model = DeviceModel(
+        name="My Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
+    device = Device(name="Microscope", description="My two-photon microscope", model=device_model)
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     imaging_plane = ImagingPlane(
         name="ImagingPlane",
@@ -237,9 +241,10 @@ def test_pass_check_emission_lambda_in_nm():
 
 
 def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
-    device = Device(
-        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    device_model = DeviceModel(
+        name="My Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
+    device = Device(name="Microscope", description="My two-photon microscope", model=device_model)
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     imaging_plane = ImagingPlane(
         name="ImagingPlane",
@@ -276,9 +281,10 @@ def test_pass_check_plane_segmentation_image_mask_dims_against_imageseries():
 
 
 def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
-    device = Device(
-        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    device_model = DeviceModel(
+        name="My Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
+    device = Device(name="Microscope", description="My two-photon microscope", model=device_model)
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     imaging_plane = ImagingPlane(
         name="ImagingPlane",
@@ -324,9 +330,10 @@ def test_fail_check_plane_segmentation_image_mask_dims_against_imageseries():
 
 
 def test_false_positive_skip_check_image_series_data_size():
-    device = Device(
-        name="Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
+    device_model = DeviceModel(
+        name="My Microscope", description="My two-photon microscope", manufacturer="The best microscope manufacturer"
     )
+    device = Device(name="Microscope", description="My two-photon microscope", model=device_model)
     optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
     imaging_plane = ImagingPlane(
         name="ImagingPlane",

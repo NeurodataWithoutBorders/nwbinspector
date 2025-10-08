@@ -1,16 +1,22 @@
-from jsonschema import ValidationError
 from unittest import TestCase
+
+from jsonschema import ValidationError
 
 from nwbinspector import (
     Importance,
-    check_small_dataset_compression,
-    check_regular_timestamps,
-    check_data_orientation,
-    check_timestamps_match_first_dimension,
     available_checks,
+    configure_checks,
     default_check_registry,
+    load_config,
+    validate_config,
 )
-from nwbinspector.nwbinspector import validate_config, configure_checks, _copy_function, load_config
+from nwbinspector._configuration import _copy_function
+from nwbinspector.checks import (
+    check_data_orientation,
+    check_regular_timestamps,
+    check_small_dataset_compression,
+    check_timestamps_match_first_dimension,
+)
 
 
 class TestCheckConfiguration(TestCase):
@@ -93,11 +99,13 @@ class TestCheckConfiguration(TestCase):
                 CRITICAL=[
                     "check_subject_exists",
                     "check_subject_id_exists",
+                    "check_subject_id_no_slashes",
                     "check_subject_sex",
                     "check_subject_species_exists",
                     "check_subject_species_form",
                     "check_subject_age",
                     "check_subject_proper_age_range",
+                    "check_session_id_no_slashes",
                 ],
                 BEST_PRACTICE_VIOLATION=[
                     "check_data_orientation",

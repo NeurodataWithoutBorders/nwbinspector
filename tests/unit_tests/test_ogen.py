@@ -1,17 +1,19 @@
-from unittest import TestCase
 from datetime import datetime
+from unittest import TestCase
 
-from pynwb.ogen import OptogeneticSeries
 from pynwb.device import Device
 from pynwb.file import NWBFile
+from pynwb.ogen import OptogeneticSeries
 
-from nwbinspector import check_optogenetic_stimulus_site_has_optogenetic_series
+from nwbinspector.checks import check_optogenetic_stimulus_site_has_optogenetic_series
 
 
 class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
     def setUp(self) -> None:
         self.nwbfile = NWBFile(
-            session_description="session_description", identifier="identifier", session_start_time=datetime.now()
+            session_description="session_description",
+            identifier="identifier",
+            session_start_time=datetime.now().astimezone(),
         )
 
         device = Device(name="device_name")
@@ -39,5 +41,5 @@ class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
     def test_check_triggered(self):
         assert (
             check_optogenetic_stimulus_site_has_optogenetic_series(self.ogen_site).message
-            == "OptogeneticStimulusSite is not referenced by any OptogeneticStimulusSite."
+            == "OptogeneticStimulusSite is not referenced by any OptogeneticSeries."
         )

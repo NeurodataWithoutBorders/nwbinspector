@@ -1,25 +1,32 @@
-import os
-import pytest
-from shutil import rmtree
-from tempfile import mkdtemp
-from pathlib import Path
-from unittest import TestCase
+"""Test the API functions related to streaming."""
 
-from nwbinspector import Importance
-from nwbinspector import inspect_all
-from nwbinspector.register_checks import InspectorMessage
+import pytest
+
+from nwbinspector import (
+    Importance,
+    InspectorMessage,
+    inspect_all,
+    inspect_dandi_file_path,
+    inspect_dandiset,
+    inspect_url,
+)
 from nwbinspector.testing import check_streaming_tests_enabled
-from nwbinspector.utils import FilePathType
 
 STREAMING_TESTS_ENABLED, DISABLED_STREAMING_TESTS_REASON = check_streaming_tests_enabled()
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_dandiset_streaming():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True))
-    assert messages[0] == InspectorMessage(
+def test_inspect_all_streaming():
+    dandiset_id = "000126"
+    select = ["check_subject_species_exists"]
+
+    test_messages = list(inspect_all(path=dandiset_id, stream=True, select=select))
+    assert len(test_messages) == 1
+
+    test_message = test_messages[0]
+    expected_message = InspectorMessage(
         message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.CRITICAL,  # Uses dandi config by default
         check_function_name="check_subject_species_exists",
         object_type="Subject",
         object_name="subject",
@@ -27,13 +34,21 @@ def test_dandiset_streaming():
         file_path="sub-1/sub-1.nwb",
     )
 
+    assert test_message == expected_message
+
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-def test_dandiset_streaming_parallel():
-    messages = list(inspect_all(path="000126", select=["check_subject_species_exists"], stream=True, n_jobs=2))
-    assert messages[0] == InspectorMessage(
+def test_inspect_dandiset():
+    dandiset_id = "000126"
+    select = ["check_subject_species_exists"]
+
+    test_messages = list(inspect_dandiset(dandiset_id=dandiset_id, select=select))
+    assert len(test_messages) == 1
+
+    test_message = test_messages[0]
+    expected_message = InspectorMessage(
         message="Subject species is missing.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.CRITICAL,  # Uses dandi config by default
         check_function_name="check_subject_species_exists",
         object_type="Subject",
         object_name="subject",
@@ -41,35 +56,51 @@ def test_dandiset_streaming_parallel():
         file_path="sub-1/sub-1.nwb",
     )
 
+    assert test_message == expected_message
+
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
-class TestStreamingCLI(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tempdir = Path(mkdtemp())
+def test_inspect_dandi_file_path():
+    dandiset_id = "000126"
+    dandi_file_path = "sub-1/sub-1.nwb"
+    select = ["check_subject_species_exists"]
 
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(cls.tempdir)
+    test_messages = list(
+        inspect_dandi_file_path(dandi_file_path=dandi_file_path, dandiset_id=dandiset_id, select=select)
+    )
+    assert len(test_messages) == 1
 
-    def assertFileExists(self, path: FilePathType):
-        path = Path(path)
-        assert path.exists()
+    test_message = test_messages[0]
+    expected_message = InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.CRITICAL,  # Uses dandi config by default
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path=dandi_file_path,
+    )
 
-    def test_dandiset_streaming_cli(self):
-        console_output_file = self.tempdir / "test_console_streaming_output_1.txt"
-        os.system(
-            f"nwbinspector 000126 --stream "
-            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_6.txt'}"
-            f"> {console_output_file}"
-        )
-        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_6.txt")
+    assert test_message == expected_message
 
-    def test_dandiset_streaming_cli_parallel(self):
-        console_output_file = self.tempdir / "test_console_streaming_output_2.txt"
-        os.system(
-            f"nwbinspector https://dandiarchive.org/dandiset/000126/0.210813.0327 --stream --n-jobs 2 "
-            f"--report-file-path {self.tempdir / 'test_nwbinspector_streaming_report_7.txt'}"
-            f"> {console_output_file}"
-        )
-        self.assertFileExists(path=self.tempdir / "test_nwbinspector_streaming_report_7.txt")
+
+@pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+def test_inspect_url():
+    url = "https://dandiarchive.s3.amazonaws.com/blobs/11e/c89/11ec8933-1456-4942-922b-94e5878bb991"
+    select = ["check_subject_species_exists"]
+
+    test_messages = list(inspect_url(url=url, select=select))
+    assert len(test_messages) == 1
+
+    test_message = test_messages[0]
+    expected_message = InspectorMessage(
+        message="Subject species is missing.",
+        importance=Importance.CRITICAL,  # Uses dandi config by default
+        check_function_name="check_subject_species_exists",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+        file_path=url,
+    )
+
+    assert test_message == expected_message

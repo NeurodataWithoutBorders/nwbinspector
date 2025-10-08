@@ -1,32 +1,32 @@
-from uuid import uuid4
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from pynwb import NWBFile, ProcessingModule
 from pynwb.file import Subject
 
-from nwbinspector import (
-    InspectorMessage,
-    Importance,
+from nwbinspector import Importance, InspectorMessage
+from nwbinspector.checks import (
+    check_doi_publications,
+    check_experiment_description,
     check_experimenter_exists,
     check_experimenter_form,
-    check_experiment_description,
     check_institution,
     check_keywords,
-    check_doi_publications,
+    check_processing_module_name,
+    check_session_id_no_slashes,
+    check_session_start_time_future_date,
+    check_session_start_time_old_date,
+    check_subject_age,
     check_subject_exists,
     check_subject_id_exists,
-    check_subject_sex,
-    check_subject_age,
+    check_subject_id_no_slashes,
     check_subject_proper_age_range,
+    check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
-    check_processing_module_name,
-    check_session_start_time_old_date,
-    check_session_start_time_future_date,
-    PROCESSING_MODULE_CONFIG,
 )
-from nwbinspector.tools import make_minimal_nwbfile
-
+from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
+from nwbinspector.testing import make_minimal_nwbfile
 
 minimal_nwbfile = make_minimal_nwbfile()
 
@@ -52,7 +52,9 @@ def test_check_session_start_time_old_date_fail():
 
 
 def test_check_session_start_time_future_date_pass():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1))
+    nwbfile = NWBFile(
+        session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1).astimezone()
+    )
     assert check_session_start_time_future_date(nwbfile) is None
 
 
@@ -329,14 +331,14 @@ def test_check_subject_sex_c_elegans_xx_sex():
 
 
 def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now())
+    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now().astimezone())
     assert check_subject_age(subject) is None
 
 
 def test_check_subject_age_missing():
     subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
-        message="Subject is missing age and date_of_birth.",
+        message="Subject is missing age and date_of_birth. Please specify at least one of these fields.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age",
         object_type="Subject",
@@ -482,7 +484,10 @@ def test_check_subject_species_not_binomial():
     subject = Subject(subject_id="001", species="Human")
 
     assert check_subject_species_form(subject) == InspectorMessage(
-        message="Subject species 'Human' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        message=(
+            "Subject species 'Human' should either be in Latin binomial form (e.g., 'Mus musculus' and "
+            "'Homo sapiens') or be a NCBI taxonomy link (e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_form",
         object_type="Subject",
@@ -495,7 +500,10 @@ def test_check_subject_species_c_elegans():
     subject = Subject(subject_id="001", species="C. elegans")
 
     assert check_subject_species_form(subject) == InspectorMessage(
-        message="Subject species 'C. elegans' should be in latin binomial form, e.g. 'Mus musculus' and 'Homo sapiens'",
+        message=(
+            "Subject species 'C. elegans' should either be in Latin binomial form (e.g., 'Mus musculus' and "
+            "'Homo sapiens') or be a NCBI taxonomy link (e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
+        ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_subject_species_form",
         object_type="Subject",
@@ -544,7 +552,7 @@ def test_pass_check_subject_id_exist():
 
 
 def test_check_processing_module_name():
-    processing_module = ProcessingModule("test", "desc")
+    processing_module = ProcessingModule(name="test", description="desc")
     assert check_processing_module_name(processing_module) == InspectorMessage(
         message=(
             f"Processing module is named test. It is recommended to use the schema "
@@ -559,5 +567,55 @@ def test_check_processing_module_name():
 
 
 def test_pass_check_processing_module_name():
-    processing_module = ProcessingModule("ecephys", "desc")
+    processing_module = ProcessingModule(name="ecephys", description="desc")
     assert check_processing_module_name(processing_module) is None
+
+
+def test_pass_check_session_id_no_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session001",
+    )
+    assert check_session_id_no_slashes(nwbfile) is None
+
+
+def test_check_session_id_with_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session/001",
+    )
+    assert check_session_id_no_slashes(nwbfile) == InspectorMessage(
+        message=(
+            "The session_id 'session/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_session_id_no_slashes",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_pass_check_subject_id_no_slashes():
+    subject = Subject(subject_id="subject001")
+    assert check_subject_id_no_slashes(subject) is None
+
+
+def test_check_subject_id_with_slashes():
+    subject = Subject(subject_id="subject/001")
+    assert check_subject_id_no_slashes(subject) == InspectorMessage(
+        message=(
+            "The subject_id 'subject/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_id_no_slashes",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )

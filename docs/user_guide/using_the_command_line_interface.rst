@@ -22,21 +22,48 @@ the most useful of these options.
 
 
 
+Using the DANDI Configuration
+------------------------------
+
+The NWBInspector includes a built-in DANDI `configuration file <https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/src/nwbinspector/_internal_configs/dandi.inspector_config.yaml>`_
+that adjusts the importance levels of certain checks to match
+:dandi-archive:`DANDI Archive <>` requirements. This is useful when preparing files for upload to DANDI, as it
+ensures that critical checks required for DANDI validation are properly prioritized.
+
+To use the DANDI configuration from the command line, use the ``--config`` flag with the keyword ``dandi``:
+
+::
+
+    nwbinspector path/to/my/data.nwb --config dandi
+
+
+The DANDI configuration elevates certain checks (e.g. ``check_subject_exists``, ``check_subject_species_exists``, etc.)
+to ``CRITICAL`` importance, meaning they must pass for DANDI validation to succeed. A full list of the additional DANDI requirements
+can be found in the `DANDI documentation <https://docs.dandiarchive.org/user-guide-sharing/validating-files/#missing-dandi-metadata>`_.
+
+
+
 Streaming
 ---------
 
-If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it. All that is needed is to specfy the DANDI set ID (six-digit identifier) as the path and add the ``--stream`` flag.
+If the NWB file(s) you wish to inspect are already on the :dandi-archive:`DANDI archive <>`, you can run the NWB Inspector directly on that DANDI set instead of having to download it.
+
+To use this feature, some additional dependencies must be installed using:
+
+.. code-block:: bash
+
+    pip install "nwbinspector[dandi]"
+
+
+Then, all that is needed is to specify the DANDI set ID (six-digit identifier) as the path and add the ``--stream`` flag.
 
 ::
 
     nwbinspector 000017 --stream
 
-This usage will require you to install the ROS3 driver - the general tutorial for ROS3 streaming of NWB files can be found on the :ros3-tutorial:`PyNWB documentation <>`. See :ref:`simple_streaming_api` for a more advanced tutorial using the API functions.
-
 .. note::
 
-    You can also specify the exact S3 path instead of the DANDI set ID, if known. When specifying only the DANDI set ID, the S3 paths of all NWB assets are automatically fetched for your convenience.
-
+    The default configuration becomes ``"dandi"`` when streaming contents on the archive.
 
 
 
@@ -75,7 +102,7 @@ For example,
     numbers like ``"0, 1"``.
 
 
-The defalt report also aggregates identical outputs into a summary over multiple files; running
+The default report also aggregates identical outputs into a summary over multiple files; running
 
 ::
 
