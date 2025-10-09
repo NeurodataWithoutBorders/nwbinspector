@@ -5,6 +5,10 @@
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
+* Updated report summary to include number of files detected and indicate when no issues are found. [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
+
+### Fixes
+* Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
 
 # v0.6.5 (July 25, 2025)
 
