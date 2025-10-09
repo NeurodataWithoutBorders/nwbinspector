@@ -10,6 +10,7 @@ from nwbinspector.checks import (
     check_rate_is_positive,
     check_regular_timestamps,
     check_resolution,
+    check_time_series_duration,
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
@@ -413,3 +414,104 @@ def test_check_rate_is_positive_fail():
         object_name="TimeSeriesTest",
         location="/",
     )
+
+
+def test_check_time_series_duration_pass_short_duration_with_timestamps():
+    """Test that a short duration TimeSeries with timestamps passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        timestamps=np.linspace(0, 100, 100),  # 100 seconds, much less than 1 year
+    )
+    assert check_time_series_duration(time_series) is None
+
+
+def test_check_time_series_duration_pass_short_duration_with_rate():
+    """Test that a short duration TimeSeries with rate passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=1000),
+        starting_time=0.0,
+        rate=10.0,  # 1000 samples at 10Hz = 100 seconds
+    )
+    assert check_time_series_duration(time_series) is None
+
+
+def test_check_time_series_duration_fail_with_timestamps():
+    """Test that a TimeSeries exceeding 1 year duration with timestamps fails."""
+    # Create timestamps spanning more than 1 year (31557600 seconds)
+    one_year = 31557600.0
+    time_series = pynwb.TimeSeries(
+        name="long_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        timestamps=np.linspace(0, one_year + 1000, 100),  # Exceeds 1 year
+    )
+    result = check_time_series_duration(time_series)
+    assert result is not None
+    assert "long_time_series" in result.message
+    assert "exceeds the threshold" in result.message
+    assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
+
+
+def test_check_time_series_duration_fail_with_rate():
+    """Test that a TimeSeries exceeding 1 year duration with rate fails."""
+    # Create a time series with more than 1 year of data
+    one_year = 31557600.0
+    rate = 1.0  # 1 Hz
+    num_samples = int(one_year + 1000)  # More than 1 year worth of samples
+    time_series = pynwb.TimeSeries(
+        name="long_time_series",
+        unit="test_units",
+        data=np.zeros(shape=num_samples),
+        starting_time=0.0,
+        rate=rate,
+    )
+    result = check_time_series_duration(time_series)
+    assert result is not None
+    assert "long_time_series" in result.message
+    assert "exceeds the threshold" in result.message
+    assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
+
+
+def test_check_time_series_duration_pass_custom_threshold():
+    """Test that the custom duration threshold works correctly."""
+    # Create a TimeSeries with 200 seconds duration
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        timestamps=np.linspace(0, 200, 100),
+    )
+    # Should fail with a threshold of 100 seconds
+    result = check_time_series_duration(time_series, duration_threshold=100.0)
+    assert result is not None
+    
+    # Should pass with a threshold of 300 seconds
+    result = check_time_series_duration(time_series, duration_threshold=300.0)
+    assert result is None
+
+
+def test_check_time_series_duration_pass_single_sample():
+    """Test that TimeSeries with a single sample passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=1),
+        timestamps=[0],
+    )
+    assert check_time_series_duration(time_series) is None
+
+
+def test_check_time_series_duration_pass_two_samples():
+    """Test that TimeSeries with only two samples passes (duration cannot be calculated reliably)."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=2),
+        timestamps=[0, 1],
+    )
+    # Should pass - even though there's a duration, with only 2 samples we skip
+    assert check_time_series_duration(time_series) is None

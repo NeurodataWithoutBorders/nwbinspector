@@ -202,3 +202,51 @@ def check_rate_is_positive(time_series: TimeSeries) -> Optional[InspectorMessage
         )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
+def check_time_series_duration(
+    time_series: TimeSeries, duration_threshold: float = 31557600.0
+) -> Optional[InspectorMessage]:
+    """
+    Check if the TimeSeries duration is longer than the specified threshold.
+
+    The default threshold is 1 year (31,557,600 seconds = 365.25 days).
+    Duration is calculated from either timestamps or starting_time + rate + data length.
+    """
+    if time_series.data is None:
+        return None
+
+    data_shape = get_data_shape(time_series.data)
+    if data_shape is None or data_shape[0] <= 1:
+        return None
+
+    duration = None
+
+    # Calculate duration from timestamps if available
+    if time_series.timestamps is not None:
+        timestamps_shape = get_data_shape(time_series.timestamps)
+        if timestamps_shape is not None and timestamps_shape[0] > 1:
+            first_timestamp = time_series.timestamps[0]
+            last_timestamp = time_series.timestamps[-1]
+            duration = float(last_timestamp - first_timestamp)
+
+    # Calculate duration from starting_time and rate if timestamps not available
+    elif time_series.starting_time is not None and time_series.rate is not None and time_series.rate > 0:
+        num_samples = data_shape[0]
+        duration = (num_samples - 1) / time_series.rate
+
+    # If we have a duration, check if it exceeds the threshold
+    if duration is not None and duration > duration_threshold:
+        # Convert threshold to years for the message (assuming 1 year = 365.25 days)
+        threshold_years = duration_threshold / 31557600.0
+        duration_years = duration / 31557600.0
+        return InspectorMessage(
+            message=(
+                f"TimeSeries '{time_series.name}' has a duration of {duration:.2f} seconds ({duration_years:.2f} years), "
+                f"which exceeds the threshold of {duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                "Please verify that this is correct."
+            )
+        )
+
+    return None
