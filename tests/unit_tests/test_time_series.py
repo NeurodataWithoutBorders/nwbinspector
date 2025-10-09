@@ -574,7 +574,7 @@ def test_check_rate_not_below_threshold_fail_period_like_value():
     result = check_rate_not_below_threshold(time_series)
     # Should pass with default threshold since 2.0 > 0.01
     assert result is None
-    
+
     # But should fail with a custom threshold
     result = check_rate_not_below_threshold(time_series, low_rate_threshold=5.0)
     assert result is not None
@@ -592,7 +592,7 @@ def test_check_rate_not_below_threshold_pass_custom_threshold():
     # Should fail with default threshold
     result = check_rate_not_below_threshold(time_series)
     assert result is not None
-    
+
     # Should pass with lower custom threshold
     result = check_rate_not_below_threshold(time_series, low_rate_threshold=0.001)
     assert result is None
