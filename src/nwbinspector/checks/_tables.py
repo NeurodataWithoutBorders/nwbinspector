@@ -292,3 +292,90 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
                 )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
+def check_table_time_columns_duration(
+    table: DynamicTable, duration_threshold: float = 31557600.0
+) -> Optional[InspectorMessage]:
+    """
+    Check if the duration spanned by time columns in a DynamicTable exceeds a threshold.
+
+    This check examines time-related columns (start_time, stop_time, timestamp, spike_times)
+    and calculates the duration as max(time) - min(time). If this exceeds the threshold
+    (default: 1 year = 31,557,600 seconds), a warning is issued.
+
+    Parameters
+    ----------
+    table: DynamicTable
+        The table to check
+    duration_threshold: float, optional
+        Maximum expected duration in seconds. Default is 1 year (365.25 days).
+
+    Returns
+    -------
+    Optional[InspectorMessage]
+        Warning message if duration exceeds threshold, None otherwise
+    """
+    if len(table.id) == 0:
+        return None  # Empty table
+
+    start_times = []
+    end_times = []
+
+    # Check for start_time and stop_time columns (e.g., trials)
+    if "start_time" in table.colnames and len(table["start_time"]) > 0:
+        start_times.append(float(table["start_time"][0]))
+        if "stop_time" in table.colnames and len(table["stop_time"]) > 0:
+            end_times.append(float(table["stop_time"][-1]))
+
+    # Check for timestamp column (possibly with duration)
+    if "timestamp" in table.colnames and len(table["timestamp"]) > 0:
+        timestamp_data = table["timestamp"]
+        start_times.append(float(timestamp_data[0]))
+        
+        if "duration" in table.colnames and len(table["duration"]) > 0:
+            duration_data = table["duration"]
+            end_times.append(float(timestamp_data[-1] + duration_data[-1]))
+        else:
+            end_times.append(float(timestamp_data[-1]))
+
+    # Check for spike_times column (Units table)
+    # Assume spike times are ordered within each unit
+    if "spike_times" in table.colnames and len(table["spike_times"]) > 0:
+        idxs = table["spike_times"].data[:]
+        
+        # Remove zeros from idxs (units with no spikes)
+        idxs = idxs[idxs != 0]
+        
+        if len(idxs) > 0:
+            st_data = table["spike_times"].target
+            
+            if len(idxs) > 1:
+                start = float(np.min(np.r_[st_data[0], st_data[idxs[:-1]]]))
+            else:
+                start = float(st_data[0])
+            
+            end = float(np.max(st_data[idxs - 1]))
+            start_times.append(start)
+            end_times.append(end)
+
+    # Calculate duration if we found any time data
+    if start_times and end_times:
+        duration = max(end_times) - min(start_times)
+        
+        # Check if duration exceeds threshold
+        if duration > duration_threshold:
+            # Convert to years for the message
+            duration_years = duration / 31557600.0
+            threshold_years = duration_threshold / 31557600.0
+            return InspectorMessage(
+                message=(
+                    f"DynamicTable '{table.name}' has a duration of {duration:.2f} seconds "
+                    f"({duration_years:.2f} years), which exceeds the threshold of "
+                    f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                    "Please verify that this is correct."
+                )
+            )
+
+    return None

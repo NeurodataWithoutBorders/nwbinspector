@@ -16,6 +16,7 @@ from nwbinspector.checks import (
     check_ids_unique,
     check_single_row,
     check_table_time_columns_are_not_negative,
+    check_table_time_columns_duration,
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
@@ -498,3 +499,95 @@ def test_table_time_columns_are_not_negative_multidimensional_pass():
     test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
 
     assert check_table_time_columns_are_not_negative(test_table) is None
+
+
+def test_check_table_time_columns_duration_pass_short():
+    """Test that short duration tables pass the check."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=10.0)
+    table.add_row(start_time=15.0, stop_time=25.0)
+    table.add_row(start_time=30.0, stop_time=100.0)
+    
+    assert check_table_time_columns_duration(table) is None
+
+
+def test_check_table_time_columns_duration_fail_exceeds_threshold():
+    """Test that tables with duration exceeding 1 year fail."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=one_year + 1000, stop_time=one_year + 2000)
+    
+    result = check_table_time_columns_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+    assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
+
+
+def test_check_table_time_columns_duration_fail_exceeds_five_years():
+    """Test that tables with duration exceeding 5 years get a more serious warning."""
+    six_years = 31557600.0 * 6
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=six_years, stop_time=six_years + 100)
+    
+    result = check_table_time_columns_duration(table)
+    assert result is not None
+    assert "exceeds 5 years" in result.message
+    assert "error" in result.message.lower()
+
+
+def test_check_table_time_columns_duration_pass_empty():
+    """Test that empty tables pass."""
+    table = TimeIntervals(name="trials", description="test trials")
+    assert check_table_time_columns_duration(table) is None
+
+
+def test_check_table_time_columns_duration_pass_custom_threshold():
+    """Test that custom threshold works correctly."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=150.0, stop_time=200.0)
+    
+    # Should fail with 100 second threshold
+    result = check_table_time_columns_duration(table, duration_threshold=100.0)
+    assert result is not None
+    
+    # Should pass with 300 second threshold
+    result = check_table_time_columns_duration(table, duration_threshold=300.0)
+    assert result is None
+
+
+def test_check_table_time_columns_duration_with_timestamp():
+    """Test with timestamp column."""
+    table = DynamicTable(name="events", description="test events")
+    table.add_column(name="timestamp", description="event timestamps")
+    table.add_row(timestamp=0.0)
+    table.add_row(timestamp=100.0)
+    
+    assert check_table_time_columns_duration(table) is None
+
+
+def test_check_table_time_columns_duration_with_timestamp_and_duration():
+    """Test with timestamp and duration columns."""
+    one_year = 31557600.0
+    table = DynamicTable(name="events", description="test events")
+    table.add_column(name="timestamp", description="event timestamps")
+    table.add_column(name="duration", description="event durations")
+    table.add_row(timestamp=0.0, duration=10.0)
+    table.add_row(timestamp=one_year, duration=1000.0)
+    
+    result = check_table_time_columns_duration(table)
+    assert result is not None
+    assert "exceeds the threshold" in result.message
+
+
+def test_check_table_time_columns_duration_no_time_columns():
+    """Test that tables without time columns pass."""
+    table = DynamicTable(name="test_table", description="test")
+    table.add_column(name="value", description="some data")
+    table.add_row(value=123)
+    table.add_row(value=456)
+    
+    assert check_table_time_columns_duration(table) is None
