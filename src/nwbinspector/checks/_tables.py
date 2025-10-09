@@ -333,7 +333,7 @@ def check_table_time_columns_duration(
     if "timestamp" in table.colnames and len(table["timestamp"]) > 0:
         timestamp_data = table["timestamp"]
         start_times.append(float(timestamp_data[0]))
-        
+
         if "duration" in table.colnames and len(table["duration"]) > 0:
             duration_data = table["duration"]
             end_times.append(float(timestamp_data[-1] + duration_data[-1]))
@@ -344,18 +344,18 @@ def check_table_time_columns_duration(
     # Assume spike times are ordered within each unit
     if "spike_times" in table.colnames and len(table["spike_times"]) > 0:
         idxs = table["spike_times"].data[:]
-        
+
         # Remove zeros from idxs (units with no spikes)
         idxs = idxs[idxs != 0]
-        
+
         if len(idxs) > 0:
             st_data = table["spike_times"].target
-            
+
             if len(idxs) > 1:
                 start = float(np.min(np.r_[st_data[0], st_data[idxs[:-1]]]))
             else:
                 start = float(st_data[0])
-            
+
             end = float(np.max(st_data[idxs - 1]))
             start_times.append(start)
             end_times.append(end)
@@ -363,7 +363,7 @@ def check_table_time_columns_duration(
     # Calculate duration if we found any time data
     if start_times and end_times:
         duration = max(end_times) - min(start_times)
-        
+
         # Check if duration exceeds threshold
         if duration > duration_threshold:
             # Convert to years for the message

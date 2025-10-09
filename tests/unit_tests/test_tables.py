@@ -507,7 +507,7 @@ def test_check_table_time_columns_duration_pass_short():
     table.add_row(start_time=0.0, stop_time=10.0)
     table.add_row(start_time=15.0, stop_time=25.0)
     table.add_row(start_time=30.0, stop_time=100.0)
-    
+
     assert check_table_time_columns_duration(table) is None
 
 
@@ -517,7 +517,7 @@ def test_check_table_time_columns_duration_fail_exceeds_threshold():
     table = TimeIntervals(name="trials", description="test trials")
     table.add_row(start_time=0.0, stop_time=100.0)
     table.add_row(start_time=one_year + 1000, stop_time=one_year + 2000)
-    
+
     result = check_table_time_columns_duration(table)
     assert result is not None
     assert "trials" in result.message
@@ -531,7 +531,7 @@ def test_check_table_time_columns_duration_fail_exceeds_five_years():
     table = TimeIntervals(name="trials", description="test trials")
     table.add_row(start_time=0.0, stop_time=100.0)
     table.add_row(start_time=six_years, stop_time=six_years + 100)
-    
+
     result = check_table_time_columns_duration(table)
     assert result is not None
     assert "exceeds 5 years" in result.message
@@ -549,11 +549,11 @@ def test_check_table_time_columns_duration_pass_custom_threshold():
     table = TimeIntervals(name="trials", description="test trials")
     table.add_row(start_time=0.0, stop_time=100.0)
     table.add_row(start_time=150.0, stop_time=200.0)
-    
+
     # Should fail with 100 second threshold
     result = check_table_time_columns_duration(table, duration_threshold=100.0)
     assert result is not None
-    
+
     # Should pass with 300 second threshold
     result = check_table_time_columns_duration(table, duration_threshold=300.0)
     assert result is None
@@ -565,7 +565,7 @@ def test_check_table_time_columns_duration_with_timestamp():
     table.add_column(name="timestamp", description="event timestamps")
     table.add_row(timestamp=0.0)
     table.add_row(timestamp=100.0)
-    
+
     assert check_table_time_columns_duration(table) is None
 
 
@@ -577,7 +577,7 @@ def test_check_table_time_columns_duration_with_timestamp_and_duration():
     table.add_column(name="duration", description="event durations")
     table.add_row(timestamp=0.0, duration=10.0)
     table.add_row(timestamp=one_year, duration=1000.0)
-    
+
     result = check_table_time_columns_duration(table)
     assert result is not None
     assert "exceeds the threshold" in result.message
@@ -589,5 +589,5 @@ def test_check_table_time_columns_duration_no_time_columns():
     table.add_column(name="value", description="some data")
     table.add_row(value=123)
     table.add_row(value=456)
-    
+
     assert check_table_time_columns_duration(table) is None
