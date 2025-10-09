@@ -155,7 +155,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(path),
+                    file_path=str(nwbfiles_with_identifier[-1]),  # print example file_path with shared identifier
                 )
 
     nwbfiles_iterable = nwbfiles
