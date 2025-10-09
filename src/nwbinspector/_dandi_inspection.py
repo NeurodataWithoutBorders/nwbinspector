@@ -8,6 +8,7 @@ import pynwb
 from ._configuration import load_config, validate_config
 from ._nwb_inspection import inspect_nwbfile_object
 from ._types import Importance, InspectorMessage
+from .tools import get_nwb_assets_from_dandiset
 
 
 def inspect_dandiset(
@@ -66,14 +67,7 @@ def inspect_dandiset(
     """
     config = config or "dandi"
 
-    if client is None:
-        import dandi.dandiapi
-
-        client = dandi.dandiapi.DandiAPIClient()
-
-    dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
-
-    nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
+    nwb_assets = get_nwb_assets_from_dandiset(dandiset_id=dandiset_id, dandiset_version=dandiset_version, client=client)
 
     nwb_assets_iterator = nwb_assets
     if show_progress_bar:
