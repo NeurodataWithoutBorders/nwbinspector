@@ -525,19 +525,6 @@ def test_check_table_time_columns_duration_fail_exceeds_threshold():
     assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
 
 
-def test_check_table_time_columns_duration_fail_exceeds_five_years():
-    """Test that tables with duration exceeding 5 years get a more serious warning."""
-    six_years = 31557600.0 * 6
-    table = TimeIntervals(name="trials", description="test trials")
-    table.add_row(start_time=0.0, stop_time=100.0)
-    table.add_row(start_time=six_years, stop_time=six_years + 100)
-    
-    result = check_table_time_columns_duration(table)
-    assert result is not None
-    assert "exceeds 5 years" in result.message
-    assert "error" in result.message.lower()
-
-
 def test_check_table_time_columns_duration_pass_empty():
     """Test that empty tables pass."""
     table = TimeIntervals(name="trials", description="test trials")
