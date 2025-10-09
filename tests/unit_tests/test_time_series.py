@@ -488,7 +488,7 @@ def test_check_time_series_duration_pass_custom_threshold():
     # Should fail with a threshold of 100 seconds
     result = check_time_series_duration(time_series, duration_threshold=100.0)
     assert result is not None
-    
+
     # Should pass with a threshold of 300 seconds
     result = check_time_series_duration(time_series, duration_threshold=300.0)
     assert result is None
