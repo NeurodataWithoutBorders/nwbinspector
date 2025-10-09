@@ -161,7 +161,7 @@ def _nwbinspector_cli(
             show_progress_bar=show_progress_bar,
         )
         nwb_assets = get_nwb_assets_from_dandiset(dandiset_id=dandiset_id, dandiset_version=dandiset_version)
-        n_files_detected = len(nwb_assets)
+        nfiles_detected = len(nwb_assets)
     # Scan a single NWB file in a Dandiset
     elif stream and ":" in path and not path_is_url:
         dandiset_id, dandi_file_path = path.split(":")
@@ -177,7 +177,7 @@ def _nwbinspector_cli(
             importance_threshold=handled_importance_threshold,
             skip_validate=skip_validate,
         )
-        n_files_detected = 1
+        nfiles_detected = 1
     # Scan single NWB file at URL
     elif stream and path_is_url:
         dandi_s3_url = path
@@ -190,7 +190,7 @@ def _nwbinspector_cli(
             importance_threshold=handled_importance_threshold,
             skip_validate=skip_validate,
         )
-        n_files_detected = 1
+        nfiles_detected = 1
     # Scan local file/folder
     else:  # stream is False
         messages_iterator = inspect_all(
@@ -203,7 +203,7 @@ def _nwbinspector_cli(
             skip_validate=skip_validate,
             progress_bar=show_progress_bar,
         )
-        n_files_detected = len(get_nwbfiles_from_path(path=path))
+        nfiles_detected = len(get_nwbfiles_from_path(path=path))
     messages = list(messages_iterator)
 
     if json_file_path is not None:
@@ -219,7 +219,7 @@ def _nwbinspector_cli(
         levels=handled_levels,
         reverse=handled_reverse,
         detailed=detailed,
-        n_files_detected=n_files_detected,
+        nfiles_detected=nfiles_detected,
     )
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:

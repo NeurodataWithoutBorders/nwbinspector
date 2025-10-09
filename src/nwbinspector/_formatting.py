@@ -81,11 +81,11 @@ class MessageFormatter:
         reverse: Optional[list[bool]] = None,
         detailed: bool = False,
         formatter_options: Optional[FormatterOptions] = None,
-        n_files_detected: Optional[int] = None,
+        nfiles_detected: Optional[int] = None,
     ) -> None:
         self.nmessages = len(messages)
-        self.nfiles = len(set(message.file_path for message in messages))  # type: ignore
-        self.n_files_detected = n_files_detected if n_files_detected is not None else self.nfiles
+        self.nfiles_with_issues = len(set(message.file_path for message in messages))  # type: ignore
+        self.nfiles_detected = nfiles_detected if nfiles_detected is not None else self.nfiles_with_issues
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels, reverse=reverse)
         self.detailed = detailed
@@ -212,10 +212,10 @@ class MessageFormatter:
         )
 
         if self.nmessages == 0:
-            self.formatted_messages.append(f"Scanned {self.n_files_detected} file(s) - no issues found!")
+            self.formatted_messages.append(f"Scanned {self.nfiles_detected} file(s) - no issues found!")
         else:
             self.formatted_messages.append(
-                f"Scanned {self.n_files_detected} file(s) and found {self.nmessages} issues across {self.nfiles} file(s):"
+                f"Scanned {self.nfiles_detected} file(s) and found {self.nmessages} issues across {self.nfiles_with_issues} file(s):"
             )
 
         for importance_level, number_of_results in self.message_count_by_importance.items():
@@ -231,13 +231,13 @@ def format_messages(
     levels: Optional[list[str]] = None,
     reverse: Optional[list[bool]] = None,
     detailed: bool = False,
-    n_files_detected: Optional[int] = None,
+    nfiles_detected: Optional[int] = None,
 ) -> list[str]:
     """Print InspectorMessages in order specified by the organization structure."""
     levels = levels or ["file_path", "importance"]
 
     message_formatter = MessageFormatter(
-        messages=messages, levels=levels, reverse=reverse, detailed=detailed, n_files_detected=n_files_detected
+        messages=messages, levels=levels, reverse=reverse, detailed=detailed, nfiles_detected=nfiles_detected
     )
     formatted_messages = message_formatter.format_messages()
 
