@@ -8,6 +8,7 @@ from nwbinspector.checks import (
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
+    check_rate_not_below_threshold,
     check_regular_timestamps,
     check_resolution,
     check_time_series_duration,
@@ -515,3 +516,107 @@ def test_check_time_series_duration_pass_two_samples():
     )
     # Should pass - even though there's a duration, with only 2 samples we skip
     assert check_time_series_duration(time_series) is None
+
+
+def test_check_rate_not_below_threshold_pass_normal_rate():
+    """Test that a normal sampling rate passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        starting_time=0.0,
+        rate=30.0,  # 30 Hz is a normal rate
+    )
+    assert check_rate_not_below_threshold(time_series) is None
+
+
+def test_check_rate_not_below_threshold_pass_at_threshold():
+    """Test that a rate exactly at the threshold passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        starting_time=0.0,
+        rate=0.01,  # Exactly at the default threshold
+    )
+    assert check_rate_not_below_threshold(time_series) is None
+
+
+def test_check_rate_not_below_threshold_fail_very_low_rate():
+    """Test that a very low sampling rate fails."""
+    low_rate = 0.001  # 0.001 Hz = period of 1000 seconds
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        starting_time=0.0,
+        rate=low_rate,
+    )
+    result = check_rate_not_below_threshold(time_series)
+    assert result is not None
+    assert "test_time_series" in result.message
+    assert f"{low_rate}Hz" in result.message
+    assert "period" in result.message
+    assert result.importance == Importance.CRITICAL
+
+
+def test_check_rate_not_below_threshold_fail_period_like_value():
+    """Test detection when period was likely used instead of rate."""
+    # If someone uses 2.0 thinking it's a 2 second period, the rate should be 0.5 Hz
+    period_value = 2.0
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        starting_time=0.0,
+        rate=period_value,
+    )
+    result = check_rate_not_below_threshold(time_series)
+    # Should pass with default threshold since 2.0 > 0.01
+    assert result is None
+    
+    # But should fail with a custom threshold
+    result = check_rate_not_below_threshold(time_series, low_rate_threshold=5.0)
+    assert result is not None
+
+
+def test_check_rate_not_below_threshold_pass_custom_threshold():
+    """Test that custom threshold works correctly."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        starting_time=0.0,
+        rate=0.005,  # Below default threshold of 0.01
+    )
+    # Should fail with default threshold
+    result = check_rate_not_below_threshold(time_series)
+    assert result is not None
+    
+    # Should pass with lower custom threshold
+    result = check_rate_not_below_threshold(time_series, low_rate_threshold=0.001)
+    assert result is None
+
+
+def test_check_rate_not_below_threshold_pass_no_rate():
+    """Test that TimeSeries without rate attribute passes."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=100),
+        timestamps=np.linspace(0, 100, 100),
+    )
+    assert check_rate_not_below_threshold(time_series) is None
+
+
+def test_check_rate_not_below_threshold_pass_zero_rate():
+    """Test that zero rate passes (handled by different check)."""
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=1),
+        starting_time=0.0,
+        rate=0.0,
+    )
+    # Zero rate should pass this check (it's handled by check_rate_is_not_zero)
+    assert check_rate_not_below_threshold(time_series) is None

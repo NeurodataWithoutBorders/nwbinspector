@@ -250,3 +250,28 @@ def check_time_series_duration(
         )
 
     return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_rate_not_below_threshold(time_series: TimeSeries, low_rate_threshold: float = 0.01) -> Optional[InspectorMessage]:
+    """
+    Check if the sampling rate is suspiciously low (below threshold, default 0.01 Hz).
+    
+    A very low rate likely indicates the period (time between samples) was provided instead of the frequency.
+    The default threshold of 0.01 Hz corresponds to a period of 100 seconds.
+    """
+    if not hasattr(time_series, "rate"):
+        return None
+
+    if time_series.rate is not None and 0 < time_series.rate < low_rate_threshold:
+        period = 1.0 / time_series.rate
+        return InspectorMessage(
+            message=(
+                f"TimeSeries '{time_series.name}' has a sampling rate of {time_series.rate}Hz (period of {period:.2f} seconds), "
+                f"which is below the expected threshold of {low_rate_threshold}Hz. "
+                "This may indicate that the period was specified instead of the rate. "
+                f"If the intended period is {time_series.rate} seconds, the rate should be {1.0 / time_series.rate}Hz."
+            )
+        )
+
+    return None
