@@ -81,9 +81,11 @@ class MessageFormatter:
         reverse: Optional[list[bool]] = None,
         detailed: bool = False,
         formatter_options: Optional[FormatterOptions] = None,
+        n_files_detected: Optional[int] = None,
     ) -> None:
         self.nmessages = len(messages)
         self.nfiles = len(set(message.file_path for message in messages))  # type: ignore
+        self.n_files_detected = n_files_detected if n_files_detected is not None else self.nfiles
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels, reverse=reverse)
         self.detailed = detailed
@@ -206,9 +208,16 @@ class MessageFormatter:
                 f"Platform: {report_header['Platform']}",
                 f"NWBInspector version: {report_header['NWBInspector_version']}",
                 "",
-                f"Found {self.nmessages} issues over {self.nfiles} files:",
             ]
         )
+
+        if self.nmessages == 0:
+            self.formatted_messages.append(f"Scanned {self.n_files_detected} file(s) - no issues found!")
+        else:
+            self.formatted_messages.append(
+                f"Scanned {self.n_files_detected} file(s) and found {self.nmessages} issues across {self.nfiles} file(s):"
+            )
+
         for importance_level, number_of_results in self.message_count_by_importance.items():
             increment = " " * (8 - len(str(number_of_results)))
             self.formatted_messages.append(f"{increment}{number_of_results} - {importance_level}")
@@ -222,11 +231,14 @@ def format_messages(
     levels: Optional[list[str]] = None,
     reverse: Optional[list[bool]] = None,
     detailed: bool = False,
+    n_files_detected: Optional[int] = None,
 ) -> list[str]:
     """Print InspectorMessages in order specified by the organization structure."""
     levels = levels or ["file_path", "importance"]
 
-    message_formatter = MessageFormatter(messages=messages, levels=levels, reverse=reverse, detailed=detailed)
+    message_formatter = MessageFormatter(
+        messages=messages, levels=levels, reverse=reverse, detailed=detailed, n_files_detected=n_files_detected
+    )
     formatted_messages = message_formatter.format_messages()
 
     return formatted_messages
