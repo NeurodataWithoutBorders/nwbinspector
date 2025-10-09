@@ -386,7 +386,7 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
             valid_extensions = all_valid_extensions
             backend = ""
 
-        # check the extension contains .nwb or .nwb.h5/.nwb.zarr
+        # check the extension ends with .nwb or .nwb.h5/.nwb.zarr
         msg = (
             f"The file extension '{file_extension}' does not follow the recommended naming convention. "
             f"{backend} NWB files should use one of the following file name extensions: {', '.join(valid_extensions)}."
