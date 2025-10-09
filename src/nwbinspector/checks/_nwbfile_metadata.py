@@ -2,13 +2,16 @@
 
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Iterable, Optional
 
+from hdmf_zarr import NWBZarrIO
 from isodate import Duration, parse_duration
-from pynwb import NWBFile, ProcessingModule
+from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from .._registration import Importance, InspectorMessage, register_check
+from ..tools import get_nwbfile_path_from_internal_object
 from ..utils import is_module_installed
 
 duration_regex = (
@@ -350,5 +353,50 @@ def check_subject_id_no_slashes(subject: Subject) -> Optional[InspectorMessage]:
                 f"when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
             )
         )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check if the file extension contains ".nwb".
+    If a backend storage type is specified, check that it matches the backend storage type.
+
+    NWB files should use appropriate extensions based on their backend:
+    - .nwb (minimum recommendation), .nwb.h5 (HDF5), or .nwb.zarr (Zarr)
+
+    Best Practice: :ref:`best_practice_file_extension`
+    """
+    file_path = get_nwbfile_path_from_internal_object(nwbfile)
+
+    # Only perform the check if we can determine the file path
+    if file_path is not None:
+        file_extension = "".join(Path(file_path).suffixes)  # Concatenate all suffixes for multi-part extensions
+        all_valid_extensions = [".nwb", ".nwb.h5", ".nwb.zarr"]
+
+        read_io = nwbfile.get_read_io()
+        if isinstance(read_io, NWBHDF5IO):
+            valid_extensions = [".nwb", ".nwb.h5"]
+            backend = "HDF5"
+        elif isinstance(read_io, NWBZarrIO):
+            valid_extensions = [".nwb", ".nwb.zarr"]
+            backend = "Zarr"
+        else:
+            valid_extensions = all_valid_extensions
+            backend = ""
+
+        # check the extension ends with .nwb or .nwb.h5/.nwb.zarr
+        msg = (
+            f"The file extension '{file_extension}' does not follow the recommended naming convention. "
+            f"{backend} NWB files should use one of the following file name extensions: {', '.join(valid_extensions)}."
+        )
+        if not any(file_extension.endswith(pattern) for pattern in valid_extensions):
+            return InspectorMessage(message=msg)
+
+        # check the extension matches the backend storage type
+        invalid_extensions = set(all_valid_extensions) - set(valid_extensions)
+        if any(file_extension.endswith(pattern) for pattern in invalid_extensions):
+            return InspectorMessage(message=msg)
 
     return None
