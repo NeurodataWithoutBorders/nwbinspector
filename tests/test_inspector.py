@@ -880,11 +880,12 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
         test_messages = list(
             inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate)
         )
+        non_unique_files = natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])
         expected_messages = [
             InspectorMessage(
                 message=(
                     "The identifier 'not a unique identifier!' is used across the .nwb files: "
-                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
+                    f"{non_unique_files}. "
                     "The identifier of any NWBFile should be a completely unique value - "
                     "we recommend using uuid4 to achieve this."
                 ),
@@ -893,7 +894,7 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                file_path=str(self.tempdir),
+                file_path=str(non_unique_files[-1]),
             )
         ]
 

@@ -143,10 +143,11 @@ def inspect_all(
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
+                non_unique_files = natsorted([x.name for x in nwbfiles_with_identifier])
                 yield InspectorMessage(
                     message=(
                         f"The identifier '{identifier}' is used across the .nwb files: "
-                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        f"{non_unique_files}. "
                         "The identifier of any NWBFile should be a completely unique value - "
                         "we recommend using uuid4 to achieve this."
                     ),
@@ -155,7 +156,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(nwbfiles_with_identifier[-1]),  # print example file_path with shared identifier
+                    file_path=str(non_unique_files[-1]),  # print example file_path with shared identifier
                 )
 
     nwbfiles_iterable = nwbfiles
