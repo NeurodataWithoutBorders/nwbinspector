@@ -251,7 +251,7 @@ def check_time_series_duration(
     return None
 
 
-@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_rate_not_below_threshold(
     time_series: TimeSeries, low_rate_threshold: float = 0.01
 ) -> Optional[InspectorMessage]:

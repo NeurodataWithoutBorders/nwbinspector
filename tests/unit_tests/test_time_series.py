@@ -450,19 +450,30 @@ def test_check_time_series_duration_fail_with_timestamps():
         data=np.zeros(shape=100),
         timestamps=np.linspace(0, one_year + 1000, 100),  # Exceeds 1 year
     )
-    result = check_time_series_duration(time_series)
-    assert result is not None
-    assert "long_time_series" in result.message
-    assert "exceeds the threshold" in result.message
-    assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
+    duration = one_year + 1000
+    duration_years = duration / 31557600.0
+    expected_message = (
+        f"TimeSeries 'long_time_series' has an unusually long duration of {duration:.2f} seconds ({duration_years:.2f} years), "
+        f"which may indicate an error in the timestamps or rate data. "
+        "Please verify that this is correct."
+    )
+    assert check_time_series_duration(time_series) == InspectorMessage(
+        message=expected_message,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_time_series_duration",
+        object_type="TimeSeries",
+        object_name="long_time_series",
+        location="/",
+    )
 
 
 def test_check_time_series_duration_fail_with_rate():
     """Test that a TimeSeries exceeding 1 year duration with rate fails."""
     # Create a time series with more than 1 year of data
+    # Use a lower rate to avoid creating a large array
     one_year = 31557600.0
-    rate = 1.0  # 1 Hz
-    num_samples = int(one_year + 1000)  # More than 1 year worth of samples
+    rate = 0.01  # 0.01 Hz = one sample every 100 seconds
+    num_samples = int((one_year + 1000) * rate) + 1  # Minimal samples needed
     time_series = pynwb.TimeSeries(
         name="long_time_series",
         unit="test_units",
@@ -470,11 +481,21 @@ def test_check_time_series_duration_fail_with_rate():
         starting_time=0.0,
         rate=rate,
     )
-    result = check_time_series_duration(time_series)
-    assert result is not None
-    assert "long_time_series" in result.message
-    assert "exceeds the threshold" in result.message
-    assert result.importance == Importance.BEST_PRACTICE_SUGGESTION
+    duration = (num_samples - 1) / rate
+    duration_years = duration / 31557600.0
+    expected_message = (
+        f"TimeSeries 'long_time_series' has an unusually long duration of {duration:.2f} seconds ({duration_years:.2f} years), "
+        f"which may indicate an error in the timestamps or rate data. "
+        "Please verify that this is correct."
+    )
+    assert check_time_series_duration(time_series) == InspectorMessage(
+        message=expected_message,
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_time_series_duration",
+        object_type="TimeSeries",
+        object_name="long_time_series",
+        location="/",
+    )
 
 
 def test_check_time_series_duration_pass_custom_threshold():
@@ -528,32 +549,20 @@ def test_check_rate_not_below_threshold_fail_very_low_rate():
         starting_time=0.0,
         rate=low_rate,
     )
-    result = check_rate_not_below_threshold(time_series)
-    assert result is not None
-    assert "test_time_series" in result.message
-    assert f"{low_rate}Hz" in result.message
-    assert "period" in result.message
-    assert result.importance == Importance.CRITICAL
-
-
-def test_check_rate_not_below_threshold_fail_period_like_value():
-    """Test detection when period was likely used instead of rate."""
-    # If someone uses 2.0 thinking it's a 2 second period, the rate should be 0.5 Hz
-    period_value = 2.0
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=100),
-        starting_time=0.0,
-        rate=period_value,
+    period = 1.0 / low_rate
+    expected_message = (
+        f"TimeSeries 'test_time_series' has a sampling rate of {low_rate}Hz (period of {period:.2f} seconds). "
+        "This low sampling rate may indicate that the period was specified instead of the rate. "
+        f"If the intended period is {low_rate} seconds, the rate should be {1.0 / low_rate}Hz."
     )
-    result = check_rate_not_below_threshold(time_series)
-    # Should pass with default threshold since 2.0 > 0.01
-    assert result is None
-
-    # But should fail with a custom threshold
-    result = check_rate_not_below_threshold(time_series, low_rate_threshold=5.0)
-    assert result is not None
+    assert check_rate_not_below_threshold(time_series) == InspectorMessage(
+        message=expected_message,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_rate_not_below_threshold",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
 
 
 def test_check_rate_not_below_threshold_pass_custom_threshold():

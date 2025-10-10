@@ -2,6 +2,8 @@
 
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
+* Added `check_time_series_duration` to detect unusually long TimeSeries durations (default threshold: 1 year). [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
+* Added `check_rate_not_below_threshold` to detect suspiciously low sampling rates that may indicate period was used instead of rate. [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
