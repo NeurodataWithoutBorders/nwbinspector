@@ -238,13 +238,12 @@ def check_time_series_duration(
 
     # If we have a duration, check if it exceeds the threshold
     if duration is not None and duration > duration_threshold:
-        # Convert threshold to years for the message (assuming 1 year = 365.25 days)
-        threshold_years = duration_threshold / 31557600.0
+        # Convert duration to years for the message
         duration_years = duration / 31557600.0
         return InspectorMessage(
             message=(
-                f"TimeSeries '{time_series.name}' has a duration of {duration:.2f} seconds ({duration_years:.2f} years), "
-                f"which exceeds the threshold of {duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                f"TimeSeries '{time_series.name}' has an unusually long duration of {duration:.2f} seconds ({duration_years:.2f} years), "
+                f"which may indicate an error in the timestamps or rate data. "
                 "Please verify that this is correct."
             )
         )
