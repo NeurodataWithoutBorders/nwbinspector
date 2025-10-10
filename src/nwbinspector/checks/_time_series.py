@@ -232,7 +232,7 @@ def check_time_series_duration(
             duration = float(last_timestamp - first_timestamp)
 
     # Calculate duration from starting_time and rate if timestamps not available
-    elif time_series.starting_time is not None and time_series.rate is not None and time_series.rate > 0:
+    elif time_series.rate is not None and time_series.rate > 0:
         num_samples = data_shape[0]
         duration = (num_samples - 1) / time_series.rate
 
