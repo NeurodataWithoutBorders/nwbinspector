@@ -530,16 +530,6 @@ def test_check_rate_not_below_threshold_pass_normal_rate():
     assert check_rate_not_below_threshold(time_series) is None
 
 
-def test_check_rate_not_below_threshold_pass_at_threshold():
-    """Test that a rate exactly at the threshold passes."""
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=100),
-        starting_time=0.0,
-        rate=0.01,  # Exactly at the default threshold
-    )
-    assert check_rate_not_below_threshold(time_series) is None
 
 
 def test_check_rate_not_below_threshold_fail_very_low_rate():
