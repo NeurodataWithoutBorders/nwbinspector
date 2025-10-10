@@ -4,6 +4,21 @@ NWBFile Metadata
 An :ref:`nwb-schema:sec-NWBFile` object generally contains data from a single experimental session.
 
 
+.. _best_practice_file_extension:
+
+File Extensions
+---------------
+
+NWB file paths should contain `.nwb` in their file extension to indicate that they are NWB files.
+To further help tools and users quickly identify the underlying backend type, an additional option is to attach the backend as a second suffix.
+Recommended file extensions are:
+
+1. ``.nwb`` (minimum recommendation)
+2. ``.nwb.h5`` (also acceptable for NWB HDF5 files)
+3. ``.nwb.zarr`` (also acceptable for NWB Zarr stores)
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_file_extension`
+
 
 File Organization
 -----------------
