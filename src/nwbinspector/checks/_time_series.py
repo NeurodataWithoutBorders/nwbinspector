@@ -268,9 +268,8 @@ def check_rate_not_below_threshold(
         period = 1.0 / time_series.rate
         return InspectorMessage(
             message=(
-                f"TimeSeries '{time_series.name}' has a sampling rate of {time_series.rate}Hz (period of {period:.2f} seconds), "
-                f"which is below the expected threshold of {low_rate_threshold}Hz. "
-                "This may indicate that the period was specified instead of the rate. "
+                f"TimeSeries '{time_series.name}' has a sampling rate of {time_series.rate}Hz (period of {period:.2f} seconds). "
+                "This low sampling rate may indicate that the period was specified instead of the rate. "
                 f"If the intended period is {time_series.rate} seconds, the rate should be {1.0 / time_series.rate}Hz."
             )
         )
