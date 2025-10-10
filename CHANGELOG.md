@@ -1,7 +1,8 @@
 # v0.6.6 (Upcoming)
 
 ### New Checks
-* Added checks for the duration of DynamicTables by checking start_time, stop_time, timestamp, duration, and spike_times columns. [#623](
+* Added checks for the duration of DynamicTables by checking start_time, stop_time, timestamp, duration, and spike_times columns. [#628](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/628)
+* Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#628](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/628)

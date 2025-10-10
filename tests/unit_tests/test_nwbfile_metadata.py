@@ -1,7 +1,9 @@
+import tempfile
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from pynwb import NWBFile, ProcessingModule
+from hdmf_zarr import NWBZarrIO
+from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from nwbinspector import Importance, InspectorMessage
@@ -10,6 +12,7 @@ from nwbinspector.checks import (
     check_experiment_description,
     check_experimenter_exists,
     check_experimenter_form,
+    check_file_extension,
     check_institution,
     check_keywords,
     check_processing_module_name,
@@ -619,3 +622,43 @@ def test_check_subject_id_with_slashes():
         object_name="subject",
         location="/general/subject",
     )
+
+
+def test_check_file_extension_pass():
+    """Test that valid HDF5 extensions pass the check."""
+    extension_dict = {".nwb": NWBHDF5IO, ".nwb.h5": NWBHDF5IO, ".nwb.zarr": NWBZarrIO}
+
+    for ext, io_class in extension_dict.items():
+        if isinstance(io_class, NWBZarrIO):
+            tmp_path = tempfile.TemporaryDirectory(suffix=ext).name
+        else:
+            tmp_path = tempfile.NamedTemporaryFile(suffix=ext).name
+
+        nwbfile = make_minimal_nwbfile()
+        with io_class(str(tmp_path), mode="w") as io:
+            io.write(nwbfile)
+
+        with io_class(str(tmp_path), mode="r") as io:
+            read_nwbfile = io.read()
+            assert check_file_extension(read_nwbfile) is None
+
+
+def test_check_file_extension_fail():
+    """Test that invalid HDF5 extensions fail the check."""
+    invalid_extension_dict = {".txt": NWBHDF5IO, ".nwb.zarr": NWBHDF5IO, ".nwb.h5": NWBZarrIO}
+
+    for ext, io_class in invalid_extension_dict.items():
+        if isinstance(io_class, NWBZarrIO):
+            tmp_path = tempfile.TemporaryDirectory(suffix=ext).name
+        else:
+            tmp_path = tempfile.NamedTemporaryFile(suffix=ext).name
+
+        nwbfile = make_minimal_nwbfile()
+        with io_class(str(tmp_path), mode="w") as io:
+            io.write(nwbfile)
+
+        with io_class(str(tmp_path), mode="r") as io:
+            read_nwbfile = io.read()
+            result = check_file_extension(read_nwbfile)
+            msg = f"The file extension '{ext}' does not follow the recommended naming convention."
+            assert msg in result.message
