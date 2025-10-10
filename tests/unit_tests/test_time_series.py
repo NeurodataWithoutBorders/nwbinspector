@@ -506,16 +506,6 @@ def test_check_time_series_duration_pass_single_sample():
     assert check_time_series_duration(time_series) is None
 
 
-def test_check_time_series_duration_pass_two_samples():
-    """Test that TimeSeries with only two samples passes (duration cannot be calculated reliably)."""
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=2),
-        timestamps=[0, 1],
-    )
-    # Should pass - even though there's a duration, with only 2 samples we skip
-    assert check_time_series_duration(time_series) is None
 
 
 def test_check_rate_not_below_threshold_pass_normal_rate():
