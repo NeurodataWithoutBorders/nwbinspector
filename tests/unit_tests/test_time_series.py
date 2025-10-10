@@ -530,8 +530,6 @@ def test_check_rate_not_below_threshold_pass_normal_rate():
     assert check_rate_not_below_threshold(time_series) is None
 
 
-
-
 def test_check_rate_not_below_threshold_fail_very_low_rate():
     """Test that a very low sampling rate fails."""
     low_rate = 0.001  # 0.001 Hz = period of 1000 seconds
