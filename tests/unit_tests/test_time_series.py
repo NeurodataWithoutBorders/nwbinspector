@@ -506,8 +506,6 @@ def test_check_time_series_duration_pass_single_sample():
     assert check_time_series_duration(time_series) is None
 
 
-
-
 def test_check_rate_not_below_threshold_pass_normal_rate():
     """Test that a normal sampling rate passes."""
     time_series = pynwb.TimeSeries(
