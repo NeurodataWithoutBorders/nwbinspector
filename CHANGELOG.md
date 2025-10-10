@@ -1,7 +1,10 @@
 # v0.6.6 (Upcoming)
 
+### New Checks
+* Added checks for the duration of DynamicTables by checking start_time, stop_time, timestamp, duration, and spike_times columns. [#623](
+
 ### Improvements
-* Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
+* Added documentation to API and CLI docs on how to use the dandi config option. [#628](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/628)
 
 # v0.6.5 (July 25, 2025)
 
