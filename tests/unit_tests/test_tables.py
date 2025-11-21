@@ -544,3 +544,27 @@ def test_check_time_intervals_duration_pass_custom_threshold():
     # Should pass with 300 second threshold
     result = check_time_intervals_duration(table, duration_threshold=300.0)
     assert result is None
+
+
+def test_check_time_intervals_duration_with_additional_time_columns():
+    """Test that the check considers additional time columns ending in '_time'."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=100.0, custom_time=0.0)
+    table.add_row(start_time=150.0, stop_time=200.0, custom_time=one_year + 1000)
+
+    result = check_time_intervals_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+
+
+def test_check_time_intervals_duration_pass_without_start_stop():
+    """Test that tables with only other time columns work correctly."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=10.0, custom_time=5.0)
+    table.add_row(start_time=15.0, stop_time=25.0, custom_time=20.0)
+
+    assert check_time_intervals_duration(table) is None
