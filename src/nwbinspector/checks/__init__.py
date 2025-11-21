@@ -76,6 +76,7 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
+    check_units_table_duration,
 )
 from ._time_series import (
     check_data_orientation,
@@ -142,6 +143,7 @@ __all__ = [
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",
+    "check_units_table_duration",
     "check_resolution",
     "check_missing_unit",
     "check_regular_timestamps",
