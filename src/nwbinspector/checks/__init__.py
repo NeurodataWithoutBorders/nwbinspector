@@ -76,6 +76,7 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
+    check_time_intervals_duration,
 )
 from ._time_series import (
     check_data_orientation,
