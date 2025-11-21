@@ -18,7 +18,7 @@ from ..utils import (
 )
 
 NELEMS = 200
-MAX_DURATION = 3600 * 24 * 365.25 # default: 1 year
+MAX_DURATION = 3600 * 24 * 365.25  # default: 1 year
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -295,7 +295,6 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
     return None
 
 
-
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
 def check_time_intervals_duration(
     time_intervals: TimeIntervals, duration_threshold: float = MAX_DURATION
@@ -352,5 +351,3 @@ def check_time_intervals_duration(
                 )
             )
     return None
-
-

@@ -18,8 +18,8 @@ from nwbinspector.checks import (
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
     check_time_interval_time_columns,
-    check_time_intervals_stop_after_start,
     check_time_intervals_duration,
+    check_time_intervals_stop_after_start,
 )
 
 
@@ -544,4 +544,3 @@ def test_check_time_intervals_duration_pass_custom_threshold():
     # Should pass with 300 second threshold
     result = check_time_intervals_duration(table, duration_threshold=300.0)
     assert result is None
-
