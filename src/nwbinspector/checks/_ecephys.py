@@ -173,9 +173,9 @@ def check_units_table_duration(
     # Check for spike_times column (Units table)
     if "spike_times" not in units:
         return None
-    
+
     idxs = units["spike_times"].data[:]
-    
+
     # remove repeats in idxs array and 0s to remove units with no spikes
     idxs = np.unique(np.asarray(idxs))
     idxs = idxs[idxs != 0]

@@ -19,7 +19,6 @@ from nwbinspector.checks import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
-    check_units_table_duration,
 )
 
 
