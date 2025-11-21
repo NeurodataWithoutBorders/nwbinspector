@@ -16,6 +16,7 @@ from nwbinspector.checks import (
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_table_duration,
 )
 
 
@@ -312,3 +313,100 @@ class TestCheckAscendingSpikeTimes(TestCase):
     def test_ascending_spike_times_nelems(self):
         self.units_table.add_unit(spike_times=[0.0, 0.1, 0.05])
         assert check_ascending_spike_times(units_table=self.units_table, nelems=2) is None
+
+
+def test_check_units_table_duration_pass():
+    """Test that units table with reasonable duration passes."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 1.0, 2.0])
+    units.add_unit(spike_times=[0.5, 1.5, 3.0])
+
+    assert check_units_table_duration(units) is None
+
+
+def test_check_units_table_duration_pass_empty_spike_times():
+    """Test that units table with no spike times passes."""
+    units = Units(name="units")
+    # Add a unit without spike_times
+    units.add_column(name="custom_col", description="test")
+    units.add_row(custom_col=1)
+
+    assert check_units_table_duration(units) is None
+
+
+def test_check_units_table_duration_fail():
+    """Test that units table with excessive duration fails."""
+    units = Units(name="units")
+    # Add spike times spanning more than 1 year (> 31557600 seconds)
+    units.add_unit(spike_times=[0.0, 1.0, 2.0])
+    units.add_unit(spike_times=[0.5, 1.5, 40000000.0])  # ~1.27 years
+
+    result = check_units_table_duration(units)
+    assert result == InspectorMessage(
+        message=(
+            "Units table has a duration of 40000000.00 seconds "
+            "(1.27 years), which exceeds the threshold of "
+            "31557600.00 seconds (1.00 years). "
+            "This may indicate that spike_times are in the wrong units or there is a data quality issue."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_units_table_duration",
+        object_type="Units",
+        object_name="units",
+        location="/",
+    )
+
+
+def test_check_units_table_duration_custom_threshold():
+    """Test units table duration check with custom threshold."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 100.0])  # 100 seconds
+
+    # Should pass with default threshold
+    assert check_units_table_duration(units) is None
+
+    # Should fail with custom threshold of 50 seconds
+    result = check_units_table_duration(units, duration_threshold=50.0)
+    assert result == InspectorMessage(
+        message=(
+            "Units table has a duration of 100.00 seconds "
+            "(0.00 years), which exceeds the threshold of "
+            "50.00 seconds (0.00 years). "
+            "This may indicate that spike_times are in the wrong units or there is a data quality issue."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_units_table_duration",
+        object_type="Units",
+        object_name="units",
+        location="/",
+    )
+
+
+def test_check_units_table_duration_single_unit():
+    """Test that units table with a single unit and long duration is detected."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 50000000.0])  # ~1.58 years
+
+    result = check_units_table_duration(units)
+    assert result is not None
+    assert "Units table has a duration of 50000000.00 seconds" in result.message
+
+
+def test_check_units_table_duration_first_unit_no_spikes():
+    """Test that units table where first unit has no spikes works correctly."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[])  # First unit has no spikes
+    units.add_unit(spike_times=[0.0, 1.0, 2.0])  # Second unit has spikes
+
+    # Should pass - duration is only 2 seconds
+    assert check_units_table_duration(units) is None
+
+
+def test_check_units_table_duration_second_unit_no_spikes():
+    """Test that units table where second unit has no spikes works correctly."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 1.0, 2.0])  # First unit has spikes
+    units.add_unit(spike_times=[])  # Second unit has no spikes
+
+    # Should pass - duration is only 2 seconds
+    assert check_units_table_duration(units) is None

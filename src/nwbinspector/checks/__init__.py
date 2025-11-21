@@ -10,6 +10,7 @@ from ._ecephys import (
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_table_duration,
 )
 from ._general import (
     check_description,
@@ -76,7 +77,6 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_stop_after_start,
-    check_units_table_duration,
 )
 from ._time_series import (
     check_data_orientation,

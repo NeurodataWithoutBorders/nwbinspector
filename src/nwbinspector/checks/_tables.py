@@ -18,8 +18,6 @@ from ..utils import (
 )
 
 NELEMS = 200
-# Default duration threshold: 1 year in seconds
-DURATION_THRESHOLD = 31557600.0
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -292,71 +290,5 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
                     message=f"Timestamps in column {column_name} should not be negative."
                     " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
                 )
-
-    return None
-
-
-@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
-def check_units_table_duration(
-    units: Units, duration_threshold: float = DURATION_THRESHOLD
-) -> Optional[InspectorMessage]:
-    """
-    Check if the duration of spike times in a Units table exceeds a threshold.
-
-    This check helps identify potential issues where spike times may have been stored
-    in the wrong units (e.g., milliseconds instead of seconds) or have other data
-    quality issues that result in an unrealistically long recording duration.
-
-    Parameters
-    ----------
-    units : Units
-        The Units table to check.
-    duration_threshold : float, optional
-        The duration threshold in seconds. If the duration exceeds this value,
-        an InspectorMessage is returned. Default is 1 year (31557600 seconds).
-
-    Returns
-    -------
-    Optional[InspectorMessage]
-        An InspectorMessage if the duration exceeds the threshold, None otherwise.
-    """
-    # Check for spike_times column (Units table)
-    if "spike_times" not in units:
-        return None
-    
-    idxs = units["spike_times"].data[:]
-    
-    # remove repeats in idxs array and 0s to remove units with no spikes
-    idxs = np.unique(np.asarray(idxs))
-    idxs = idxs[idxs != 0]
-
-    spike_times = units["spike_times"].target
-    if len(idxs) > 1:
-        start = np.min(np.r_[spike_times[0], spike_times[idxs[:-1]]])
-    else:
-        start = spike_times[0]
-
-    end = np.max(spike_times[idxs - 1])
-
-    if len(spike_times) == 0:
-        return None
-
-    start = float(np.min(spike_times))
-    end = float(np.max(spike_times))
-    duration = end - start
-
-    # Check if duration exceeds threshold
-    if duration > duration_threshold:
-        # Convert to years for the message
-        duration_years = duration / 31557600.0
-        threshold_years = duration_threshold / 31557600.0
-        return InspectorMessage(
-            message=(
-                f"Units table has a duration of {duration:.2f} seconds "
-                f"({duration_years:.2f} years), which exceeds the threshold of "
-                f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
-                "This may indicate that spike_times are in the wrong units or there is a data quality issue."
-            )
-        )
 
     return None
