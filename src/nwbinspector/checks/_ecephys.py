@@ -155,7 +155,7 @@ def check_units_table_duration(
     in the wrong units (e.g., milliseconds instead of seconds) or have other data
     quality issues that result in an unrealistically long recording duration.
 
-    Best Practice :ref:`best_practice_ecephys_units_table`
+    Best Practice :ref:`best_practice_units_table_duration`
 
     Parameters
     ----------
