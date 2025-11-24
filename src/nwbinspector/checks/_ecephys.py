@@ -181,15 +181,14 @@ def check_units_table_duration(
     idxs = idxs[idxs != 0]
 
     spike_times = units["spike_times"].target
+    if len(spike_times) == 0:
+        return None
     if len(idxs) > 1:
         start = np.min(np.r_[spike_times[0], spike_times[idxs[:-1]]])
     else:
         start = spike_times[0]
 
     end = np.max(spike_times[idxs - 1])
-
-    if len(spike_times) == 0:
-        return None
 
     start = float(np.min(spike_times))
     end = float(np.max(spike_times))
