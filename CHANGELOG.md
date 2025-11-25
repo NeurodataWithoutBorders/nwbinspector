@@ -6,6 +6,7 @@
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
 * Dropped Python 3.9 and middle Python versions (3.11, 3.12) from CI; now testing only Python 3.10 and 3.13. [#632](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/632)
+* Updated macOS CI runner from `macos-13` to `macos-latest`. [#639](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/639)
 
 # v0.6.5 (July 25, 2025)
 
