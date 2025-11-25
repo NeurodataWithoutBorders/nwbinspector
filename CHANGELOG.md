@@ -5,6 +5,7 @@
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
+* Improved `check_data_orientation` error message to include the TimeSeries name, current shape, and a suggestion for transposing the data. [#1430](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/1430)
 
 # v0.6.5 (July 25, 2025)
 
