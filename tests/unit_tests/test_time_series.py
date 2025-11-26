@@ -66,9 +66,11 @@ def test_check_data_orientation():
         )
     ) == InspectorMessage(
         message=(
-            "'test_time_series': Data may be in the wrong orientation. "
+            "Data may be in the wrong orientation. "
             "Time should be in the first dimension, and is usually the longest dimension. "
-            "Here, another dimension is longer. Current shape: (2, 100)."
+            "Here, another dimension is longer. "
+            "Current shape: (2, 100). "
+            "Suggestion: Transpose your data so the first dimension is 100."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_data_orientation",
