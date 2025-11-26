@@ -240,10 +240,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -314,10 +313,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -392,10 +390,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -428,10 +425,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -464,10 +460,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -630,10 +625,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,  # Normally CRITICAL, now a BEST_PRACTICE_VIOLATION
                 check_function_name="check_data_orientation",
@@ -788,10 +782,9 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "'my_spatial_series' data may be in the wrong orientation. "
-                    "Time should be the longest dimension, which is usually the first.\n"
-                    "Current shape: (2, 3).\n"
-                    "Suggestion: Transpose so the first dimension is 3."
+                    "'my_spatial_series': Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. Current shape: (2, 3)."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,

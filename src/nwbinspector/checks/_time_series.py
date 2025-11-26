@@ -59,10 +59,9 @@ def check_data_orientation(time_series: TimeSeries) -> Optional[InspectorMessage
         longest_axis = int(np.argmax(data_shape))
         return InspectorMessage(
             message=(
-                f"'{time_series.name}' data may be in the wrong orientation. "
-                f"Time should be the longest dimension, which is usually the first.\n"
-                f"Current shape: {data_shape}.\n"
-                f"Suggestion: Transpose so the first dimension is {data_shape[longest_axis]}."
+                f"'{time_series.name}': Data may be in the wrong orientation. "
+                f"Time should be in the first dimension, and is usually the longest dimension. "
+                f"Here, another dimension is longer. Current shape: {data_shape}."
             ),
         )
 
