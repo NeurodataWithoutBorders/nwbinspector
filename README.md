@@ -2,8 +2,8 @@
   <img src="https://raw.githubusercontent.com/neurodatawithoutborders/nwbinspector/dev/docs/logo/logo.png" width="250" alt="NWB Inspector logo"/>
 
   <p align="center">
-    <a href="https://pypi.org/project/dandi_s3_log_parser/"><img alt="Supported Python versions" src="https://img.shields.io/pypi/pyversions/nwbinspector.svg"></a>
-    <a href="https://codecov.io/github/CatalystNeuro/dandi_s3_log_parser?branch=main"><img alt="codecov" src="https://codecov.io/github/NeurodataWithoutBorders/nwbinspector/coverage.svg?branch=main"></a>
+    <a href="https://pypi.org/project/nwbinspector"><img alt="Supported Python versions" src="https://img.shields.io/pypi/pyversions/nwbinspector.svg"></a>
+    <a href="https://codecov.io/gh/NeurodataWithoutBorders/nwbinspector"><img alt="codecov" src="https://codecov.io/github/NeurodataWithoutBorders/nwbinspector/coverage.svg?branch=main"></a>
   </p>
   <p align="center">
     <a href="https://pypi.org/project/nwbinpsector/"><img alt="PyPI latest release version" src="https://badge.fury.io/py/nwbinspector.svg?id=py&kill_cache=1"></a>
