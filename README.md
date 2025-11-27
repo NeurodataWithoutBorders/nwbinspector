@@ -6,7 +6,7 @@
     <a href="https://codecov.io/gh/NeurodataWithoutBorders/nwbinspector"><img alt="codecov" src="https://codecov.io/github/NeurodataWithoutBorders/nwbinspector/coverage.svg?branch=main"></a>
   </p>
   <p align="center">
-    <a href="https://pypi.org/project/nwbinpsector/"><img alt="PyPI latest release version" src="https://badge.fury.io/py/nwbinspector.svg?id=py&kill_cache=1"></a>
+    <a href="https://pypi.org/project/nwbinspector/"><img alt="PyPI latest release version" src="https://badge.fury.io/py/nwbinspector.svg?id=py&kill_cache=1"></a>
     <a href="https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/license.txt"><img alt="License: BSD-3" src="https://img.shields.io/pypi/l/nwbinspector.svg"></a>
     <a href="https://doi.org/10.5281/zenodo.10611726"><img src="https://zenodo.org/badge/221989104.svg" alt="DOI"></a>
   </p>
