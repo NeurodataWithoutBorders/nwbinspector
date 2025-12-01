@@ -85,7 +85,7 @@ class MessageFormatter:
     ) -> None:
         self.nmessages = len(messages)
         self.nfiles_with_issues = len(set(message.file_path for message in messages))  # type: ignore
-        self.nfiles_detected = nfiles_detected if nfiles_detected is not None else self.nfiles_with_issues
+        self.nfiles_detected = nfiles_detected
         self.message_count_by_importance = self._count_messages_by_importance(messages=messages)
         self.initial_organized_messages = organize_messages(messages=messages, levels=levels, reverse=reverse)
         self.detailed = detailed
@@ -211,12 +211,12 @@ class MessageFormatter:
             ]
         )
 
+        if self.nfiles_detected is not None:
+            self.formatted_messages.append(f"Scanned {self.nfiles_detected} file(s).")
         if self.nmessages == 0:
-            self.formatted_messages.append(f"Scanned {self.nfiles_detected} file(s) - no issues found!")
+            self.formatted_messages.append("No issues found!")
         else:
-            self.formatted_messages.append(
-                f"Scanned {self.nfiles_detected} file(s) and found {self.nmessages} issues across {self.nfiles_with_issues} file(s):"
-            )
+            self.formatted_messages.append(f"Found {self.nmessages} issues across {self.nfiles_with_issues} file(s):")
 
         for importance_level, number_of_results in self.message_count_by_importance.items():
             increment = " " * (8 - len(str(number_of_results)))
