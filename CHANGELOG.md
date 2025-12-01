@@ -9,6 +9,8 @@
 
 ### Fixes
 * Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
+* Dropped Python 3.9 and middle Python versions (3.11, 3.12) from CI; now testing only Python 3.10 and 3.13. [#632](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/632)
+* Updated macOS CI runner from `macos-13` to `macos-latest`. [#639](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/639)
 
 # v0.6.5 (July 25, 2025)
 
