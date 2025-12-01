@@ -5,7 +5,8 @@ Timestamp: 2022-04-01 13:32:13.756390-04:00
 Platform: Windows-10-10.0.19043-SP0
 NWBInspector version: 0.3.6
 
-Scanned 3 file(s) and found 5 issues across 2 file(s):
+Scanned 3 file(s).
+Found 5 issues across 2 file(s):
        2 - CRITICAL
        2 - BEST_PRACTICE_VIOLATION
        1 - BEST_PRACTICE_SUGGESTION

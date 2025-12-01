@@ -21,7 +21,8 @@ class TestMessageFormatterSummary(TestCase):
             nfiles_detected=nfiles_detected,
         )
         formatted_messages = formatter.format_messages()
-        self.assertIn("Scanned 5 file(s) - no issues found!", formatted_messages)
+        self.assertIn("Scanned 5 file(s).", formatted_messages)
+        self.assertIn("No issues found!", formatted_messages)
 
     def test_format_messages_with_issues(self):
         """Test that the correct summary is generated when issues are found."""
@@ -64,4 +65,5 @@ class TestMessageFormatterSummary(TestCase):
         )
         formatted_messages = formatter.format_messages()
 
-        self.assertIn("Scanned 4 file(s) and found 3 issues across 2 file(s):", formatted_messages)
+        self.assertIn("Scanned 4 file(s).", formatted_messages)
+        self.assertIn("Found 3 issues across 2 file(s):", formatted_messages)
