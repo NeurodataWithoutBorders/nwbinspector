@@ -30,7 +30,7 @@ Found 10 issues over 2 files:
        Message: TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=1.2 and rate=0.5 instead of timestamps.
 
 1.4  ./testing0.nwb.zarr: check_data_orientation - 'SpatialSeries' object at location '/processing/behavior/Position/my_spatial_series'
-       Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
+       Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer. Current shape: (2, 3). Suggestion: Transpose your data so the first dimension is 3.
 
 1.5  ./testing0.nwb.zarr: check_missing_unit - 'TimeSeries' object at location '/acquisition/test_time_series_3'
        Message: Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.
@@ -42,4 +42,4 @@ Found 10 issues over 2 files:
        Message: Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.
 
 1.8  ./testing1.nwb.zarr: check_data_orientation - 'TimeSeries' object at location '/acquisition/my_spatial_series'
-       Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer.
+       Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer. Current shape: (2, 3). Suggestion: Transpose your data so the first dimension is 3.
