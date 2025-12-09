@@ -9,7 +9,6 @@ from typing import Iterable, Optional, Type, Union
 from warnings import filterwarnings, warn
 
 import pynwb
-from hdmf_zarr import ZarrIO
 from natsort import natsorted
 from tqdm import tqdm
 
@@ -20,6 +19,7 @@ from .utils import (
     OptionalListOfStrings,
     PathType,
     calculate_number_of_cpu,
+    get_nwbfiles_from_path,
 )
 
 
@@ -86,7 +86,6 @@ def inspect_all(
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
     """
-    in_path = Path(path)
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
@@ -127,17 +126,8 @@ def inspect_all(
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
 
-    if in_path.is_dir() and (in_path.match("*.nwb*")) and ZarrIO.can_read(in_path):
-        nwbfiles = [in_path]  # if it is a zarr directory
-    elif in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb*"))
+    nwbfiles = get_nwbfiles_from_path(path=path)
 
-        # Remove any macOS sidecar files
-        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
-    elif in_path.is_file():
-        nwbfiles = [in_path]
-    else:
-        raise ValueError(f"{in_path} should be a directory or an NWB file.")
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
@@ -153,10 +143,11 @@ def inspect_all(
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
+                non_unique_files = natsorted([x.name for x in nwbfiles_with_identifier])
                 yield InspectorMessage(
                     message=(
                         f"The identifier '{identifier}' is used across the .nwb files: "
-                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        f"{non_unique_files}. "
                         "The identifier of any NWBFile should be a completely unique value - "
                         "we recommend using uuid4 to achieve this."
                     ),
@@ -165,7 +156,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(path),
+                    file_path=str(non_unique_files[-1]),  # report an example file_path with non-unique identifier
                 )
 
     nwbfiles_iterable = nwbfiles
