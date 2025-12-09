@@ -134,3 +134,8 @@ known-first-party = ["nwbinspector"]
 skip = '.git*,*.pdf,*.css'
 check-hidden = true
 ignore-words-list = 'assertin'
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
