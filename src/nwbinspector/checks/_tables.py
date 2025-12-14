@@ -1,7 +1,6 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 
 from numbers import Real
-from tkinter import N
 from typing import Iterable, Optional
 
 import numpy as np
