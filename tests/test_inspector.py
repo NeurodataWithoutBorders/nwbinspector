@@ -240,8 +240,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
-                    "the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -312,8 +315,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
-                    "the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -388,8 +394,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
-                    "longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -422,8 +431,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -456,8 +468,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -622,7 +637,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
                 message=(
                     "Data may be in the wrong orientation. "
                     "Time should be in the first dimension, and is usually the longest dimension. "
-                    "Here, another dimension is longer."
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,  # Normally CRITICAL, now a BEST_PRACTICE_VIOLATION
                 check_function_name="check_data_orientation",
@@ -777,8 +794,11 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, "
-                    "and is usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -880,11 +900,12 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
         test_messages = list(
             inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate)
         )
+        non_unique_files = natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])
         expected_messages = [
             InspectorMessage(
                 message=(
                     "The identifier 'not a unique identifier!' is used across the .nwb files: "
-                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
+                    f"{non_unique_files}. "
                     "The identifier of any NWBFile should be a completely unique value - "
                     "we recommend using uuid4 to achieve this."
                 ),
@@ -893,7 +914,7 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                file_path=str(self.tempdir),
+                file_path=str(non_unique_files[-1]),
             )
         ]
 
