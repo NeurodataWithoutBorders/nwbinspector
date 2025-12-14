@@ -560,8 +560,8 @@ def test_check_time_intervals_duration_with_additional_time_columns():
     assert "exceeds the threshold" in result.message
 
 
-def test_check_time_intervals_duration_pass_without_start_stop():
-    """Test that tables with only other time columns work correctly."""
+def test_check_time_intervals_duration_pass_without_additional_time_columns():
+    """Test that check passes additional time columns that are within the threshold."""
     table = TimeIntervals(name="trials", description="test trials")
     table.add_column(name="custom_time", description="custom time column")
     table.add_row(start_time=0.0, stop_time=10.0, custom_time=5.0)
