@@ -12,6 +12,7 @@ import h5py
 import numpy as np
 import zarr
 from hdmf.backends.hdf5.h5_utils import H5Dataset
+from hdmf_zarr import ZarrIO
 from numpy.typing import ArrayLike
 from packaging import version
 
@@ -256,3 +257,26 @@ def strtobool(val: str) -> bool:
         return False
     else:
         raise ValueError(f"Invalid truth value {val!r}")
+
+
+def get_nwbfiles_from_path(path: PathType) -> list[Path]:
+    """
+    Given a path, return a list of NWB files.
+
+    If the path is a directory, check whether it is a zarr directory or search for all NWB files.
+    If the path is a file, return a list containing that file.
+    """
+    in_path = Path(path)
+    if in_path.is_dir() and (in_path.match("*.nwb*")) and ZarrIO.can_read(in_path):
+        nwbfiles = [in_path]  # if it is a zarr directory
+    elif in_path.is_dir():
+        nwbfiles = list(in_path.rglob("*.nwb*"))
+
+        # Remove any macOS sidecar files
+        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
+    elif in_path.is_file():
+        nwbfiles = [in_path]
+    else:
+        raise ValueError(f"{in_path} should be a directory or an NWB file.")
+
+    return nwbfiles
