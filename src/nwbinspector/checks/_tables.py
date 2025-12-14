@@ -1,6 +1,7 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 
 from numbers import Real
+from tkinter import N
 from typing import Iterable, Optional
 
 import numpy as np
@@ -317,13 +318,11 @@ def check_time_intervals_duration(
         return None
 
     start_times = []
-    end_times = []
+    stop_times = []
 
     # Check for start_time and stop_time columns
-    if "start_time" in time_intervals.colnames and len(time_intervals["start_time"]) > 0:
-        start_times.append(float(time_intervals["start_time"][0]))
-        if "stop_time" in time_intervals.colnames and len(time_intervals["stop_time"]) > 0:
-            end_times.append(float(time_intervals["stop_time"][-1]))
+    start_times.append(float(np.nanmin(time_intervals["start_time"][:NELEMS])))
+    stop_times.append(float(np.nanmax(time_intervals["stop_time"][-NELEMS:])))
 
     # Check for other time columns
     for column_name in time_intervals.colnames:
@@ -333,11 +332,11 @@ def check_time_intervals_duration(
             and len(time_intervals[column_name]) > 0
         ):
             data = time_intervals[column_name]
-            start_times.append(float(data[0]))
-            end_times.append(float(data[-1]))
+            start_times.append(float(np.nanmin(data[:NELEMS])))
+            stop_times.append(float(np.nanmax(data[-NELEMS:])))
 
-    if start_times and end_times:
-        duration = max(end_times) - min(start_times)
+    if start_times and stop_times:
+        duration = np.nanmax(stop_times) - np.nanmin(start_times)
 
         if duration > duration_threshold:
             duration_years = duration / 31557600.0
