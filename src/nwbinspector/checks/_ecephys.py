@@ -146,7 +146,7 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_units_table_duration(
-    units: Units, duration_threshold: float = DURATION_THRESHOLD
+    units_table: Units, duration_threshold: float = DURATION_THRESHOLD
 ) -> Optional[InspectorMessage]:
     """
     Check if the duration of spike times in a Units table exceeds a threshold.
@@ -159,7 +159,7 @@ def check_units_table_duration(
 
     Parameters
     ----------
-    units : Units
+    units_table : Units
         The Units table to check.
     duration_threshold : float, optional
         The duration threshold in seconds. If the duration exceeds this value,
@@ -170,35 +170,52 @@ def check_units_table_duration(
     Optional[InspectorMessage]
         An InspectorMessage if the duration exceeds the threshold, None otherwise.
     """
-    # Check for spike_times column (Units table)
-    if "spike_times" not in units:
+    if "spike_times" not in units_table:
         return None
 
-    idxs = units["spike_times"].data[:]
+    # Read the index array (cumulative indices marking end of each unit's spikes)
+    # This is small - just one integer per unit
+    idxs = np.asarray(units_table["spike_times"].data[:])
 
-    # remove repeats in idxs array and 0s to remove units with no spikes
-    idxs = np.unique(np.asarray(idxs))
-    idxs = idxs[idxs != 0]
-
-    spike_times = units["spike_times"].target
-    if len(spike_times) == 0:
+    if len(idxs) == 0:
         return None
-    if len(idxs) > 1:
-        start = np.min(np.r_[spike_times[0], spike_times[idxs[:-1]]])
-    else:
-        start = spike_times[0]
 
-    end = np.max(spike_times[idxs - 1])
+    # Build indices for first and last spike of each unit
+    # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
+    # Last spike indices: idxs - 1 for each unit
+    first_spike_idxs = np.concatenate([[0], idxs[idxs!=idxs[-1]]])
+    last_spike_idxs = idxs[idxs!=0] - 1
 
-    start = float(np.min(spike_times))
-    end = float(np.max(spike_times))
+    # Combine into single array of indices to read, then read all at once
+    all_indices = np.concatenate([first_spike_idxs, last_spike_idxs])
+    all_indices = np.unique(all_indices)  # Remove duplicates for efficiency
+
+    # Read only the needed spike times in one operation
+    spike_times_data = units_table["spike_times"].target.data
+
+    # print(f"{idxs=}", flush=True)
+    # print(f"{first_spike_idxs=}", flush=True)
+    # print(f"{last_spike_idxs=}", flush=True)
+    # print(f"{all_indices=}", flush=True)
+    # print(f"{spike_times_data=}", flush=True)
+    # print(f"{all_indices=}", flush=True)
+
+    # needed to get tests to work on example data that is a list, not an h5py dataset
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    boundary_spike_times = spike_times_data[all_indices]
+
+    if len(boundary_spike_times) == 0:
+        return None
+
+    start = float(np.min(boundary_spike_times))
+    end = float(np.max(boundary_spike_times))
     duration = end - start
 
-    # Check if duration exceeds threshold
     if duration > duration_threshold:
-        # Convert to years for the message
-        duration_years = duration / 31557600.0
-        threshold_years = duration_threshold / 31557600.0
+        duration_years = duration / DURATION_THRESHOLD
+        threshold_years = duration_threshold / DURATION_THRESHOLD
         return InspectorMessage(
             message=(
                 f"Units table has a duration of {duration:.2f} seconds "
