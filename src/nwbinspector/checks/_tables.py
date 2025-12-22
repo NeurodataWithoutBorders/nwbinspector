@@ -18,6 +18,7 @@ from ..utils import (
 )
 
 NELEMS = 200
+MAX_DURATION = 3600 * 24 * 365.25  # default: 1 year
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -291,4 +292,60 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
                     " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
                 )
 
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
+def check_time_intervals_duration(
+    time_intervals: TimeIntervals, duration_threshold: float = MAX_DURATION
+) -> Optional[InspectorMessage]:
+    """
+    Check if the duration spanned by time columns in a TimeIntervals table exceeds a threshold.
+
+    This check examines start_time, stop_time, and any other columns ending in _time.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+        The table to check
+    duration_threshold: float, optional
+        Maximum expected duration in seconds. Default is 1 year (365.25 days).
+    """
+    if len(time_intervals.id) == 0:
+        return None
+
+    start_times = []
+    stop_times = []
+
+    # Check for start_time and stop_time columns
+    start_times.append(float(np.nanmin(time_intervals["start_time"][:NELEMS])))
+    stop_times.append(float(np.nanmax(time_intervals["stop_time"][-NELEMS:])))
+
+    # Check for other time columns
+    for column_name in time_intervals.colnames:
+        if (
+            column_name.endswith("_time")
+            and column_name not in ["start_time", "stop_time"]
+            and len(time_intervals[column_name]) > 0
+        ):
+            data = time_intervals[column_name]
+            start_times.append(float(np.nanmin(data[:NELEMS])))
+            stop_times.append(float(np.nanmax(data[-NELEMS:])))
+
+    if start_times and stop_times:
+        duration = np.nanmax(stop_times) - np.nanmin(start_times)
+
+        if duration > duration_threshold:
+            duration_years = duration / 31557600.0
+            threshold_years = duration_threshold / 31557600.0
+            return InspectorMessage(
+                message=(
+                    f"TimeIntervals table '{time_intervals.name}' has a duration of {duration:.2f} seconds "
+                    f"({duration_years:.2f} years), which exceeds the threshold of "
+                    f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                    "Please verify that this is correct."
+                )
+            )
     return None

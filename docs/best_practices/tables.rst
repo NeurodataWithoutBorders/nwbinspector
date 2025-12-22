@@ -120,6 +120,8 @@ Times are always stored in seconds in NWB. In :ref:`nwb-schema:sec-TimeIntervals
 
 Additional time columns in :ref:`nwb-schema:sec-TimeIntervals` tables, such as the ``TrialsTable`` should have ``_time`` as a suffix to the name. *E.g.*, if you add more times in ``TrialsTable``, such as a subject response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`, just like ``start_time`` and ``stop_time``. This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events. See :ref:`best_practice_global_time_reference` for more details.
 
+Check function :py:meth:`~nwbinspector.checks._tables.check_time_intervals_duration`
+
 .. _best_practice_unique_dynamic_table_ids:
 
 Unique ids
