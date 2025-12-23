@@ -193,12 +193,6 @@ def check_units_table_duration(
     # Read only the needed spike times in one operation
     spike_times_data = units_table["spike_times"].target.data
 
-    # print(f"{idxs=}", flush=True)
-    # print(f"{first_spike_idxs=}", flush=True)
-    # print(f"{last_spike_idxs=}", flush=True)
-    # print(f"{all_indices=}", flush=True)
-    # print(f"{spike_times_data=}", flush=True)
-    # print(f"{all_indices=}", flush=True)
 
     # needed to get tests to work on example data that is a list, not an h5py dataset
     if isinstance(spike_times_data, list):
