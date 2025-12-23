@@ -193,7 +193,6 @@ def check_units_table_duration(
     # Read only the needed spike times in one operation
     spike_times_data = units_table["spike_times"].target.data
 
-
     # needed to get tests to work on example data that is a list, not an h5py dataset
     if isinstance(spike_times_data, list):
         spike_times_data = np.array(spike_times_data)
