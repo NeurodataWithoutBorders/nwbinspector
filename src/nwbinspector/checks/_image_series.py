@@ -90,7 +90,11 @@ def check_image_series_starting_frame_without_external_file(image_series: ImageS
 
     Best Practice: :ref:`best_practice_starting_frame_only_with_external_file`
     """
-    if image_series.external_file is None and image_series.starting_frame is not None and len(image_series.starting_frame) > 0:
+    if (
+        image_series.external_file is None
+        and image_series.starting_frame is not None
+        and len(image_series.starting_frame) > 0
+    ):
         return InspectorMessage(
             message="ImageSeries has starting_frame set but no external_file. "
             "starting_frame is only relevant when using external files."
