@@ -24,6 +24,7 @@ from ._image_series import (
     check_image_series_data_size,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
+    check_image_series_starting_frame_without_external_file,
 )
 from ._images import (
     check_index_series_points_to_image,
@@ -103,6 +104,7 @@ __all__ = [
     "check_image_series_data_size",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
+    "check_image_series_starting_frame_without_external_file",
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
