@@ -394,7 +394,7 @@ def test_check_units_table_duration_single_unit():
 
 def test_check_units_table_duration_first_unit_no_spikes():
     """Test handling of empty spike_times for the first unit.
-    
+
     The first unit is a special case in the index structure: it has no preceding
     index value, so when the first unit has no spikes, the index array starts as
     [0, ...] (the first value equals the second). This test ensures the duration
@@ -410,7 +410,7 @@ def test_check_units_table_duration_first_unit_no_spikes():
 
 def test_check_units_table_duration_second_unit_no_spikes():
     """Test handling of empty spike_times for a non-first unit.
-    
+
     Non-first units with no spikes produce a different index pattern than the
     first unit: the index array contains [..., x, x, ...] where consecutive
     values are equal. This test ensures the duration calculation correctly
