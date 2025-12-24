@@ -138,8 +138,13 @@ def check_timestamp_of_the_first_sample_is_not_negative(time_series: TimeSeries)
 
     Best Practice: :ref:`best_practice_avoid_negative_timestamps`
     """
+    if time_series.starting_time is not None:
+        first_timestamp = time_series.starting_time
+    elif time_series.timestamps is not None and len(time_series.timestamps) > 0:
+        first_timestamp = time_series.timestamps[0]
+    else:
+        return None
 
-    first_timestamp = time_series.starting_time if time_series.starting_time is not None else time_series.timestamps[0]
     if first_timestamp < 0:
         message = (
             "Timestamps should not be negative. This usually indicates a temporal misalignment of the data. "
