@@ -14,6 +14,7 @@ from nwbinspector.checks import (
     check_data_orientation,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
+    check_electrical_series_unscaled_data,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
@@ -422,3 +423,130 @@ def test_check_units_table_duration_second_unit_no_spikes():
 
     # Should pass - duration is only 2 seconds
     assert check_units_table_duration(units) is None
+
+
+class TestCheckElectricalSeriesUnscaledData(TestCase):
+    """Tests for check_electrical_series_unscaled_data."""
+
+    def setUp(self):
+        nwbfile = NWBFile(
+            session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+        )
+        device = nwbfile.create_device(name="dev")
+        group = nwbfile.create_electrode_group(
+            name="electrode_group", description="desc", location="loc", device=device
+        )
+        for _ in range(3):
+            nwbfile.add_electrode(location="unknown", group=group)
+        self.nwbfile = nwbfile
+        self.electrodes = self.nwbfile.create_electrode_table_region(region=[0, 1, 2], description="three elecs")
+
+    def test_pass_with_float_data(self):
+        """Test that float data does not trigger a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.float64),
+            electrodes=self.electrodes,
+            rate=30.0,
+        )
+        assert check_electrical_series_unscaled_data(electrical_series) is None
+
+    def test_pass_with_int_data_and_non_default_conversion(self):
+        """Test that int data with non-default conversion does not trigger a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+            conversion=1e-6,  # Non-default conversion
+        )
+        assert check_electrical_series_unscaled_data(electrical_series) is None
+
+    def test_pass_with_int_data_and_non_default_offset(self):
+        """Test that int data with non-default offset does not trigger a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+            offset=0.5,  # Non-default offset
+        )
+        assert check_electrical_series_unscaled_data(electrical_series) is None
+
+    def test_pass_with_int_data_and_channel_conversion(self):
+        """Test that int data with channel_conversion set does not trigger a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+            channel_conversion=[1e-6, 1e-6, 1e-6],  # Non-default channel conversion
+        )
+        assert check_electrical_series_unscaled_data(electrical_series) is None
+
+    def test_fail_with_int16_data_and_default_conversion(self):
+        """Test that int16 data with default conversion triggers a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+        )
+        result = check_electrical_series_unscaled_data(electrical_series)
+        assert result is not None
+        assert result == InspectorMessage(
+            message=(
+                "ElectricalSeries 'elec_series' has data with dtype 'int16' and "
+                "conversion=1.0 and offset=0.0. This suggests the data is in raw acquisition units "
+                "which is not in Volts. Please set the 'conversion' and/or 'offset' fields to convert "
+                "the data to Volts, or use 'channel_conversion' for per-channel conversion factors."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_electrical_series_unscaled_data",
+            object_type="ElectricalSeries",
+            object_name="elec_series",
+            location="/",
+        )
+
+    def test_fail_with_uint16_data_and_default_conversion(self):
+        """Test that uint16 data with default conversion triggers a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.uint16),
+            electrodes=self.electrodes,
+            rate=30.0,
+        )
+        result = check_electrical_series_unscaled_data(electrical_series)
+        assert result is not None
+        assert "uint16" in result.message
+
+    def test_fail_with_channel_conversion_all_ones(self):
+        """Test that int data with channel_conversion all 1.0 triggers a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((100, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+            channel_conversion=[1.0, 1.0, 1.0],  # All default values
+        )
+        result = check_electrical_series_unscaled_data(electrical_series)
+        assert result is not None
+        assert "int16" in result.message
+
+    def test_pass_with_empty_data(self):
+        """Test that empty data does not trigger a warning."""
+        electrical_series = ElectricalSeries(
+            name="elec_series",
+            description="desc",
+            data=np.zeros((0, 3), dtype=np.int16),
+            electrodes=self.electrodes,
+            rate=30.0,
+        )
+        assert check_electrical_series_unscaled_data(electrical_series) is None
