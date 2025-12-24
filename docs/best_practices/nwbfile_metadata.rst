@@ -181,7 +181,16 @@ of the form ``'doi: ###'`` or as an external link of the form ``'http://dx.doi.o
 This allows metadata collection programs, such as those on the :dandi-archive:`DANDI archive <>` to easily form direct
 hyperlinks to the publications.
 
-Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_doi_publications`
+Each publication should be a separate entry in the list. Do not combine multiple DOIs or URLs into a single
+comma-separated string. For example, use ``["https://doi.org/10.1234/abc", "https://doi.org/10.5678/def"]`` instead of
+``["https://doi.org/10.1234/abc,https://doi.org/10.5678/def"]``.
+
+DOIs should be valid and resolvable. The inspector can verify that DOI URLs actually resolve to valid publications
+by making network requests to the DOI resolver service.
+
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_doi_publications`,
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_publication_list_format`, and
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_publication_doi_resolves`
 
 
 

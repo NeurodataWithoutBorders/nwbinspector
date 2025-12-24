@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Optional
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from hdmf_zarr import NWBZarrIO
 from isodate import Duration, parse_duration
@@ -158,6 +160,121 @@ def check_doi_publications(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessa
                 message=(
                     f"Metadata /general/related_publications '{publication}' does not start with 'doi: ###' and is "
                     "not an external 'doi' link."
+                )
+            )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_publication_list_format(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if related_publications entries contain comma-separated values that should be separate list entries.
+
+    Best Practice: :ref:`best_practice_doi_publications`
+    """
+    if not nwbfile.related_publications:
+        return None
+    for publication in nwbfile.related_publications:
+        publication = publication.decode() if isinstance(publication, bytes) else publication
+        # Check for comma-separated DOIs or URLs within a single entry
+        # Look for patterns like "doi:xxx,doi:yyy" or "https://doi.org/xxx,https://doi.org/yyy"
+        if "," in publication:
+            # Check if the comma appears to separate multiple DOIs/URLs
+            parts = [p.strip() for p in publication.split(",")]
+            doi_indicators = ["doi:", "doi.org/", "dx.doi.org/"]
+            doi_like_parts = [
+                part for part in parts if any(indicator in part.lower() for indicator in doi_indicators)
+            ]
+            if len(doi_like_parts) > 1:
+                yield InspectorMessage(
+                    message=(
+                        f"Metadata /general/related_publications contains a comma-separated list '{publication}'. "
+                        "Each publication should be a separate entry in the list, not combined in a single string."
+                    )
+                )
+
+    return None
+
+
+def _convert_doi_to_url(doi_string: str) -> Optional[str]:
+    """
+    Convert a DOI string to a resolvable URL.
+
+    Handles formats like:
+    - "doi:10.1234/abc" -> "https://doi.org/10.1234/abc"
+    - "https://doi.org/10.1234/abc" -> "https://doi.org/10.1234/abc"
+    - "http://dx.doi.org/10.1234/abc" -> "http://dx.doi.org/10.1234/abc"
+
+    Returns None if the string is not a recognizable DOI format.
+    """
+    doi_string = doi_string.strip()
+
+    if doi_string.startswith("https://doi.org/") or doi_string.startswith("http://dx.doi.org/"):
+        return doi_string
+    elif doi_string.startswith("doi:"):
+        # Extract the DOI identifier after "doi:"
+        doi_id = doi_string[4:].strip()
+        return f"https://doi.org/{doi_id}"
+
+    return None
+
+
+def _check_url_resolves(url: str, timeout: int = 10) -> tuple[bool, Optional[str]]:
+    """
+    Check if a URL resolves by making a HEAD request.
+
+    Returns a tuple of (success, error_message).
+    """
+    try:
+        request = Request(url, method="HEAD")
+        request.add_header("User-Agent", "NWBInspector/1.0")
+        with urlopen(request, timeout=timeout) as response:
+            # 2xx and 3xx status codes are considered successful
+            if response.status < 400:
+                return True, None
+            return False, f"HTTP {response.status}"
+    except HTTPError as e:
+        return False, f"HTTP {e.code}"
+    except URLError as e:
+        return False, str(e.reason)
+    except TimeoutError:
+        return False, "Request timed out"
+    except Exception as e:
+        return False, str(e)
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_publication_doi_resolves(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if DOI URLs in related_publications actually resolve.
+
+    This check makes network requests to verify that DOI URLs are valid and accessible.
+
+    Best Practice: :ref:`best_practice_doi_publications`
+    """
+    if not nwbfile.related_publications:
+        return None
+
+    valid_starts = ["doi:", "http://dx.doi.org/", "https://doi.org/"]
+
+    for publication in nwbfile.related_publications:
+        publication = publication.decode() if isinstance(publication, bytes) else publication
+
+        # Only check entries that look like DOIs
+        if not any(publication.startswith(valid_start) for valid_start in valid_starts):
+            continue
+
+        url = _convert_doi_to_url(publication)
+        if url is None:
+            continue
+
+        resolves, error = _check_url_resolves(url)
+        if not resolves:
+            yield InspectorMessage(
+                message=(
+                    f"Metadata /general/related_publications DOI '{publication}' does not resolve. "
+                    f"Error: {error}. Please verify the DOI is correct."
                 )
             )
 

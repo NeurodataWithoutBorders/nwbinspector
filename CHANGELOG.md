@@ -5,6 +5,8 @@
 * Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue.
 * Added `check_time_intervals_duration`, which makes sure that `TimeInterval` objects do not have a duration greater than 1 year.
 [#635](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/635)
+* Added `check_publication_list_format` to detect comma-separated DOIs/URLs in `related_publications` entries that should be separate list entries. [#419](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/419)
+* Added `check_publication_doi_resolves` to verify that DOI URLs in `related_publications` actually resolve to valid publications. [#419](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/419)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
