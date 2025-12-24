@@ -1,16 +1,14 @@
+import os
 import tempfile
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from nwbinspector import Importance, InspectorMessage
-import os
-
-import pytest
-
 from nwbinspector.checks import (
     check_doi_publications,
     check_experiment_description,
