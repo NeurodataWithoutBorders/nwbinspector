@@ -249,6 +249,19 @@ The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indic
 
 
 
+.. _best_practice_subject_weight:
+
+Subject Weight
+~~~~~~~~~~~~~~
+
+The ``weight`` of a :ref:`nwb-schema:sec-Subject` should follow the form '[numeric] [unit]', e.g. '2.3 kg'.
+The weight should include a numeric value followed by a space and a unit string. Without a unit, the weight
+is ambiguous.
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_weight`
+
+
+
 .. _best_practice_subject_age:
 
 Subject Age
