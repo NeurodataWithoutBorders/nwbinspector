@@ -214,7 +214,7 @@ def check_units_table_duration(
                 f"Units table has a duration of {duration:.2f} seconds "
                 f"({duration_years:.2f} years), which exceeds the threshold of "
                 f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
-                "This may indicate that spike_times are in the wrong units or there is a data quality issue."
+                "This may indicate that spike_times are not in seconds that or there is a data quality issue."
             )
         )
 

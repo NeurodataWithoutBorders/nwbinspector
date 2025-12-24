@@ -347,7 +347,7 @@ def test_check_units_table_duration_fail():
             "Units table has a duration of 40000000.00 seconds "
             "(1.27 years), which exceeds the threshold of "
             "31557600.00 seconds (1.00 years). "
-            "This may indicate that spike_times are in the wrong units or there is a data quality issue."
+            "This may indicate that spike_times are not in seconds that or there is a data quality issue."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_units_table_duration",
@@ -372,7 +372,7 @@ def test_check_units_table_duration_custom_threshold():
             "Units table has a duration of 100.00 seconds "
             "(0.00 years), which exceeds the threshold of "
             "50.00 seconds (0.00 years). "
-            "This may indicate that spike_times are in the wrong units or there is a data quality issue."
+            "This may indicate that spike_times are not in seconds that or there is a data quality issue."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_units_table_duration",
