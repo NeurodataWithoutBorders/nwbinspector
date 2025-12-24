@@ -409,7 +409,13 @@ def test_check_units_table_duration_first_unit_no_spikes():
 
 
 def test_check_units_table_duration_second_unit_no_spikes():
-    """Test that units table where second unit has no spikes works correctly."""
+    """Test handling of empty spike_times for a non-first unit.
+    
+    Non-first units with no spikes produce a different index pattern than the
+    first unit: the index array contains [..., x, x, ...] where consecutive
+    values are equal. This test ensures the duration calculation correctly
+    handles this distinct edge case.
+    """
     units = Units(name="units")
     units.add_unit(spike_times=[0.0, 1.0, 2.0])  # First unit has spikes
     units.add_unit(spike_times=[])  # Second unit has no spikes
