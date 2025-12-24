@@ -10,6 +10,8 @@ from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
 
 NELEMS = 200
+# Default duration threshold: 1 year in seconds
+DURATION_THRESHOLD = 31557600.0
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
@@ -139,4 +141,81 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
                     "Spike times should be sorted in ascending order."
                 )
             )
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_units_table_duration(
+    units_table: Units, duration_threshold: float = DURATION_THRESHOLD
+) -> Optional[InspectorMessage]:
+    """
+    Check if the duration of spike times in a Units table exceeds a threshold.
+
+    This check helps identify potential issues where spike times may have been stored
+    in the wrong units (e.g., milliseconds instead of seconds) or have other data
+    quality issues that result in an unrealistically long recording duration.
+
+    Best Practice :ref:`best_practice_units_table_duration`
+
+    Parameters
+    ----------
+    units_table : Units
+        The Units table to check.
+    duration_threshold : float, optional
+        The duration threshold in seconds. If the duration exceeds this value,
+        an InspectorMessage is returned. Default is 1 year (31557600 seconds).
+
+    Returns
+    -------
+    Optional[InspectorMessage]
+        An InspectorMessage if the duration exceeds the threshold, None otherwise.
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    # Read the index array (cumulative indices marking end of each unit's spikes)
+    # This is small - just one integer per unit
+    idxs = np.asarray(units_table["spike_times"].data[:])
+
+    if len(idxs) == 0:
+        return None
+
+    # Build indices for first and last spike of each unit
+    # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
+    # Last spike indices: idxs - 1 for each unit
+    first_spike_idxs = np.concatenate([[0], idxs[idxs != idxs[-1]]])
+    last_spike_idxs = idxs[idxs != 0] - 1
+
+    # Combine into single array of indices to read, then read all at once
+    all_indices = np.concatenate([first_spike_idxs, last_spike_idxs])
+    all_indices = np.unique(all_indices)  # Remove duplicates for efficiency
+
+    # Read only the needed spike times in one operation
+    spike_times_data = units_table["spike_times"].target.data
+
+    # needed to get tests to work on example data that is a list, not an h5py dataset
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    boundary_spike_times = spike_times_data[all_indices]
+
+    if len(boundary_spike_times) == 0:
+        return None
+
+    start = float(np.min(boundary_spike_times))
+    end = float(np.max(boundary_spike_times))
+    duration = end - start
+
+    if duration > duration_threshold:
+        duration_years = duration / DURATION_THRESHOLD
+        threshold_years = duration_threshold / DURATION_THRESHOLD
+        return InspectorMessage(
+            message=(
+                f"Units table has a duration of {duration:.2f} seconds "
+                f"({duration_years:.2f} years), which exceeds the threshold of "
+                f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                "This may indicate that spike_times are not in seconds that or there is a data quality issue."
+            )
+        )
+
     return None
