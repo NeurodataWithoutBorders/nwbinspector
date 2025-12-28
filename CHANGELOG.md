@@ -1,5 +1,8 @@
 # v0.6.6 (Upcoming)
 
+### New Features
+* Added specifiable output format for reports based on file extension. Reports saved with `.md` extension use Markdown format, `.html`/`.htm` use HTML format with styled output, and all others default to RST format. [#153](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/153)
+
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
 * Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue.

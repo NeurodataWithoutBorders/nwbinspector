@@ -214,12 +214,22 @@ def _nwbinspector_cli(
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
 
+    # Determine output format based on file extension
+    output_format = "rst"
+    if report_file_path is not None:
+        report_path = Path(report_file_path)
+        if report_path.suffix.lower() == ".md":
+            output_format = "markdown"
+        elif report_path.suffix.lower() in (".html", ".htm"):
+            output_format = "html"
+
     formatted_messages = format_messages(
         messages=messages,
         levels=handled_levels,
         reverse=handled_reverse,
         detailed=detailed,
         nfiles_detected=nfiles_detected,
+        output_format=output_format,
     )
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:
