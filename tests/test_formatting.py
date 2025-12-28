@@ -4,7 +4,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nwbinspector import Importance, InspectorMessage
-from nwbinspector._formatting import RstFormatter, MarkdownFormatter, HtmlFormatter
+from nwbinspector._formatting import HtmlFormatter, MarkdownFormatter, RstFormatter
 
 
 class TestMessageFormatterSummary(TestCase):

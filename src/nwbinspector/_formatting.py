@@ -320,18 +320,24 @@ class HtmlFormatter(MessageFormatter):
         if self.nmessages == 0:
             lines.append("        <p style='color: #28a745; font-weight: bold;'>✓ No issues found!</p>")
         else:
-            lines.append(f"        <p>Found <strong>{self.nmessages}</strong> issues across <strong>{self.nfiles_with_issues}</strong> file(s):</p>")
+            lines.append(
+                f"        <p>Found <strong>{self.nmessages}</strong> issues across <strong>{self.nfiles_with_issues}</strong> file(s):</p>"
+            )
             lines.append("        <ul class='importance-list'>")
             for importance_level, number_of_results in self.message_count_by_importance.items():
                 css_class = importance_level.lower().replace("_", "-")
-                lines.append(f"            <li><span class='importance-count {css_class}'>{number_of_results}</span> {importance_level}</li>")
+                lines.append(
+                    f"            <li><span class='importance-count {css_class}'>{number_of_results}</span> {importance_level}</li>"
+                )
             lines.append("        </ul>")
 
-        lines.extend([
-            "    </div>",
-            "</div>",
-            "",
-        ])
+        lines.extend(
+            [
+                "    </div>",
+                "</div>",
+                "",
+            ]
+        )
         return lines
 
     def _format_section_header(self, section_name: str, level: int) -> list[str]:
