@@ -34,17 +34,35 @@ def check_sweeptable_deprecated(sweep_table: SweepTable) -> Optional[InspectorMe
     Best Practice: SweepTable was deprecated in NWB 2.4.0 in favor of IntracellularRecordingsTable.
     """
     # Get the file path from the sweep_table object
-    nwbfile_path = Path(get_nwbfile_path_from_internal_object(sweep_table))
+    try:
+        nwbfile_path_str = get_nwbfile_path_from_internal_object(sweep_table)
+        if nwbfile_path_str is None:
+            return None
+        nwbfile_path = Path(nwbfile_path_str)
+    except Exception:
+        # If we can't get the file path, skip this check
+        return None
 
     # Read the NWB version from the file
-    with h5py.File(nwbfile_path, "r") as h5file:
-        nwb_version_str = h5file.attrs["nwb_version"]
-        # Handle both string and bytes
-        if isinstance(nwb_version_str, bytes):
-            nwb_version_str = nwb_version_str.decode("utf-8")
+    try:
+        with h5py.File(nwbfile_path, "r") as h5file:
+            nwb_version_str = h5file.attrs.get("nwb_version")
+            if nwb_version_str is None:
+                # If no nwb_version attribute, skip this check
+                return None
+            # Handle both string and bytes
+            if isinstance(nwb_version_str, bytes):
+                nwb_version_str = nwb_version_str.decode("utf-8")
+    except Exception:
+        # If we can't read the file or the attribute, skip this check
+        return None
 
-    nwb_version = Version(nwb_version_str)
-    deprecated_version = Version("2.4.0")
+    try:
+        nwb_version = Version(nwb_version_str)
+        deprecated_version = Version("2.4.0")
+    except Exception:
+        # If version parsing fails, skip this check
+        return None
 
     if nwb_version >= deprecated_version:
         return InspectorMessage(
