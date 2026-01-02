@@ -19,6 +19,7 @@ from ._general import (
 )
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
+    check_sweeptable_deprecated,
 )
 from ._image_series import (
     check_image_series_data_size,
@@ -156,6 +157,7 @@ __all__ = [
     "check_timestamp_of_the_first_sample_is_not_negative",
     "check_rate_is_not_zero",
     "check_intracellular_electrode_cell_id_exists",
+    "check_sweeptable_deprecated",
     "check_compass_direction_unit",
     "check_spatial_series_radians_magnitude",
     "check_spatial_series_dims",
