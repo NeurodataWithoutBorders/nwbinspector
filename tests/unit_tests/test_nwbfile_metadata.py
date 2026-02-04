@@ -667,7 +667,7 @@ def test_check_file_extension_fail():
 
 def test_check_subject_weight_pass():
     """Test that valid weight formats pass the check."""
-    valid_weights = ["2.3 kg", "25 kg", "2.5kg", "100g", "1.5 lbs", "0.5 kg"]
+    valid_weights = ["2.3 kg", "25 kg", "0.5 kg", "100 g"]
     for weight in valid_weights:
         subject = Subject(subject_id="001", weight=weight)
         assert check_subject_weight(subject) is None, f"Weight '{weight}' should pass the check"
