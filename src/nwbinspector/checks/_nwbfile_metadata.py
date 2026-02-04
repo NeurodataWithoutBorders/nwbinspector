@@ -257,7 +257,8 @@ def check_subject_weight(subject: Subject) -> Optional[InspectorMessage]:
         return InspectorMessage(
             message=(
                 f"Subject weight '{subject.weight}' does not follow the expected form '[numeric] [unit]'. "
-                "For example, '2.3 kg'. Without a unit, the weight is ambiguous."
+                "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+                "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
             )
         )
 

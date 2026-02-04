@@ -685,7 +685,8 @@ def test_check_subject_weight_fail_no_unit():
     assert check_subject_weight(subject) == InspectorMessage(
         message=(
             "Subject weight '25' does not follow the expected form '[numeric] [unit]'. "
-            "For example, '2.3 kg'. Without a unit, the weight is ambiguous."
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_subject_weight",
@@ -701,7 +702,8 @@ def test_check_subject_weight_fail_multiple_decimals():
     assert check_subject_weight(subject) == InspectorMessage(
         message=(
             "Subject weight '2.3.4 kg' does not follow the expected form '[numeric] [unit]'. "
-            "For example, '2.3 kg'. Without a unit, the weight is ambiguous."
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_subject_weight",
@@ -717,7 +719,8 @@ def test_check_subject_weight_fail_text_only():
     assert check_subject_weight(subject) == InspectorMessage(
         message=(
             "Subject weight 'heavy' does not follow the expected form '[numeric] [unit]'. "
-            "For example, '2.3 kg'. Without a unit, the weight is ambiguous."
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_subject_weight",
