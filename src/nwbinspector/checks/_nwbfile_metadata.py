@@ -19,7 +19,7 @@ duration_regex = (
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
 species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
-weight_form_regex = r"^\d+(\.\d+)?\s*[A-Za-z]+$"
+weight_form_regex = r"(?i)^\d+(\.\d+)? (kg|g|mg|ug|μg|ng|pg)$"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
