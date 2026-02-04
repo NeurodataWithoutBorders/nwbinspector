@@ -10,6 +10,7 @@ from ._ecephys import (
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_table_duration,
 )
 from ._general import (
     check_description,
@@ -144,6 +145,7 @@ __all__ = [
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",
+    "check_units_table_duration",
     "check_resolution",
     "check_missing_unit",
     "check_regular_timestamps",
