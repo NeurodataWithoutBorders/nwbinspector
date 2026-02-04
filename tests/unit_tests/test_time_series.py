@@ -343,6 +343,19 @@ def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
 
 
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_empty_timestamps_skip():
+    """Check should skip (return None) when timestamps is empty and starting_time is None."""
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(
+        name="test_time_series",
+        unit="test_units",
+        data=[],
+        timestamps=[],
+    )
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
+
+
 def test_check_missing_unit_pass():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 2, 3])
     assert check_missing_unit(time_series) is None
