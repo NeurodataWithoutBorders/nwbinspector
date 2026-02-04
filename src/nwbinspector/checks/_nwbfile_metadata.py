@@ -135,7 +135,7 @@ def check_keywords(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_subject_exists(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """Check if subject exists."""
     if nwbfile.subject is None:
@@ -164,7 +164,7 @@ def check_doi_publications(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessa
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None and subject.date_of_birth is None:
@@ -226,7 +226,7 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if subject_id is defined.
@@ -257,7 +257,7 @@ def _check_subject_sex_c_elegans(sex: str) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_sex(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if the subject sex has been specified and ensure that it has has the correct form depending on the species.

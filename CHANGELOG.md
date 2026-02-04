@@ -9,6 +9,7 @@
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
 * Updated report summary to include number of files detected and indicate when no issues are found. [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
+* Made subject information checks (`check_subject_exists`, `check_subject_id_exists`, `check_subject_sex`, `check_subject_age`) CRITICAL by default to be consistent with DANDI requirements. [#648](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/648)
 
 ### Fixes
 * Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
