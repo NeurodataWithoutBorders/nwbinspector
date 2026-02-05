@@ -728,3 +728,20 @@ def test_check_subject_weight_fail_text_only():
         object_name="subject",
         location="/general/subject",
     )
+
+
+def test_check_subject_weight_fail_no_space():
+    """Test that weight without space between number and unit fails the check."""
+    subject = Subject(subject_id="001", weight="25kg")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '25kg' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
