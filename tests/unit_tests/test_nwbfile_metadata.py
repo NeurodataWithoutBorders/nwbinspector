@@ -274,7 +274,7 @@ def test_check_subject_sex():
 
     assert check_subject_sex(subject=nwbfile.subject) == InspectorMessage(
         message="Subject.sex is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -287,7 +287,7 @@ def test_check_subject_sex_wrong_value():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -300,7 +300,7 @@ def test_check_subject_sex_caenorhabditis_elegans_default_sex():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -313,7 +313,7 @@ def test_check_subject_sex_c_elegans_default_sex():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -342,7 +342,7 @@ def test_check_subject_age_missing():
     subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
         message="Subject is missing age and date_of_birth. Please specify at least one of these fields.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -364,7 +364,7 @@ def test_check_subject_age_iso8601_fail():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -391,7 +391,7 @@ def test_check_subject_age_iso8601_range_fail_1():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -408,7 +408,7 @@ def test_check_subject_age_iso8601_range_fail_2():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -523,7 +523,7 @@ def test_pass_check_subject_age():
 def test_check_subject_exists():
     assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
         message="Subject is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_exists",
         object_type="NWBFile",
         object_name="root",
@@ -541,7 +541,7 @@ def test_check_subject_id_exists():
     subject = Subject(sex="F")
     assert check_subject_id_exists(subject) == InspectorMessage(
         message="subject_id is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_id_exists",
         object_type="Subject",
         object_name="subject",
