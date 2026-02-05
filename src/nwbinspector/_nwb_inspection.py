@@ -10,13 +10,12 @@ from warnings import filterwarnings, warn
 
 import pynwb
 from natsort import natsorted
+from packaging import version
 from tqdm import tqdm
 
 from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
 from .tools._read_nwbfile import read_nwbfile, read_nwbfile_and_io
-from packaging import version
-
 from .utils import (
     OptionalListOfStrings,
     PathType,
