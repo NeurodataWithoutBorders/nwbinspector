@@ -6,6 +6,8 @@
 * Added `check_time_intervals_duration`, which makes sure that `TimeInterval` objects do not have a duration greater than 1 year.
 [#635](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/635)
 * Added `check_electrical_series_unscaled_data` to warn when ElectricalSeries has integer data type with default conversion (1.0) and offset (0.0), which suggests raw acquisition units are not properly scaled to Volts. Also considers `channel_conversion` for per-channel scaling. [#408](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/408)
+* Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
+* Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
