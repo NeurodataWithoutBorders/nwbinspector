@@ -27,6 +27,7 @@ from nwbinspector.checks import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
 from nwbinspector.testing import make_minimal_nwbfile
@@ -662,3 +663,85 @@ def test_check_file_extension_fail():
             result = check_file_extension(read_nwbfile)
             msg = f"The file extension '{ext}' does not follow the recommended naming convention."
             assert msg in result.message
+
+
+def test_check_subject_weight_pass():
+    """Test that valid weight formats pass the check."""
+    valid_weights = ["2.3 kg", "25 kg", "0.5 kg", "100 g"]
+    for weight in valid_weights:
+        subject = Subject(subject_id="001", weight=weight)
+        assert check_subject_weight(subject) is None, f"Weight '{weight}' should pass the check"
+
+
+def test_check_subject_weight_none():
+    """Test that None weight passes the check (weight is optional)."""
+    subject = Subject(subject_id="001")
+    assert check_subject_weight(subject) is None
+
+
+def test_check_subject_weight_fail_no_unit():
+    """Test that weight without unit fails the check."""
+    subject = Subject(subject_id="001", weight="25")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '25' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_multiple_decimals():
+    """Test that weight with multiple decimal points fails the check."""
+    subject = Subject(subject_id="001", weight="2.3.4 kg")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '2.3.4 kg' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_text_only():
+    """Test that weight with only text fails the check."""
+    subject = Subject(subject_id="001", weight="heavy")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight 'heavy' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_no_space():
+    """Test that weight without space between number and unit fails the check."""
+    subject = Subject(subject_id="001", weight="25kg")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '25kg' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )

@@ -56,6 +56,7 @@ from ._nwbfile_metadata import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from ._ogen import (
     check_optogenetic_stimulus_site_has_optogenetic_series,
@@ -124,6 +125,7 @@ __all__ = [
     "check_subject_id_no_slashes",
     "check_subject_species_exists",
     "check_subject_species_form",
+    "check_subject_weight",
     "check_subject_proper_age_range",
     "check_file_extension",
     "check_session_id_no_slashes",
