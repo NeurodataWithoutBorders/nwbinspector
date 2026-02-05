@@ -1,10 +1,10 @@
 from datetime import datetime
 from enum import Enum
 
+import pynwb
 from hdmf.common import DynamicTable
 from hdmf.testing import TestCase
 from packaging import version
-import pynwb
 from pynwb import TimeSeries
 
 from nwbinspector import Importance, InspectorMessage, Severity, register_check
