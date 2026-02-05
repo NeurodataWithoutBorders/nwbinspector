@@ -5,6 +5,8 @@
 * Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue.
 * Added `check_time_intervals_duration`, which makes sure that `TimeInterval` objects do not have a duration greater than 1 year.
 [#635](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/635)
+* Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
+* Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
@@ -12,6 +14,7 @@
 * Made subject information checks (`check_subject_exists`, `check_subject_id_exists`, `check_subject_sex`, `check_subject_age`) CRITICAL by default to be consistent with DANDI requirements. [#648](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/648)
 
 ### Fixes
+* Fixed `check_timestamp_of_the_first_sample_is_not_negative` to handle empty timestamps arrays instead of throwing an `IndexError`. [#582](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/582)
 * Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
 * Improved `check_data_orientation` error message to include the TimeSeries name, current shape, and a suggestion for transposing the data. [#1430](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/1430)
 * Dropped Python 3.9 and middle Python versions (3.11, 3.12) from CI; now testing only Python 3.10 and 3.13. [#632](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/632)

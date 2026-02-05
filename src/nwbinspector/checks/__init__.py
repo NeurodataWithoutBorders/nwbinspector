@@ -25,6 +25,7 @@ from ._image_series import (
     check_image_series_data_size,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
+    check_image_series_starting_frame_without_external_file,
 )
 from ._images import (
     check_index_series_points_to_image,
@@ -56,6 +57,7 @@ from ._nwbfile_metadata import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from ._ogen import (
     check_optogenetic_stimulus_site_has_optogenetic_series,
@@ -104,6 +106,7 @@ __all__ = [
     "check_image_series_data_size",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
+    "check_image_series_starting_frame_without_external_file",
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
@@ -123,6 +126,7 @@ __all__ = [
     "check_subject_id_no_slashes",
     "check_subject_species_exists",
     "check_subject_species_form",
+    "check_subject_weight",
     "check_subject_proper_age_range",
     "check_file_extension",
     "check_session_id_no_slashes",
