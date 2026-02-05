@@ -78,3 +78,26 @@ def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: floa
         return InspectorMessage(message="ImageSeries is very large. Consider using external mode for better storage.")
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+def check_image_series_starting_frame_without_external_file(image_series: ImageSeries) -> Optional[InspectorMessage]:
+    """
+    Check if starting_frame is set when external_file is not used.
+
+    The starting_frame attribute is only relevant when using external files.
+    If there is no external file, there should be no starting_frame.
+
+    Best Practice: :ref:`best_practice_starting_frame_only_with_external_file`
+    """
+    if (
+        image_series.external_file is None
+        and image_series.starting_frame is not None
+        and len(image_series.starting_frame) > 0
+    ):
+        return InspectorMessage(
+            message="ImageSeries has starting_frame set but no external_file. "
+            "starting_frame is only relevant when using external files."
+        )
+
+    return None
