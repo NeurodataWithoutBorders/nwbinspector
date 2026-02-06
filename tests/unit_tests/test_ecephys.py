@@ -523,8 +523,19 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
             rate=30.0,
         )
         result = check_electrical_series_unscaled_data(electrical_series)
-        assert result is not None
-        assert "uint16" in result.message
+        assert result == InspectorMessage(
+            message=(
+                "ElectricalSeries 'elec_series' has data with dtype 'uint16' and "
+                "conversion=1.0 and offset=0.0. This suggests the data is in raw acquisition units "
+                "which is not in Volts. Please set the 'conversion' and/or 'offset' fields to convert "
+                "the data to Volts, or use 'channel_conversion' for per-channel conversion factors."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_electrical_series_unscaled_data",
+            object_type="ElectricalSeries",
+            object_name="elec_series",
+            location="/",
+        )
 
     def test_fail_with_channel_conversion_all_ones(self):
         """Test that int data with channel_conversion all 1.0 triggers a warning."""
@@ -537,8 +548,19 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
             channel_conversion=[1.0, 1.0, 1.0],  # All default values
         )
         result = check_electrical_series_unscaled_data(electrical_series)
-        assert result is not None
-        assert "int16" in result.message
+        assert result == InspectorMessage(
+            message=(
+                "ElectricalSeries 'elec_series' has data with dtype 'int16' and "
+                "conversion=1.0 and offset=0.0. This suggests the data is in raw acquisition units "
+                "which is not in Volts. Please set the 'conversion' and/or 'offset' fields to convert "
+                "the data to Volts, or use 'channel_conversion' for per-channel conversion factors."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_electrical_series_unscaled_data",
+            object_type="ElectricalSeries",
+            object_name="elec_series",
+            location="/",
+        )
 
     def test_pass_with_empty_data(self):
         """Test that empty data does not trigger a warning."""
