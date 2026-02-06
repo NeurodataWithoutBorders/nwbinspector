@@ -70,7 +70,9 @@ def test_check_data_orientation():
         message=(
             "Data may be in the wrong orientation. "
             "Time should be in the first dimension, and is usually the longest dimension. "
-            "Here, another dimension is longer."
+            "Here, another dimension is longer. "
+            "Current shape: (2, 100). "
+            "Suggestion: Transpose your data so the first dimension is 100."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_data_orientation",
@@ -339,6 +341,19 @@ def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_
 def test_check_timestamp_of_the_first_sample_is_not_negative_with_starting_time_pass():
     time_series = pynwb.TimeSeries(
         name="test_time_series", unit="test_units", data=[1, 2, 3], starting_time=0.0, rate=30.0
+    )
+    assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
+
+
+def test_check_timestamp_of_the_first_sample_is_not_negative_with_empty_timestamps_skip():
+    """Check should skip (return None) when timestamps is empty and starting_time is None."""
+    # Use __new__ and in_construct_mode=True to bypass the check in pynwb for data.shape[0] == len(timestamps)
+    time_series = pynwb.TimeSeries.__new__(pynwb.TimeSeries, in_construct_mode=True)
+    time_series.__init__(
+        name="test_time_series",
+        unit="test_units",
+        data=[],
+        timestamps=[],
     )
     assert check_timestamp_of_the_first_sample_is_not_negative(time_series) is None
 

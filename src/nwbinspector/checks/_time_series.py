@@ -56,10 +56,14 @@ def check_data_orientation(time_series: TimeSeries) -> Optional[InspectorMessage
         return None
 
     if any(np.array(data_shape[1:]) > data_shape[0]):
+        longest_axis = int(np.argmax(data_shape))
         return InspectorMessage(
             message=(
-                "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
-                "longest dimension. Here, another dimension is longer."
+                f"Data may be in the wrong orientation. "
+                f"Time should be in the first dimension, and is usually the longest dimension. "
+                f"Here, another dimension is longer. "
+                f"Current shape: {data_shape}. "
+                f"Suggestion: Transpose your data so the first dimension is {data_shape[longest_axis]}."
             ),
         )
 
@@ -134,8 +138,13 @@ def check_timestamp_of_the_first_sample_is_not_negative(time_series: TimeSeries)
 
     Best Practice: :ref:`best_practice_avoid_negative_timestamps`
     """
+    if time_series.starting_time is not None:
+        first_timestamp = time_series.starting_time
+    elif time_series.timestamps is not None and len(time_series.timestamps) > 0:
+        first_timestamp = time_series.timestamps[0]
+    else:
+        return None
 
-    first_timestamp = time_series.starting_time if time_series.starting_time is not None else time_series.timestamps[0]
     if first_timestamp < 0:
         message = (
             "Timestamps should not be negative. This usually indicates a temporal misalignment of the data. "

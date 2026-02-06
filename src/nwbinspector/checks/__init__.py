@@ -10,6 +10,7 @@ from ._ecephys import (
     check_electrical_series_reference_electrodes_table,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_table_duration,
 )
 from ._general import (
     check_description,
@@ -23,6 +24,7 @@ from ._image_series import (
     check_image_series_data_size,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
+    check_image_series_starting_frame_without_external_file,
 )
 from ._images import (
     check_index_series_points_to_image,
@@ -54,6 +56,7 @@ from ._nwbfile_metadata import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from ._ogen import (
     check_optogenetic_stimulus_site_has_optogenetic_series,
@@ -75,6 +78,7 @@ from ._tables import (
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
     check_time_interval_time_columns,
+    check_time_intervals_duration,
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
@@ -103,6 +107,7 @@ __all__ = [
     "check_image_series_data_size",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
+    "check_image_series_starting_frame_without_external_file",
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
@@ -122,6 +127,7 @@ __all__ = [
     "check_subject_id_no_slashes",
     "check_subject_species_exists",
     "check_subject_species_form",
+    "check_subject_weight",
     "check_subject_proper_age_range",
     "check_file_extension",
     "check_session_id_no_slashes",
@@ -141,9 +147,11 @@ __all__ = [
     "check_column_binary_capability",
     "check_dynamic_table_region_data_validity",
     "check_time_interval_time_columns",
+    "check_time_intervals_duration",
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",
+    "check_units_table_duration",
     "check_resolution",
     "check_missing_unit",
     "check_regular_timestamps",
