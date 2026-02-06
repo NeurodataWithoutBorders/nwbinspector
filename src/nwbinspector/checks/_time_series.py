@@ -222,6 +222,8 @@ def check_time_series_duration(
 
     The default threshold is 1 year (31,557,600 seconds = 365.25 days).
     Duration is calculated from either timestamps or starting_time + rate + data length.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     if time_series.data is None:
         return None
@@ -269,6 +271,8 @@ def check_rate_not_below_threshold(
 
     A very low rate likely indicates the period (time between samples) was provided instead of the frequency.
     The default threshold of 0.01 Hz corresponds to a period of 100 seconds.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     if not hasattr(time_series, "rate"):
         return None
