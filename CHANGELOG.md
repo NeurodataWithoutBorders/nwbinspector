@@ -4,7 +4,7 @@
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
 * Added `check_time_series_duration` to detect unusually long TimeSeries durations (default threshold: 1 year). [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
 * Added `check_rate_not_below_threshold` to detect suspiciously low sampling rates that may indicate period was used instead of rate. [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
-* Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue.
+* Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue. [#636](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/636)
 * Added `check_time_intervals_duration`, which makes sure that `TimeInterval` objects do not have a duration greater than 1 year.
 [#635](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/635)
 * Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
