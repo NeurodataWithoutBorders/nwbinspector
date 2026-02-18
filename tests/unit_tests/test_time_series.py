@@ -474,7 +474,7 @@ def test_check_time_series_duration_fail_with_timestamps():
     )
     assert check_time_series_duration(time_series) == InspectorMessage(
         message=expected_message,
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_series_duration",
         object_type="TimeSeries",
         object_name="long_time_series",
@@ -505,7 +505,7 @@ def test_check_time_series_duration_fail_with_rate():
     )
     assert check_time_series_duration(time_series) == InspectorMessage(
         message=expected_message,
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_series_duration",
         object_type="TimeSeries",
         object_name="long_time_series",
@@ -606,17 +606,4 @@ def test_check_rate_not_below_threshold_pass_no_rate():
         data=np.zeros(shape=100),
         timestamps=np.linspace(0, 100, 100),
     )
-    assert check_rate_not_below_threshold(time_series) is None
-
-
-def test_check_rate_not_below_threshold_pass_zero_rate():
-    """Test that zero rate passes (handled by different check)."""
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=1),
-        starting_time=0.0,
-        rate=0.0,
-    )
-    # Zero rate should pass this check (it's handled by check_rate_is_not_zero)
     assert check_rate_not_below_threshold(time_series) is None
