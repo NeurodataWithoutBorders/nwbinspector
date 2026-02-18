@@ -144,6 +144,65 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
+def check_electrical_series_unscaled_data(electrical_series: ElectricalSeries) -> Optional[InspectorMessage]:
+    """
+    Check if an ElectricalSeries has integer data with default conversion and offset values.
+
+    If the data type is an integer (int16, uint16, etc.) and both conversion and offset
+    are set to their default values (1.0 and 0.0 respectively), this is likely a mistake
+    because the raw integer values are probably not in Volts.
+
+    However, if channel_conversion is set with non-default values (not all 1.0),
+    then the conversion factors are properly specified and no warning is needed.
+
+    Best Practice: :ref:`best_practice_electrical_series_unscaled_data`
+    """
+    data = electrical_series.data
+    if data is None or len(data) == 0:
+        return None
+
+    # Get dtype - handle both numpy arrays and HDF5 datasets
+    if hasattr(data, "dtype"):
+        dtype = data.dtype
+    else:
+        dtype = np.asarray(data[:1]).dtype
+
+    # Only check integer types
+    if not np.issubdtype(dtype, np.integer):
+        return None
+
+    # Check if using default conversion and offset
+    # These are inherited from TimeSeries
+    conversion = getattr(electrical_series, "conversion", 1.0)
+    offset = getattr(electrical_series, "offset", 0.0)
+
+    # Default values
+    default_conversion = 1.0
+    default_offset = 0.0
+
+    # If conversion or offset is not default, data scaling is specified
+    if conversion != default_conversion or offset != default_offset:
+        return None
+
+    # Check channel_conversion - if it exists and has non-default values, that's fine
+    channel_conversion = getattr(electrical_series, "channel_conversion", None)
+    if channel_conversion is not None:
+        channel_conversion_array = np.asarray(channel_conversion)
+        # If any channel conversion is not 1.0, the scaling is properly specified
+        if not np.allclose(channel_conversion_array, 1.0):
+            return None
+
+    return InspectorMessage(
+        message=(
+            f"ElectricalSeries '{electrical_series.name}' has data with dtype '{dtype}' and "
+            f"conversion={conversion} and offset={offset}. This suggests the data is in raw acquisition units "
+            "which is not in Volts. Please set the 'conversion' and/or 'offset' fields to convert "
+            "the data to Volts, or use 'channel_conversion' for per-channel conversion factors."
+        )
+    )
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_units_table_duration(
     units_table: Units, duration_threshold: float = DURATION_THRESHOLD
@@ -183,7 +242,7 @@ def check_units_table_duration(
     # Build indices for first and last spike of each unit
     # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
     # Last spike indices: idxs - 1 for each unit
-    first_spike_idxs = np.concatenate([[0], idxs[idxs != idxs[-1]]])
+    first_spike_idxs = np.concatenate([[np.uint64(0)], idxs[idxs != idxs[-1]]])
     last_spike_idxs = idxs[idxs != 0] - 1
 
     # Combine into single array of indices to read, then read all at once

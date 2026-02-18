@@ -19,6 +19,7 @@ duration_regex = (
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
 species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
+weight_form_regex = r"(?i)^\d+(\.\d+)? (kg|g|mg|ug|μg|ng|pg)$"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
@@ -135,7 +136,7 @@ def check_keywords(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_subject_exists(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """Check if subject exists."""
     if nwbfile.subject is None:
@@ -164,7 +165,7 @@ def check_doi_publications(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessa
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None and subject.date_of_birth is None:
@@ -226,7 +227,7 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if subject_id is defined.
@@ -235,6 +236,31 @@ def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     if subject.subject_id is None:
         return InspectorMessage(message="subject_id is missing.")
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
+def check_subject_weight(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if subject weight follows the form '[numeric] [unit]', e.g. '2.3 kg'.
+
+    The weight should include a numeric value followed by a space and a unit string.
+    Without a unit, the weight is ambiguous.
+
+    Best Practice: :ref:`best_practice_subject_weight`
+    """
+    if subject.weight is None:
+        return None
+
+    if not re.fullmatch(weight_form_regex, subject.weight):
+        return InspectorMessage(
+            message=(
+                f"Subject weight '{subject.weight}' does not follow the expected form '[numeric] [unit]'. "
+                "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+                "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+            )
+        )
 
     return None
 
@@ -257,7 +283,7 @@ def _check_subject_sex_c_elegans(sex: str) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_sex(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if the subject sex has been specified and ensure that it has has the correct form depending on the species.

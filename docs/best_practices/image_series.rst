@@ -33,3 +33,15 @@ Use relative path for external mode
 When using ``external_file`` the paths passed in the ``external_file`` option should be relative to the location of the nwb file.
 
 Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_relative`
+
+
+.. _best_practice_starting_frame_only_with_external_file:
+
+Starting frame only with external file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``starting_frame`` attribute of an :ref:`nwb-schema:sec-ImageSeries` is only relevant when using external files.
+If there is no external file, there should be no starting frame set. This is a legacy issue that was possible in
+older versions of PyNWB (< 2.2.0).
+
+Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_starting_frame_without_external_file`
