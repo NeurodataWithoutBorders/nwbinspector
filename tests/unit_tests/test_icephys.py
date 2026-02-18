@@ -128,10 +128,15 @@ def test_check_sweeptable_deprecated_message_content():
     )
 
     assert len(results) == 1
-    result = results[0]
-    assert result.importance == Importance.BEST_PRACTICE_VIOLATION
-    assert result.check_function_name == "check_sweeptable_deprecated"
-    assert result.object_type == "_TestSweepTable"  # Will be the test class name
-    assert "deprecated" in result.message.lower()
-    assert "IntracellularRecordingsTable" in result.message
-    assert "add_intracellular_recordings" in result.message
+    assert results[0] == InspectorMessage(
+        message=(
+            "SweepTable is deprecated in NWB schema version >= 2.4.0. "
+            "Use IntracellularRecordingsTable instead. "
+            "See NWBFile.add_intracellular_recordings for more information."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_sweeptable_deprecated",
+        object_type="_TestSweepTable",
+        object_name="sweep_table",
+        location="/",
+    )
