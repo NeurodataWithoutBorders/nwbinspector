@@ -566,9 +566,9 @@ def test_check_rate_not_below_threshold_fail_very_low_rate():
     )
     period = 1.0 / low_rate
     expected_message = (
-        f"TimeSeries 'test_time_series' has a sampling rate of {low_rate}Hz (period of {period:.2f} seconds). "
-        "This low sampling rate may indicate that the period was specified instead of the rate. "
-        f"If the intended period is {low_rate} seconds, the rate should be {1.0 / low_rate}Hz."
+        f"TimeSeries 'test_time_series' has a sampling rate of {low_rate} Hz (one sample every {period:.2f} seconds). "
+        "This low value may indicate the sampling period was provided instead of the rate. "
+        f"If the sampling period of the data is indeed {low_rate} seconds, the rate should be set to {1.0 / low_rate} Hz instead."
     )
     assert check_rate_not_below_threshold(time_series) == InspectorMessage(
         message=expected_message,
