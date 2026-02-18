@@ -10,6 +10,7 @@ from warnings import filterwarnings, warn
 
 import pynwb
 from natsort import natsorted
+from packaging import version
 from tqdm import tqdm
 
 from ._configuration import configure_checks
@@ -401,6 +402,7 @@ def run_checks(
     checks: list,
     progress_bar_class: Optional[Type[tqdm]] = None,
     progress_bar_options: Optional[dict] = None,
+    nwb_schema_version: Optional[version.Version] = None,
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Run checks on an open NWBFile object.
@@ -416,6 +418,10 @@ def run_checks(
         Defaults to not displaying progress per set of checks over an individual file.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
+    nwb_schema_version : packaging.version.Version, optional
+        The NWB schema version of the file being inspected.
+        If not provided, will be read from nwbfile.read_io.nwb_version if available.
+        This arg is mostly used for tests. Usually it is best to leave as None.
 
     Yields
     ------
@@ -428,7 +434,21 @@ def run_checks(
     else:
         check_progress = checks
 
+    # Get NWB schema version from the nwbfile's read_io if not provided
+    if nwb_schema_version is None:
+        nwb_version_info = getattr(getattr(nwbfile, "read_io", None), "nwb_version", None)
+        nwb_schema_version = version.parse(nwb_version_info[0]) if nwb_version_info else None
+
     for check_function in check_progress:
+        # Skip check if schema version constraints are not met
+        if nwb_schema_version is not None:
+            version_lt = getattr(check_function, "nwb_schema_version_lt", None)
+            version_gt = getattr(check_function, "nwb_schema_version_gt", None)
+            if version_lt is not None and nwb_schema_version >= version.parse(version_lt):
+                continue
+            if version_gt is not None and nwb_schema_version <= version.parse(version_gt):
+                continue
+
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is not None and not issubclass(
                 type(nwbfile_object), check_function.neurodata_type
