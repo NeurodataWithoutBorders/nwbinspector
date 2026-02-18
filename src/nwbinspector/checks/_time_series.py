@@ -211,3 +211,80 @@ def check_rate_is_positive(time_series: TimeSeries) -> Optional[InspectorMessage
         )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_time_series_duration(
+    time_series: TimeSeries, duration_threshold: float = 31557600.0
+) -> Optional[InspectorMessage]:
+    """
+    Check if the TimeSeries duration is longer than the specified threshold.
+
+    The default threshold is 1 year (31,557,600 seconds = 365.25 days).
+    Duration is calculated from either timestamps or starting_time + rate + data length.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
+    """
+    if time_series.data is None:
+        return None
+
+    data_shape = get_data_shape(time_series.data)
+    if data_shape is None or data_shape[0] <= 1:
+        return None
+
+    duration = None
+
+    # Calculate duration from timestamps if available
+    if time_series.timestamps is not None:
+        timestamps_shape = get_data_shape(time_series.timestamps)
+        if timestamps_shape is not None and timestamps_shape[0] > 1:
+            first_timestamp = time_series.timestamps[0]
+            last_timestamp = time_series.timestamps[-1]
+            duration = float(last_timestamp - first_timestamp)
+
+    # Calculate duration from starting_time and rate if timestamps not available
+    elif time_series.rate is not None and time_series.rate > 0:
+        num_samples = data_shape[0]
+        duration = (num_samples - 1) / time_series.rate
+
+    # If we have a duration, check if it exceeds the threshold
+    if duration is not None and duration > duration_threshold:
+        # Convert duration to years for the message
+        duration_years = duration / 31557600.0
+        return InspectorMessage(
+            message=(
+                f"TimeSeries '{time_series.name}' has an unusually long duration of {duration:.2f} seconds ({duration_years:.2f} years), "
+                f"which may indicate an error in the timestamps or rate data. "
+                "Please verify that this is correct."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_rate_not_below_threshold(
+    time_series: TimeSeries, low_rate_threshold: float = 0.01
+) -> Optional[InspectorMessage]:
+    """
+    Check if the sampling rate is suspiciously low (below threshold, default 0.01 Hz).
+
+    A very low rate likely indicates the period (time between samples) was provided instead of the frequency.
+    The default threshold of 0.01 Hz corresponds to a period of 100 seconds.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
+    """
+    if not hasattr(time_series, "rate"):
+        return None
+
+    if time_series.rate is not None and 0 < time_series.rate < low_rate_threshold:
+        period = 1.0 / time_series.rate
+        return InspectorMessage(
+            message=(
+                f"TimeSeries '{time_series.name}' has a sampling rate of {time_series.rate} Hz (one sample every {period:.2f} seconds). "
+                "This low value may indicate the sampling period was provided instead of the rate. "
+                f"If the sampling period of the data is indeed {time_series.rate} seconds, the rate should be set to {1.0 / time_series.rate} Hz instead."
+            )
+        )
+
+    return None
