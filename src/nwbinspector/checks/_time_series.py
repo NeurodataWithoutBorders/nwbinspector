@@ -213,7 +213,7 @@ def check_rate_is_positive(time_series: TimeSeries) -> Optional[InspectorMessage
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=TimeSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_time_series_duration(
     time_series: TimeSeries, duration_threshold: float = 31557600.0
 ) -> Optional[InspectorMessage]:
