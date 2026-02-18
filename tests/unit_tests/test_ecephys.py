@@ -561,4 +561,3 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
             object_name="elec_series",
             location="/",
         )
-
