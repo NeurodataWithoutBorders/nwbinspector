@@ -113,3 +113,26 @@ Properly ordered spike times are essential for analyzing temporal patterns of ne
 intervals between spikes (inter-spike intervals).
 
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times`
+
+
+ElectricalSeries
+----------------
+
+.. _best_practice_electrical_series_unscaled_data:
+
+Data Type and Conversion
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When storing raw electrophysiology data in an :ref:`nwb-schema:sec-ElectricalSeries`, it is common to use integer
+data types (e.g., ``int16``, ``uint16``) to save storage space. However, if using integer data types, you must set
+the ``conversion`` and/or ``offset`` fields to convert the raw data to Volts.
+
+If the data is stored as an integer type with default values of ``conversion=1.0`` and ``offset=0.0``, this likely
+indicates that the raw acquisition units are being stored without proper scaling to Volts. This is problematic
+because the NWB specification expects electrophysiology data to be in Volts (or to have conversion factors that
+convert to Volts).
+
+For per-channel conversion factors, use the ``channel_conversion`` field, which allows specifying different scaling
+factors for each channel. This is particularly useful when different channels have different gain settings.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_electrical_series_unscaled_data`
