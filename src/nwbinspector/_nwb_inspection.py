@@ -421,6 +421,7 @@ def run_checks(
     nwb_schema_version : packaging.version.Version, optional
         The NWB schema version of the file being inspected.
         If not provided, will be read from nwbfile.read_io.nwb_version if available.
+        This arg is mostly used for tests. Usually it is best to leave as None.
 
     Yields
     ------
