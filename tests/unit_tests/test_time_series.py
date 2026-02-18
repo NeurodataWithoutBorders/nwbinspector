@@ -607,5 +607,3 @@ def test_check_rate_not_below_threshold_pass_no_rate():
         timestamps=np.linspace(0, 100, 100),
     )
     assert check_rate_not_below_threshold(time_series) is None
-
-
