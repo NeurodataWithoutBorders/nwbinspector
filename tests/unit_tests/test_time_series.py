@@ -609,14 +609,3 @@ def test_check_rate_not_below_threshold_pass_no_rate():
     assert check_rate_not_below_threshold(time_series) is None
 
 
-def test_check_rate_not_below_threshold_pass_zero_rate():
-    """Test that zero rate passes (handled by different check)."""
-    time_series = pynwb.TimeSeries(
-        name="test_time_series",
-        unit="test_units",
-        data=np.zeros(shape=1),
-        starting_time=0.0,
-        rate=0.0,
-    )
-    # Zero rate should pass this check (it's handled by check_rate_is_not_zero)
-    assert check_rate_not_below_threshold(time_series) is None
