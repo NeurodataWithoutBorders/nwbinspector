@@ -474,7 +474,7 @@ def test_check_time_series_duration_fail_with_timestamps():
     )
     assert check_time_series_duration(time_series) == InspectorMessage(
         message=expected_message,
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_series_duration",
         object_type="TimeSeries",
         object_name="long_time_series",
@@ -505,7 +505,7 @@ def test_check_time_series_duration_fail_with_rate():
     )
     assert check_time_series_duration(time_series) == InspectorMessage(
         message=expected_message,
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_series_duration",
         object_type="TimeSeries",
         object_name="long_time_series",
