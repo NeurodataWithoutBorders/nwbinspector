@@ -1,8 +1,16 @@
+from datetime import datetime
+
+import pynwb
+from packaging import version
 from pynwb.device import Device
-from pynwb.icephys import IntracellularElectrode
+from pynwb.icephys import IntracellularElectrode, SweepTable
 
 from nwbinspector import Importance, InspectorMessage
-from nwbinspector.checks import check_intracellular_electrode_cell_id_exists
+from nwbinspector._nwb_inspection import run_checks
+from nwbinspector.checks import (
+    check_intracellular_electrode_cell_id_exists,
+    check_sweeptable_deprecated,
+)
 
 
 def test_pass_check_intracellular_electrode_cell_id_exists():
@@ -24,23 +32,106 @@ def test_fail_check_intracellular_electrode_cell_id_exists():
     )
 
 
-def test_check_sweeptable_deprecated():
-    """
-    Test that check_sweeptable_deprecated correctly identifies deprecated SweepTable usage.
+# Create a minimal test SweepTable class that bypasses the deprecation error
+# This simulates a SweepTable that would be loaded from an older file
+class _TestSweepTable(SweepTable):
+    """Test SweepTable for unit tests that bypasses the deprecation check."""
 
-    Note: This test would require an actual NWB file with a SweepTable from an older version.
-    Since SweepTable cannot be instantiated directly in newer PyNWB versions (it raises ValueError),
-    and creating such a file programmatically is complex, this test serves as documentation
-    for the expected behavior.
+    def __init__(self, name="sweep_table", description="Test sweep table", **kwargs):
+        # Set construct mode to bypass deprecation error
+        self._in_construct_mode = True
+        # Call DynamicTable's __init__ instead of SweepTable's
+        super(SweepTable, self).__init__(name=name, description=description, **kwargs)
 
-    The check will trigger when:
-    1. An NWB file contains a SweepTable object (from older files created before deprecation)
-    2. The file's nwb_version attribute is >= 2.4.0
 
-    In practice, this would occur when inspecting older NWB files that contain SweepTable
-    objects but were created with or upgraded to NWB 2.4.0 or later.
-    """
-    # This is a placeholder test that documents the expected behavior
-    # In real-world usage, the check would be triggered by inspect_nwbfile() or inspect_all()
-    # when processing files that contain SweepTable objects
-    pass
+def test_check_sweeptable_deprecated_with_version_constraint():
+    """Test that check_sweeptable_deprecated only runs for NWB schema version > 2.3.0."""
+    # Create a minimal NWBFile
+    nwbfile = pynwb.NWBFile(
+        session_description="test",
+        identifier="test",
+        session_start_time=datetime.now().astimezone(),
+    )
+
+    # Create a test SweepTable object (simulating loading from an older file)
+    test_sweep_table = _TestSweepTable(name="sweep_table")
+
+    # Add the SweepTable to the nwbfile's objects manually
+    # This simulates having a SweepTable that was loaded from an older file
+    nwbfile.objects[test_sweep_table.object_id] = test_sweep_table
+
+    # For NWB version >= 2.4.0, the check should run and return a message
+    results = list(
+        run_checks(
+            nwbfile=nwbfile,
+            checks=[check_sweeptable_deprecated],
+            nwb_schema_version=version.parse("2.4.0"),
+        )
+    )
+    assert len(results) == 1
+    assert "SweepTable is deprecated" in results[0].message
+    assert "IntracellularRecordingsTable" in results[0].message
+
+    # For NWB version 2.5.0, the check should also run
+    results = list(
+        run_checks(
+            nwbfile=nwbfile,
+            checks=[check_sweeptable_deprecated],
+            nwb_schema_version=version.parse("2.5.0"),
+        )
+    )
+    assert len(results) == 1
+
+    # For NWB version <= 2.3.0, the check should be skipped
+    results = list(
+        run_checks(
+            nwbfile=nwbfile,
+            checks=[check_sweeptable_deprecated],
+            nwb_schema_version=version.parse("2.3.0"),
+        )
+    )
+    assert len(results) == 0
+
+    # For NWB version 2.0.0, the check should also be skipped
+    results = list(
+        run_checks(
+            nwbfile=nwbfile,
+            checks=[check_sweeptable_deprecated],
+            nwb_schema_version=version.parse("2.0.0"),
+        )
+    )
+    assert len(results) == 0
+
+
+def test_check_sweeptable_deprecated_message_content():
+    """Test the specific message content returned by the check."""
+    # Create a minimal NWBFile
+    nwbfile = pynwb.NWBFile(
+        session_description="test",
+        identifier="test",
+        session_start_time=datetime.now().astimezone(),
+    )
+
+    # Create a test SweepTable object
+    test_sweep_table = _TestSweepTable(name="sweep_table")
+
+    # Add to nwbfile objects
+    nwbfile.objects[test_sweep_table.object_id] = test_sweep_table
+
+    # Run check with version 2.4.0
+    results = list(
+        run_checks(
+            nwbfile=nwbfile,
+            checks=[check_sweeptable_deprecated],
+            nwb_schema_version=version.parse("2.4.0"),
+        )
+    )
+
+    assert len(results) == 1
+    result = results[0]
+    assert result.importance == Importance.BEST_PRACTICE_VIOLATION
+    assert result.check_function_name == "check_sweeptable_deprecated"
+    assert result.object_type == "_TestSweepTable"  # Will be the test class name
+    assert "deprecated" in result.message.lower()
+    assert "IntracellularRecordingsTable" in result.message
+    assert "add_intracellular_recordings" in result.message
