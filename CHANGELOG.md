@@ -1,4 +1,4 @@
-# v0.6.6 (Upcoming)
+# v0.7.0 (Upcoming)
 
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
