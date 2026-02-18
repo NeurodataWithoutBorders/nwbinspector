@@ -13,6 +13,7 @@
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
 * Updated report summary to include number of files detected and indicate when no issues are found. [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
 * Made subject information checks (`check_subject_exists`, `check_subject_id_exists`, `check_subject_sex`, `check_subject_age`) CRITICAL by default to be consistent with DANDI requirements. [#648](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/648)
+* Added `nwb_schema_version_lt` and `nwb_schema_version_gt` parameters to `register_check` to conditionally run checks based on the NWB schema version of the file being inspected. [#661](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/661)
 
 ### Fixes
 * Fixed `check_timestamp_of_the_first_sample_is_not_negative` to handle empty timestamps arrays instead of throwing an `IndexError`. [#582](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/582)
