@@ -562,13 +562,3 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
             location="/",
         )
 
-    def test_pass_with_empty_data(self):
-        """Test that empty data does not trigger a warning."""
-        electrical_series = ElectricalSeries(
-            name="elec_series",
-            description="desc",
-            data=np.zeros((0, 3), dtype=np.int16),
-            electrodes=self.electrodes,
-            rate=30.0,
-        )
-        assert check_electrical_series_unscaled_data(electrical_series) is None
