@@ -115,14 +115,16 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer) -> Op
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBDataInterface)
-def check_data_is_not_empty(nwb_container: NWBContainer) -> Optional[InspectorMessage]:
+def check_data_is_not_empty(nwb_container: NWBDataInterface) -> Optional[InspectorMessage]:
     """
-    Check if an NWBContainer with a 'data' field has empty data.
+    Check if an NWBDataInterface with a 'data' field has empty data.
 
     Empty datasets are often the result of incomplete data entry or errors during conversion.
     This check helps catch such issues early.
 
-    Note: ImageSeries with external_file set intentionally have empty data and are skipped.
+    Not all NWBDataInterface subclasses have a .data attribute (e.g. NWBFile, DfOverF, Position),
+    so those are skipped. ImageSeries with external_file set intentionally have empty data and
+    are also skipped.
 
     Best Practice: :ref:`best_practice_data_not_empty`
     """
@@ -141,7 +143,9 @@ def check_data_is_not_empty(nwb_container: NWBContainer) -> Optional[InspectorMe
     if is_image_series_with_external_file:
         return None
 
-    # Check emptiness via .size (numpy, h5py.Dataset, zarr.Array) or len() for lists/tuples
+    # .size works for numpy arrays, h5py.Dataset, zarr.Array, and StrDataset
+    # len() covers lists, tuples, and DataIO wrappers
+    # Other types (AbstractDataChunkIterator, HDMFDataset) cannot be cheaply checked — skip them
     if hasattr(data, "size"):
         is_empty = data.size == 0
     elif isinstance(data, (list, tuple)):
