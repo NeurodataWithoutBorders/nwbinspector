@@ -172,7 +172,7 @@ def test_check_data_is_not_empty_fail_with_empty_list():
 
     Note: in practice, data read from files is always h5py.Dataset or zarr.Array.
     This test exercises the list branch for completeness but it may not be reachable
-    through the inspector's normal entry points. 
+    through the inspector's normal entry points.
     """
     ts = TimeSeries(name="test_ts", data=[], unit="n.a.", rate=1.0)
     assert check_data_is_not_empty(nwb_container=ts) is not None
