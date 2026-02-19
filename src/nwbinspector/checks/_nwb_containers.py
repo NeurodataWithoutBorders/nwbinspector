@@ -132,8 +132,6 @@ def check_data_is_not_empty(nwb_container: NWBDataInterface) -> Optional[Inspect
         return None
 
     data = nwb_container.data
-    if data is None:
-        return None
 
     # ImageSeries (and subclasses) with external_file intentionally have empty data arrays
     is_image_series_with_external_file = (
@@ -142,14 +140,15 @@ def check_data_is_not_empty(nwb_container: NWBDataInterface) -> Optional[Inspect
     if is_image_series_with_external_file:
         return None
 
-    # .size works for numpy arrays, h5py.Dataset, zarr.Array, and StrDataset
-    # len() covers lists, tuples, and DataIO wrappers
-    # Other types (AbstractDataChunkIterator, HDMFDataset) cannot be cheaply checked — skip them
+    # .size works for numpy arrays, h5py.Dataset, zarr.Array, DataIO, and StrDataset
+    # len() covers lists and tuples
     if hasattr(data, "size"):
         is_empty = data.size == 0
     elif isinstance(data, (list, tuple)):
         is_empty = len(data) == 0
     else:
+        # The only known case is children of AbstractDataChunkIterator, which cannot be
+        # checked for emptiness without consuming the iterator
         return None
 
     if is_empty:
