@@ -6,7 +6,6 @@ from typing import Iterable, Optional
 import h5py
 import zarr
 from pynwb import NWBContainer
-from pynwb.core import NWBDataInterface
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
 
@@ -109,54 +108,6 @@ def check_empty_string_for_optional_attribute(nwb_container: NWBContainer) -> Op
         yield InspectorMessage(
             message=f'The attribute "{field}" is optional and you have supplied an empty string. Improve my omitting '
             "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)"
-        )
-
-    return None
-
-
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBDataInterface)
-def check_data_is_not_empty(nwb_container: NWBDataInterface) -> Optional[InspectorMessage]:
-    """
-    Check if an NWBDataInterface with a 'data' field has empty data.
-
-    Empty datasets are often the result of incomplete data entry or errors during conversion.
-    This check helps catch such issues early.
-
-    Not all NWBDataInterface subclasses have a .data attribute (e.g. NWBFile, DfOverF, Position),
-    so those are skipped. ImageSeries with external_file set intentionally have empty data and
-    are also skipped.
-
-    Best Practice: :ref:`best_practice_data_not_empty`
-    """
-    if not hasattr(nwb_container, "data"):
-        return None
-
-    data = nwb_container.data
-
-    # ImageSeries (and subclasses) with external_file intentionally have empty data arrays
-    is_image_series_with_external_file = (
-        getattr(nwb_container, "external_file", None) is not None and len(nwb_container.external_file) > 0
-    )
-    if is_image_series_with_external_file:
-        return None
-
-    # .size works for numpy arrays, h5py.Dataset, zarr.Array, DataIO, and StrDataset
-    # len() covers lists and tuples
-    if hasattr(data, "size"):
-        is_empty = data.size == 0
-    elif isinstance(data, (list, tuple)):
-        is_empty = len(data) == 0
-    else:
-        # The only known case is children of AbstractDataChunkIterator, which cannot be
-        # checked for emptiness without consuming the iterator
-        return None
-
-    if is_empty:
-        return InspectorMessage(
-            message=(
-                f"The 'data' field of {nwb_container.name} is empty. "
-                "Please verify that data was properly added during conversion."
-            )
         )
 
     return None

@@ -4,6 +4,7 @@ import pynwb
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
+    check_time_series_data_is_not_empty,
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
@@ -607,3 +608,80 @@ def test_check_rate_not_below_threshold_pass_no_rate():
         timestamps=np.linspace(0, 100, 100),
     )
     assert check_rate_not_below_threshold(time_series) is None
+
+
+def test_check_time_series_data_is_not_empty_pass_with_data():
+    """Test that a TimeSeries with data passes."""
+    time_series = pynwb.TimeSeries(name="test_ts", data=np.array([1.0, 2.0, 3.0]), unit="n.a.", rate=1.0)
+    assert check_time_series_data_is_not_empty(time_series=time_series) is None
+
+
+def test_check_time_series_data_is_not_empty_fail_with_empty_array():
+    """Test that empty numpy arrays are caught."""
+    time_series = pynwb.TimeSeries(name="test_ts", data=np.array([]), unit="n.a.", rate=1.0)
+    assert check_time_series_data_is_not_empty(time_series=time_series) == InspectorMessage(
+        message="The 'data' field of test_ts is empty. Please verify that data was properly added during conversion.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_time_series_data_is_not_empty",
+        object_type="TimeSeries",
+        object_name="test_ts",
+        location="/",
+    )
+
+
+def test_check_time_series_data_is_not_empty_fail_with_empty_list():
+    """Test that empty lists are caught.
+
+    Note: in practice, data read from files is always h5py.Dataset or zarr.Array.
+    This test exercises the list branch for completeness but it may not be reachable
+    through the inspector's normal entry points.
+    """
+    time_series = pynwb.TimeSeries(name="test_ts", data=[], unit="n.a.", rate=1.0)
+    assert check_time_series_data_is_not_empty(time_series=time_series) is not None
+
+
+def test_check_time_series_data_is_not_empty_fail_with_empty_tuple():
+    """Test that empty tuples are caught.
+
+    Note: in practice, data read from files is always h5py.Dataset or zarr.Array.
+    This test exercises the tuple branch for completeness but it may not be reachable
+    through the inspector's normal entry points.
+    """
+    time_series = pynwb.TimeSeries(name="test_ts", data=(), unit="n.a.", rate=1.0)
+    result = check_time_series_data_is_not_empty(time_series=time_series)
+    assert result is not None
+
+
+def test_check_time_series_data_is_not_empty_pass_image_series_with_external_file():
+    """ImageSeries with external_file legitimately has empty data, should not warn."""
+    image_series = pynwb.image.ImageSeries(
+        name="test_video",
+        description="Behavior video",
+        unit="n.a.",
+        external_file=["test.mp4"],
+        format="external",
+        starting_frame=[0],
+        timestamps=[0.0, 1.0],
+    )
+    assert check_time_series_data_is_not_empty(time_series=image_series) is None
+
+
+def test_check_time_series_data_is_not_empty_fail_with_mixed_dimension_array():
+    """Array with shape (5, 0, 3) has .size == 0 but len() == 5.
+
+    This regression test ensures we use .size rather than len() for emptiness detection.
+    """
+    mixed_empty_data = np.zeros((5, 0, 3))
+    time_series = pynwb.TimeSeries(name="test_ts", data=mixed_empty_data, unit="n.a.", rate=1.0)
+    result = check_time_series_data_is_not_empty(time_series=time_series)
+    assert result is not None
+    assert "empty" in result.message.lower()
+
+
+def test_check_time_series_data_is_not_empty_fail_with_empty_3d_array():
+    """Test detection of fully empty 3D arrays (like ImageSeries without external_file)."""
+    empty_3d_data = np.zeros((0, 0, 0))
+    time_series = pynwb.TimeSeries(name="test_ts", data=empty_3d_data, unit="n.a.", rate=1.0)
+    result = check_time_series_data_is_not_empty(time_series=time_series)
+    assert result is not None
+    assert "empty" in result.message.lower()

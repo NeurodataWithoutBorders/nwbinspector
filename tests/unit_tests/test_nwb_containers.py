@@ -6,12 +6,11 @@ from unittest import TestCase
 
 import h5py
 import numpy as np
-from pynwb import NWBContainer, NWBFile, TimeSeries
+from pynwb import NWBContainer, NWBFile
 from pynwb.image import ImageSeries
 
 from nwbinspector import Importance, InspectorMessage, Severity
 from nwbinspector.checks import (
-    check_data_is_not_empty,
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
     check_small_dataset_compression,
@@ -146,96 +145,3 @@ def test_check_empty_string_for_optional_attribute_skip_non_string():
         timestamps=[0.0, 0.04, 0.07, 0.1, 0.14, 0.16, 0.21],
     )  # The `data` field will be created by PyNWB but it will be empty and will otherwise raise warning/error via numpy
     assert check_empty_string_for_optional_attribute(nwb_container=image_series) is None
-
-
-def test_check_data_is_not_empty_pass_with_data():
-    """Test that containers with data pass."""
-    ts = TimeSeries(name="test_ts", data=np.array([1.0, 2.0, 3.0]), unit="n.a.", rate=1.0)
-    assert check_data_is_not_empty(nwb_container=ts) is None
-
-
-def test_check_data_is_not_empty_fail_with_empty_array():
-    """Test that empty numpy arrays are caught."""
-    ts = TimeSeries(name="test_ts", data=np.array([]), unit="n.a.", rate=1.0)
-    assert check_data_is_not_empty(nwb_container=ts) == InspectorMessage(
-        message="The 'data' field of test_ts is empty. Please verify that data was properly added during conversion.",
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_data_is_not_empty",
-        object_type="TimeSeries",
-        object_name="test_ts",
-        location="/",
-    )
-
-
-def test_check_data_is_not_empty_fail_with_empty_list():
-    """Test that empty lists are caught.
-
-    Note: in practice, data read from files is always h5py.Dataset or zarr.Array.
-    This test exercises the list branch for completeness but it may not be reachable
-    through the inspector's normal entry points.
-    """
-    ts = TimeSeries(name="test_ts", data=[], unit="n.a.", rate=1.0)
-    assert check_data_is_not_empty(nwb_container=ts) is not None
-
-
-def test_check_data_is_not_empty_pass_no_data_attribute():
-    """Test that containers without .data attribute pass."""
-    nwbfile = NWBFile(session_description="test", identifier="test", session_start_time=datetime.now().astimezone())
-    assert check_data_is_not_empty(nwb_container=nwbfile) is None
-
-
-def test_check_data_is_not_empty_pass_image_series_with_external_file():
-    """ImageSeries with external_file legitimately has empty data — should not warn."""
-    image_series = ImageSeries(
-        name="test_video",
-        description="Behavior video",
-        unit="n.a.",
-        external_file=["test.mp4"],
-        format="external",
-        starting_frame=[0],
-        timestamps=[0.0, 1.0],
-    )
-    assert check_data_is_not_empty(nwb_container=image_series) is None
-
-
-def test_check_data_is_not_empty_fail_with_mixed_dimension_array():
-    """Test that arrays with mixed empty/non-empty dimensions are caught.
-
-    This is a critical regression test: array with shape (5, 0, 3) has no actual data
-    (.size == 0) but len() would return 5, potentially causing false negatives if we
-    used len() instead of .size for emptiness detection.
-    """
-    # Create array with shape (5, 0, 3) - has first dimension but other dims are empty
-    mixed_empty_data = np.zeros((5, 0, 3))
-    assert mixed_empty_data.size == 0  # Verify this is truly empty
-    assert len(mixed_empty_data) == 5  # Verify len() would mislead
-
-    # Create TimeSeries with this problematic data
-    ts = TimeSeries(name="test_ts", data=mixed_empty_data, unit="n.a.", rate=1.0)
-
-    # Should detect as empty (because we use .size, not len())
-    result = check_data_is_not_empty(nwb_container=ts)
-    assert result is not None
-    assert "empty" in result.message.lower()
-
-
-def test_check_data_is_not_empty_fail_with_empty_3d_array():
-    """Test detection of fully empty 3D arrays (like ImageSeries without external_file)."""
-    empty_3d_data = np.zeros((0, 0, 0))
-    ts = TimeSeries(name="test_ts", data=empty_3d_data, unit="n.a.", rate=1.0)
-
-    result = check_data_is_not_empty(nwb_container=ts)
-    assert result is not None
-    assert "empty" in result.message.lower()
-
-
-def test_check_data_is_not_empty_fail_with_empty_tuple():
-    """Test that empty tuples are caught.
-
-    Note: in practice, data read from files is always h5py.Dataset or zarr.Array.
-    This test exercises the tuple branch for completeness but it may not be reachable
-    through the inspector's normal entry points.
-    """
-    ts = TimeSeries(name="test_ts", data=(), unit="n.a.", rate=1.0)
-    result = check_data_is_not_empty(nwb_container=ts)
-    assert result is not None

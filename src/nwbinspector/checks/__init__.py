@@ -34,7 +34,6 @@ from ._images import (
     check_order_of_images_unique,
 )
 from ._nwb_containers import (
-    check_data_is_not_empty,
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
     check_small_dataset_compression,
@@ -85,6 +84,7 @@ from ._tables import (
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
+    check_time_series_data_is_not_empty,
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
@@ -114,7 +114,7 @@ __all__ = [
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
-    "check_data_is_not_empty",
+    "check_time_series_data_is_not_empty",
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",

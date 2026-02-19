@@ -76,11 +76,11 @@ Many attributes of neurodata types in NWB are optional details to include. It is
 Empty Data
 ~~~~~~~~~~
 
-Data containers should contain actual data. Empty datasets are often the result of incomplete data entry, failed data conversion, or other errors during file creation. They should be avoided in NWB files.
+TimeSeries containers should contain actual data. Empty datasets are often the result of incomplete data entry, failed data conversion, or other errors during file creation.
 
 The exception is :ref:`nwb-schema:sec-ImageSeries` with the ``external_file`` attribute set, where empty data arrays are intentional by design (see :ref:`best_practice_use_external_mode`).
 
-Check function: :py:meth:`~nwbinspector.checks._nwb_containers.check_data_is_not_empty`
+Check function: :py:meth:`~nwbinspector.checks._time_series.check_time_series_data_is_not_empty`
 
 
 Avoid Duplication of Metadata
