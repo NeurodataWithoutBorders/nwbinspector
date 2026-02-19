@@ -175,9 +175,7 @@ def test_check_data_is_not_empty_fail_with_empty_list():
 
 def test_check_data_is_not_empty_pass_no_data_attribute():
     """Test that containers without .data attribute pass."""
-    nwbfile = NWBFile(
-        session_description="test", identifier="test", session_start_time=datetime.now().astimezone()
-    )
+    nwbfile = NWBFile(session_description="test", identifier="test", session_start_time=datetime.now().astimezone())
     assert check_data_is_not_empty(nwb_container=nwbfile) is None
 
 

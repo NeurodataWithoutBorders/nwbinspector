@@ -137,8 +137,7 @@ def check_data_is_not_empty(nwb_container: NWBDataInterface) -> Optional[Inspect
 
     # ImageSeries (and subclasses) with external_file intentionally have empty data arrays
     is_image_series_with_external_file = (
-        getattr(nwb_container, "external_file", None) is not None
-        and len(nwb_container.external_file) > 0
+        getattr(nwb_container, "external_file", None) is not None and len(nwb_container.external_file) > 0
     )
     if is_image_series_with_external_file:
         return None
