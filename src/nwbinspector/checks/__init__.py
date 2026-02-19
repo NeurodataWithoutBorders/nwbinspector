@@ -84,7 +84,6 @@ from ._tables import (
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
-    check_time_series_data_is_not_empty,
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
@@ -92,6 +91,7 @@ from ._time_series import (
     check_rate_not_below_threshold,
     check_regular_timestamps,
     check_resolution,
+    check_time_series_data_is_not_empty,
     check_time_series_duration,
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,

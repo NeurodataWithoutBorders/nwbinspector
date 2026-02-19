@@ -277,8 +277,7 @@ def check_time_series_data_is_not_empty(time_series: TimeSeries) -> Optional[Ins
 
     # ImageSeries (and subclasses) with external_file intentionally have empty data arrays
     is_image_series_with_external_file = (
-        getattr(time_series, "external_file", None) is not None
-        and len(time_series.external_file) > 0
+        getattr(time_series, "external_file", None) is not None and len(time_series.external_file) > 0
     )
     if is_image_series_with_external_file:
         return None
