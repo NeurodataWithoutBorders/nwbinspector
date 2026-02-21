@@ -9,8 +9,11 @@ from pynwb.ophys import (
     RoiResponseSeries,
 )
 
+from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
+
+MOUSE_SPECIES_VALUES = {"Mus musculus", "Mouse", "mouse", "http://purl.obolibrary.org/obo/NCBITaxon_10090"}
 
 MIN_LAMBDA = 10.0  # trigger warnings for wavelength values less than this value
 
@@ -96,5 +99,39 @@ def check_plane_segmentation_image_mask_shape_against_ref_images(
                     f"image_mask of shape {mask_shape} does not match reference image {ref_image.name} with shape"
                     f" {ref_image.data.shape[1:]}."
                 )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImagingPlane)
+def check_imaging_plane_location_allen_ccf(imaging_plane: ImagingPlane) -> Optional[InspectorMessage]:
+    """
+    Check that the ImagingPlane location is a term in the Allen Mouse Brain CCF ontology.
+
+    Only applies when the subject species is mouse.
+
+    Best Practice: :ref:`best_practice_ophys_location`
+    """
+    nwbfile = imaging_plane.get_ancestor("NWBFile")
+    if nwbfile is None or nwbfile.subject is None:
+        return None
+    species = nwbfile.subject.species
+    if species not in MOUSE_SPECIES_VALUES:
+        return None
+
+    location = imaging_plane.location
+    if location is None:
+        return None
+
+    valid_terms = get_allen_ccf_location_terms()
+    if location not in valid_terms:
+        return InspectorMessage(
+            message=(
+                f"ImagingPlane location '{location}' is not a term in the Allen Mouse Brain CCF ontology. "
+                "Please use either the full name or abbreviation from the Allen Mouse Brain Atlas "
+                "(e.g., 'Primary visual area' or 'VISp'). This check can be ignored if Allen CCF "
+                "terms do not meet your needs."
+            )
+        )
 
     return None

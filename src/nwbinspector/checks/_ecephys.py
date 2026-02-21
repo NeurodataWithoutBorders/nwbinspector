@@ -1,13 +1,17 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
+from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
+from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
+
+MOUSE_SPECIES_VALUES = {"Mus musculus", "Mouse", "mouse", "http://purl.obolibrary.org/obo/NCBITaxon_10090"}
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
@@ -276,5 +280,41 @@ def check_units_table_duration(
                 "This may indicate that spike_times are not in seconds that or there is a data quality issue."
             )
         )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that electrode locations are terms in the Allen Mouse Brain CCF ontology.
+
+    Only applies when the subject species is mouse.
+
+    Best Practice: :ref:`best_practice_ecephys_ontologies`
+    """
+    if nwbfile.subject is None:
+        return None
+    species = nwbfile.subject.species
+    if species not in MOUSE_SPECIES_VALUES:
+        return None
+    if nwbfile.electrodes is None:
+        return None
+    if "location" not in nwbfile.electrodes.colnames:
+        return None
+
+    valid_terms = get_allen_ccf_location_terms()
+    invalid_locations = set()
+    for location in nwbfile.electrodes["location"].data:
+        if location not in valid_terms and location not in invalid_locations:
+            invalid_locations.add(location)
+            yield InspectorMessage(
+                message=(
+                    f"Electrode location '{location}' is not a term in the Allen Mouse Brain CCF ontology. "
+                    "Please use either the full name or abbreviation from the Allen Mouse Brain Atlas "
+                    "(e.g., 'Primary visual area' or 'VISp'). This check can be ignored if Allen CCF "
+                    "terms do not meet your needs."
+                )
+            )
 
     return None

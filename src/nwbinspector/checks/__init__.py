@@ -9,6 +9,7 @@ from ._ecephys import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_electrical_series_unscaled_data,
+    check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
@@ -20,6 +21,7 @@ from ._general import (
 )
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
+    check_intracellular_electrode_location_allen_ccf,
     check_sweeptable_deprecated,
 )
 from ._image_series import (
@@ -66,6 +68,7 @@ from ._ogen import (
 from ._ophys import (
     check_emission_lambda_in_nm,
     check_excitation_lambda_in_nm,
+    check_imaging_plane_location_allen_ccf,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
@@ -174,4 +177,7 @@ __all__ = [
     "check_ascending_spike_times",
     "check_electrical_series_unscaled_data",
     "check_rate_is_positive",
+    "check_imaging_plane_location_allen_ccf",
+    "check_electrodes_location_allen_ccf",
+    "check_intracellular_electrode_location_allen_ccf",
 ]
