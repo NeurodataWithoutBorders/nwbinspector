@@ -383,6 +383,16 @@ def test_check_subject_age_iso8601_range_pass_2():
     assert check_subject_age(subject) is None
 
 
+def test_check_subject_age_iso8601_range_pass_3():
+    subject = Subject(subject_id="001", age="/P3D")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_pass_4():
+    subject = Subject(subject_id="001", age="/")
+    assert check_subject_age(subject) is None
+
+
 def test_check_subject_age_iso8601_range_fail_1():
     subject = Subject(subject_id="001", age="9 months/12 months")
     assert check_subject_age(subject) == InspectorMessage(
