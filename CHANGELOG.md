@@ -1,3 +1,11 @@
+# v0.7.1 (Upcoming)
+
+### New Checks
+
+### Improvements
+
+### Fixes
+
 # v0.7.0 (Feb 23, 2026)
 
 ### New Checks
