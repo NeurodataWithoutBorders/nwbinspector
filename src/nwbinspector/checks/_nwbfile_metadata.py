@@ -180,8 +180,12 @@ def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     if "/" in subject.age:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
-        lower_valid = re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) or subject_lower_age_bound == ""
-        upper_valid = re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
+        lower_valid = (
+            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) or subject_lower_age_bound == ""
+        )
+        upper_valid = (
+            re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
+        )
         if lower_valid and upper_valid:
             return None
 
