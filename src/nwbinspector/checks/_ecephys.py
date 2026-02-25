@@ -10,8 +10,7 @@ from pynwb.misc import Units
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
-
-MOUSE_SPECIES_VALUES = {"Mus musculus", "Mouse", "mouse", "http://purl.obolibrary.org/obo/NCBITaxon_10090"}
+from ._common import MOUSE_SPECIES_VALUES
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
