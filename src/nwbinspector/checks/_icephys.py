@@ -4,9 +4,9 @@ from typing import Optional
 
 from pynwb.icephys import IntracellularElectrode, SweepTable
 
+from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
-from ._common import MOUSE_SPECIES_VALUES
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=IntracellularElectrode)

@@ -9,10 +9,10 @@ from pynwb.ophys import (
     RoiResponseSeries,
 )
 
+from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
-from ._common import MOUSE_SPECIES_VALUES
 
 MIN_LAMBDA = 10.0  # trigger warnings for wavelength values less than this value
 

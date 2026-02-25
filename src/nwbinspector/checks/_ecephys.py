@@ -7,10 +7,10 @@ from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
 
+from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
-from ._common import MOUSE_SPECIES_VALUES
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
