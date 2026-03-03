@@ -131,7 +131,7 @@ known-first-party = ["nwbinspector"]
 
 
 [tool.codespell]
-skip = '.git*,*.pdf,*.css'
+skip = '.git*,*.pdf,*.css,allen_ccf_structure_names.json'
 check-hidden = true
 ignore-words-list = 'assertin'
 
