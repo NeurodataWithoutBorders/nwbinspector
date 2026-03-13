@@ -74,8 +74,7 @@ def check_time_intervals_start_time_all_zero(
     if np.all(start_times == 0):
         return InspectorMessage(
             message=(
-                "All start_time values are 0. "
-                "Make sure the start times are with respect to the session start time."
+                "All start_time values are 0. " "Make sure the start times are with respect to the session start time."
             )
         )
 

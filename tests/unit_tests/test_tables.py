@@ -90,8 +90,7 @@ def test_check_time_intervals_start_time_all_zero_fail():
 
     assert check_time_intervals_start_time_all_zero(time_intervals) == InspectorMessage(
         message=(
-            "All start_time values are 0. "
-            "Make sure the start times are with respect to the session start time."
+            "All start_time values are 0. " "Make sure the start times are with respect to the session start time."
         ),
         importance=Importance.CRITICAL,
         check_function_name="check_time_intervals_start_time_all_zero",
