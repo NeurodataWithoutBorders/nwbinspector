@@ -1,4 +1,15 @@
-# v0.7.0 (Upcoming)
+# v0.7.1 (Upcoming)
+
+### New Checks
+
+* Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
+
+
+### Improvements
+
+### Fixes
+
+# v0.7.0 (Feb 23, 2026)
 
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
@@ -11,6 +22,7 @@
 * Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
 * Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
 * Added `check_sweeptable_deprecated` to detect usage of the deprecated `SweepTable` in NWB files with schema version >= 2.4.0, which should use `IntracellularRecordingsTable` instead. [#657](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/657)
+* Added `check_time_series_data_is_not_empty` to detect empty `.data` fields in `TimeSeries` containers, which often indicate incomplete data entry or conversion errors. Skips `ImageSeries` with `external_file` set, where empty data is intentional. [#668](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/668)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
@@ -19,6 +31,7 @@
 * Added `nwb_schema_version_lt` and `nwb_schema_version_gt` parameters to `register_check` to conditionally run checks based on the NWB schema version of the file being inspected. [#661](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/661)
 
 ### Fixes
+* Fixed `check_subject_age` to allow `"/"` and `"/P3D"` style age ranges where the lower bound is unspecified. [#673](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/673)
 * Fixed `check_timestamp_of_the_first_sample_is_not_negative` to handle empty timestamps arrays instead of throwing an `IndexError`. [#582](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/582)
 * Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
 * Improved `check_data_orientation` error message to include the TimeSeries name, current shape, and a suggestion for transposing the data. [#1430](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/1430)

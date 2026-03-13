@@ -6,6 +6,7 @@ import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
+from pynwb.file import Subject
 from pynwb.misc import Units
 
 from nwbinspector import Importance, InspectorMessage
@@ -15,6 +16,7 @@ from nwbinspector.checks import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_electrical_series_unscaled_data,
+    check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
@@ -561,3 +563,76 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
             object_name="elec_series",
             location="/",
         )
+
+
+def _make_nwbfile_with_electrodes(locations, species=None):
+    """Helper to create an NWBFile with electrodes at the given locations."""
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    if species is not None:
+        nwbfile.subject = Subject(subject_id="001", species=species)
+    device = nwbfile.create_device(name="dev")
+    group = nwbfile.create_electrode_group(name="electrode_group", description="desc", location="brain", device=device)
+    for loc in locations:
+        nwbfile.add_electrode(location=loc, group=group)
+    return nwbfile
+
+
+def test_pass_check_electrodes_location_allen_ccf():
+    nwbfile = _make_nwbfile_with_electrodes(
+        locations=["VISp", "CA1", "Primary motor area"],
+        species="Mus musculus",
+    )
+    assert check_electrodes_location_allen_ccf(nwbfile) is None
+
+
+def test_fail_check_electrodes_location_allen_ccf():
+    nwbfile = _make_nwbfile_with_electrodes(
+        locations=["VISp", "my_region", "CA1", "another_region", "my_region"],
+        species="Mus musculus",
+    )
+    results = list(check_electrodes_location_allen_ccf(nwbfile))
+    assert len(results) == 2
+    assert results[0] == InspectorMessage(
+        message=(
+            "Electrode location 'my_region' is not a term in the Allen Mouse Brain CCF ontology. "
+            "Please use either the full name or abbreviation from the Allen Mouse Brain Atlas "
+            "(e.g., 'Primary visual area' or 'VISp'). This check can be ignored if Allen CCF "
+            "terms do not meet your needs."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_electrodes_location_allen_ccf",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+    assert "another_region" in results[1].message
+
+
+def test_skip_check_electrodes_location_allen_ccf_non_mouse():
+    nwbfile = _make_nwbfile_with_electrodes(
+        locations=["my_region"],
+        species="Homo sapiens",
+    )
+    assert check_electrodes_location_allen_ccf(nwbfile) is None
+
+
+def test_skip_check_electrodes_location_allen_ccf_no_electrodes():
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    nwbfile.subject = Subject(subject_id="001", species="Mus musculus")
+    assert check_electrodes_location_allen_ccf(nwbfile) is None
+
+
+def test_skip_check_electrodes_location_allen_ccf_no_subject():
+    nwbfile = _make_nwbfile_with_electrodes(
+        locations=["my_region"],
+        species=None,
+    )
+    assert check_electrodes_location_allen_ccf(nwbfile) is None

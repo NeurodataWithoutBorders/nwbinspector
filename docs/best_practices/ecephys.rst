@@ -34,6 +34,8 @@ It is preferable to use established ontologies instead of lab conventions for in
 We recommend the :allen-brain-map:`Allen Brain Atlas <atlas>` terms for mice, and you may use either the full name or
 the abbreviation (do not make up your own terms).
 
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_electrodes_location_allen_ccf`
+
 
 
 .. _best_practice_ecephys_anatomical_coordinates:
