@@ -251,6 +251,36 @@ def check_units_table_duration(
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_units_spike_times_short_duration(
+    units_table: Units, duration_threshold: float = 10.0
+) -> Optional[InspectorMessage]:
+    """
+    Check if spike times duration is suspiciously short.
+
+    Parameters
+    ----------
+    units_table : Units
+        The Units table to check.
+    duration_threshold : float, optional
+        The minimum expected duration in seconds. Default is 10.0 seconds.
+    """
+    duration = units_table.get_duration()
+    if duration is None:
+        return None
+
+    if duration < duration_threshold:
+        return InspectorMessage(
+            message=(
+                f"The spike times have a duration of {duration:.2f} seconds. "
+                "This may indicate that spike times are not aligned to the session start time "
+                "or that there is a data quality issue."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
 def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
     """
@@ -260,7 +290,6 @@ def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[I
 
     Best Practice: :ref:`best_practice_ecephys_ontologies`
     """
-<<<<<<< HEAD
     if nwbfile.subject is None:
         return None
     species = nwbfile.subject.species

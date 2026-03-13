@@ -566,6 +566,34 @@ class TestCheckElectricalSeriesUnscaledData(TestCase):
         )
 
 
+def test_check_units_spike_times_short_duration_fail():
+    """Spike times span 7.32s — should flag."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 1.0, 3.0])
+    units.add_unit(spike_times=[2.0, 5.0, 7.32])
+
+    result = check_units_spike_times_short_duration(units)
+    assert result is not None
+    assert "7.32" in result.message
+    assert result.importance == Importance.BEST_PRACTICE_VIOLATION
+
+
+def test_check_units_spike_times_short_duration_pass():
+    """Spike times span more than 10s — should pass."""
+    units = Units(name="units")
+    units.add_unit(spike_times=[0.0, 5.0, 15.0])
+
+    assert check_units_spike_times_short_duration(units) is None
+
+
+def test_check_units_spike_times_short_duration_pass_no_spike_times():
+    """Units table without spike_times — should pass."""
+    units = Units(name="units")
+    units.add_column(name="custom_col", description="test")
+    units.add_row(custom_col=1)
+    assert check_units_spike_times_short_duration(units) is None
+
+
 def _make_nwbfile_with_electrodes(locations, species=None):
     """Helper to create an NWBFile with electrodes at the given locations."""
     nwbfile = NWBFile(
