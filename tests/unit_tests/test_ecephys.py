@@ -19,6 +19,7 @@ from nwbinspector.checks import (
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_spike_times_short_duration,
     check_units_table_duration,
 )
 
