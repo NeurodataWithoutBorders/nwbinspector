@@ -572,10 +572,18 @@ def test_check_units_spike_times_short_duration_fail():
     units.add_unit(spike_times=[0.0, 1.0, 3.0])
     units.add_unit(spike_times=[2.0, 5.0, 7.32])
 
-    result = check_units_spike_times_short_duration(units)
-    assert result is not None
-    assert "7.32" in result.message
-    assert result.importance == Importance.BEST_PRACTICE_VIOLATION
+    assert check_units_spike_times_short_duration(units) == InspectorMessage(
+        message=(
+            "The spike times have a duration of 7.32 seconds. "
+            "This may indicate that spike times are not aligned to the session start time "
+            "or that there is a data quality issue."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_units_spike_times_short_duration",
+        object_type="Units",
+        object_name="units",
+        location="/",
+    )
 
 
 def test_check_units_spike_times_short_duration_pass():
