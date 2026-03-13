@@ -50,6 +50,38 @@ def check_empty_table(table: DynamicTable) -> Optional[InspectorMessage]:
     return None
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
+def check_time_intervals_start_time_all_zero(
+    time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
+) -> Optional[InspectorMessage]:
+    """
+    Check if all start_time values are zero.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+    nelems: int, optional
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+    """
+    if len(time_intervals.id) <= 1:
+        return None
+
+    start_times = np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
+    if np.all(start_times == 0):
+        return InspectorMessage(
+            message=(
+                "All start_time values are 0. "
+                "Make sure the start times are with respect to the session start time."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(
     time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS

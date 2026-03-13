@@ -81,6 +81,7 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_duration,
+    check_time_intervals_start_time_all_zero,
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
@@ -150,6 +151,7 @@ __all__ = [
     "check_dynamic_table_region_data_validity",
     "check_time_interval_time_columns",
     "check_time_intervals_duration",
+    "check_time_intervals_start_time_all_zero",
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",

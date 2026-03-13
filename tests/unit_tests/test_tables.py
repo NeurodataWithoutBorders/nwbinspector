@@ -19,6 +19,7 @@ from nwbinspector.checks import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_duration,
+    check_time_intervals_start_time_all_zero,
     check_time_intervals_stop_after_start,
 )
 
@@ -80,6 +81,46 @@ def test_check_empty_table_without_data():
         object_name="test_table",
         location="/",
     )
+
+
+def test_check_time_intervals_start_time_all_zero_fail():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=0.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_all_zero(time_intervals) == InspectorMessage(
+        message=(
+            "All start_time values are 0. "
+            "Make sure the start times are with respect to the session start time."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_time_intervals_start_time_all_zero",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_start_time_all_zero_pass():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_all_zero(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_all_zero_pass_empty():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+
+    assert check_time_intervals_start_time_all_zero(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_all_zero_pass_single_row():
+    """A single row with start_time=0 is fine — it's the expected session start."""
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+
+    assert check_time_intervals_start_time_all_zero(time_intervals) is None
 
 
 def test_check_time_interval_time_columns():
