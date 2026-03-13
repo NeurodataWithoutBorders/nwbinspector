@@ -232,41 +232,9 @@ def check_units_table_duration(
     Optional[InspectorMessage]
         An InspectorMessage if the duration exceeds the threshold, None otherwise.
     """
-    if "spike_times" not in units_table:
+    duration = units_table.get_duration()
+    if duration is None:
         return None
-
-    # Read the index array (cumulative indices marking end of each unit's spikes)
-    # This is small - just one integer per unit
-    idxs = np.asarray(units_table["spike_times"].data[:])
-
-    if len(idxs) == 0:
-        return None
-
-    # Build indices for first and last spike of each unit
-    # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
-    # Last spike indices: idxs - 1 for each unit
-    first_spike_idxs = np.concatenate([[np.uint64(0)], idxs[idxs != idxs[-1]]])
-    last_spike_idxs = idxs[idxs != 0] - 1
-
-    # Combine into single array of indices to read, then read all at once
-    all_indices = np.concatenate([first_spike_idxs, last_spike_idxs])
-    all_indices = np.unique(all_indices)  # Remove duplicates for efficiency
-
-    # Read only the needed spike times in one operation
-    spike_times_data = units_table["spike_times"].target.data
-
-    # needed to get tests to work on example data that is a list, not an h5py dataset
-    if isinstance(spike_times_data, list):
-        spike_times_data = np.array(spike_times_data)
-
-    boundary_spike_times = spike_times_data[all_indices]
-
-    if len(boundary_spike_times) == 0:
-        return None
-
-    start = float(np.min(boundary_spike_times))
-    end = float(np.max(boundary_spike_times))
-    duration = end - start
 
     if duration > duration_threshold:
         duration_years = duration / DURATION_THRESHOLD
@@ -292,6 +260,7 @@ def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[I
 
     Best Practice: :ref:`best_practice_ecephys_ontologies`
     """
+<<<<<<< HEAD
     if nwbfile.subject is None:
         return None
     species = nwbfile.subject.species
