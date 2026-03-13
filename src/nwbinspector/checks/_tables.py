@@ -132,7 +132,7 @@ def check_time_intervals_stop_after_start(
     if np.any(
         np.asarray(cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
         - np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
-        < 0
+        <= 0
     ):
         return InspectorMessage(
             message=(
