@@ -31,7 +31,9 @@ class TestCheckDynamicTableRegion(TestCase):
             self.table.add_row(test_column=1)
 
     def test_check_dynamic_table_region_data_validity_lt_zero(self):
-        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[-1, 0], table=self.table)
+        dynamic_table_region = DynamicTableRegion(
+            name="dyn_tab", description="desc", data=[-1, 0], table=self.table, validate_data=False
+        )
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message="Some elements of dyn_tab are out of range because they are less than 0.",
@@ -43,7 +45,9 @@ class TestCheckDynamicTableRegion(TestCase):
         )
 
     def test_check_dynamic_table_region_data_validity_gt_len(self):
-        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 20], table=self.table)
+        dynamic_table_region = DynamicTableRegion(
+            name="dyn_tab", description="desc", data=[0, 20], table=self.table, validate_data=False
+        )
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message=(

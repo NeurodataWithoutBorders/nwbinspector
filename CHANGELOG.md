@@ -6,6 +6,7 @@
 
 
 ### Improvements
+* Updated HDMF dependency to version 5+. [#675](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/675)
 
 ### Fixes
 
