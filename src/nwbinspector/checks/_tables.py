@@ -331,8 +331,12 @@ def check_time_intervals_duration(
             and len(time_intervals[column_name]) > 0
         ):
             data = time_intervals[column_name]
-            start_times.append(float(np.nanmin(data[:NELEMS])))
-            stop_times.append(float(np.nanmax(data[-NELEMS:])))
+            head = data[:NELEMS]
+            tail = data[-NELEMS:]
+            if np.all(np.isnan(head)) or np.all(np.isnan(tail)):
+                continue
+            start_times.append(float(np.nanmin(head)))
+            stop_times.append(float(np.nanmax(tail)))
 
     if start_times and stop_times:
         duration = np.nanmax(stop_times) - np.nanmin(start_times)
