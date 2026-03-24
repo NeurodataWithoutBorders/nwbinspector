@@ -11,6 +11,7 @@ from ._ecephys import (
     check_electrical_series_unscaled_data,
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
+    check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
 )
@@ -104,6 +105,7 @@ from ._time_series import (
 
 __all__ = [
     "check_negative_spike_times",
+    "check_spike_times_not_in_samples",
     "check_electrical_series_dims",
     "check_electrical_series_reference_electrodes_table",
     "check_spike_times_not_in_unobserved_interval",
