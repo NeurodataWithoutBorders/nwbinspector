@@ -30,14 +30,14 @@ from ._image_series import (
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
 )
-from ._misc import (
-    check_decomposition_series_source_timeseries,
-    check_decomposition_series_unit,
-)
 from ._images import (
     check_index_series_points_to_image,
     check_order_of_images_len,
     check_order_of_images_unique,
+)
+from ._misc import (
+    check_decomposition_series_source_timeseries,
+    check_decomposition_series_unit,
 )
 from ._nwb_containers import (
     check_empty_string_for_optional_attribute,
