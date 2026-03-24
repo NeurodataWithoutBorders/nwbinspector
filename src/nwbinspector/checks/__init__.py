@@ -14,7 +14,7 @@ from ._ecephys import (
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
-    check_units_without_spike_times,
+    check_units_table_has_spikes,
 )
 from ._general import (
     check_description,
@@ -185,5 +185,5 @@ __all__ = [
     "check_imaging_plane_location_allen_ccf",
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
-    "check_units_without_spike_times",
+    "check_units_table_has_spikes",
 ]
