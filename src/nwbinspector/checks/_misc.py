@@ -22,7 +22,7 @@ def check_decomposition_series_unit(
     if unit in ("no unit", ""):
         return InspectorMessage(
             message=(
-                f"DecompositionSeries unit is '{unit}'. "
+                f"DecompositionSeries is missing a valid unit (current value: '{unit}'). "
                 f"Please specify the unit appropriate for the metric '{metric}' "
                 "(e.g., 'radians' or 'degrees' for phase, or the source signal unit for amplitude)."
             )
