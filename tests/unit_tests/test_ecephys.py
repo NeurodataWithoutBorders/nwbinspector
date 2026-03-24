@@ -356,16 +356,40 @@ class TestCheckAscendingSpikeTimes(TestCase):
         self.units_table.add_unit(spike_times=[1.0, 1.1, 1.2])
         assert check_ascending_spike_times(units_table=self.units_table) is None
 
-    def test_ascending_spike_times_invalid(self):
-        self.units_table.add_unit(spike_times=[0.2, 0.1, 0.3])  # Non-ascending
+    def test_descending_spike_times(self):
+        self.units_table.add_unit(spike_times=[0.2, 0.1, 0.3])
         assert check_ascending_spike_times(units_table=self.units_table) == InspectorMessage(
-            message="Unit 0 contains non-ascending spike times. Spike times should be sorted in ascending order.",
-            importance=Importance.BEST_PRACTICE_VIOLATION,
+            message=(
+                "Unit 0 contains descending spike times, which is always a data error. "
+                "Spike times should be sorted in strictly ascending order."
+            ),
+            importance=Importance.CRITICAL,
             check_function_name="check_ascending_spike_times",
             object_type="Units",
             object_name="Units",
             location="/",
         )
+
+    def test_equal_consecutive_spike_times_no_resolution(self):
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.1, 0.2])
+        assert check_ascending_spike_times(units_table=self.units_table) == InspectorMessage(
+            message=(
+                "Unit 0 contains equal consecutive spike times. "
+                "This violates the neural refractory period for single-unit data. "
+                "If your recording resolution does not allow distinguishing these spikes, "
+                "set the `resolution` field on the Units table to suppress this check."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_ascending_spike_times",
+            object_type="Units",
+            object_name="Units",
+            location="/",
+        )
+
+    def test_equal_consecutive_spike_times_with_resolution(self):
+        units_table = Units(resolution=0.001)
+        units_table.add_unit(spike_times=[0.0, 0.1, 0.1, 0.2])
+        assert check_ascending_spike_times(units_table=units_table) is None
 
     def test_ascending_spike_times_empty(self):
         assert check_ascending_spike_times(units_table=self.units_table) is None
