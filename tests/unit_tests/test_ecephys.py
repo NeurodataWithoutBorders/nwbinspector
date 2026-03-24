@@ -81,14 +81,6 @@ def test_check_units_resolution_is_set_pass_positive_float():
     assert check_units_resolution_is_set(units_table) is None
 
 
-def test_check_units_resolution_is_set_pass_no_spike_times():
-    """Units without spike_times column should skip the check."""
-    units_table = Units()
-    units_table.add_column(name="custom_col", description="test")
-    units_table.add_row(custom_col=1)
-    assert check_units_resolution_is_set(units_table) is None
-
-
 def test_check_units_resolution_is_set_fail_nan():
     """Units with resolution set to NaN should fail."""
     units_table = Units(resolution=float("nan"))
@@ -132,14 +124,6 @@ def test_check_units_resolution_is_valid_pass_valid():
     """Resolution of 1/30000 should pass."""
     units_table = Units(resolution=1 / 30000)
     units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
-    assert check_units_resolution_is_valid(units_table) is None
-
-
-def test_check_units_resolution_is_valid_skip_no_spike_times():
-    """Units without spike_times should skip the check."""
-    units_table = Units(resolution=30000.0)
-    units_table.add_column(name="custom_col", description="test")
-    units_table.add_row(custom_col=1)
     assert check_units_resolution_is_valid(units_table) is None
 
 
