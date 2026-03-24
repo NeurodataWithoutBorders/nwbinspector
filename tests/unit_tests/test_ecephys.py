@@ -144,7 +144,7 @@ def test_check_units_resolution_is_valid_skip_no_spike_times():
 
 
 def test_check_units_resolution_is_valid_skip_not_set():
-    """Units with resolution not set should be skipped (handled by the other check)."""
+    """Units with resolution not set should pass."""
     units_table = Units()
     units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
     assert check_units_resolution_is_valid(units_table) is None

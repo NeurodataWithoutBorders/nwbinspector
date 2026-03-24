@@ -89,7 +89,11 @@ difference between two spike times, in seconds. Set this to ``1/sampling_rate`` 
 (e.g., ``resolution=1/30000`` for a 30 kHz system). This documents the precision of your spike timing
 data, which is needed by downstream users to determine whether fine-timescale analyses are appropriate.
 
-Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_set`
+A common mistake is to set the sampling rate (e.g., ``30000``) instead of the resolution. To avoid this,
+invert the quantity: ``resolution=1/sampling_rate``.
+
+Check functions: :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_set`,
+:py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_valid`
 
 
 .. _best_practice_negative_spike_times:
