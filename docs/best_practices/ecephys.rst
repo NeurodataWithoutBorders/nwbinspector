@@ -109,10 +109,15 @@ Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_not_in
 Ascending Spike Times
 ~~~~~~~~~~~~~~~~~~~~~
 
-The spike times within each unit of the :ref:`nwb-schema:sec-units-src` table should be sorted in ascending order.
-Non-ascending spike times can indicate errors in the spike sorting process or in the temporal alignment of the data.
-Properly ordered spike times are essential for analyzing temporal patterns of neural activity and for calculating
-intervals between spikes (inter-spike intervals).
+The spike times within each unit of the :ref:`nwb-schema:sec-units-src` table must be strictly ascending.
+Descending spike times always indicate a data error, such as trial-concatenated times, a spike sorting bug,
+or a conversion error. Equal consecutive spike times violate the neural refractory period for single-unit data
+and are also flagged.
+
+If your recording hardware has limited temporal resolution (e.g., low sampling rate or binned spike sorting output),
+equal consecutive spike times may be expected. In this case, set the ``resolution`` field on the Units table to
+the smallest resolvable difference between spike times in seconds (e.g., ``Units(resolution=1/30000)`` for a
+30 kHz sampling rate). When ``resolution`` is set, equal consecutive spike times are allowed.
 
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times`
 

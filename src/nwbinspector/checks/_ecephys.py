@@ -123,27 +123,48 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
     """
-    Check that the values in the timestamps array are strictly increasing.
+    Check that spike times are strictly ascending for each unit.
+
+    Descending spike times always indicate a data error (trial-concatenated times, spike sorting bug,
+    or conversion error). Equal consecutive spike times violate the neural refractory period for
+    single-unit data. If the ``resolution`` field on the Units table is set, equal consecutive spike
+    times are allowed because they may reflect hardware timing precision limits.
 
     Best Practice :ref:`best_practice_ascending_spike_times`
     """
     if "spike_times" not in units_table:
         return None
 
+    resolution_is_set = units_table.resolution is not None
+
     for unit_id in range(len(units_table)):
         spike_times = units_table["spike_times"][unit_id]
         if nelems is not None:
             spike_times = spike_times[:nelems]
-        if not np.all(np.diff(spike_times) >= 0):
+
+        diffs = np.diff(spike_times)
+
+        if np.any(diffs < 0):
             return InspectorMessage(
                 message=(
-                    f"Unit {unit_id} contains non-ascending spike times. "
-                    "Spike times should be sorted in ascending order."
+                    f"Unit {unit_id} contains descending spike times, which is always a data error. "
+                    "Spike times should be sorted in strictly ascending order."
                 )
             )
+
+        if not resolution_is_set and np.any(diffs == 0):
+            return InspectorMessage(
+                message=(
+                    f"Unit {unit_id} contains equal consecutive spike times. "
+                    "This violates the neural refractory period for single-unit data. "
+                    "If your recording resolution does not allow distinguishing these spikes, "
+                    "set the `resolution` field on the Units table to suppress this check."
+                )
+            )
+
     return None
 
 
