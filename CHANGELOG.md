@@ -7,6 +7,7 @@
 
 
 ### Improvements
+* Upgraded `check_ascending_spike_times` from `BEST_PRACTICE_VIOLATION` to `CRITICAL` and made it flag both descending and equal consecutive spike times. Setting the `resolution` field on the Units table suppresses the equal-timestamps check for recordings with limited temporal precision. [#684](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/684)
 
 ### Fixes
 
