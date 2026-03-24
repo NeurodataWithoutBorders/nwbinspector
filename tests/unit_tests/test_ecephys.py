@@ -20,6 +20,8 @@ from nwbinspector.checks import (
     check_negative_spike_times,
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
+    check_units_resolution_is_set,
+    check_units_resolution_is_valid,
     check_units_table_duration,
 )
 
@@ -51,6 +53,86 @@ def test_check_negative_spike_times_some_negative():
         object_name="Units",
         location="/",
     )
+
+
+def test_check_units_resolution_is_set_fail_not_set():
+    """Units with spike_times but no resolution set should fail."""
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_set(units_table) == InspectorMessage(
+        message=(
+            "Units table has spike_times but resolution is not set. "
+            "Resolution indicates the smallest possible difference between two spike times "
+            "and should be a positive float equal to 1/sampling_rate of the recording system "
+            "(e.g., Units(resolution=1/30000) for a 30 kHz system). "
+            "This information is needed to assess the precision of spike timing data."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_units_resolution_is_set",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
+
+
+def test_check_units_resolution_is_set_pass_positive_float():
+    """Units with resolution set to a meaningful positive float should pass."""
+    units_table = Units(resolution=1 / 30000)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_set(units_table) is None
+
+
+def test_check_units_resolution_is_set_fail_nan():
+    """Units with resolution set to NaN should fail."""
+    units_table = Units(resolution=float("nan"))
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_set(units_table) is not None
+
+
+def test_check_units_resolution_is_set_fail_zero():
+    """Units with resolution set to 0.0 should fail."""
+    units_table = Units(resolution=0.0)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_set(units_table) is not None
+
+
+def test_check_units_resolution_is_set_fail_negative():
+    """Units with resolution set to a negative value should fail."""
+    units_table = Units(resolution=-1.0)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_set(units_table) is not None
+
+
+def test_check_units_resolution_is_valid_fail_sampling_rate():
+    """Resolution set to a sampling rate value (e.g., 30000) should fail."""
+    units_table = Units(resolution=30000.0)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_valid(units_table) == InspectorMessage(
+        message=(
+            "Units table resolution is 30000.0, which is unexpectedly large. "
+            "Resolution should be 1/sampling_rate (e.g., 1/30000 for a 30 kHz system), "
+            "not the sampling rate itself."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_units_resolution_is_valid",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
+
+
+def test_check_units_resolution_is_valid_pass_valid():
+    """Resolution of 1/30000 should pass."""
+    units_table = Units(resolution=1 / 30000)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_valid(units_table) is None
+
+
+def test_check_units_resolution_is_valid_skip_not_set():
+    """Units with resolution not set should pass."""
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_is_valid(units_table) is None
 
 
 def test_check_spike_times_not_in_samples_fail():
