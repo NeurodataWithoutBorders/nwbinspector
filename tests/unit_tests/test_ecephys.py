@@ -21,7 +21,30 @@ from nwbinspector.checks import (
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_units_table_duration,
+    check_units_without_spike_times,
 )
+
+
+def test_check_units_without_spike_times_pass():
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    assert check_units_without_spike_times(units_table=units_table) is None
+
+
+def test_check_units_without_spike_times_fail():
+    units_table = Units()
+    units_table.add_unit()
+    assert check_units_without_spike_times(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table does not have a spike_times column. "
+            "A Units table without spike times is likely an error or misuse of the neurodata type."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_units_without_spike_times",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
 
 
 def test_check_negative_spike_times_all_positive():

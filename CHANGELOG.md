@@ -4,6 +4,7 @@
 
 * Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
 * Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
+* Added `check_units_without_spike_times` to flag Units tables that do not contain a spike_times column. [#691](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/691)
 
 
 ### Improvements
