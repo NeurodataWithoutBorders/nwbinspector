@@ -62,7 +62,7 @@ def test_check_units_resolution_is_set_fail_not_set():
         message=(
             "Units table has spike_times but resolution is not set. "
             "Resolution indicates the smallest possible difference between two spike times "
-            "and should be set to 1/sampling_rate of the recording system "
+            "and should be a positive float equal to 1/sampling_rate of the recording system "
             "(e.g., Units(resolution=1/30000) for a 30 kHz system). "
             "This information is needed to assess the precision of spike timing data."
         ),

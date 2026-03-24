@@ -47,11 +47,16 @@ def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessa
     if resolution is not None and not np.isnan(resolution) and resolution > 0:
         return None
 
+    if resolution is None or (isinstance(resolution, float) and np.isnan(resolution)):
+        detail = "Units table has spike_times but resolution is not set."
+    else:
+        detail = f"Units table has spike_times but resolution is set to an invalid value ({resolution})."
+
     return InspectorMessage(
         message=(
-            "Units table has spike_times but resolution is not set. "
+            f"{detail} "
             "Resolution indicates the smallest possible difference between two spike times "
-            "and should be set to 1/sampling_rate of the recording system "
+            "and should be a positive float equal to 1/sampling_rate of the recording system "
             "(e.g., Units(resolution=1/30000) for a 30 kHz system). "
             "This information is needed to assess the precision of spike timing data."
         )
