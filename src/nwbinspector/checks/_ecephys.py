@@ -34,9 +34,7 @@ def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
-def check_spike_times_not_in_samples(
-    units_table: Units, nelems: Optional[int] = 200
-) -> Optional[InspectorMessage]:
+def check_spike_times_not_in_samples(units_table: Units, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
     """
     Check if spike times appear to be sample indices rather than seconds.
 
