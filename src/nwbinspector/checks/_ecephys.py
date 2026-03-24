@@ -59,7 +59,7 @@ def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessa
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
-def check_units_resolution_in_range(units_table: Units) -> Optional[InspectorMessage]:
+def check_units_resolution_is_valid(units_table: Units) -> Optional[InspectorMessage]:
     """
     Check that the Units table resolution is not suspiciously large.
 
