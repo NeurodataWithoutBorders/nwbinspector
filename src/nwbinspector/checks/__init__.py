@@ -12,8 +12,8 @@ from ._ecephys import (
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
-    check_units_resolution_is_valid,
     check_units_resolution_is_set,
+    check_units_resolution_is_valid,
     check_units_table_duration,
 )
 from ._general import (
