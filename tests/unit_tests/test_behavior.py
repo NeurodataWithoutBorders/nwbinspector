@@ -186,5 +186,3 @@ def test_fail_check_spatial_series_unit():
         object_name="SpatialSeries",
         location="/",
     )
-
-
