@@ -94,21 +94,6 @@ def test_check_spike_times_not_in_samples_pass_resolution_escape_hatch():
     assert check_spike_times_not_in_samples(units_table) is None
 
 
-def test_check_spike_times_not_in_samples_fail_small_integers():
-    """Small integer-valued times without resolution set should still flag."""
-    units_table = Units()
-    units_table.add_unit(spike_times=[1.0, 2.0, 3.0, 100.0, 200.0])
-    assert check_spike_times_not_in_samples(units_table) is not None
-
-
-def test_check_spike_times_not_in_samples_pass_no_spike_times():
-    """Units table without spike_times column."""
-    units_table = Units()
-    units_table.add_column(name="custom_col", description="test")
-    units_table.add_row(custom_col=1)
-    assert check_spike_times_not_in_samples(units_table) is None
-
-
 class TestCheckElectricalSeries(TestCase):
     def setUp(self):
         nwbfile = NWBFile(

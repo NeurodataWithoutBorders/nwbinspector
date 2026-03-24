@@ -57,11 +57,7 @@ def check_spike_times_not_in_samples(units_table: Units, nelems: Optional[int] =
     if isinstance(spike_times_data, list):
         spike_times_data = np.array(spike_times_data)
 
-    # Sample the last nelems values
-    if nelems is not None and len(spike_times_data) > nelems:
-        sample = np.array(spike_times_data[-nelems:])
-    else:
-        sample = np.array(spike_times_data[:])
+    sample = np.array(spike_times_data[:nelems])
 
     if len(sample) == 0:
         return None
