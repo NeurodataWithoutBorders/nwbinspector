@@ -92,6 +92,51 @@ def check_units_resolution_is_valid(units_table: Units) -> Optional[InspectorMes
     return None
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_spike_times_not_in_samples(units_table: Units, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
+    """
+    Check if spike times appear to be sample indices rather than seconds.
+
+    Spike times stored as sample indices are integer-valued. Real spike times in seconds
+    have fractional parts at any common electrophysiology sampling rate. If the ``resolution``
+    field on the Units table is set to >= 1.0 second, the check is skipped. This serves as
+    an escape hatch for the unlikely case where spike time resolution is truly 1 second or
+    lower; users must explicitly set this field to suppress the check.
+
+    Best Practice: :ref:`best_practice_spike_times_not_in_samples`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    if units_table.resolution is not None and units_table.resolution >= 1.0:
+        return None
+
+    spike_times_data = units_table["spike_times"].target.data
+
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    sample = np.array(spike_times_data[:nelems])
+
+    if len(sample) == 0:
+        return None
+
+    all_integer_valued = np.all(sample == np.floor(sample))
+
+    if all_integer_valued:
+        return InspectorMessage(
+            message=(
+                "Spike times appear to be in samples rather than seconds. "
+                "All sampled spike times are integer-valued. "
+                "Spike times should be in seconds (divide by the sampling rate to convert). "
+                "If your spike time resolution is truly 1 second or lower, "
+                "set Units(resolution=1.0) to suppress this check."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optional[InspectorMessage]:
     """

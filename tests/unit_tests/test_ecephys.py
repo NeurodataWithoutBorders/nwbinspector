@@ -18,6 +18,7 @@ from nwbinspector.checks import (
     check_electrical_series_unscaled_data,
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
+    check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_units_resolution_is_set,
     check_units_resolution_is_valid,
@@ -132,6 +133,47 @@ def test_check_units_resolution_is_valid_skip_not_set():
     units_table = Units()
     units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
     assert check_units_resolution_is_valid(units_table) is None
+
+
+def test_check_spike_times_not_in_samples_fail():
+    """Integer-valued spike times with large magnitude - likely sample indices."""
+    units_table = Units()
+    units_table.add_unit(spike_times=[30000.0, 60000.0, 90000.0])
+    units_table.add_unit(spike_times=[30001.0, 60002.0, 90003.0])
+    assert check_spike_times_not_in_samples(units_table) == InspectorMessage(
+        message=(
+            "Spike times appear to be in samples rather than seconds. "
+            "All sampled spike times are integer-valued. "
+            "Spike times should be in seconds (divide by the sampling rate to convert). "
+            "If your spike time resolution is truly 1 second or lower, "
+            "set Units(resolution=1.0) to suppress this check."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_spike_times_not_in_samples",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
+
+
+def test_check_spike_times_not_in_samples_pass_real_times():
+    """Float spike times in seconds - normal data."""
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.1234, 1.5678, 3.9012])
+    units_table.add_unit(spike_times=[10.111, 20.222, 30.333])
+    assert check_spike_times_not_in_samples(units_table) is None
+
+
+def test_check_spike_times_not_in_samples_pass_resolution_escape_hatch():
+    """Resolution set to >= 1.0 skips the check.
+
+    This is an escape hatch for the unlikely case where spike time resolution
+    is truly 1 second or lower (e.g. behavioral timestamps). Users must explicitly
+    set the resolution field on the Units table to suppress this check.
+    """
+    units_table = Units(resolution=1.0)
+    units_table.add_unit(spike_times=[1.0, 2.0, 3.0, 100.0, 200.0])
+    assert check_spike_times_not_in_samples(units_table) is None
 
 
 class TestCheckElectricalSeries(TestCase):
