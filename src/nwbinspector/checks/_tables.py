@@ -50,12 +50,54 @@ def check_empty_table(table: DynamicTable) -> Optional[InspectorMessage]:
     return None
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
+def check_time_intervals_start_time_not_constant(
+    time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
+) -> Optional[InspectorMessage]:
+    """
+    Check if all start_time values are identical.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+    nelems: int, optional
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+    """
+    if len(time_intervals.id) <= 1:
+        return None
+
+    start_times = np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
+    if np.all(start_times == start_times[0]):
+        return InspectorMessage(
+            message=(
+                f"All start_time values are the same value {start_times[0]}. "
+                "start_times should be in non-decreasing order and should be "
+                "with respect to the session start time."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(
     time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
 ) -> Optional[InspectorMessage]:
     """
-    Check that time columns are in ascending order.
+    Check that start_time values are in non-decreasing order.
+
+    Despite the function name suggesting multiple time columns, this only checks ``start_time``.
+    It was originally written to check all columns ending in ``_time``, but was narrowed in
+    PR #382 (see issue #375) because other time columns are not required to be ascending
+    across rows. For example, a ``SleepStates`` table may contain overlapping state
+    annotations where multiple states (e.g. WAKEtheta, QWake, WAKEnontheta) start at the
+    same time with different stop times, making ``stop_time`` non-ascending by design.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
 
     Parameters
     ----------
@@ -101,7 +143,7 @@ def check_time_intervals_stop_after_start(
     if np.any(
         np.asarray(cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
         - np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
-        < 0
+        <= 0
     ):
         return InspectorMessage(
             message=(
