@@ -38,7 +38,7 @@ def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessa
     """
     Check that the Units table has resolution set to a meaningful positive float.
 
-    Best Practice :ref:`best_practice_units_resolution`
+    Best Practice: :ref:`best_practice_units_resolution`
     """
     if "spike_times" not in units_table:
         return None
@@ -71,7 +71,7 @@ def check_units_resolution_is_valid(units_table: Units) -> Optional[InspectorMes
     A resolution greater than 0.01 seconds (sampling rate below 100 Hz) likely indicates that
     the sampling rate was entered instead of the resolution (1/sampling_rate).
 
-    Best Practice :ref:`best_practice_units_resolution`
+    Best Practice: :ref:`best_practice_units_resolution`
     """
     if "spike_times" not in units_table:
         return None
