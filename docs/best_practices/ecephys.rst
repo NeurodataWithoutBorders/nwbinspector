@@ -79,6 +79,19 @@ The spikes associated with each unit are stored in the ``spike_times`` column of
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_duration`
 
 
+.. _best_practice_units_resolution:
+
+Units Resolution
+~~~~~~~~~~~~~~~~
+
+The ``resolution`` field on the :ref:`nwb-schema:sec-units-src` table indicates the smallest possible
+difference between two spike times, in seconds. Set this to ``1/sampling_rate`` of the recording system
+(e.g., ``resolution=1/30000`` for a 30 kHz system). This documents the precision of your spike timing
+data, which is needed by downstream users to determine whether fine-timescale analyses are appropriate.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_set`
+
+
 .. _best_practice_negative_spike_times:
 
 Negative Spike Times

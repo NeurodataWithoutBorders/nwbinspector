@@ -33,6 +33,31 @@ def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check that the Units table has resolution set to a meaningful positive float.
+
+    Best Practice :ref:`best_practice_units_resolution`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    resolution = units_table.resolution
+    if resolution is not None and not np.isnan(resolution) and resolution > 0:
+        return None
+
+    return InspectorMessage(
+        message=(
+            "Units table has spike_times but resolution is not set. "
+            "Resolution indicates the smallest possible difference between two spike times "
+            "and should be set to 1/sampling_rate of the recording system "
+            "(e.g., Units(resolution=1/30000) for a 30 kHz system). "
+            "This information is needed to assess the precision of spike timing data."
+        )
+    )
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optional[InspectorMessage]:
     """
