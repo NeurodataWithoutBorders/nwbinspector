@@ -58,6 +58,35 @@ def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessa
     )
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_units_resolution_in_range(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check that the Units table resolution is not suspiciously large.
+
+    A resolution greater than 0.01 seconds (sampling rate below 100 Hz) likely indicates that
+    the sampling rate was entered instead of the resolution (1/sampling_rate).
+
+    Best Practice :ref:`best_practice_units_resolution`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    resolution = units_table.resolution
+    if resolution is None or np.isnan(resolution) or resolution <= 0:
+        return None
+
+    if resolution > 0.01:
+        return InspectorMessage(
+            message=(
+                f"Units table resolution is {resolution}, which is unexpectedly large. "
+                "Resolution should be 1/sampling_rate (e.g., 1/30000 for a 30 kHz system), "
+                "not the sampling rate itself."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optional[InspectorMessage]:
     """

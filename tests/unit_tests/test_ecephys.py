@@ -19,6 +19,7 @@ from nwbinspector.checks import (
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_units_resolution_in_range,
     check_units_resolution_is_set,
     check_units_table_duration,
 )
@@ -107,6 +108,60 @@ def test_check_units_resolution_is_set_fail_negative():
     units_table = Units(resolution=-1.0)
     units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
     assert check_units_resolution_is_set(units_table) is not None
+
+
+def test_check_units_resolution_in_range_fail_sampling_rate():
+    """Resolution set to a sampling rate value (e.g., 30000) should fail."""
+    units_table = Units(resolution=30000.0)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_in_range(units_table) == InspectorMessage(
+        message=(
+            "Units table resolution is 30000.0, which is unexpectedly large. "
+            "Resolution should be 1/sampling_rate (e.g., 1/30000 for a 30 kHz system), "
+            "not the sampling rate itself."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_units_resolution_in_range",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
+
+
+def test_check_units_resolution_in_range_fail_borderline():
+    """Resolution just above 0.01 should fail."""
+    units_table = Units(resolution=0.011)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_in_range(units_table) is not None
+
+
+def test_check_units_resolution_in_range_pass_valid():
+    """Resolution of 1/30000 should pass."""
+    units_table = Units(resolution=1 / 30000)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_in_range(units_table) is None
+
+
+def test_check_units_resolution_in_range_pass_at_boundary():
+    """Resolution of exactly 0.01 should pass."""
+    units_table = Units(resolution=0.01)
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_in_range(units_table) is None
+
+
+def test_check_units_resolution_in_range_skip_no_spike_times():
+    """Units without spike_times should skip the check."""
+    units_table = Units(resolution=30000.0)
+    units_table.add_column(name="custom_col", description="test")
+    units_table.add_row(custom_col=1)
+    assert check_units_resolution_in_range(units_table) is None
+
+
+def test_check_units_resolution_in_range_skip_not_set():
+    """Units with resolution not set should be skipped (handled by the other check)."""
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.1, 0.2, 0.3])
+    assert check_units_resolution_in_range(units_table) is None
 
 
 class TestCheckElectricalSeries(TestCase):
