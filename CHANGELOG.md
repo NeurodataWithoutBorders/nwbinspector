@@ -4,9 +4,12 @@
 
 * Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
 * Added `check_time_intervals_start_time_not_constant` to flag TimeIntervals tables where all start_time values are identical, indicating times were likely not set relative to session start. [#677](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/677)
+* Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
+* Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
 
 
 ### Improvements
+* Upgraded `check_ascending_spike_times` from `BEST_PRACTICE_VIOLATION` to `CRITICAL` and made it flag both descending and equal consecutive spike times. Setting the `resolution` field on the Units table suppresses the equal-timestamps check for recordings with limited temporal precision. [#684](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/684)
 
 ### Fixes
 
