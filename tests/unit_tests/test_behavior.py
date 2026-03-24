@@ -7,6 +7,7 @@ from nwbinspector.checks import (
     check_spatial_series_degrees_magnitude,
     check_spatial_series_dims,
     check_spatial_series_radians_magnitude,
+    check_spatial_series_unit,
 )
 
 
@@ -149,3 +150,54 @@ def test_check_spatial_series_radians_magnitude():
         location="/",
         object_type="SpatialSeries",
     )
+
+
+def test_pass_check_spatial_series_unit():
+    for unit in ("meters", "centimeters", "millimeters", "micrometers", "degrees", "radians", "pixels"):
+        spatial_series = SpatialSeries(
+            name="SpatialSeries",
+            description="description",
+            data=np.ones((10,)),
+            rate=3.0,
+            reference_frame="reference_frame",
+            unit=unit,
+        )
+        assert check_spatial_series_unit(spatial_series) is None
+
+
+def test_fail_check_spatial_series_unit():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)),
+        rate=3.0,
+        reference_frame="reference_frame",
+        unit="kilometers",
+    )
+    result = check_spatial_series_unit(spatial_series)
+    assert result == InspectorMessage(
+        message=(
+            "SpatialSeries unit 'kilometers' is not recognized. "
+            "Valid units are: centimeters, degrees, meters, micrometers, millimeters, pixels, radians."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spatial_series_unit",
+        object_type="SpatialSeries",
+        object_name="SpatialSeries",
+        location="/",
+    )
+
+
+def test_skip_check_spatial_series_unit_in_compass_direction():
+    compass_direction = CompassDirection(
+        spatial_series=SpatialSeries(
+            name="SpatialSeries",
+            description="description",
+            data=np.ones((10,)),
+            rate=3.0,
+            reference_frame="reference_frame",
+            unit="degrees",
+        )
+    )
+    spatial_series = compass_direction.get_spatial_series("SpatialSeries")
+    assert check_spatial_series_unit(spatial_series) is None
