@@ -39,8 +39,7 @@ def test_fail_decomposition_series_unit_phase_wrong():
     result = check_decomposition_series_unit(ds)
     assert result == InspectorMessage(
         message=(
-            "DecompositionSeries with metric 'phase' should have unit 'radians' or 'degrees', "
-            "but has unit 'volts'."
+            "DecompositionSeries with metric 'phase' should have unit 'radians' or 'degrees', " "but has unit 'volts'."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_decomposition_series_unit",
