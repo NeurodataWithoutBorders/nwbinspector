@@ -9,6 +9,7 @@
 * Upgraded `check_ascending_spike_times` from `BEST_PRACTICE_VIOLATION` to `CRITICAL` and made it flag both descending and equal consecutive spike times. Setting the `resolution` field on the Units table suppresses the equal-timestamps check for recordings with limited temporal precision. [#684](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/684)
 
 ### Fixes
+* Fixed `RuntimeWarning: All-NaN slice encountered` in `check_time_intervals_duration` when custom time columns contain all-NaN values. [#682](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/682)
 
 # v0.7.0 (Feb 23, 2026)
 
