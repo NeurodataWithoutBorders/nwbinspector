@@ -130,7 +130,9 @@ def check_spike_times_without_nans(units_table: Units) -> Optional[InspectorMess
         return None
 
     if np.any(np.isnan(np.asarray(units_table["spike_times"].target.data[:]))):
-        return InspectorMessage(message="Units table contains NaN spike times. Spike times should be valid timestamps in seconds.")
+        return InspectorMessage(
+            message="Units table contains NaN spike times. Spike times should be valid timestamps in seconds."
+        )
     return None
 
 
