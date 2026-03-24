@@ -30,6 +30,10 @@ from ._image_series import (
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
 )
+from ._misc import (
+    check_decomposition_series_source_timeseries,
+    check_decomposition_series_unit,
+)
 from ._images import (
     check_index_series_points_to_image,
     check_order_of_images_len,
@@ -182,4 +186,6 @@ __all__ = [
     "check_imaging_plane_location_allen_ccf",
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
+    "check_decomposition_series_unit",
+    "check_decomposition_series_source_timeseries",
 ]

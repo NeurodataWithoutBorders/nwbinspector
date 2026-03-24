@@ -2,6 +2,7 @@
 
 ### New Checks
 
+* Added `check_decomposition_series_unit` to validate that DecompositionSeries has an appropriate unit for its metric (e.g. "radians" or "degrees" for phase, matching the source signal unit for amplitude). Also added `check_decomposition_series_source_timeseries` to suggest linking the source TimeSeries for provenance. [#676](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/676)
 * Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
 
 
