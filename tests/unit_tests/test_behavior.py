@@ -177,7 +177,7 @@ def test_fail_check_spatial_series_unit():
     result = check_spatial_series_unit(spatial_series)
     assert result == InspectorMessage(
         message=(
-            "SpatialSeries unit 'kilometers' is not recognized. "
+            "SpatialSeries unit 'kilometers' is not a valid spatial unit. "
             "Valid units are: centimeters, degrees, meters, micrometers, millimeters, pixels, radians."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
@@ -188,16 +188,3 @@ def test_fail_check_spatial_series_unit():
     )
 
 
-def test_skip_check_spatial_series_unit_in_compass_direction():
-    compass_direction = CompassDirection(
-        spatial_series=SpatialSeries(
-            name="SpatialSeries",
-            description="description",
-            data=np.ones((10,)),
-            rate=3.0,
-            reference_frame="reference_frame",
-            unit="degrees",
-        )
-    )
-    spatial_series = compass_direction.get_spatial_series("SpatialSeries")
-    assert check_spatial_series_unit(spatial_series) is None

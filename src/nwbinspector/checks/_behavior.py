@@ -105,7 +105,7 @@ def check_spatial_series_unit(spatial_series: SpatialSeries) -> Optional[Inspect
     if spatial_series.unit not in VALID_SPATIAL_SERIES_UNITS:
         return InspectorMessage(
             message=(
-                f"SpatialSeries unit '{spatial_series.unit}' is not recognized. "
+                f"SpatialSeries unit '{spatial_series.unit}' is not a valid spatial unit. "
                 f"Valid units are: {', '.join(sorted(VALID_SPATIAL_SERIES_UNITS))}."
             )
         )
