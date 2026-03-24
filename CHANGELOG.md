@@ -3,7 +3,7 @@
 ### New Checks
 
 * Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
-* Added `check_spatial_series_unit` to validate that SpatialSeries objects (outside of CompassDirection) have a recognized unit string from a curated allowlist of SI length units, angular units, and pixels. [#685](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/685)
+* Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
 
 
 ### Improvements
