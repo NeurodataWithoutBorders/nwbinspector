@@ -12,6 +12,7 @@ from ._ecephys import (
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_spike_times_without_nans,
     check_units_table_duration,
 )
 from ._general import (
@@ -177,6 +178,7 @@ __all__ = [
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
     "check_ascending_spike_times",
+    "check_spike_times_without_nans",
     "check_electrical_series_unscaled_data",
     "check_rate_is_positive",
     "check_imaging_plane_location_allen_ccf",

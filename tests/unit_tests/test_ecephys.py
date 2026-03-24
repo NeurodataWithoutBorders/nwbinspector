@@ -19,6 +19,7 @@ from nwbinspector.checks import (
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_unobserved_interval,
+    check_spike_times_without_nans,
     check_units_table_duration,
 )
 
@@ -288,6 +289,30 @@ def test_check_spike_times_not_in_unobserved_interval_multiple_units():
         object_name="TestUnits",
         location="/",
     )
+
+
+class TestCheckSpikeTimesWithoutNans(TestCase):
+    def setUp(self):
+        self.units_table = Units()
+
+    def test_spike_times_without_nans_valid(self):
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.2])
+        self.units_table.add_unit(spike_times=[1.0, 1.1, 1.2])
+        assert check_spike_times_without_nans(units_table=self.units_table) is None
+
+    def test_spike_times_with_nans(self):
+        self.units_table.add_unit(spike_times=[0.0, np.nan, 0.2])
+        assert check_spike_times_without_nans(units_table=self.units_table) == InspectorMessage(
+            message="Units table contains NaN spike times. Spike times should be valid timestamps in seconds.",
+            importance=Importance.CRITICAL,
+            check_function_name="check_spike_times_without_nans",
+            object_type="Units",
+            object_name="Units",
+            location="/",
+        )
+
+    def test_spike_times_without_nans_empty(self):
+        assert check_spike_times_without_nans(units_table=self.units_table) is None
 
 
 class TestCheckAscendingSpikeTimes(TestCase):
