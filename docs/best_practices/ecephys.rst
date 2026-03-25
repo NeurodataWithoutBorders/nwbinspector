@@ -79,6 +79,38 @@ The spikes associated with each unit are stored in the ``spike_times`` column of
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_duration`
 
 
+.. _best_practice_units_resolution:
+
+Units Resolution
+~~~~~~~~~~~~~~~~
+
+The ``resolution`` field on the :ref:`nwb-schema:sec-units-src` table indicates the smallest possible
+difference between two spike times, in seconds. Set this to ``1/sampling_rate`` of the recording system
+(e.g., ``resolution=1/30000`` for a 30 kHz system). This documents the precision of your spike timing
+data, which is needed by downstream users to determine whether fine-timescale analyses are appropriate.
+
+A common mistake is to set the sampling rate (e.g., ``30000``) instead of the resolution. To avoid this,
+invert the quantity: ``resolution=1/sampling_rate``.
+
+Check functions: :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_set`,
+:py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_valid`
+
+
+.. _best_practice_spike_times_not_in_samples:
+
+Spike Times in Seconds
+~~~~~~~~~~~~~~~~~~~~~~
+
+Spike times must be stored in seconds with respect to the ``timestamps_reference_time`` of the
+:ref:`nwb-schema:sec-NWBFile` (which by default is the ``session_start_time``).
+
+A common failure is writing spike times in samples instead of seconds. To convert, divide by the sampling rate
+of the recording. Spike times in samples are integer-valued, while real spike times in seconds have fractional
+parts at any common electrophysiology sampling rate.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_not_in_samples`
+
+
 .. _best_practice_negative_spike_times:
 
 Negative Spike Times
