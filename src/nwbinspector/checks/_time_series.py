@@ -263,6 +263,46 @@ def check_time_series_duration(
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_time_series_data_is_not_empty(time_series: TimeSeries) -> Optional[InspectorMessage]:
+    """
+    Check if a TimeSeries has empty data.
+
+    Empty datasets are often the result of incomplete data entry or errors during conversion.
+
+    ImageSeries with external_file set intentionally have empty data and are skipped.
+
+    Best Practice: :ref:`best_practice_data_not_empty`
+    """
+    data = time_series.data
+
+    # ImageSeries (and subclasses) with external_file intentionally have empty data arrays
+    is_image_series_with_external_file = (
+        getattr(time_series, "external_file", None) is not None and len(time_series.external_file) > 0
+    )
+    if is_image_series_with_external_file:
+        return None
+
+    # .size works for numpy arrays, h5py.Dataset, zarr.Array, DataIO(wrapping arrays), and StrDataset
+    # len() covers lists, tuples, and DataIO(wrapping lists)
+    if hasattr(data, "size"):
+        is_empty = data.size == 0
+    elif isinstance(data, (list, tuple)):
+        is_empty = len(data) == 0
+    else:
+        return None
+
+    if is_empty:
+        return InspectorMessage(
+            message=(
+                f"The 'data' field of {time_series.name} is empty. "
+                "Please verify that data was properly added during conversion."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_rate_not_below_threshold(
     time_series: TimeSeries, low_rate_threshold: float = 0.01
 ) -> Optional[InspectorMessage]:

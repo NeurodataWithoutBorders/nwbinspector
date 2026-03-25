@@ -1,14 +1,18 @@
 from datetime import datetime
+from uuid import uuid4
 
 import pynwb
 from packaging import version
+from pynwb import NWBFile
 from pynwb.device import Device
+from pynwb.file import Subject
 from pynwb.icephys import IntracellularElectrode, SweepTable
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector._nwb_inspection import run_checks
 from nwbinspector.checks import (
     check_intracellular_electrode_cell_id_exists,
+    check_intracellular_electrode_location_allen_ccf,
     check_sweeptable_deprecated,
 )
 
@@ -140,3 +144,59 @@ def test_check_sweeptable_deprecated_message_content():
         object_name="sweep_table",
         location="/",
     )
+
+
+def _make_nwbfile_with_icephys_electrode(location, species=None):
+    """Helper to create an NWBFile with an IntracellularElectrode at the given location."""
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    if species is not None:
+        nwbfile.subject = Subject(subject_id="001", species=species)
+    device = nwbfile.create_device(name="device")
+    electrode = nwbfile.create_icephys_electrode(
+        name="ielec",
+        device=device,
+        description="an intracellular electrode",
+        location=location,
+    )
+    return electrode
+
+
+def test_pass_check_intracellular_electrode_location_allen_ccf():
+    electrode = _make_nwbfile_with_icephys_electrode(location="VISp", species="Mus musculus")
+    assert check_intracellular_electrode_location_allen_ccf(electrode) is None
+
+
+def test_pass_check_intracellular_electrode_location_allen_ccf_full_name():
+    electrode = _make_nwbfile_with_icephys_electrode(location="Primary visual area", species="Mus musculus")
+    assert check_intracellular_electrode_location_allen_ccf(electrode) is None
+
+
+def test_fail_check_intracellular_electrode_location_allen_ccf():
+    electrode = _make_nwbfile_with_icephys_electrode(location="my_custom_region", species="Mus musculus")
+    result = check_intracellular_electrode_location_allen_ccf(electrode)
+    assert result == InspectorMessage(
+        message=(
+            "IntracellularElectrode location 'my_custom_region' is not a term in the Allen Mouse Brain CCF ontology. "
+            "Please use either the full name or abbreviation from the Allen Mouse Brain Atlas "
+            "(e.g., 'Primary visual area' or 'VISp'). This check can be ignored if Allen CCF "
+            "terms do not meet your needs."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_intracellular_electrode_location_allen_ccf",
+        object_type="IntracellularElectrode",
+        object_name="ielec",
+    )
+
+
+def test_skip_check_intracellular_electrode_location_allen_ccf_non_mouse():
+    electrode = _make_nwbfile_with_icephys_electrode(location="my_custom_region", species="Homo sapiens")
+    assert check_intracellular_electrode_location_allen_ccf(electrode) is None
+
+
+def test_skip_check_intracellular_electrode_location_allen_ccf_no_subject():
+    electrode = _make_nwbfile_with_icephys_electrode(location="my_custom_region", species=None)
+    assert check_intracellular_electrode_location_allen_ccf(electrode) is None
