@@ -43,6 +43,12 @@ def test_check_units_table_has_spikes_fail():
     )
 
 
+def test_check_units_table_has_spikes_pass():
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    assert check_units_table_has_spikes(units_table=units_table) is None
+
+
 def test_check_negative_spike_times_all_positive():
     units_table = Units()
     units_table.add_unit(spike_times=[0.0, 0.1])
