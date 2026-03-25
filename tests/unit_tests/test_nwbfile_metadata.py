@@ -1,6 +1,7 @@
 import os
 import tempfile
 from datetime import datetime, timezone
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -33,6 +34,7 @@ from nwbinspector.checks import (
     check_subject_species_form,
     check_subject_weight,
 )
+from nwbinspector.checks._nwbfile_metadata import _check_url_resolves, _convert_doi_to_url
 from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
 from nwbinspector.testing import make_minimal_nwbfile
 
@@ -377,27 +379,74 @@ def test_check_publication_list_format_bytestring_fail():
     ]
 
 
-# Network-dependent tests for DOI resolution
-@pytest.mark.skipif(
-    os.environ.get("NWBI_SKIP_NETWORK_TESTS", "").lower() in ("1", "true", "yes"),
-    reason="Skipping network-dependent tests",
-)
-def test_check_publication_doi_resolves_pass():
-    """Test that a valid DOI resolves successfully."""
+# Unit tests for _convert_doi_to_url helper
+def test_convert_doi_to_url_https():
+    assert _convert_doi_to_url("https://doi.org/10.1234/abc") == "https://doi.org/10.1234/abc"
+
+
+def test_convert_doi_to_url_dx():
+    assert _convert_doi_to_url("http://dx.doi.org/10.1234/abc") == "http://dx.doi.org/10.1234/abc"
+
+
+def test_convert_doi_to_url_doi_prefix():
+    assert _convert_doi_to_url("doi:10.1234/abc") == "https://doi.org/10.1234/abc"
+
+
+def test_convert_doi_to_url_not_a_doi():
+    assert _convert_doi_to_url("not a doi") is None
+
+
+# Unit tests for _check_url_resolves helper (mocked)
+def test_check_url_resolves_success():
+    with patch("nwbinspector.checks._nwbfile_metadata.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__ = lambda s: type("Response", (), {"status": 200})()
+        mock_urlopen.return_value.__exit__ = lambda s, *a: None
+        success, error = _check_url_resolves("https://doi.org/10.1234/abc")
+        assert success is True
+        assert error is None
+
+
+def test_check_url_resolves_http_error():
+    from urllib.error import HTTPError
+
+    with patch("nwbinspector.checks._nwbfile_metadata.urlopen") as mock_urlopen:
+        mock_urlopen.side_effect = HTTPError(url=None, code=404, msg="Not Found", hdrs=None, fp=None)
+        success, error = _check_url_resolves("https://doi.org/10.1234/abc")
+        assert success is False
+        assert "404" in error
+
+
+def test_check_url_resolves_url_error():
+    from urllib.error import URLError
+
+    with patch("nwbinspector.checks._nwbfile_metadata.urlopen") as mock_urlopen:
+        mock_urlopen.side_effect = URLError(reason="Name or service not known")
+        success, error = _check_url_resolves("https://doi.org/10.1234/abc")
+        assert success is False
+        assert "Name or service not known" in error
+
+
+def test_check_url_resolves_timeout():
+    with patch("nwbinspector.checks._nwbfile_metadata.urlopen") as mock_urlopen:
+        mock_urlopen.side_effect = TimeoutError()
+        success, error = _check_url_resolves("https://doi.org/10.1234/abc")
+        assert success is False
+        assert "timed out" in error
+
+
+# Mock-based tests for check_publication_doi_resolves (no network)
+def test_check_publication_doi_resolves_pass_mocked():
+    """Test that a valid DOI resolves successfully (mocked)."""
     nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
-        # Use a well-known, stable DOI (the DOI handbook)
         related_publications=["https://doi.org/10.1000/182"],
     )
-    assert check_publication_doi_resolves(nwbfile) is None
+    with patch("nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(True, None)):
+        assert check_publication_doi_resolves(nwbfile) is None
 
 
-@pytest.mark.skipif(
-    os.environ.get("NWBI_SKIP_NETWORK_TESTS", "").lower() in ("1", "true", "yes"),
-    reason="Skipping network-dependent tests",
-)
 def test_check_publication_doi_resolves_pass_no_publications():
     """Test that no related_publications passes the check."""
     nwbfile = NWBFile(
@@ -408,29 +457,24 @@ def test_check_publication_doi_resolves_pass_no_publications():
     assert check_publication_doi_resolves(nwbfile) is None
 
 
-@pytest.mark.skipif(
-    os.environ.get("NWBI_SKIP_NETWORK_TESTS", "").lower() in ("1", "true", "yes"),
-    reason="Skipping network-dependent tests",
-)
-def test_check_publication_doi_resolves_fail_invalid_doi():
-    """Test that an invalid DOI fails to resolve."""
+def test_check_publication_doi_resolves_fail_mocked():
+    """Test that an invalid DOI fails to resolve (mocked)."""
     nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
         related_publications=["https://doi.org/10.1234/this-doi-does-not-exist-abc123xyz"],
     )
-    results = list(check_publication_doi_resolves(nwbfile))
-    assert len(results) == 1
-    assert "does not resolve" in results[0].message
-    assert results[0].importance == Importance.BEST_PRACTICE_SUGGESTION
-    assert results[0].check_function_name == "check_publication_doi_resolves"
+    with patch(
+        "nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(False, "HTTP 404")
+    ):
+        results = list(check_publication_doi_resolves(nwbfile))
+        assert len(results) == 1
+        assert "does not resolve" in results[0].message
+        assert results[0].importance == Importance.BEST_PRACTICE_SUGGESTION
+        assert results[0].check_function_name == "check_publication_doi_resolves"
 
 
-@pytest.mark.skipif(
-    os.environ.get("NWBI_SKIP_NETWORK_TESTS", "").lower() in ("1", "true", "yes"),
-    reason="Skipping network-dependent tests",
-)
 def test_check_publication_doi_resolves_pass_non_doi_skipped():
     """Test that non-DOI entries are skipped (not checked for resolution)."""
     nwbfile = NWBFile(
@@ -439,24 +483,31 @@ def test_check_publication_doi_resolves_pass_non_doi_skipped():
         session_start_time=datetime.now().astimezone(),
         related_publications=["Some random text that is not a DOI"],
     )
-    # Non-DOI entries should be skipped, so this should return None
     assert check_publication_doi_resolves(nwbfile) is None
 
 
-@pytest.mark.skipif(
-    os.environ.get("NWBI_SKIP_NETWORK_TESTS", "").lower() in ("1", "true", "yes"),
-    reason="Skipping network-dependent tests",
-)
-def test_check_publication_doi_resolves_doi_prefix_format():
-    """Test that DOIs with 'doi:' prefix are resolved correctly."""
+def test_check_publication_doi_resolves_doi_prefix_format_mocked():
+    """Test that DOIs with 'doi:' prefix are resolved correctly (mocked)."""
     nwbfile = NWBFile(
         session_description="",
         identifier=str(uuid4()),
         session_start_time=datetime.now().astimezone(),
-        # Use a well-known, stable DOI
         related_publications=["doi:10.1000/182"],
     )
-    assert check_publication_doi_resolves(nwbfile) is None
+    with patch("nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(True, None)):
+        assert check_publication_doi_resolves(nwbfile) is None
+
+
+def test_check_publication_doi_resolves_bytestring_mocked():
+    """Test that bytestrings are properly decoded."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=[b"https://doi.org/10.1000/182"],
+    )
+    with patch("nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(True, None)):
+        assert check_publication_doi_resolves(nwbfile) is None
 
 
 def test_check_subject_sex():
