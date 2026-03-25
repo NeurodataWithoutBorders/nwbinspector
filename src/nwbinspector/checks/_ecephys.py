@@ -125,7 +125,11 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_spike_times_without_nans(units_table: Units) -> Optional[InspectorMessage]:
-    """Check if the Units table contains NaN values in spike times."""
+    """
+    Check if the Units table contains NaN values in spike times.
+
+    Best Practice: :ref:`best_practice_spike_times_without_nans`
+    """
     if "spike_times" not in units_table:
         return None
 
