@@ -43,6 +43,14 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
+html_context = {
+    "display_github": True,
+    "github_user": "NeurodataWithoutBorders",
+    "github_repo": "nwbinspector",
+    "github_version": "dev",
+    "conf_py_path": "/docs/",
+}
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------

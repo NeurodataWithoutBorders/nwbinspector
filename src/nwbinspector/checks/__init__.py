@@ -12,7 +12,10 @@ from ._ecephys import (
     check_electrical_series_unscaled_data,
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
+    check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
+    check_units_resolution_is_set,
+    check_units_resolution_is_valid,
     check_units_table_duration,
 )
 from ._general import (
@@ -85,6 +88,7 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_duration,
+    check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
@@ -105,6 +109,7 @@ from ._time_series import (
 
 __all__ = [
     "check_negative_spike_times",
+    "check_spike_times_not_in_samples",
     "check_electrical_series_dims",
     "check_electrical_series_reference_electrodes_table",
     "check_spike_times_not_in_unobserved_interval",
@@ -156,6 +161,7 @@ __all__ = [
     "check_dynamic_table_region_data_validity",
     "check_time_interval_time_columns",
     "check_time_intervals_duration",
+    "check_time_intervals_start_time_not_constant",
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",
@@ -180,6 +186,8 @@ __all__ = [
     "check_spatial_series_unit",
     "check_ascending_spike_times",
     "check_electrical_series_unscaled_data",
+    "check_units_resolution_is_valid",
+    "check_units_resolution_is_set",
     "check_rate_is_positive",
     "check_imaging_plane_location_allen_ccf",
     "check_electrodes_location_allen_ccf",

@@ -33,6 +33,110 @@ def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_units_resolution_is_set(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check that the Units table has resolution set to a meaningful positive float.
+
+    Best Practice: :ref:`best_practice_units_resolution`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    resolution = units_table.resolution
+    if resolution is not None and not np.isnan(resolution) and resolution > 0:
+        return None
+
+    if resolution is None or (isinstance(resolution, float) and np.isnan(resolution)):
+        detail = "Units table has spike_times but resolution is not set."
+    else:
+        detail = f"Units table has spike_times but resolution is set to an invalid value ({resolution})."
+
+    return InspectorMessage(
+        message=(
+            f"{detail} "
+            "Resolution indicates the smallest possible difference between two spike times "
+            "and should be a positive float equal to 1/sampling_rate of the recording system "
+            "(e.g., Units(resolution=1/30000) for a 30 kHz system). "
+            "This information is needed to assess the precision of spike timing data."
+        )
+    )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+def check_units_resolution_is_valid(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check that the Units table resolution is not suspiciously large.
+
+    A resolution greater than 0.01 seconds (sampling rate below 100 Hz) likely indicates that
+    the sampling rate was entered instead of the resolution (1/sampling_rate).
+
+    Best Practice: :ref:`best_practice_units_resolution`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    resolution = units_table.resolution
+    if resolution is None or np.isnan(resolution) or resolution <= 0:
+        return None
+
+    if resolution > 0.01:
+        return InspectorMessage(
+            message=(
+                f"Units table resolution is {resolution}, which is unexpectedly large. "
+                "Resolution should be 1/sampling_rate (e.g., 1/30000 for a 30 kHz system), "
+                "not the sampling rate itself."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_spike_times_not_in_samples(units_table: Units, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
+    """
+    Check if spike times appear to be sample indices rather than seconds.
+
+    Spike times stored as sample indices are integer-valued. Real spike times in seconds
+    have fractional parts at any common electrophysiology sampling rate. If the ``resolution``
+    field on the Units table is set to >= 1.0 second, the check is skipped. This serves as
+    an escape hatch for the unlikely case where spike time resolution is truly 1 second or
+    lower; users must explicitly set this field to suppress the check.
+
+    Best Practice: :ref:`best_practice_spike_times_not_in_samples`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    if units_table.resolution is not None and units_table.resolution >= 1.0:
+        return None
+
+    spike_times_data = units_table["spike_times"].target.data
+
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    sample = np.array(spike_times_data[:nelems])
+
+    if len(sample) == 0:
+        return None
+
+    all_integer_valued = np.all(sample == np.floor(sample))
+
+    if all_integer_valued:
+        return InspectorMessage(
+            message=(
+                "Spike times appear to be in samples rather than seconds. "
+                "All sampled spike times are integer-valued. "
+                "Spike times should be in seconds (divide by the sampling rate to convert). "
+                "If your spike time resolution is truly 1 second or lower, "
+                "set Units(resolution=1.0) to suppress this check."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=ElectricalSeries)
 def check_electrical_series_dims(electrical_series: ElectricalSeries) -> Optional[InspectorMessage]:
     """
@@ -123,27 +227,48 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
     """
-    Check that the values in the timestamps array are strictly increasing.
+    Check that spike times are strictly ascending for each unit.
+
+    Descending spike times always indicate a data error (trial-concatenated times, spike sorting bug,
+    or conversion error). Equal consecutive spike times violate the neural refractory period for
+    single-unit data. If the ``resolution`` field on the Units table is set, equal consecutive spike
+    times are allowed because they may reflect hardware timing precision limits.
 
     Best Practice :ref:`best_practice_ascending_spike_times`
     """
     if "spike_times" not in units_table:
         return None
 
+    resolution_is_set = units_table.resolution is not None
+
     for unit_id in range(len(units_table)):
         spike_times = units_table["spike_times"][unit_id]
         if nelems is not None:
             spike_times = spike_times[:nelems]
-        if not np.all(np.diff(spike_times) >= 0):
+
+        diffs = np.diff(spike_times)
+
+        if np.any(diffs < 0):
             return InspectorMessage(
                 message=(
-                    f"Unit {unit_id} contains non-ascending spike times. "
-                    "Spike times should be sorted in ascending order."
+                    f"Unit {unit_id} contains descending spike times, which is always a data error. "
+                    "Spike times should be sorted in strictly ascending order."
                 )
             )
+
+        if not resolution_is_set and np.any(diffs == 0):
+            return InspectorMessage(
+                message=(
+                    f"Unit {unit_id} contains equal consecutive spike times. "
+                    "This violates the neural refractory period for single-unit data. "
+                    "If your recording resolution does not allow distinguishing these spikes, "
+                    "set the `resolution` field on the Units table to suppress this check."
+                )
+            )
+
     return None
 
 
