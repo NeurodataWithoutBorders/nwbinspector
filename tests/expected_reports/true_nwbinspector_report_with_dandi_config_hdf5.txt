@@ -6,9 +6,9 @@ Platform: Windows-10-10.0.19043-SP0
 NWBInspector version: 0.3.6
 
 Scanned 2 file(s).
-Found 10 issues across 2 file(s):
+Found 11 issues across 2 file(s):
        3 - CRITICAL
-       7 - BEST_PRACTICE_VIOLATION
+       8 - BEST_PRACTICE_VIOLATION
 **************************************************
 
 
@@ -42,5 +42,8 @@ Found 10 issues across 2 file(s):
 1.7  ./testing0.hdf5.nwb: check_missing_unit - 'TimeSeries' object at location '/acquisition/test_time_series_1'
        Message: Missing text for attribute 'unit'. Please specify the scientific unit of the 'data'.
 
-1.8  ./testing1.hdf5.nwb: check_data_orientation - 'TimeSeries' object at location '/acquisition/my_spatial_series'
+1.8  ./testing0.hdf5.nwb: check_time_series_duration - 'TimeSeries' object at location '/acquisition/test_time_series_1'
+       Message: TimeSeries 'test_time_series_1' has an unusually long duration of 137499999.00 seconds (4.36 years), which may indicate an error in the timestamps or rate data. Please verify that this is correct.
+
+1.9  ./testing1.hdf5.nwb: check_data_orientation - 'TimeSeries' object at location '/acquisition/my_spatial_series'
        Message: Data may be in the wrong orientation. Time should be in the first dimension, and is usually the longest dimension. Here, another dimension is longer. Current shape: (2, 3). Suggestion: Transpose your data so the first dimension is 3.
