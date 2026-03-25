@@ -23,7 +23,30 @@ from nwbinspector.checks import (
     check_units_resolution_is_set,
     check_units_resolution_is_valid,
     check_units_table_duration,
+    check_units_table_has_spikes,
 )
+
+
+def test_check_units_table_has_spikes_fail():
+    units_table = Units()
+    units_table.add_unit()
+    assert check_units_table_has_spikes(units_table=units_table) == InspectorMessage(
+        message=(
+            "This Units table does not have a spike_times column. "
+            "A Units table without spike times is likely an error or misuse of the neurodata type."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_units_table_has_spikes",
+        object_type="Units",
+        object_name="Units",
+        location="/",
+    )
+
+
+def test_check_units_table_has_spikes_pass():
+    units_table = Units()
+    units_table.add_unit(spike_times=[0.0, 0.1])
+    assert check_units_table_has_spikes(units_table=units_table) is None
 
 
 def test_check_negative_spike_times_all_positive():

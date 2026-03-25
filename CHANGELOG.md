@@ -6,6 +6,7 @@
 * Added `check_time_intervals_start_time_not_constant` to flag TimeIntervals tables where all start_time values are identical, indicating times were likely not set relative to session start. [#677](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/677)
 * Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
 * Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
+* Added `check_units_table_has_spikes` to flag Units tables that do not contain a spike_times column. [#691](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/691)
 
 
 ### Improvements
