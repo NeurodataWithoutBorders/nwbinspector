@@ -93,4 +93,3 @@ BEST PRACTICE SUGGESTION
 *  :py:func:`~nwbinspector.checks._tables.check_col_not_nan`
 *  :py:func:`~nwbinspector.checks._tables.check_table_time_columns_are_not_negative`
 *  :py:func:`~nwbinspector.checks._time_series.check_timestamp_of_the_first_sample_is_not_negative`
-
