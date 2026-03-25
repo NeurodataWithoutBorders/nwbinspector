@@ -185,7 +185,7 @@ def test_skip_check_spatial_series_unit_in_compass_direction():
             data=np.ones((10,)),
             rate=3.0,
             reference_frame="reference_frame",
-            unit="degrees",
+            unit="kilometers",
         )
     )
     spatial_series = compass_direction.spatial_series["SpatialSeries"]
