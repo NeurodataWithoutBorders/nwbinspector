@@ -7,6 +7,7 @@
 * Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
 * Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
+* Added `check_units_table_has_spikes` to flag Units tables that do not contain a spike_times column. [#691](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/691)
 
 
 ### Improvements

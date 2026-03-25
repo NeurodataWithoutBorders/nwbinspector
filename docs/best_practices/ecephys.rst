@@ -67,12 +67,27 @@ The ``ElectrodeTable`` should not contain redundant information that is present 
 
 As a concrete example, the package objects from the `SpikeInterface <https://spikeinterface.readthedocs.io/en/latest/>`__ package contain two properties named ``gain_to_uv`` and ``offset_to_uv`` that are used to convert the raw data to microvolts. These properties should not be stored in the `ElectrodeTable` but rather in the ``ElectricalSeries`` object as ``channel_conversion`` and ``offset`` respectively.
 
-.. _best_practice_units_table_duration:
+.. _best_practice_units_table_has_spikes:
 
 Units Table
 -----------
 
 The Units Table contains information about the identified units (putative neurons) from extracellular electrophysiology data.
+
+Spike Times Column Required
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``spike_times`` column is the core data of the Units table. A Units table without ``spike_times`` is almost
+certainly an error or a misuse of the neurodata type — for example, storing only cluster labels or quality metrics
+without the underlying spike data that gives them meaning. Always include ``spike_times`` when creating a Units table.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_has_spikes`
+
+
+.. _best_practice_units_table_duration:
+
+Duration
+~~~~~~~~
 
 The spikes associated with each unit are stored in the ``spike_times`` column of the table in seconds.
 
