@@ -1,10 +1,8 @@
-import os
 import tempfile
 from datetime import datetime, timezone
 from unittest.mock import patch
 from uuid import uuid4
 
-import pytest
 from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -34,8 +32,11 @@ from nwbinspector.checks import (
     check_subject_species_form,
     check_subject_weight,
 )
-from nwbinspector.checks._nwbfile_metadata import _check_url_resolves, _convert_doi_to_url
-from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
+from nwbinspector.checks._nwbfile_metadata import (
+    PROCESSING_MODULE_CONFIG,
+    _check_url_resolves,
+    _convert_doi_to_url,
+)
 from nwbinspector.testing import make_minimal_nwbfile
 
 minimal_nwbfile = make_minimal_nwbfile()
@@ -465,9 +466,7 @@ def test_check_publication_doi_resolves_fail_mocked():
         session_start_time=datetime.now().astimezone(),
         related_publications=["https://doi.org/10.1234/this-doi-does-not-exist-abc123xyz"],
     )
-    with patch(
-        "nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(False, "HTTP 404")
-    ):
+    with patch("nwbinspector.checks._nwbfile_metadata._check_url_resolves", return_value=(False, "HTTP 404")):
         results = list(check_publication_doi_resolves(nwbfile))
         assert len(results) == 1
         assert "does not resolve" in results[0].message
