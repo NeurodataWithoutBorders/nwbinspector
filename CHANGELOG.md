@@ -1,4 +1,20 @@
-# v0.7.0 (Upcoming)
+# v0.7.1 (Upcoming)
+
+### New Checks
+
+* Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
+* Added `check_time_intervals_start_time_not_constant` to flag TimeIntervals tables where all start_time values are identical, indicating times were likely not set relative to session start. [#677](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/677)
+* Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
+* Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
+
+
+### Improvements
+* Upgraded `check_ascending_spike_times` from `BEST_PRACTICE_VIOLATION` to `CRITICAL` and made it flag both descending and equal consecutive spike times. Setting the `resolution` field on the Units table suppresses the equal-timestamps check for recordings with limited temporal precision. [#684](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/684)
+
+### Fixes
+* Fixed `RuntimeWarning: All-NaN slice encountered` in `check_time_intervals_duration` when custom time columns contain all-NaN values. [#682](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/682)
+
+# v0.7.0 (Feb 23, 2026)
 
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
@@ -11,6 +27,7 @@
 * Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
 * Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
 * Added `check_sweeptable_deprecated` to detect usage of the deprecated `SweepTable` in NWB files with schema version >= 2.4.0, which should use `IntracellularRecordingsTable` instead. [#657](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/657)
+* Added `check_time_series_data_is_not_empty` to detect empty `.data` fields in `TimeSeries` containers, which often indicate incomplete data entry or conversion errors. Skips `ImageSeries` with `external_file` set, where empty data is intentional. [#668](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/668)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
@@ -19,6 +36,7 @@
 * Added `nwb_schema_version_lt` and `nwb_schema_version_gt` parameters to `register_check` to conditionally run checks based on the NWB schema version of the file being inspected. [#661](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/661)
 
 ### Fixes
+* Fixed `check_subject_age` to allow `"/"` and `"/P3D"` style age ranges where the lower bound is unspecified. [#673](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/673)
 * Fixed `check_timestamp_of_the_first_sample_is_not_negative` to handle empty timestamps arrays instead of throwing an `IndexError`. [#582](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/582)
 * Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
 * Improved `check_data_orientation` error message to include the TimeSeries name, current shape, and a suggestion for transposing the data. [#1430](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/1430)
