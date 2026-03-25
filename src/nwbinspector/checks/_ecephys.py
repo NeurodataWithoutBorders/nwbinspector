@@ -17,6 +17,23 @@ NELEMS = 200
 DURATION_THRESHOLD = 31557600.0
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_units_table_has_spikes(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check if the Units table is missing a spike_times column.
+
+    Best Practice: :ref:`best_practice_units_table_has_spikes`
+    """
+    if "spike_times" not in units_table:
+        return InspectorMessage(
+            message=(
+                "This Units table does not have a spike_times column. "
+                "A Units table without spike times is likely an error or misuse of the neurodata type."
+            )
+        )
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]:
     """Check if the Units table contains negative spike times."""
