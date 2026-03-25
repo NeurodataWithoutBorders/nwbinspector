@@ -8,9 +8,15 @@ from ._ecephys import (
     check_ascending_spike_times,
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
+    check_electrical_series_unscaled_data,
+    check_electrodes_location_allen_ccf,
     check_negative_spike_times,
+    check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
+    check_units_resolution_is_set,
+    check_units_resolution_is_valid,
     check_units_table_duration,
+    check_units_table_has_spikes,
 )
 from ._general import (
     check_description,
@@ -19,11 +25,14 @@ from ._general import (
 )
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
+    check_intracellular_electrode_location_allen_ccf,
+    check_sweeptable_deprecated,
 )
 from ._image_series import (
     check_image_series_data_size,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
+    check_image_series_starting_frame_without_external_file,
 )
 from ._images import (
     check_index_series_points_to_image,
@@ -55,6 +64,7 @@ from ._nwbfile_metadata import (
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from ._ogen import (
     check_optogenetic_stimulus_site_has_optogenetic_series,
@@ -62,6 +72,7 @@ from ._ogen import (
 from ._ophys import (
     check_emission_lambda_in_nm,
     check_excitation_lambda_in_nm,
+    check_imaging_plane_location_allen_ccf,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
@@ -77,6 +88,7 @@ from ._tables import (
     check_table_values_for_dict,
     check_time_interval_time_columns,
     check_time_intervals_duration,
+    check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
@@ -84,8 +96,11 @@ from ._time_series import (
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
+    check_rate_not_below_threshold,
     check_regular_timestamps,
     check_resolution,
+    check_time_series_data_is_not_empty,
+    check_time_series_duration,
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
@@ -94,6 +109,7 @@ from ._time_series import (
 
 __all__ = [
     "check_negative_spike_times",
+    "check_spike_times_not_in_samples",
     "check_electrical_series_dims",
     "check_electrical_series_reference_electrodes_table",
     "check_spike_times_not_in_unobserved_interval",
@@ -103,9 +119,11 @@ __all__ = [
     "check_image_series_data_size",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
+    "check_image_series_starting_frame_without_external_file",
     "check_order_of_images_unique",
     "check_order_of_images_len",
     "check_index_series_points_to_image",
+    "check_time_series_data_is_not_empty",
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",
@@ -122,6 +140,7 @@ __all__ = [
     "check_subject_id_no_slashes",
     "check_subject_species_exists",
     "check_subject_species_form",
+    "check_subject_weight",
     "check_subject_proper_age_range",
     "check_file_extension",
     "check_session_id_no_slashes",
@@ -142,6 +161,7 @@ __all__ = [
     "check_dynamic_table_region_data_validity",
     "check_time_interval_time_columns",
     "check_time_intervals_duration",
+    "check_time_intervals_start_time_not_constant",
     "check_time_intervals_stop_after_start",
     "check_table_values_for_dict",
     "check_table_time_columns_are_not_negative",
@@ -155,11 +175,21 @@ __all__ = [
     "check_timestamps_match_first_dimension",
     "check_timestamp_of_the_first_sample_is_not_negative",
     "check_rate_is_not_zero",
+    "check_rate_not_below_threshold",
+    "check_time_series_duration",
     "check_intracellular_electrode_cell_id_exists",
+    "check_sweeptable_deprecated",
     "check_compass_direction_unit",
     "check_spatial_series_radians_magnitude",
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
     "check_ascending_spike_times",
+    "check_electrical_series_unscaled_data",
+    "check_units_resolution_is_valid",
+    "check_units_resolution_is_set",
     "check_rate_is_positive",
+    "check_imaging_plane_location_allen_ccf",
+    "check_electrodes_location_allen_ccf",
+    "check_intracellular_electrode_location_allen_ccf",
+    "check_units_table_has_spikes",
 ]
