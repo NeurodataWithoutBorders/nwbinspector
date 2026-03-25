@@ -17,6 +17,7 @@ from ._ecephys import (
     check_units_resolution_is_set,
     check_units_resolution_is_valid,
     check_units_table_duration,
+    check_units_table_has_spikes,
 )
 from ._general import (
     check_description,
@@ -192,4 +193,5 @@ __all__ = [
     "check_imaging_plane_location_allen_ccf",
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
+    "check_units_table_has_spikes",
 ]
