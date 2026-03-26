@@ -34,7 +34,8 @@ SpatialSeries General Units
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A :ref:`nwb-schema:sec-SpatialSeries` that is not inside a :ref:`nwb-schema:sec-CompassDirection` should have a unit from
-the following recognized set: "meters", "centimeters", "millimeters", "micrometers", "degrees", "radians", or "pixels".
+the following recognized set: "meters", "centimeters", "millimeters", "micrometers", "degrees", "radians", "pixels",
+or "n.a." (not available) as a placeholder when the unit is not known.
 These follow the PyNWB convention of full SI words in plural form.
 
 Check function: :py:meth:`~nwbinspector.checks._behavior.check_spatial_series_unit`

@@ -86,6 +86,7 @@ VALID_SPATIAL_SERIES_UNITS = {
     "degrees",
     "radians",
     "pixels",
+    "n.a.",
 }
 
 
@@ -106,7 +107,8 @@ def check_spatial_series_unit(spatial_series: SpatialSeries) -> Optional[Inspect
         return InspectorMessage(
             message=(
                 f"SpatialSeries unit '{spatial_series.unit}' is not a valid spatial unit. "
-                f"Valid units are: {', '.join(sorted(VALID_SPATIAL_SERIES_UNITS))}."
+                f"Valid units are: {', '.join(sorted(VALID_SPATIAL_SERIES_UNITS))}. "
+                "If the unit is not known, use 'n.a.' (not available) as a placeholder."
             )
         )
 

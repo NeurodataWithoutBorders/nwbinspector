@@ -153,7 +153,7 @@ def test_check_spatial_series_radians_magnitude():
 
 
 def test_pass_check_spatial_series_unit():
-    for unit in ("meters", "centimeters", "millimeters", "micrometers", "degrees", "radians", "pixels"):
+    for unit in ("meters", "centimeters", "millimeters", "micrometers", "degrees", "radians", "pixels", "n.a."):
         spatial_series = SpatialSeries(
             name="SpatialSeries",
             description="description",
@@ -205,7 +205,8 @@ def test_fail_check_spatial_series_unit():
     assert result == InspectorMessage(
         message=(
             "SpatialSeries unit 'kilometers' is not a valid spatial unit. "
-            "Valid units are: centimeters, degrees, meters, micrometers, millimeters, pixels, radians."
+            "Valid units are: centimeters, degrees, meters, micrometers, millimeters, n.a., pixels, radians. "
+            "If the unit is not known, use 'n.a.' (not available) as a placeholder."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_spatial_series_unit",
