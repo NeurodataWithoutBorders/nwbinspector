@@ -151,6 +151,42 @@ For example,
 
 
 
+Skipping Specific Checks
+------------------------
+
+The NWBInspector provides the ``--ignore`` flag to skip specific checks by name. This is useful when you have
+legitimate data that triggers heuristic-based checks, or when certain checks are not applicable to your use case.
+
+To skip a single check:
+
+::
+
+    nwbinspector path/to/my/data.nwb --ignore check_time_intervals_duration
+
+To skip multiple checks, provide a comma-separated list (no spaces):
+
+::
+
+    nwbinspector path/to/my/data.nwb --ignore check_time_intervals_duration,check_units_table_duration
+
+.. note::
+
+    Some checks are heuristic-based and may produce false positives for edge cases. For example,
+    ``check_time_intervals_duration`` and ``check_units_table_duration`` flag sessions longer than one year,
+    which is typically an error but may be valid for certain long-running experiments. Use the ``--ignore``
+    flag to skip these checks when you have verified the data is correct.
+
+
+Selecting Specific Checks
+-------------------------
+
+Conversely, if you only want to run specific checks, use the ``--select`` flag:
+
+::
+
+    nwbinspector path/to/my/data.nwb --select check_subject_exists,check_subject_species_exists
+
+
 External Modules
 ----------------
 
