@@ -165,18 +165,6 @@ def test_pass_check_spatial_series_unit():
         assert check_spatial_series_unit(spatial_series) is None
 
 
-def test_skip_check_spatial_series_unit_none():
-    spatial_series = SpatialSeries(
-        name="SpatialSeries",
-        description="description",
-        data=np.ones((10,)),
-        rate=3.0,
-        reference_frame="reference_frame",
-    )
-    spatial_series.fields["unit"] = None
-    assert check_spatial_series_unit(spatial_series) is None
-
-
 def test_skip_check_spatial_series_unit_in_compass_direction():
     compass_direction = CompassDirection(
         spatial_series=SpatialSeries(

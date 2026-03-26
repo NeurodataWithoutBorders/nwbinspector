@@ -97,9 +97,6 @@ def check_spatial_series_unit(spatial_series: SpatialSeries) -> Optional[Inspect
 
     Best Practice: :ref:`best_practice_spatial_series_general_units`
     """
-    if spatial_series.unit is None:
-        return None
-
     if spatial_series.get_ancestor("CompassDirection") is not None:
         return None
 
