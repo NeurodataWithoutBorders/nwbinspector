@@ -202,3 +202,16 @@ def test_fail_check_spatial_series_unit():
         object_name="SpatialSeries",
         location="/",
     )
+
+
+def test_fail_check_spatial_series_unit_none():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=np.ones((10,)),
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    spatial_series.fields["unit"] = None
+    result = check_spatial_series_unit(spatial_series)
+    assert result is not None
