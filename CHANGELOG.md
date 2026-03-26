@@ -1,4 +1,4 @@
-# v0.7.1 (Upcoming)
+# v0.7.1 (March 26, 2026)
 
 ### New Checks
 
