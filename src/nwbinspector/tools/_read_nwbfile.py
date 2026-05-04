@@ -6,13 +6,27 @@ from warnings import filterwarnings
 
 import h5py
 from hdmf.backends.io import HDMFIO
-from hdmf_zarr import NWBZarrIO
 from pynwb import NWBHDF5IO, NWBFile
 
-BACKEND_IO_CLASSES = dict(
-    hdf5=NWBHDF5IO,
-    zarr=NWBZarrIO,
+from ..utils import is_module_installed
+
+
+_HDMF_ZARR_INSTALL_HINT = (
+    "Reading Zarr-backed NWB files requires the 'hdmf-zarr' package. "
+    "Install it with `pip install nwbinspector[zarr]` or `pip install hdmf-zarr`."
 )
+
+
+def _get_backend_io_classes() -> dict:
+    classes = {"hdf5": NWBHDF5IO}
+    if is_module_installed("hdmf_zarr"):
+        from hdmf_zarr import NWBZarrIO
+
+        classes["zarr"] = NWBZarrIO
+    return classes
+
+
+BACKEND_IO_CLASSES = _get_backend_io_classes()
 
 
 def _get_method(path: str) -> Literal["local", "fsspec"]:
@@ -157,6 +171,8 @@ def _read_nwbfile_helper(
         )
 
     chosen_backend = backend or _get_backend(path=nwbfile_path, method=method)
+    if chosen_backend == "zarr" and "zarr" not in BACKEND_IO_CLASSES:
+        raise ImportError(_HDMF_ZARR_INSTALL_HINT)
     # Temporary until .can_read() is able to work on streamed bytes
     if method == "local" and not BACKEND_IO_CLASSES[chosen_backend].can_read(path=nwbfile_path):
         raise IOError(

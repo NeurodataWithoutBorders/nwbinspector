@@ -26,7 +26,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install -e ".[dandi]"
+          pip install -e ".[dandi,zarr]"
           pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
 
       - name: Download testing data and set config path

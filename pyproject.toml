@@ -34,7 +34,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "pynwb>=3.1",   # NWB Inspector should always be used with most recent minor versions of PyNWB
-    "hdmf-zarr",
+    "zarr",
     "fsspec",
     "requests",
     "aiohttp",
@@ -51,6 +51,9 @@ dependencies = [
 dandi = [
     "dandi",
     "remfile",
+]
+zarr = [
+    "hdmf-zarr",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -139,4 +142,5 @@ ignore-words-list = 'assertin'
 dev = [
     "pre-commit>=4.2.0",
     "pytest>=8.4.2",
+    "hdmf-zarr",
 ]
