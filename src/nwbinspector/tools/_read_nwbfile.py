@@ -10,7 +10,6 @@ from pynwb import NWBHDF5IO, NWBFile
 
 from ..utils import is_module_installed
 
-
 _HDMF_ZARR_INSTALL_HINT = (
     "Reading Zarr-backed NWB files requires the 'hdmf-zarr' package. "
     "Install it with `pip install nwbinspector[zarr]` or `pip install hdmf-zarr`."
