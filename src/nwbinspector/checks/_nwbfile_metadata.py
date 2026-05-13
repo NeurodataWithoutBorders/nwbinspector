@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Optional
 
-from hdmf_zarr import NWBZarrIO
 from isodate import Duration, parse_duration
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
@@ -13,6 +12,10 @@ from pynwb.file import Subject
 from .._registration import Importance, InspectorMessage, register_check
 from ..tools import get_nwbfile_path_from_internal_object
 from ..utils import is_module_installed
+
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
 
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
@@ -409,7 +412,7 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
         if isinstance(read_io, NWBHDF5IO):
             valid_extensions = [".nwb", ".nwb.h5"]
             backend = "HDF5"
-        elif isinstance(read_io, NWBZarrIO):
+        elif _HAS_HDMF_ZARR and isinstance(read_io, NWBZarrIO):
             valid_extensions = [".nwb", ".nwb.zarr"]
             backend = "Zarr"
         else:

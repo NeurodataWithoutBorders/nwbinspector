@@ -5,12 +5,20 @@ from functools import wraps
 from typing import List, Optional, Union
 
 import h5py
-import zarr
 from pynwb import NWBFile
 from pynwb.ecephys import Device, ElectrodeGroup
 from pynwb.file import Subject
 
 from ._types import Importance, InspectorMessage, Severity
+from .utils import is_module_installed
+
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    import zarr
+
+    _DATASET_TYPES: tuple = (h5py.Dataset, zarr.Array)
+else:
+    _DATASET_TYPES = (h5py.Dataset,)
 
 available_checks = list()
 
@@ -137,13 +145,13 @@ def _parse_location(neurodata_object: object) -> Optional[str]:
     if neurodata_object.parent is None:  # type: ignore
         return "/"
     # Best solution: object is or has a HDF5 Dataset
-    if isinstance(neurodata_object, (h5py.Dataset, zarr.Array)):
+    if isinstance(neurodata_object, _DATASET_TYPES):
         return neurodata_object.name  # type: ignore
     else:
         for field_name, field in neurodata_object.fields.items():  # type: ignore
             if isinstance(field, h5py.Dataset):
                 return field.parent.name  # type: ignore
-            elif isinstance(field, zarr.Array):
+            elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
                 return field.name.removesuffix(f"/{field_name}")
 
     return None

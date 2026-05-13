@@ -3,6 +3,7 @@
 ### New Checks
 
 ### Improvements
+* Made `hdmf-zarr` an optional dependency to restore pip-installability when `numcodecs` wheels are unavailable. Install with `pip install nwbinspector[zarr]` to enable Zarr-backed NWB file inspection. The local-file read path now delegates to `pynwb.read_nwb`, which produces a clear install hint when a Zarr file is encountered without the `[zarr]` extra. [#698](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/698)
 
 ### Fixes
 

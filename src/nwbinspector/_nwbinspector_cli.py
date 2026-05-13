@@ -21,6 +21,7 @@ from ._formatting import (
 from ._nwb_inspection import inspect_all
 from ._types import Importance
 from .tools import get_nwb_assets_from_dandiset
+from .tools._read_nwbfile import _MissingHdmfZarrError
 from .utils import get_nwbfiles_from_path, strtobool
 
 
@@ -204,7 +205,12 @@ def _nwbinspector_cli(
             progress_bar=show_progress_bar,
         )
         nfiles_detected = len(get_nwbfiles_from_path(path=path))
-    messages = list(messages_iterator)
+    try:
+        messages = list(messages_iterator)
+    except _MissingHdmfZarrError as exception:
+        # Surface the missing-hdmf-zarr install hint as a clean one-liner instead of a traceback.
+        click.echo(f"Error: {exception}", err=True)
+        raise SystemExit(1)
 
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
