@@ -13,6 +13,10 @@ from .._registration import Importance, InspectorMessage, register_check
 from ..tools import get_nwbfile_path_from_internal_object
 from ..utils import is_module_installed
 
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
@@ -405,13 +409,10 @@ def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
         all_valid_extensions = [".nwb", ".nwb.h5", ".nwb.zarr"]
 
         read_io = nwbfile.get_read_io()
-        NWBZarrIO = None
-        if is_module_installed("hdmf_zarr"):
-            from hdmf_zarr import NWBZarrIO
         if isinstance(read_io, NWBHDF5IO):
             valid_extensions = [".nwb", ".nwb.h5"]
             backend = "HDF5"
-        elif NWBZarrIO is not None and isinstance(read_io, NWBZarrIO):
+        elif _HAS_HDMF_ZARR and isinstance(read_io, NWBZarrIO):
             valid_extensions = [".nwb", ".nwb.zarr"]
             backend = "Zarr"
         else:

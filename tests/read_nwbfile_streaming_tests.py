@@ -23,7 +23,6 @@ PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = "s3://dandi-api-staging-dandisets/zarr
 def test_hdf5_fsspec_https():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="fsspec",
     )
     assert check_hdf5_io_open(io=nwbfile.read_io)
@@ -36,7 +35,6 @@ def test_hdf5_fsspec_https():
 def test_hdf5_fsspec_s3():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_S3,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="fsspec",
     )
     assert check_hdf5_io_open(io=nwbfile.read_io)
@@ -49,7 +47,6 @@ def test_hdf5_fsspec_s3():
 def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
-        backend="hdf5",  # TODO: cannot current auto-detect backend when streaming
         method="ros3",
     )
     assert check_hdf5_io_open(io=nwbfile.read_io)

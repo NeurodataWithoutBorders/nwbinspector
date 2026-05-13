@@ -7,7 +7,6 @@ from typing import Optional
 from urllib import request
 from uuid import uuid4
 
-import zarr
 from hdmf.backends.hdf5 import HDF5IO
 from hdmf.backends.io import HDMFIO
 from packaging.version import Version
@@ -134,4 +133,6 @@ def check_hdf5_io_open(io: HDF5IO) -> bool:
 
 def check_zarr_io_open(io: HDMFIO) -> bool:
     """For Zarr, the private attribute `_ZarrIO__file` is set to a `zarr.group` on open."""
+    import zarr
+
     return isinstance(io._ZarrIO__file, zarr.Group)
