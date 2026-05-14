@@ -17,8 +17,8 @@ from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
 from .tools._read_nwbfile import (
     _MissingHdmfZarrError,
+    _read_nwbfile_and_io,
     read_nwbfile,
-    read_nwbfile_and_io,
 )
 from .utils import (
     OptionalListOfStrings,
@@ -268,7 +268,7 @@ def inspect_nwbfile(
 
     io = None
     try:
-        in_memory_nwbfile, io = read_nwbfile_and_io(nwbfile_path=nwbfile_path)
+        in_memory_nwbfile, io = _read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
             validation_result = pynwb.validate(path=nwbfile_path)

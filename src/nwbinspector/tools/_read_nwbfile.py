@@ -58,10 +58,12 @@ def _init_fsspec(path: str) -> "fsspec.AbstractFileSystem":  # type: ignore
         raise ValueError(message)
 
 
-def read_nwbfile_and_io(
+def _read_nwbfile_and_io(
     nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
+    *,
+    backend_kwargs: Optional[dict] = None,
 ) -> tuple[NWBFile, HDMFIO]:
     """
     Read an NWB file using the specified (or auto-detected) method, returning both the file and its IO object.
@@ -80,6 +82,13 @@ def read_nwbfile_and_io(
     backend : "hdf5", "zarr", or None (default)
         Deprecated. Backend selection is now handled automatically by ``pynwb.read_nwb`` for local
         files. The argument is accepted but ignored. Will be removed after 12/1/2026.
+    backend_kwargs : dict, optional
+        Extra keyword arguments forwarded to the underlying ``NWBHDF5IO`` constructor when streaming
+        (``method="fsspec"`` or ``method="ros3"``). Useful for arguments the underlying stack requires
+        but that this helper does not surface directly. The most common case is ROS3, which requires
+        ``aws_region``: ``backend_kwargs={"aws_region": "us-east-1"}``. Not applicable to local reads
+        (``pynwb.read_nwb`` is used for those and does not accept extra kwargs); passing
+        ``backend_kwargs`` with ``method="local"`` raises ``ValueError``.
 
     Returns
     -------
@@ -115,6 +124,11 @@ def read_nwbfile_and_io(
         raise ValueError(
             "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL."
         )
+    if method == "local" and backend_kwargs is not None:
+        raise ValueError(
+            "`backend_kwargs` is only applicable to streaming methods (`fsspec`, `ros3`). "
+            "Local reads use `pynwb.read_nwb`, which does not accept extra keyword arguments."
+        )
 
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
@@ -136,6 +150,8 @@ def read_nwbfile_and_io(
         io_kwargs.update(file=file)
     else:  # ros3
         io_kwargs.update(path=nwbfile_path, driver="ros3")
+    if backend_kwargs:
+        io_kwargs.update(backend_kwargs)
     io = NWBHDF5IO(**io_kwargs)
     return io.read(), io
 
@@ -144,18 +160,49 @@ def read_nwbfile(
     nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
+    *,
+    backend_kwargs: Optional[dict] = None,
 ) -> NWBFile:
     """
     Read an NWB file using the specified (or auto-detected) method.
 
     Thin wrapper around ``read_nwbfile_and_io`` that returns only the NWBFile.
     See ``read_nwbfile_and_io`` for parameter and behavior details, including the
-    deprecated ``backend`` argument.
+    deprecated ``backend`` argument and the ``backend_kwargs`` escape hatch for
+    streaming kwargs.
 
     Returns
     -------
     nwbfile : pynwb.NWBFile
         The in-memory NWBFile object.
     """
-    nwbfile, _ = read_nwbfile_and_io(nwbfile_path=nwbfile_path, method=method, backend=backend)
+    nwbfile, _ = _read_nwbfile_and_io(
+        nwbfile_path=nwbfile_path, method=method, backend=backend, backend_kwargs=backend_kwargs
+    )
     return nwbfile
+
+
+def read_nwbfile_and_io(
+    nwbfile_path: Union[str, Path],
+    method: Optional[Literal["local", "fsspec", "ros3"]] = None,
+    backend: Optional[Literal["hdf5", "zarr"]] = None,
+    *,
+    backend_kwargs: Optional[dict] = None,
+) -> tuple[NWBFile, HDMFIO]:
+    """
+    Deprecated. Use ``read_nwbfile`` (returns just the NWBFile) for the public API.
+
+    This function will be removed after 2026-11-13. The IO object is accessible from the returned
+    NWBFile via ``nwbfile.get_read_io()`` if a caller needs it, so a separate public helper is no
+    longer needed.
+    """
+    warn(
+        "`read_nwbfile_and_io` is deprecated and will be removed after 2026-11-13. "
+        "Use `read_nwbfile` instead; the IO object is accessible from the returned NWBFile via "
+        "`nwbfile.get_read_io()`.",
+        category=DeprecationWarning,
+        stacklevel=2,
+    )
+    return _read_nwbfile_and_io(
+        nwbfile_path=nwbfile_path, method=method, backend=backend, backend_kwargs=backend_kwargs
+    )

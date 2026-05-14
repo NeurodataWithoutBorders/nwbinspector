@@ -48,6 +48,7 @@ def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
         nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
         method="ros3",
+        backend_kwargs={"aws_region": "us-east-1"},
     )
     assert check_hdf5_io_open(io=nwbfile.read_io)
 

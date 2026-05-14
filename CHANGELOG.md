@@ -7,6 +7,8 @@
 * Reorganized CI so upstream-dev test failures no longer gate PRs. Dev-branch jobs (`test-pynwb-dev`, `test-dandi-dev`, `test-dandi-dev-live`) moved from `deploy-tests.yml` into a new `dev-dailies.yml` scheduled workflow. Also added per-workflow failure emails, centralized the `testing.yml` Python and OS matrices into shared text files, and renamed `dev-gallery.yml` to `pynwb-dev-tests.yml`. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
 
 ### Fixes
+* Fixed ROS3 streaming in `read_nwbfile` after h5py began enforcing an explicit `aws_region` for the ROS3 driver. Added a `backend_kwargs` keyword-only parameter to `read_nwbfile` that forwards arbitrary kwargs to the underlying `NWBHDF5IO` constructor on the streaming paths (`fsspec`, `ros3`); ROS3 callers now pass `backend_kwargs={"aws_region": "us-east-1"}`. The generic escape hatch avoids having to surface each new upstream kwarg individually. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+* Deprecated `read_nwbfile_and_io`; it will be removed after 2026-11-13. Use `read_nwbfile` instead; the IO object is accessible from the returned NWBFile via `nwbfile.get_read_io()`. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
 
 # v0.7.1 (March 26, 2026)
 
