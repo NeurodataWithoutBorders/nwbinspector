@@ -38,12 +38,8 @@ jobs:
       - name: Install package
         run: pip install ".[dandi,zarr]" s3fs
 
-      # `--timeout=120 --timeout-method=thread` dumps a thread stack if any single test
-      # hangs for more than 2 minutes, which gives us a real traceback to debug. The
-      # ROS3 path on Windows has been observed to hang indefinitely in past runs, and
-      # without a timeout we lose all signal.
       - name: Run pytest on streaming-based read_nwbfile tests
-        run: pytest -rsx --timeout=120 --timeout-method=thread --cov=nwbinspector --cov-report xml:./coverage.xml tests/read_nwbfile_streaming_tests.py
+        run: pytest -rsx --cov=nwbinspector --cov-report xml:./coverage.xml tests/read_nwbfile_streaming_tests.py
 
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov

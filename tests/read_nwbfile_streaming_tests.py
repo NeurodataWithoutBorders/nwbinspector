@@ -1,5 +1,7 @@
 """All tests that specifically require streaming to be enabled (i.e., ROS3 version of h5py, fsspec, etc.)."""
 
+import sys
+
 import pytest
 
 from nwbinspector.testing import check_hdf5_io_open, check_streaming_tests_enabled
@@ -16,12 +18,6 @@ PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = (
     "https://dandi-api-staging-dandisets.s3.amazonaws.com/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
 )
 PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = "s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
-
-# PyNWB's stable ROS3 test fixture in the production DANDI archive bucket. Used here for
-# the ROS3 test specifically because the HDF5 ROS3 driver on Windows runners has been
-# observed to hang indefinitely when streaming from the staging bucket, while PyNWB's
-# Windows ROS3 CI passes against this production-bucket URL.
-ROS3_TEST_FILE_HTTPS = "https://dandiarchive.s3.amazonaws.com/ros3test.nwb"
 
 
 # These will move to PyNWB when the time is right
@@ -50,9 +46,17 @@ def test_hdf5_fsspec_s3():
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason=(
+        "The HDF5 ROS3 driver hangs indefinitely on Windows runners (likely a libcurl/TLS "
+        "issue in the C-level HDF5 ROS3 VFD; pytest-timeout cannot interrupt the C call). "
+        "The fsspec streaming path is the recommended alternative on Windows."
+    ),
+)
 def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
-        nwbfile_path=ROS3_TEST_FILE_HTTPS,
+        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
         method="ros3",
         backend_kwargs={"aws_region": "us-east-1"},
     )
