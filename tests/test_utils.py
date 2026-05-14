@@ -9,6 +9,7 @@ from nwbinspector import Importance
 from nwbinspector.utils import (
     calculate_number_of_cpu,
     format_byte_size,
+    get_nwbfiles_from_path,
     get_package_version,
     is_ascending_series,
     is_dict_in_string,
@@ -164,3 +165,47 @@ def test_strtobool(values, target):
     # it is strtobool, so no bool is allowed
     with pytest.raises(TypeError):
         strtobool(target)
+
+
+def test_get_nwbfiles_from_path_zarr_directory_is_treated_as_single_file(tmp_path):
+    """A directory whose name ends with .nwb.zarr is returned as a single path, not recursed into.
+
+    The detection is by directory name, so the test does not require hdmf-zarr to be installed.
+    This guards against the silent-zero-files regression where a missing hdmf-zarr would cause
+    the inspector to ignore the directory entirely.
+    """
+    zarr_dir = tmp_path / "sample.nwb.zarr"
+    zarr_dir.mkdir()
+    (zarr_dir / ".zgroup").write_text("{}")  # plausible Zarr internal file; not required for the check
+
+    result = get_nwbfiles_from_path(zarr_dir)
+
+    assert result == [zarr_dir]
+
+
+def test_get_nwbfiles_from_path_recurses_non_zarr_directories(tmp_path):
+    """A directory whose name does not end with .nwb.zarr is recursed into for *.nwb* files."""
+    (tmp_path / "a.nwb").touch()
+    (tmp_path / "b.nwb.h5").touch()
+    subdir = tmp_path / "subdir"
+    subdir.mkdir()
+    (subdir / "c.nwb").touch()
+    (tmp_path / "._macos_sidecar.nwb").touch()  # macOS sidecar; should be filtered out
+
+    result = sorted(get_nwbfiles_from_path(tmp_path))
+
+    assert result == sorted([tmp_path / "a.nwb", tmp_path / "b.nwb.h5", subdir / "c.nwb"])
+
+
+def test_get_nwbfiles_from_path_nested_zarr_directory(tmp_path):
+    """A .nwb.zarr directory nested under a parent folder is surfaced as a candidate by rglob.
+
+    pynwb.read_nwb is then responsible for raising a helpful error if hdmf-zarr is missing.
+    """
+    nested_zarr = tmp_path / "nested" / "session.nwb.zarr"
+    nested_zarr.mkdir(parents=True)
+    (nested_zarr / ".zgroup").write_text("{}")
+
+    result = get_nwbfiles_from_path(tmp_path)
+
+    assert nested_zarr in result

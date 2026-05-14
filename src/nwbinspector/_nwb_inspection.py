@@ -15,7 +15,11 @@ from tqdm import tqdm
 
 from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
-from .tools._read_nwbfile import read_nwbfile, read_nwbfile_and_io
+from .tools._read_nwbfile import (
+    _MissingHdmfZarrError,
+    read_nwbfile,
+    read_nwbfile_and_io,
+)
 from .utils import (
     OptionalListOfStrings,
     PathType,
@@ -138,8 +142,10 @@ def inspect_all(
         try:
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
+        except _MissingHdmfZarrError:
+            raise  # missing-hdmf-zarr propagates directly to the caller
         except Exception as exception:
-            continue  # read failure errors will be returned as part of inspect_nwbfile
+            continue  # other read failure errors will be returned as part of inspect_nwbfile
 
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
@@ -290,6 +296,12 @@ def inspect_nwbfile(
         ):
             inspector_message.file_path = nwbfile_path  # type: ignore
             yield inspector_message
+    except _MissingHdmfZarrError:
+        # Missing-hdmf-zarr (a Zarr file without hdmf-zarr installed) propagates directly to
+        # the caller instead of being wrapped into an inspector message. Other ImportErrors
+        # raised during inspection (e.g., from a check function) fall through to the wrap-as-ERROR
+        # branch below, preserving the existing behavior for unrelated failures.
+        raise
     except Exception as exception:
         exception_name = f"{type(exception).__module__}.{type(exception).__name__}"
         yield InspectorMessage(

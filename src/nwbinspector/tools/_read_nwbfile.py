@@ -1,18 +1,36 @@
-"""Temporary module for thorough testing and evaluation of the proposed `read_nwbfile` helper function."""
+"""Helpers for reading an NWB file with backend detection and streaming support."""
 
 from pathlib import Path
 from typing import Literal, Optional, Union
-from warnings import filterwarnings
+from warnings import filterwarnings, warn
 
 import h5py
 from hdmf.backends.io import HDMFIO
-from hdmf_zarr import NWBZarrIO
-from pynwb import NWBHDF5IO, NWBFile
+from pynwb import NWBHDF5IO, NWBFile, read_nwb
 
-BACKEND_IO_CLASSES = dict(
-    hdf5=NWBHDF5IO,
-    zarr=NWBZarrIO,
-)
+from ..utils import is_module_installed
+
+
+# TODO: Remove this class once hdmf-zarr is integrated into hdmf and the Zarr
+# backend stops being an optional dependency.
+class _MissingHdmfZarrError(ModuleNotFoundError):
+    """Raised when a Zarr-backed file is encountered but ``hdmf-zarr`` is not installed.
+
+    Subclassing ``ModuleNotFoundError`` lets external callers still do
+    ``except ModuleNotFoundError:`` while keeping a narrow handle for the inspector
+    to intercept only this specific failure (and not unrelated import errors raised
+    elsewhere in the inspection pipeline).
+    """
+
+
+# Backward-compatible mapping of backend name to IO class. Kept for external callers
+# that imported ``BACKEND_IO_CLASSES`` from ``nwbinspector.tools``. Internally the
+# inspector now delegates to ``pynwb.read_nwb``; this mapping is no longer used here.
+BACKEND_IO_CLASSES = {"hdf5": NWBHDF5IO}
+if is_module_installed("hdmf_zarr"):
+    from hdmf_zarr import NWBZarrIO
+
+    BACKEND_IO_CLASSES["zarr"] = NWBZarrIO
 
 
 def _get_method(path: str) -> Literal["local", "fsspec"]:
@@ -40,107 +58,49 @@ def _init_fsspec(path: str) -> "fsspec.AbstractFileSystem":  # type: ignore
         raise ValueError(message)
 
 
-def _get_backend(path: str, method: Literal["local", "fsspec", "ros3"]) -> Union[str, Literal["hdf5", "zarr"]]:
-    if method == "ros3":
-        return "hdf5"
-
-    possible_backends = []
-    if method == "fsspec":
-        filesystem = _init_fsspec(path=path)
-        with filesystem.open(path=path, mode="rb") as file:
-            for backend_name, backend_class in BACKEND_IO_CLASSES.items():
-                if backend_class.can_read(path=file):
-                    possible_backends.append(backend_name)
-    else:
-        for backend_name, backend_class in BACKEND_IO_CLASSES.items():
-            if backend_class.can_read(path):
-                possible_backends.append(backend_name)
-
-    if len(possible_backends) > 1:  # pragma: no cover
-        raise ValueError(
-            f"More than one possible backend found - please choose from the following: {possible_backends}"
-        )
-    elif len(possible_backends) == 0:
-        raise ValueError("No compatible backend found.")
-
-    return possible_backends[0]
-
-
-def read_nwbfile(
-    nwbfile_path: Union[str, Path],
-    method: Optional[Literal["local", "fsspec", "ros3"]] = None,
-    backend: Optional[Literal["hdf5", "zarr"]] = None,
-) -> NWBFile:
-    """
-    Read an NWB file using the specified (or auto-detected) method and specified (or auto-detected) backend.
-
-    Parameters
-    ----------
-    nwbfile_path : str or pathlib.Path
-        Path to the file on your system.
-    method : "local", "fsspec", "ros3", or None (default)
-        Where to read the file from; a local disk drive or steaming from an https:// or s3:// path.
-        The default auto-detects based on the form of the path.
-        When streaming, the default method is "fsspec".
-        Note that "ros3" is specific to HDF5 backend files.
-    backend : "hdf5", "zarr", or None (default)
-        Type of backend used to write the file.
-        The default auto-detects the type of the file.
-
-    Returns
-    -------
-    nwbfile : pynwb.NWBFile
-        The in-memory NWBFile object.
-    """
-    nwbfile, _ = _read_nwbfile_helper(nwbfile_path=nwbfile_path, method=method, backend=backend)
-
-    # Note: do not be concerned about IO object closing due to garbage collection here
-    # (the IO object is attached as an attribute to the NWBFile object)
-    return nwbfile
-
-
 def read_nwbfile_and_io(
     nwbfile_path: Union[str, Path],
     method: Optional[Literal["local", "fsspec", "ros3"]] = None,
     backend: Optional[Literal["hdf5", "zarr"]] = None,
 ) -> tuple[NWBFile, HDMFIO]:
     """
-    Read an NWB file using the specified (or auto-detected) method and specified (or auto-detected) backend.
+    Read an NWB file using the specified (or auto-detected) method, returning both the file and its IO object.
+
+    For local files, backend detection (HDF5 vs Zarr) is delegated to ``pynwb.read_nwb``,
+    which raises a helpful error when the file is a Zarr store but ``hdmf-zarr`` is not installed.
+    Streaming via ``fsspec`` or ``ros3`` is HDF5-only.
 
     Parameters
     ----------
     nwbfile_path : str or pathlib.Path
         Path to the file on your system.
     method : "local", "fsspec", "ros3", or None (default)
-        Where to read the file from; a local disk drive or steaming from an https:// or s3:// path.
+        Where to read the file from; a local disk drive or streaming from an https:// or s3:// path.
         The default auto-detects based on the form of the path.
-        When streaming, the default method is "fsspec".
-        Note that "ros3" is specific to HDF5 backend files.
     backend : "hdf5", "zarr", or None (default)
-        Type of backend used to write the file.
-        The default auto-detects the type of the file.
+        Deprecated. Backend selection is now handled automatically by ``pynwb.read_nwb`` for local
+        files. The argument is accepted but ignored. Will be removed after 12/1/2026.
 
     Returns
     -------
     nwbfile : pynwb.NWBFile
         The in-memory NWBFile object.
-    io : hdmf.backends.io.HDMFIO, optional
-        Only passed if `return_io` is True.
+    io : hdmf.backends.io.HDMFIO
         The initialized HDMFIO object used to read the file.
     """
-    nwbfile, io = _read_nwbfile_helper(nwbfile_path=nwbfile_path, method=method, backend=backend)
+    # TODO: remove the `backend` parameter after 12/1/2026
+    if backend is not None:
+        warn(
+            "The `backend` argument is deprecated and will be removed after 12/1/2026. "
+            "Backend selection is now handled automatically by `pynwb.read_nwb` for local files; "
+            "remove the `backend=` argument from your call.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
 
-    return nwbfile, io
-
-
-def _read_nwbfile_helper(
-    nwbfile_path: Union[str, Path],
-    method: Optional[Literal["local", "fsspec", "ros3"]] = None,
-    backend: Optional[Literal["hdf5", "zarr"]] = None,
-) -> tuple[NWBFile, HDMFIO]:
-    nwbfile_path = str(nwbfile_path)  # If pathlib.Path, cast to str; if already str, no harm done
-
+    nwbfile_path = str(nwbfile_path)
     method = method or _get_method(nwbfile_path)
+
     if method != "local" and Path(nwbfile_path).exists():
         raise ValueError(
             f"The file ({nwbfile_path}) is a local path on your system, but the method ({method}) was selected! "
@@ -156,27 +116,46 @@ def _read_nwbfile_helper(
             "The ROS3 method was selected, but the URL starts with 's3://'! Please switch to an 'https://' URL."
         )
 
-    chosen_backend = backend or _get_backend(path=nwbfile_path, method=method)
-    # Temporary until .can_read() is able to work on streamed bytes
-    if method == "local" and not BACKEND_IO_CLASSES[chosen_backend].can_read(path=nwbfile_path):
-        raise IOError(
-            f"The chosen backend ({chosen_backend}) is unable to read the file! Please select a different backend."
-        )
-
-    # Filter out some common warnings that don't really matter with `load_namespaces=True`
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
-    io_kwargs = dict(mode="r", load_namespaces=True)
+
+    if method == "local":
+        if nwbfile_path.endswith(".nwb.zarr") and not is_module_installed("hdmf_zarr"):
+            raise _MissingHdmfZarrError(
+                f"Reading the Zarr-backed NWB file at '{nwbfile_path}' requires the 'hdmf-zarr' package.\n"
+                "Install it with `pip install nwbinspector[zarr]` or `pip install hdmf-zarr`."
+            )
+        nwbfile = read_nwb(path=nwbfile_path)
+        return nwbfile, nwbfile.get_read_io()
+
+    # Streaming paths below are HDF5-only.
+    io_kwargs: dict = dict(mode="r", load_namespaces=True)
     if method == "fsspec":
         fs = _init_fsspec(nwbfile_path)
-        f = fs.open(nwbfile_path, "rb")
-        file = h5py.File(f)
+        file = h5py.File(fs.open(nwbfile_path, "rb"))
         io_kwargs.update(file=file)
-    else:
-        io_kwargs.update(path=nwbfile_path)
-    if method == "ros3":
-        io_kwargs.update(driver="ros3")
-    io = BACKEND_IO_CLASSES[chosen_backend](**io_kwargs)
-    nwbfile = io.read()
+    else:  # ros3
+        io_kwargs.update(path=nwbfile_path, driver="ros3")
+    io = NWBHDF5IO(**io_kwargs)
+    return io.read(), io
 
-    return nwbfile, io
+
+def read_nwbfile(
+    nwbfile_path: Union[str, Path],
+    method: Optional[Literal["local", "fsspec", "ros3"]] = None,
+    backend: Optional[Literal["hdf5", "zarr"]] = None,
+) -> NWBFile:
+    """
+    Read an NWB file using the specified (or auto-detected) method.
+
+    Thin wrapper around ``read_nwbfile_and_io`` that returns only the NWBFile.
+    See ``read_nwbfile_and_io`` for parameter and behavior details, including the
+    deprecated ``backend`` argument.
+
+    Returns
+    -------
+    nwbfile : pynwb.NWBFile
+        The in-memory NWBFile object.
+    """
+    nwbfile, _ = read_nwbfile_and_io(nwbfile_path=nwbfile_path, method=method, backend=backend)
+    return nwbfile

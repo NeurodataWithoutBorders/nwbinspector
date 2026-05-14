@@ -4,10 +4,18 @@ import os
 from typing import Iterable, Optional
 
 import h5py
-import zarr
 from pynwb import NWBContainer
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
+from ..utils import is_module_installed
+
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    import zarr
+
+    _DATASET_TYPES: tuple = (h5py.Dataset, zarr.Array)
+else:
+    _DATASET_TYPES = (h5py.Dataset,)
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
@@ -23,13 +31,13 @@ def check_large_dataset_compression(
     Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
-        if not isinstance(field, (h5py.Dataset, zarr.Array)):
+        if not isinstance(field, _DATASET_TYPES):
             continue
 
         compression_indicator = None
         if isinstance(field, h5py.Dataset):
             compression_indicator = field.compression
-        elif isinstance(field, zarr.Array):
+        elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
             compression_indicator = field.compressor
 
         field_size_bytes = field.size * field.dtype.itemsize
@@ -58,13 +66,13 @@ def check_small_dataset_compression(
     Best Practice: :ref:`best_practice_compression`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
-        if not isinstance(field, (h5py.Dataset, zarr.Array)):
+        if not isinstance(field, _DATASET_TYPES):
             continue
 
         compression_indicator = None
         if isinstance(field, h5py.Dataset):
             compression_indicator = field.compression
-        elif isinstance(field, zarr.Array):
+        elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
             compression_indicator = field.compressor
 
         if (

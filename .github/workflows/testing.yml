@@ -40,7 +40,7 @@ jobs:
           pip install pytest-cov
 
       - name: Install package
-        run: pip install ".[dandi]"
+        run: pip install ".[dandi,zarr]"
       - name: Download testing data and set config path
         run: dandi download "https://sandbox.dandiarchive.org/#/dandiset/204919"
 
@@ -76,7 +76,33 @@ jobs:
         run: pip install pytest
 
       - name: Install package
-        run: pip install .
+        run: pip install ".[zarr]"
 
       - name: Run pytest with coverage
         run: pytest -rsx
+
+  test-without-hdmf-zarr:
+    name: Verify install hint when hdmf-zarr is absent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install nwbinspector with hdmf-zarr to generate the fixture
+        run: uv pip install --system ".[zarr]" pytest
+
+      - name: Generate the Zarr fixture
+        run: python tests/test_missing_hdmf_zarr.py
+
+      - name: Uninstall hdmf-zarr
+        run: uv pip uninstall --system hdmf-zarr
+
+      - name: Run the missing-hdmf-zarr test
+        run: pytest tests/test_missing_hdmf_zarr.py -v
