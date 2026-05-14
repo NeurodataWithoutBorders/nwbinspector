@@ -13,5 +13,6 @@ dependencies:
   - h5py
   - pytest
   - pytest-cov
+  - pytest-timeout
   - fsspec
   - pip

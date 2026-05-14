@@ -17,6 +17,12 @@ PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_HTTPS = (
 )
 PERSISTENT_READ_NWBFILE_ZARR_EXAMPLE_S3 = "s3://dandi-api-staging-dandisets/zarr/63f06140-8d0c-4db4-81cc-812ed4e4db03"
 
+# PyNWB's stable ROS3 test fixture in the production DANDI archive bucket. Used here for
+# the ROS3 test specifically because the HDF5 ROS3 driver on Windows runners has been
+# observed to hang indefinitely when streaming from the staging bucket, while PyNWB's
+# Windows ROS3 CI passes against this production-bucket URL.
+ROS3_TEST_FILE_HTTPS = "https://dandiarchive.s3.amazonaws.com/ros3test.nwb"
+
 
 # These will move to PyNWB when the time is right
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -46,7 +52,7 @@ def test_hdf5_fsspec_s3():
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
 def test_hdf5_ros3_https():
     nwbfile = read_nwbfile(
-        nwbfile_path=PERSISTENT_READ_NWBFILE_HDF5_EXAMPLE_HTTPS,
+        nwbfile_path=ROS3_TEST_FILE_HTTPS,
         method="ros3",
         backend_kwargs={"aws_region": "us-east-1"},
     )
