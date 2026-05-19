@@ -1,4 +1,4 @@
-name: Development Version Gallery
+name: Testing against pynwb dev branch
 on: workflow_call
 
 env:
@@ -6,7 +6,7 @@ env:
 
 jobs:
   build-and-test:
-    name: Testing against dev PyNWB version
+    name: Testing nwbinspector against pynwb dev branch
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

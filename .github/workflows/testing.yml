@@ -1,6 +1,15 @@
 name: Testing
 on:
   workflow_call:
+    inputs:
+      python-versions:
+        description: 'List of Python versions to use in matrix, as JSON string'
+        required: true
+        type: string
+      os-versions:
+        description: 'List of OS versions to use in matrix, as JSON string'
+        required: true
+        type: string
     secrets:
       CODECOV_TOKEN:
         required: true
@@ -12,8 +21,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.10", "3.13"]
+        os: ${{ fromJson(inputs.os-versions) }}
+        python-version: ${{ fromJson(inputs.python-versions) }}
     env:
       TESTING_FILES_FOLDER_PATH: ./204919/testing_files/
     steps:

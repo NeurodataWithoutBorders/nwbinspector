@@ -1,0 +1,65 @@
+name: Daily dev workflows
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 14 * * *"  # Daily at 10am EST
+
+jobs:
+
+  test-pynwb-dev:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/pynwb-dev-tests.yml@dev
+
+  test-dandi-dev:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
+
+  test-dandi-dev-live:
+    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev-live-services.yml@dev
+
+  notify-pynwb-dev-failure:
+    runs-on: ubuntu-latest
+    needs: [test-pynwb-dev]
+    if: ${{ always() && needs.test-pynwb-dev.result == 'failure' }}
+    steps:
+    - uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: NWB Inspector Daily Failure - pynwb dev branch
+        to: rly@lbl.gov
+        from: NWB Inspector
+        body: "The daily test against the pynwb dev branch failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dev-dailies.yml"
+
+  notify-dandi-dev-failure:
+    runs-on: ubuntu-latest
+    needs: [test-dandi-dev]
+    if: ${{ always() && needs.test-dandi-dev.result == 'failure' }}
+    steps:
+    - uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: NWB Inspector Daily Failure - DANDI dev branch (offline)
+        to: rly@lbl.gov
+        from: NWB Inspector
+        body: "The daily test against the DANDI dev branch (offline) failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dev-dailies.yml"
+
+  notify-dandi-dev-live-failure:
+    runs-on: ubuntu-latest
+    needs: [test-dandi-dev-live]
+    if: ${{ always() && needs.test-dandi-dev-live.result == 'failure' }}
+    steps:
+    - uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: NWB Inspector Daily Failure - DANDI dev branch (live services)
+        to: rly@lbl.gov
+        from: NWB Inspector
+        body: "The daily test against the DANDI dev branch with live services failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dev-dailies.yml"
