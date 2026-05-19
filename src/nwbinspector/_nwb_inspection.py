@@ -442,7 +442,7 @@ def run_checks(
         Otherwise, has length zero (if cast as `list`), or raises `StopIteration` (if explicitly calling `next`).
     """
     if progress_bar_class is not None:
-        check_progress = progress_bar_class(iterable=checks, total=len(checks), **progress_bar_options)
+        check_progress = progress_bar_class(iterable=checks, total=len(checks), **(progress_bar_options or {}))
     else:
         check_progress = checks
 
