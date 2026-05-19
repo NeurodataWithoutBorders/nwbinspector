@@ -1,7 +1,28 @@
-# v0.7.1 (Upcoming)
+# v0.7.3 (Upcoming)
 
 ### New Checks
 
+### Improvements
+
+### Fixes
+
+# v0.7.2 (May 19, 2026)
+
+### New Checks
+
+### Improvements
+* Made `hdmf-zarr` an optional dependency to restore pip-installability when `numcodecs` wheels are unavailable. Install with `pip install nwbinspector[zarr]` to enable Zarr-backed NWB file inspection. The local-file read path now delegates to `pynwb.read_nwb`, which produces a clear install hint when a Zarr file is encountered without the `[zarr]` extra. [#698](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/698)
+* Reorganized CI so upstream-dev test failures no longer gate PRs. Dev-branch jobs (`test-pynwb-dev`, `test-dandi-dev`, `test-dandi-dev-live`) moved from `deploy-tests.yml` into a new `dev-dailies.yml` scheduled workflow. Also added per-workflow failure emails, centralized the `testing.yml` Python and OS matrices into shared text files, renamed `dev-gallery.yml` to `pynwb-dev-tests.yml`, and rewrote `read-nwbfile-tests.yml` to use a named conda environment (`environment-ros3.yml`) so the ROS3-enabled h5py from conda-forge activates correctly on Windows runners. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+### Fixes
+* Fixed ROS3 streaming in `read_nwbfile` after h5py began enforcing an explicit `aws_region` for the ROS3 driver. Added a `backend_kwargs` keyword-only parameter to `read_nwbfile` that forwards arbitrary kwargs to the underlying `NWBHDF5IO` constructor on the streaming paths (`fsspec`, `ros3`); ROS3 callers now pass `backend_kwargs={"aws_region": "us-east-1"}`. The generic escape hatch avoids having to surface each new upstream kwarg individually. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+* Deprecated `read_nwbfile_and_io`; it will be removed after 2026-11-13. Use `read_nwbfile` instead; the IO object is accessible from the returned NWBFile via `nwbfile.get_read_io()`. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+# v0.7.1 (March 26, 2026)
+
+### New Checks
+
+* Added `check_spatial_series_unit` to validate that SpatialSeries objects (outside of CompassDirection) have a recognized unit string from a curated allowlist of SI length units, angular units, and pixels. [#685](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/685)
 * Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
 * Added `check_time_intervals_start_time_not_constant` to flag TimeIntervals tables where all start_time values are identical, indicating times were likely not set relative to session start. [#677](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/677)
 * Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)

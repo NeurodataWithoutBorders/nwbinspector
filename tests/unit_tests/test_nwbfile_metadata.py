@@ -1,10 +1,17 @@
+import importlib.util
 import tempfile
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from hdmf_zarr import NWBZarrIO
+import pytest
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
+
+HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
+if HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+else:
+    NWBZarrIO = None
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -635,6 +642,7 @@ def test_check_subject_id_with_slashes():
     )
 
 
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
 def test_check_file_extension_pass():
     """Test that valid HDF5 extensions pass the check."""
     extension_dict = {".nwb": NWBHDF5IO, ".nwb.h5": NWBHDF5IO, ".nwb.zarr": NWBZarrIO}
@@ -654,6 +662,7 @@ def test_check_file_extension_pass():
             assert check_file_extension(read_nwbfile) is None
 
 
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
 def test_check_file_extension_fail():
     """Test that invalid HDF5 extensions fail the check."""
     invalid_extension_dict = {".txt": NWBHDF5IO, ".nwb.zarr": NWBHDF5IO, ".nwb.h5": NWBZarrIO}

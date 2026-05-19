@@ -1,4 +1,4 @@
-name: Development Version Gallery
+name: Testing against pynwb dev branch
 on: workflow_call
 
 env:
@@ -6,7 +6,7 @@ env:
 
 jobs:
   build-and-test:
-    name: Testing against dev PyNWB version
+    name: Testing nwbinspector against pynwb dev branch
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,7 +26,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install -e ".[dandi]"
+          pip install -e ".[dandi,zarr]"
           pip install git+https://github.com/neurodatawithoutborders/pynwb@dev
 
       - name: Download testing data and set config path

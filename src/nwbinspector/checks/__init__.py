@@ -3,6 +3,7 @@ from ._behavior import (
     check_spatial_series_degrees_magnitude,
     check_spatial_series_dims,
     check_spatial_series_radians_magnitude,
+    check_spatial_series_unit,
 )
 from ._ecephys import (
     check_ascending_spike_times,
@@ -184,6 +185,7 @@ __all__ = [
     "check_spatial_series_radians_magnitude",
     "check_spatial_series_dims",
     "check_spatial_series_degrees_magnitude",
+    "check_spatial_series_unit",
     "check_ascending_spike_times",
     "check_spike_times_without_nans",
     "check_electrical_series_unscaled_data",
