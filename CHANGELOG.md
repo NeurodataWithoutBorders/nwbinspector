@@ -5,6 +5,7 @@
 ### Improvements
 
 ### Fixes
+* Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)
 
 # v0.7.2 (May 19, 2026)
 
