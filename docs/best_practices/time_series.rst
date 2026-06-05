@@ -29,13 +29,19 @@ Check functions: :py:meth:`~nwbinspector.checks._time_series.check_data_orientat
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
+Time-related values should always be in seconds. This includes ``rate`` (if applicable), which should be in Hz.
 
 Every :ref:`nwb-schema:sec-TimeSeries` instance has ``unit`` as an attribute, which is meant to indicate the unit of
 measurement for that data, using the appropriate type from the
 :wikipedia:`International System of Units (SI) <International_System_of_Units>`.
 
-Check function: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`
+A common mistake is to provide timestamps in milliseconds or microseconds instead of seconds, which results in
+unusually long durations (e.g., appearing to span years instead of hours). Similarly, providing the sampling period
+(time between samples) instead of the rate (frequency in Hz) leads to suspiciously low rate values.
+
+Check functions: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`,
+:py:meth:`~nwbinspector.checks._time_series.check_time_series_duration`,
+:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`
 
 
 
@@ -200,3 +206,14 @@ Zero Rate
 If the ``data`` field of :ref:`nwb-schema:sec-TimeSeries` has more than one frame, and according to :ref:`best_practice_data_orientation` this axis ought to be time, then the ``rate`` field should not be ``0.0``.
 
 Check function: :py::meth:`~nwbinspector.checks._time_series.check_rate_is_not_zero`
+
+
+
+. _best_practice_positive_rate:
+
+Positive Rate
+~~~~~~~~~~~~~
+
+The ``rate`` field of :ref:`nwb-schema:sec-TimeSeries` must be positive when specified. Negative sampling rates are not physically meaningful and indicate an error in the data.
+
+Check function: :py::meth:`~nwbinspector.checks._time_series.check_rate_is_positive`

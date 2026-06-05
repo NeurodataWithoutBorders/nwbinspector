@@ -4,6 +4,21 @@ NWBFile Metadata
 An :ref:`nwb-schema:sec-NWBFile` object generally contains data from a single experimental session.
 
 
+.. _best_practice_file_extension:
+
+File Extensions
+---------------
+
+NWB file paths should contain `.nwb` in their file extension to indicate that they are NWB files.
+To further help tools and users quickly identify the underlying backend type, an additional option is to attach the backend as a second suffix.
+Recommended file extensions are:
+
+1. ``.nwb`` (minimum recommendation)
+2. ``.nwb.h5`` (also acceptable for NWB HDF5 files)
+3. ``.nwb.zarr`` (also acceptable for NWB Zarr stores)
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_file_extension`
+
 
 File Organization
 -----------------
@@ -71,6 +86,8 @@ Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_processin
 File Metadata
 -------------
 
+.. _best_practice_session_id:
+
 Session ID
 ~~~~~~~~~~
 
@@ -81,6 +98,12 @@ This can happen, for instance, if you separate out processing steps across multi
 different processing outputs. In this case, the ``session_id`` should be the same for each file. Each lab should follow
 a standard structure for their own naming schemes so that sessions are unique within the lab and the IDs are easily
 human-readable.
+
+The ``session_id`` should not contain slash characters (``/``) as these can cause problems when constructing paths in
+the DANDI archive. If your session IDs normally include slash characters, consider replacing them with hyphens (``-``)
+or underscores (``_``).
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_session_id_no_slashes`
 
 .. _best_practice_file_id:
 
@@ -174,7 +197,7 @@ Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_e
 
 
 
-.. _best_practice_subject_id_exists:
+.. _best_practice_subject_id:
 
 Subject ID
 ~~~~~~~~~~
@@ -185,7 +208,12 @@ not intended for DANDI upload, if the :ref:`nwb-schema:sec-Subject` is specified
 
 In the special case of *in vitro* studies where the 'subject' of scientific interest was not a tissue sample obtained from a living subject but was instead a purified protein, this will be annotated by prepending the keyphrase "protein" to the subject ID; *e.g*, "proteinCaMPARI3". In the case where the *in vitro* experiment is performed on an extracted or cultured biological sample, the other subject attributes (such as age and sex) should be specified as their values at the time the sample was collected.
 
-Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_exists`
+Similar to session IDs, the ``subject_id`` should not contain slash characters (``/``) as these can cause problems when
+constructing paths in the DANDI archive. If your subject IDs normally include slash characters, consider replacing them
+with hyphens (``-``) or underscores (``_``).
+
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_exists` and
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_id_no_slashes`
 
 
 
@@ -218,6 +246,21 @@ Subject Strain
 ~~~~~~~~~~~~~~
 
 The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indicate the subspecies or breed or common genetic modification. *E.g.*, common strains for species "Rattus norvegicus" might include "Long Evans", "Sprague-Dawley", "Wistar", or "C57BL/6". If no specific strain is used, then simply indicate "Wild Type".
+
+
+
+.. _best_practice_subject_weight:
+
+Subject Weight
+~~~~~~~~~~~~~~
+
+The ``weight`` of a :ref:`nwb-schema:sec-Subject` should follow the form '[numeric] [unit]', e.g. '2.3 kg'.
+The weight should include a numeric value followed by a space and a unit string. Without a unit, the weight is ambiguous.
+The unit should follow standard SI unit conventions (see `The International System of Units, 9th edition <https://doi.org/10.59161/AUEZ1291>`_),
+e.g. 'kg' for kilograms, 'g' for grams, 'mg' for milligrams, etc.
+The unit should be one of: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'.
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_weight`
 
 
 

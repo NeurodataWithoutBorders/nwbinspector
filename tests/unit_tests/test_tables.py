@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 from hdmf.common import DynamicTable, DynamicTableRegion
 from numpy.lib import NumpyVersion
-from pynwb.file import Device, ElectrodeGroup, ElectrodeTable, TimeIntervals, Units
+from pynwb.file import Device, ElectrodeGroup, ElectrodesTable, TimeIntervals, Units
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -18,6 +18,8 @@ from nwbinspector.checks import (
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
     check_time_interval_time_columns,
+    check_time_intervals_duration,
+    check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
 )
 
@@ -81,6 +83,66 @@ def test_check_empty_table_without_data():
     )
 
 
+def test_check_time_intervals_start_time_not_constant_fail_all_zero():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=0.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) == InspectorMessage(
+        message=(
+            "All start_time values are the same value 0.0. "
+            "start_times should be in non-decreasing order and should be "
+            "with respect to the session start time."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_time_intervals_start_time_not_constant",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_start_time_not_constant_fail_nonzero():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=5.0, stop_time=6.0)
+    time_intervals.add_row(start_time=5.0, stop_time=7.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) == InspectorMessage(
+        message=(
+            "All start_time values are the same value 5.0. "
+            "start_times should be in non-decreasing order and should be "
+            "with respect to the session start time."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_time_intervals_start_time_not_constant",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_start_time_not_constant_pass():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_not_constant_pass_empty():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_not_constant_pass_single_row():
+    """A single row with start_time=0 is fine."""
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
+
+
 def test_check_time_interval_time_columns():
     time_intervals = TimeIntervals(name="test_table", description="desc")
     time_intervals.add_row(start_time=2.0, stop_time=3.0)
@@ -111,6 +173,24 @@ def test_check_time_intervals_stop_after_start():
     time_intervals = TimeIntervals(name="test_table", description="desc")
     time_intervals.add_row(start_time=2.0, stop_time=1.5)
     time_intervals.add_row(start_time=3.0, stop_time=1.5)
+
+    assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
+        message=(
+            "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
+            "session start time."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_time_intervals_stop_after_start",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_stop_equal_start():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=2.0, stop_time=2.0)
+    time_intervals.add_row(start_time=3.0, stop_time=3.5)
 
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
         message=(
@@ -260,9 +340,7 @@ def test_check_single_row_ignore_units():
 
 
 def test_check_single_row_ignore_electrodes():
-    table = ElectrodeTable(
-        name="electrodes",
-    )  # default name when building through nwbfile
+    table = ElectrodesTable()
     table.add_row(
         location="unknown",
         group=ElectrodeGroup(name="test_group", description="", device=Device(name="test_device"), location="unknown"),
@@ -470,3 +548,102 @@ def test_table_time_columns_are_not_negative_pass():
     test_table.add_row(test_time=1.0)
 
     assert check_table_time_columns_are_not_negative(test_table) is None
+
+
+def test_table_time_columns_are_not_negative_multidimensional_fail():
+    """Test that the function handles multidimensional time data with negative values."""
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_row(test_time=[-1.0, -1.0, -1.0, -1.0])
+    test_table.add_row(test_time=[-1.0, -1.0, -1.0, -1.0])
+
+    assert check_table_time_columns_are_not_negative(test_table) == [
+        InspectorMessage(
+            message="Timestamps in column test_time should not be negative."
+            " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly.",
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_table_time_columns_are_not_negative",
+            object_type="DynamicTable",
+            object_name="test_table",
+            location="/",
+        )
+    ]
+
+
+def test_table_time_columns_are_not_negative_multidimensional_pass():
+    """Test that the function handles multidimensional time data with positive values."""
+    test_table = DynamicTable(name="test_table", description="test")
+    test_table.add_column(name="test_time", description="")
+    test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
+    test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
+
+    assert check_table_time_columns_are_not_negative(test_table) is None
+
+
+def test_check_time_intervals_duration_pass_short():
+    """Test that short duration tables pass the check."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=10.0)
+    table.add_row(start_time=15.0, stop_time=25.0)
+    table.add_row(start_time=30.0, stop_time=100.0)
+
+    assert check_time_intervals_duration(table) is None
+
+
+def test_check_time_intervals_duration_fail_exceeds_threshold():
+    """Test that tables with duration exceeding 1 year fail."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=one_year + 1000, stop_time=one_year + 2000)
+
+    result = check_time_intervals_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+    assert result.importance == Importance.CRITICAL
+
+
+def test_check_time_intervals_duration_pass_empty():
+    """Test that empty tables pass."""
+    table = TimeIntervals(name="trials", description="test trials")
+    assert check_time_intervals_duration(table) is None
+
+
+def test_check_time_intervals_duration_pass_custom_threshold():
+    """Test that custom threshold works correctly."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=150.0, stop_time=200.0)
+
+    # Should fail with 100 second threshold
+    result = check_time_intervals_duration(table, duration_threshold=100.0)
+    assert result is not None
+
+    # Should pass with 300 second threshold
+    result = check_time_intervals_duration(table, duration_threshold=300.0)
+    assert result is None
+
+
+def test_check_time_intervals_duration_with_additional_time_columns():
+    """Test that the check considers additional time columns ending in '_time'."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=100.0, custom_time=0.0)
+    table.add_row(start_time=150.0, stop_time=200.0, custom_time=one_year + 1000)
+
+    result = check_time_intervals_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+
+
+def test_check_time_intervals_duration_pass_without_additional_time_columns():
+    """Test that check passes additional time columns that are within the threshold."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=10.0, custom_time=5.0)
+    table.add_row(start_time=15.0, stop_time=25.0, custom_time=20.0)
+
+    assert check_time_intervals_duration(table) is None

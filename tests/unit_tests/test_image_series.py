@@ -13,6 +13,7 @@ from nwbinspector.checks import (
     check_image_series_data_size,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
+    check_image_series_starting_frame_without_external_file,
     check_timestamps_match_first_dimension,
 )
 from nwbinspector.testing import make_minimal_nwbfile
@@ -152,6 +153,50 @@ def test_check_large_image_series_stored_internally():
     )
 
     assert inspector_message == expected_message
+
+
+def test_check_image_series_starting_frame_without_external_file_pass_no_external_no_starting():
+    """Test that an ImageSeries without external_file and without starting_frame passes."""
+    image_series = ImageSeries(name="TestImageSeries", rate=1.0, data=np.zeros(shape=(3, 3, 3, 3)), unit="TestUnit")
+    assert check_image_series_starting_frame_without_external_file(image_series=image_series) is None
+
+
+def test_check_image_series_starting_frame_without_external_file_pass_with_external():
+    """Test that an ImageSeries with external_file passes regardless of starting_frame."""
+    image_series = ImageSeries(
+        name="TestImageSeries",
+        external_file=["test.mp4"],
+        format="external",
+        starting_frame=[0],
+        rate=1.0,
+        unit="TestUnit",
+    )
+    assert check_image_series_starting_frame_without_external_file(image_series=image_series) is None
+
+
+def test_check_image_series_starting_frame_without_external_file_trigger():
+    """Test that an ImageSeries with starting_frame but no external_file triggers."""
+    # Create ImageSeries with external_file first, then modify
+    image_series = ImageSeries(
+        name="TestImageSeries",
+        rate=1.0,
+        data=np.zeros(shape=(3, 3, 3, 3)),
+        unit="TestUnit",
+    )
+    # Manually set starting_frame to simulate a legacy file
+    image_series.starting_frame = [0]
+
+    result = check_image_series_starting_frame_without_external_file(image_series=image_series)
+    expected_message = InspectorMessage(
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        message="ImageSeries has starting_frame set but no external_file. "
+        "starting_frame is only relevant when using external files.",
+        check_function_name="check_image_series_starting_frame_without_external_file",
+        object_type="ImageSeries",
+        object_name="TestImageSeries",
+        location="/",
+    )
+    assert result == expected_message
 
 
 class TestCheckImageSeriesStoredInternally(unittest.TestCase):

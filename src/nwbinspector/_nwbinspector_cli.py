@@ -20,7 +20,9 @@ from ._formatting import (
 )
 from ._nwb_inspection import inspect_all
 from ._types import Importance
-from .utils import strtobool
+from .tools import get_nwb_assets_from_dandiset
+from .tools._read_nwbfile import _MissingHdmfZarrError
+from .utils import get_nwbfiles_from_path, strtobool
 
 
 @click.command()
@@ -159,6 +161,8 @@ def _nwbinspector_cli(
             skip_validate=skip_validate,
             show_progress_bar=show_progress_bar,
         )
+        nwb_assets = get_nwb_assets_from_dandiset(dandiset_id=dandiset_id, dandiset_version=dandiset_version)
+        nfiles_detected = len(nwb_assets)
     # Scan a single NWB file in a Dandiset
     elif stream and ":" in path and not path_is_url:
         dandiset_id, dandi_file_path = path.split(":")
@@ -174,6 +178,7 @@ def _nwbinspector_cli(
             importance_threshold=handled_importance_threshold,
             skip_validate=skip_validate,
         )
+        nfiles_detected = 1
     # Scan single NWB file at URL
     elif stream and path_is_url:
         dandi_s3_url = path
@@ -186,6 +191,7 @@ def _nwbinspector_cli(
             importance_threshold=handled_importance_threshold,
             skip_validate=skip_validate,
         )
+        nfiles_detected = 1
     # Scan local file/folder
     else:  # stream is False
         messages_iterator = inspect_all(
@@ -198,7 +204,13 @@ def _nwbinspector_cli(
             skip_validate=skip_validate,
             progress_bar=show_progress_bar,
         )
-    messages = list(messages_iterator)
+        nfiles_detected = len(get_nwbfiles_from_path(path=path))
+    try:
+        messages = list(messages_iterator)
+    except _MissingHdmfZarrError as exception:
+        # Surface the missing-hdmf-zarr install hint as a clean one-liner instead of a traceback.
+        click.echo(f"Error: {exception}", err=True)
+        raise SystemExit(1)
 
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
@@ -209,7 +221,11 @@ def _nwbinspector_cli(
             print(f"{os.linesep*2}Report saved to {str(Path(json_file_path).absolute())}!{os.linesep}")
 
     formatted_messages = format_messages(
-        messages=messages, levels=handled_levels, reverse=handled_reverse, detailed=detailed
+        messages=messages,
+        levels=handled_levels,
+        reverse=handled_reverse,
+        detailed=detailed,
+        nfiles_detected=nfiles_detected,
     )
     print_to_console(formatted_messages=formatted_messages)
     if report_file_path is not None:

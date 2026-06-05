@@ -76,3 +76,37 @@ def check_spatial_series_degrees_magnitude(
             )
 
     return None
+
+
+VALID_SPATIAL_SERIES_UNITS = {
+    "meters",
+    "centimeters",
+    "millimeters",
+    "micrometers",
+    "degrees",
+    "radians",
+    "pixels",
+    "n.a.",
+}
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=SpatialSeries)
+def check_spatial_series_unit(spatial_series: SpatialSeries) -> Optional[InspectorMessage]:
+    """
+    Check that SpatialSeries.unit is a recognized spatial unit.
+
+    Best Practice: :ref:`best_practice_spatial_series_general_units`
+    """
+    if spatial_series.get_ancestor("CompassDirection") is not None:
+        return None
+
+    if spatial_series.unit not in VALID_SPATIAL_SERIES_UNITS:
+        return InspectorMessage(
+            message=(
+                f"SpatialSeries unit '{spatial_series.unit}' is not a valid spatial unit. "
+                f"Valid units are: {', '.join(sorted(VALID_SPATIAL_SERIES_UNITS))}. "
+                "If the unit is not known, use 'n.a.' (not available) as a placeholder."
+            )
+        )
+
+    return None

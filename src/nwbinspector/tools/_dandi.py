@@ -1,8 +1,9 @@
 """Helper functions related to DANDI for internal use that rely on external dependencies (i.e., dandi)."""
 
+import pathlib
 import re
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import Optional
+from typing import Literal, Optional, Union
 
 from ..utils import calculate_number_of_cpu, is_module_installed
 
@@ -57,3 +58,25 @@ def _get_content_url_and_path(
     Must be globally defined (not as a part of get_s3_urls..) in order to be pickled.
     """
     return {asset.get_content_url(follow_redirects=1, strip_query=True): asset.path}
+
+
+def get_nwb_assets_from_dandiset(
+    dandiset_id: str,
+    dandiset_version: Union[str, Literal["draft"], None] = None,
+    client: Union["dandi.dandiapi.DandiAPIClient", None] = None,  # type: ignore
+) -> list["dandi.dandiapi.BaseRemoteAsset"]:  # type: ignore
+    """
+    Collect NWB assets from a DANDISet ID.
+
+    Returns list of NWB assets.
+    """
+    if client is None:
+        import dandi.dandiapi
+
+        client = dandi.dandiapi.DandiAPIClient()
+
+    dandiset = client.get_dandiset(dandiset_id=dandiset_id, version_id=dandiset_version)
+
+    nwb_assets = [asset for asset in dandiset.get_assets() if ".nwb" in pathlib.Path(asset.path).suffixes]
+
+    return nwb_assets

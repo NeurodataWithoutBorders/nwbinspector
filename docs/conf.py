@@ -24,6 +24,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
     "sphinx_copybutton",
+    "sphinx_tabs.tabs",
 ]
 templates_path = ["_templates"]
 master_doc = "index"
@@ -40,6 +41,14 @@ html_css_files = [
 
 html_theme_options = {
     "collapse_navigation": False,
+}
+
+html_context = {
+    "display_github": True,
+    "github_user": "NeurodataWithoutBorders",
+    "github_repo": "nwbinspector",
+    "github_version": "dev",
+    "conf_py_path": "/docs/",
 }
 
 # --------------------------------------------------
@@ -86,22 +95,18 @@ def _gen_checks_by_importance():
 
     generate_checks_rst_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "checks_by_importance.rst")
     with open(generate_checks_rst_file, "w") as f:
-        f.write(
-            """Checks by Importance
+        f.write("""Checks by Importance
 ======================
 
 This section lists the available checks organized by their importance level.
 
-"""
-        )
+""")
 
         for importance_level, checks in dd.items():
-            f.write(
-                f"""{importance_level}
+            f.write(f"""{importance_level}
 {'-' * (len(f'{importance_level}') + 1)}
 
-"""
-            )
+""")
 
             for check in checks:
                 f.write(f"*  :py:func:`~{check.__module__}.{check.__name__}`\n")

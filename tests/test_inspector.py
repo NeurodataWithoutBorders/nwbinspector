@@ -1,17 +1,17 @@
+import importlib.util
 import os
 from datetime import datetime
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
 from typing import Type, Union
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 
-import hdmf_zarr
 import numpy as np
 from hdmf.backends.io import HDMFIO
 from hdmf.common import DynamicTable
 from natsort import natsorted
-from pynwb import NWBFile, TimeSeries
+from pynwb import NWBHDF5IO, NWBFile, TimeSeries
 from pynwb.behavior import Position, SpatialSeries
 from pynwb.file import Subject, TimeIntervals
 
@@ -34,10 +34,14 @@ from nwbinspector.checks import (
     check_timestamps_match_first_dimension,
 )
 from nwbinspector.testing import make_minimal_nwbfile
-from nwbinspector.tools import BACKEND_IO_CLASSES
 from nwbinspector.utils import FilePathType
 
-IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
+HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
+if HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+else:
+    NWBZarrIO = None  # sentinel; classes referencing it are skipped via skipUnless
+
 EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
@@ -51,9 +55,11 @@ def add_big_dataset_no_compression(nwbfile: NWBFile, zarr: bool = False) -> None
     # Zarr automatically compresses by default
     # So to get a test case that is not compressed, forcibly disable the compressor
     if zarr:
+        from hdmf_zarr import ZarrDataIO
+
         time_series = TimeSeries(
             name="test_time_series_1",
-            data=hdmf_zarr.ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
+            data=ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
             rate=1.0,
             unit="",
         )
@@ -122,7 +128,7 @@ class TestInspectorOnBackend(TestCase):
 
     @classmethod
     def get_extension(cls) -> str:
-        backend_name = IO_CLASSES_TO_BACKEND[cls.BackendIOClass]
+        backend_name = "zarr" if cls.BackendIOClass.__name__ == "NWBZarrIO" else "hdf5"
         return cls._backend_extensions[backend_name]
 
     @staticmethod
@@ -172,7 +178,7 @@ class TestInspectorOnBackend(TestCase):
 
 
 class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = False
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_hdf5.txt"
     maxDiff = None
@@ -190,7 +196,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
-        add_big_dataset_no_compression(nwbfiles[0], zarr=cls.BackendIOClass is BACKEND_IO_CLASSES["zarr"])
+        add_big_dataset_no_compression(nwbfiles[0], zarr=cls.BackendIOClass.__name__ == "NWBZarrIO")
         add_regular_timestamps(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
@@ -240,8 +246,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
-                    "the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -312,8 +321,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually "
-                    "the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 severity=Severity.LOW,
@@ -388,8 +400,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is usually the "
-                    "longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -422,8 +437,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -456,8 +474,11 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         true_results = [
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, and is "
-                    "usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.CRITICAL,
                 check_function_name="check_data_orientation",
@@ -622,7 +643,9 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
                 message=(
                     "Data may be in the wrong orientation. "
                     "Time should be in the first dimension, and is usually the longest dimension. "
-                    "Here, another dimension is longer."
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,  # Normally CRITICAL, now a BEST_PRACTICE_VIOLATION
                 check_function_name="check_data_orientation",
@@ -664,15 +687,37 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+    def test_inspect_nwbfile_io_closed_after_inspection(self):
+        """Test that the IO object is properly closed after inspection by verifying the file can be opened."""
+        # Create new minimal NWBFile to ensure file is not open by other tests
+        nwbfile = make_minimal_nwbfile()
+        add_regular_timestamps(nwbfile)
+        nwbfile_path = self.tempdir / f"testing_io_closed{self.get_extension()}"
+        with self.BackendIOClass(path=nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
 
+        # Run inspection and consume the entire generator
+        test_results = list(
+            inspect_nwbfile(nwbfile_path=nwbfile_path, checks=self.checks, skip_validate=self.skip_validate)
+        )
+        self.assertGreater(len(test_results), 0)
+
+        # If the IO object was properly closed, we should be able to open the file in append mode
+        # This will fail if the file handle is still open
+        with self.BackendIOClass(path=nwbfile_path, mode="a") as io:
+            nwbfile = io.read()
+            self.assertIsNotNone(nwbfile)
+
+
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_zarr.txt"
     skip_validate = True
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_hdf5.txt"
     skip_validate = False
     maxDiff = None
@@ -756,8 +801,11 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
             ),
             InspectorMessage(
                 message=(
-                    "Data may be in the wrong orientation. Time should be in the first dimension, "
-                    "and is usually the longest dimension. Here, another dimension is longer."
+                    "Data may be in the wrong orientation. "
+                    "Time should be in the first dimension, and is usually the longest dimension. "
+                    "Here, another dimension is longer. "
+                    "Current shape: (2, 3). "
+                    "Suggestion: Transpose your data so the first dimension is 3."
                 ),
                 importance=Importance.BEST_PRACTICE_VIOLATION,
                 severity=Severity.LOW,
@@ -786,14 +834,15 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
         )
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestDANDIConfigZarr(TestDANDIConfigHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_zarr.txt"
     skip_validate = True
 
 
 class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = True
     maxDiff = None
 
@@ -825,7 +874,7 @@ class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = True
     maxDiff = None
 
@@ -859,11 +908,12 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
         test_messages = list(
             inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate)
         )
+        non_unique_files = natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])
         expected_messages = [
             InspectorMessage(
                 message=(
                     "The identifier 'not a unique identifier!' is used across the .nwb files: "
-                    f"{natsorted([Path(x).name for x in self.non_unique_id_nwbfile_paths])}. "
+                    f"{non_unique_files}. "
                     "The identifier of any NWBFile should be a completely unique value - "
                     "we recommend using uuid4 to achieve this."
                 ),
@@ -872,19 +922,21 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
                 object_type="NWBFile",
                 object_name="root",
                 location="/",
-                file_path=str(self.tempdir),
+                file_path=str(non_unique_files[-1]),
             )
         ]
 
         assert test_messages == expected_messages
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestCheckUniqueIdentifiersPassZarr(TestCheckUniqueIdentifiersPassHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestCheckUniqueIdentifiersFailZarr(TestCheckUniqueIdentifiersFailHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
 
 
 def test_dandi_config_in_vitro_injection():

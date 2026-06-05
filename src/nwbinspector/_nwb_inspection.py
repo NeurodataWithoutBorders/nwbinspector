@@ -9,17 +9,22 @@ from typing import Iterable, Optional, Type, Union
 from warnings import filterwarnings, warn
 
 import pynwb
-from hdmf_zarr import ZarrIO
 from natsort import natsorted
+from packaging import version
 from tqdm import tqdm
 
 from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
-from .tools._read_nwbfile import read_nwbfile
+from .tools._read_nwbfile import (
+    _MissingHdmfZarrError,
+    _read_nwbfile_and_io,
+    read_nwbfile,
+)
 from .utils import (
     OptionalListOfStrings,
     PathType,
     calculate_number_of_cpu,
+    get_nwbfiles_from_path,
 )
 
 
@@ -86,7 +91,6 @@ def inspect_all(
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
     """
-    in_path = Path(path)
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
@@ -127,17 +131,8 @@ def inspect_all(
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
 
-    if in_path.is_dir() and (in_path.match("*.nwb*")) and ZarrIO.can_read(in_path):
-        nwbfiles = [in_path]  # if it is a zarr directory
-    elif in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb*"))
+    nwbfiles = get_nwbfiles_from_path(path=path)
 
-        # Remove any macOS sidecar files
-        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
-    elif in_path.is_file():
-        nwbfiles = [in_path]
-    else:
-        raise ValueError(f"{in_path} should be a directory or an NWB file.")
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
@@ -147,21 +142,19 @@ def inspect_all(
         try:
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
+        except _MissingHdmfZarrError:
+            raise  # missing-hdmf-zarr propagates directly to the caller
         except Exception as exception:
-            yield InspectorMessage(
-                message=traceback.format_exc(),
-                importance=Importance.ERROR,
-                check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
-                file_path=str(nwbfile_path),
-            )
+            continue  # other read failure errors will be returned as part of inspect_nwbfile
 
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
+                non_unique_files = natsorted([x.name for x in nwbfiles_with_identifier])
                 yield InspectorMessage(
                     message=(
                         f"The identifier '{identifier}' is used across the .nwb files: "
-                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        f"{non_unique_files}. "
                         "The identifier of any NWBFile should be a completely unique value - "
                         "we recommend using uuid4 to achieve this."
                     ),
@@ -170,7 +163,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(path),
+                    file_path=str(non_unique_files[-1]),  # report an example file_path with non-unique identifier
                 )
 
     nwbfiles_iterable = nwbfiles
@@ -273,12 +266,12 @@ def inspect_nwbfile(
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
+    io = None
     try:
-        in_memory_nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
+        in_memory_nwbfile, io = _read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
-            # TODO - update validation call when pynwb 3.0 is the minimal
-            validation_result = pynwb.validate(paths=[nwbfile_path])
+            validation_result = pynwb.validate(path=nwbfile_path)
             if isinstance(validation_result, tuple):
                 validation_errors = validation_result[0]
             else:
@@ -303,13 +296,27 @@ def inspect_nwbfile(
         ):
             inspector_message.file_path = nwbfile_path  # type: ignore
             yield inspector_message
+    except _MissingHdmfZarrError:
+        # Missing-hdmf-zarr (a Zarr file without hdmf-zarr installed) propagates directly to
+        # the caller instead of being wrapped into an inspector message. Other ImportErrors
+        # raised during inspection (e.g., from a check function) fall through to the wrap-as-ERROR
+        # branch below, preserving the existing behavior for unrelated failures.
+        raise
     except Exception as exception:
+        exception_name = f"{type(exception).__module__}.{type(exception).__name__}"
         yield InspectorMessage(
             message=traceback.format_exc(),
             importance=Importance.ERROR,
-            check_function_name=f"During io.read() - {type(exception)}: {str(exception)}",
+            check_function_name=(
+                f"During io.read(), an error occurred: {exception_name}. "
+                f"This indicates that PyNWB was unable to read the file. "
+                f"See the traceback message for more details."
+            ),
             file_path=nwbfile_path,
         )
+    finally:
+        if io is not None:
+            io.close()  # close the io object in case of exceptions or when inspection is complete
 
 
 # TODO: deprecate once subject types and dandi schemas have been extended
@@ -407,6 +414,7 @@ def run_checks(
     checks: list,
     progress_bar_class: Optional[Type[tqdm]] = None,
     progress_bar_options: Optional[dict] = None,
+    nwb_schema_version: Optional[version.Version] = None,
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Run checks on an open NWBFile object.
@@ -422,6 +430,10 @@ def run_checks(
         Defaults to not displaying progress per set of checks over an individual file.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
+    nwb_schema_version : packaging.version.Version, optional
+        The NWB schema version of the file being inspected.
+        If not provided, will be read from nwbfile.read_io.nwb_version if available.
+        This arg is mostly used for tests. Usually it is best to leave as None.
 
     Yields
     ------
@@ -434,7 +446,21 @@ def run_checks(
     else:
         check_progress = checks
 
+    # Get NWB schema version from the nwbfile's read_io if not provided
+    if nwb_schema_version is None:
+        nwb_version_info = getattr(getattr(nwbfile, "read_io", None), "nwb_version", None)
+        nwb_schema_version = version.parse(nwb_version_info[0]) if nwb_version_info else None
+
     for check_function in check_progress:
+        # Skip check if schema version constraints are not met
+        if nwb_schema_version is not None:
+            version_lt = getattr(check_function, "nwb_schema_version_lt", None)
+            version_gt = getattr(check_function, "nwb_schema_version_gt", None)
+            if version_lt is not None and nwb_schema_version >= version.parse(version_lt):
+                continue
+            if version_gt is not None and nwb_schema_version <= version.parse(version_gt):
+                continue
+
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is not None and not issubclass(
                 type(nwbfile_object), check_function.neurodata_type

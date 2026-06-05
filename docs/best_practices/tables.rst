@@ -116,9 +116,21 @@ Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capabil
 Timing Columns
 ~~~~~~~~~~~~~~
 
-Times are always stored in seconds in NWB. In :ref:`nwb-schema:sec-TimeIntervals` tables such as the ``TrialsTable`` and :ref:`EpochsTable <nwb-schema:epochs>`, ``start_time`` and ``stop_time`` should both be in seconds with respect to the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile` (which by default is the ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
+Times are always stored in seconds in NWB. In :ref:`nwb-schema:sec-TimeIntervals` tables such as the
+``TrialsTable`` and :ref:`EpochsTable <nwb-schema:epochs>`, ``start_time`` and ``stop_time`` should both be in
+seconds with respect to the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile` (which by default is
+the ``session_start_time``, see :ref:`best_practice_global_time_reference` for more details).
+
+The ``start_time`` values should reflect when each interval began during the recording session, should be in
+non-decreasing order, and should not all be the same value. Each ``stop_time`` value should be strictly greater
+than its corresponding ``start_time``. Common signs that times were not properly converted to the session
+reference frame are all ``start_time`` and ``stop_time`` values being zero, zero-duration intervals where
+``stop_time`` equals ``start_time``, or other time columns in the table containing trial-relative offsets
+instead of session-absolute times.
 
 Additional time columns in :ref:`nwb-schema:sec-TimeIntervals` tables, such as the ``TrialsTable`` should have ``_time`` as a suffix to the name. *E.g.*, if you add more times in ``TrialsTable``, such as a subject response time, name it ``response_time`` and store the time values in seconds from the ``timestamps_reference_time`` of the :ref:`nwb-schema:sec-NWBFile`, just like ``start_time`` and ``stop_time``. This convention is used by downstream processing tools. For instance, NWBWidgets uses these times to create peri-stimulus time histograms relating spiking activity to trial events. See :ref:`best_practice_global_time_reference` for more details.
+
+Check functions: :py:meth:`~nwbinspector.checks._tables.check_time_intervals_duration`, :py:meth:`~nwbinspector.checks._tables.check_time_intervals_start_time_not_constant`, :py:meth:`~nwbinspector.checks._tables.check_time_intervals_stop_after_start`
 
 .. _best_practice_unique_dynamic_table_ids:
 

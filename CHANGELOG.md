@@ -1,9 +1,97 @@
-# v0.6.3 (February 25, 2025)
+# v0.7.3 (Upcoming)
+
+### New Checks
 
 ### Improvements
+
+### Fixes
+
+# v0.7.2 (May 19, 2026)
+
+### New Checks
+
+### Improvements
+* Made `hdmf-zarr` an optional dependency to restore pip-installability when `numcodecs` wheels are unavailable. Install with `pip install nwbinspector[zarr]` to enable Zarr-backed NWB file inspection. The local-file read path now delegates to `pynwb.read_nwb`, which produces a clear install hint when a Zarr file is encountered without the `[zarr]` extra. [#698](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/698)
+* Reorganized CI so upstream-dev test failures no longer gate PRs. Dev-branch jobs (`test-pynwb-dev`, `test-dandi-dev`, `test-dandi-dev-live`) moved from `deploy-tests.yml` into a new `dev-dailies.yml` scheduled workflow. Also added per-workflow failure emails, centralized the `testing.yml` Python and OS matrices into shared text files, renamed `dev-gallery.yml` to `pynwb-dev-tests.yml`, and rewrote `read-nwbfile-tests.yml` to use a named conda environment (`environment-ros3.yml`) so the ROS3-enabled h5py from conda-forge activates correctly on Windows runners. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+### Fixes
+* Fixed ROS3 streaming in `read_nwbfile` after h5py began enforcing an explicit `aws_region` for the ROS3 driver. Added a `backend_kwargs` keyword-only parameter to `read_nwbfile` that forwards arbitrary kwargs to the underlying `NWBHDF5IO` constructor on the streaming paths (`fsspec`, `ros3`); ROS3 callers now pass `backend_kwargs={"aws_region": "us-east-1"}`. The generic escape hatch avoids having to surface each new upstream kwarg individually. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+* Deprecated `read_nwbfile_and_io`; it will be removed after 2026-11-13. Use `read_nwbfile` instead; the IO object is accessible from the returned NWBFile via `nwbfile.get_read_io()`. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+# v0.7.1 (March 26, 2026)
+
+### New Checks
+
+* Added `check_spatial_series_unit` to validate that SpatialSeries objects (outside of CompassDirection) have a recognized unit string from a curated allowlist of SI length units, angular units, and pixels. [#685](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/685)
+* Added `check_imaging_plane_location_allen_ccf`, `check_electrodes_location_allen_ccf`, and `check_intracellular_electrode_location_allen_ccf` to validate location fields against Allen Mouse Brain CCF ontology terms when subject species is mouse. [#671](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/671)
+* Added `check_time_intervals_start_time_not_constant` to flag TimeIntervals tables where all start_time values are identical, indicating times were likely not set relative to session start. [#677](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/677)
+* Added `check_units_resolution_is_set` to flag when the Units table has spike_times but resolution is not set to a meaningful positive float. [#686](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/686)
+* Added `check_spike_times_not_in_samples` to flag when spike times appear to be stored as sample indices rather than seconds, detected by all values being integer-valued with implausibly large magnitudes.
+* Added `check_units_table_has_spikes` to flag Units tables that do not contain a spike_times column. [#691](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/691)
+
+
+### Improvements
+* Upgraded `check_ascending_spike_times` from `BEST_PRACTICE_VIOLATION` to `CRITICAL` and made it flag both descending and equal consecutive spike times. Setting the `resolution` field on the Units table suppresses the equal-timestamps check for recordings with limited temporal precision. [#684](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/684)
+
+### Fixes
+* Fixed `RuntimeWarning: All-NaN slice encountered` in `check_time_intervals_duration` when custom time columns contain all-NaN values. [#682](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/682)
+
+# v0.7.0 (Feb 23, 2026)
+
+### New Checks
+* Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
+* Added `check_time_series_duration` to detect unusually long TimeSeries durations (default threshold: 1 year). [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
+* Added `check_rate_not_below_threshold` to detect suspiciously low sampling rates that may indicate period was used instead of rate. [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)
+* Added `check_units_table_duration` to detect if the duration of spike times in a Units table exceeds a threshold (default: 1 year), which may indicate spike_times are in the wrong units or there is a data quality issue. [#636](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/636)
+* Added `check_time_intervals_duration`, which makes sure that `TimeInterval` objects do not have a duration greater than 1 year.
+[#635](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/635)
+* Added `check_electrical_series_unscaled_data` to warn when ElectricalSeries has integer data type with default conversion (1.0) and offset (0.0), which suggests raw acquisition units are not properly scaled to Volts. Also considers `channel_conversion` for per-channel scaling. [#408](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/408)
+* Added `check_subject_weight` to ensure subject weight follows the form '[numeric] [unit]' (e.g., '2.3 kg' or '10 g'). [#647](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/647)
+* Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
+* Added `check_sweeptable_deprecated` to detect usage of the deprecated `SweepTable` in NWB files with schema version >= 2.4.0, which should use `IntracellularRecordingsTable` instead. [#657](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/657)
+* Added `check_time_series_data_is_not_empty` to detect empty `.data` fields in `TimeSeries` containers, which often indicate incomplete data entry or conversion errors. Skips `ImageSeries` with `external_file` set, where empty data is intentional. [#668](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/668)
+
+### Improvements
+* Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)
+* Updated report summary to include number of files detected and indicate when no issues are found. [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
+* Made subject information checks (`check_subject_exists`, `check_subject_id_exists`, `check_subject_sex`, `check_subject_age`) CRITICAL by default to be consistent with DANDI requirements. [#648](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/648)
+* Added `nwb_schema_version_lt` and `nwb_schema_version_gt` parameters to `register_check` to conditionally run checks based on the NWB schema version of the file being inspected. [#661](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/661)
+
+### Fixes
+* Fixed `check_subject_age` to allow `"/"` and `"/P3D"` style age ranges where the lower bound is unspecified. [#673](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/673)
+* Fixed `check_timestamp_of_the_first_sample_is_not_negative` to handle empty timestamps arrays instead of throwing an `IndexError`. [#582](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/582)
+* Fixed file count error when checking for non-unique identifiers in a folder [#629](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/629)
+* Improved `check_data_orientation` error message to include the TimeSeries name, current shape, and a suggestion for transposing the data. [#1430](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/1430)
+* Dropped Python 3.9 and middle Python versions (3.11, 3.12) from CI; now testing only Python 3.10 and 3.13. [#632](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/632)
+* Updated macOS CI runner from `macos-13` to `macos-latest`. [#639](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/639)
+
+# v0.6.5 (July 25, 2025)
+
+### Fixes
+* Fixed build configuration error in pyproject.toml [#605](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/605)
+
+# v0.6.4 (July 24, 2025)
+
+### New Checks
+* Added checks to make sure subject_id and session_id do not contain slashes [#570](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/570)
+
+### Fixes
+* Fixed incorrect data orientation check for SpikeEventSeries [#592](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/592)
+* Fixed dimensionality check for SpikeEventSeries validation [#581](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/581)
+* Fixed error when checking for negative values in a time column with array data [#600](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/600)
+* Fixed issue where the io object remained open after inspection was completed. [#601](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/601)
+
+### Improvements
+* Updated InspectorMessage reporting for PyNWB read errors to improve readability [#603](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/603)
+* Added support for PyNWB 3.1 and NWB Schema 2.9 [#602](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/602)
+
+# v0.6.3 (March 13, 2025)
+
+### Improvements
+* Added check for negative rates in TimeSeries [#423](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/423)
+* Added check for ascending spike times in Units table [#575](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/575)
 * Added support for PyNWB 3.0 [#557](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/557)
 * Added support for Python 3.13 [#564](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/564)
-
 
 # v0.6.2
 
@@ -24,6 +112,7 @@
 
 ### Improvements
 * Added support for Numpy 2 and h5py 3.12, and pinned PyNWB to <3.0 temporarily. [#536](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/536)
+* Added best practice around not using colons in object names. [#532](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/532)
 
 ### Fixes
 * Fixed issue where the description check failed if the description was a list. [#535](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/535)

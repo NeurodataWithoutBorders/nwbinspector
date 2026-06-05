@@ -5,19 +5,32 @@ from functools import wraps
 from typing import List, Optional, Union
 
 import h5py
-import zarr
 from pynwb import NWBFile
 from pynwb.ecephys import Device, ElectrodeGroup
 from pynwb.file import Subject
 
 from ._types import Importance, InspectorMessage, Severity
+from .utils import is_module_installed
+
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    import zarr
+
+    _DATASET_TYPES: tuple = (h5py.Dataset, zarr.Array)
+else:
+    _DATASET_TYPES = (h5py.Dataset,)
 
 available_checks = list()
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
 # objects. We can wait and see how well that holds up before adding it in officially.
-def register_check(importance: Importance, neurodata_type: object) -> Callable:
+def register_check(
+    importance: Importance,
+    neurodata_type: object,
+    nwb_schema_version_lt: Optional[str] = None,
+    nwb_schema_version_gt: Optional[str] = None,
+) -> Callable:
     """
     Wrap a check function with this decorator to add it to the check registry and automatically parse some output.
 
@@ -35,6 +48,12 @@ def register_check(importance: Importance, neurodata_type: object) -> Callable:
         The most generic HDMF/PyNWB class the check function applies to.
         Should generally match the type annotation of the check.
         If this check is intended to apply to any general NWBFile object, set neurodata_type to None.
+    nwb_schema_version_lt : str, optional
+        Only run this check on NWB files with schema version less than this value.
+        Useful for checks that only apply to older schema versions.
+    nwb_schema_version_gt : str, optional
+        Only run this check on NWB files with schema version greater than this value.
+        Useful for checks that only apply to newer schema versions.
     """
 
     def register_check_and_auto_parse(check_function: Callable) -> Callable:
@@ -50,6 +69,8 @@ def register_check(importance: Importance, neurodata_type: object) -> Callable:
             )
         check_function.importance = importance  # type: ignore
         check_function.neurodata_type = neurodata_type  # type: ignore
+        check_function.nwb_schema_version_lt = nwb_schema_version_lt  # type: ignore
+        check_function.nwb_schema_version_gt = nwb_schema_version_gt  # type: ignore
 
         @wraps(check_function)
         def auto_parse_some_output(
@@ -124,13 +145,13 @@ def _parse_location(neurodata_object: object) -> Optional[str]:
     if neurodata_object.parent is None:  # type: ignore
         return "/"
     # Best solution: object is or has a HDF5 Dataset
-    if isinstance(neurodata_object, (h5py.Dataset, zarr.Array)):
+    if isinstance(neurodata_object, _DATASET_TYPES):
         return neurodata_object.name  # type: ignore
     else:
         for field_name, field in neurodata_object.fields.items():  # type: ignore
             if isinstance(field, h5py.Dataset):
                 return field.parent.name  # type: ignore
-            elif isinstance(field, zarr.Array):
+            elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
                 return field.name.removesuffix(f"/{field_name}")
 
     return None

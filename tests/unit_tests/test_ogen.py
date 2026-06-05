@@ -11,7 +11,9 @@ from nwbinspector.checks import check_optogenetic_stimulus_site_has_optogenetic_
 class TestCheckOptogeneticStimulusSiteHasOptogeneticSeries(TestCase):
     def setUp(self) -> None:
         self.nwbfile = NWBFile(
-            session_description="session_description", identifier="identifier", session_start_time=datetime.now()
+            session_description="session_description",
+            identifier="identifier",
+            session_start_time=datetime.now().astimezone(),
         )
 
         device = Device(name="device_name")

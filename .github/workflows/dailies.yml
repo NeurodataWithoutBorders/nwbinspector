@@ -7,10 +7,26 @@ on:
 
 jobs:
 
+  load_python_and_os_versions:
+    runs-on: ubuntu-latest
+    outputs:
+      ALL_PYTHON_VERSIONS: ${{ steps.load_python_versions.outputs.python_versions }}
+      ALL_OS_VERSIONS: ${{ steps.load_os_versions.outputs.os_versions }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: load_python_versions
+        run: echo "python_versions=$(cat ./.github/workflows/all_python_versions.txt)" >> "$GITHUB_OUTPUT"
+      - id: load_os_versions
+        run: echo "os_versions=$(cat ./.github/workflows/all_os_versions.txt)" >> "$GITHUB_OUTPUT"
+
   run-daily-tests:
+    needs: load_python_and_os_versions
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/testing.yml@dev
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    with:
+      python-versions: ${{ needs.load_python_and_os_versions.outputs.ALL_PYTHON_VERSIONS }}
+      os-versions: ${{ needs.load_python_and_os_versions.outputs.ALL_OS_VERSIONS }}
 
   run-daily-doc-link-checks:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/doc-link-checks.yml@dev
@@ -18,24 +34,50 @@ jobs:
   test-dandi-latest:
     uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-release.yml@dev
 
-  test-dandi-dev:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev.yml@dev
-
-  test-dandi-dev-live:
-    uses: neurodatawithoutborders/nwbinspector/.github/workflows/dandi-dev-live-services.yml@dev
-
-  notify:
+  notify-tests-failure:
     runs-on: ubuntu-latest
-    needs: [run-daily-tests, run-daily-doc-link-checks, test-dandi-latest, test-dandi-dev, test-dandi-dev-live]
-    if: failure()
+    needs: [run-daily-tests]
+    if: ${{ always() && needs.run-daily-tests.result == 'failure' }}
     steps:
     - uses: dawidd6/action-send-mail@v3
       with:
         server_address: smtp.gmail.com
-        server_port: 465  # TSL
+        server_port: 465
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
-        subject: NWB Inspector Daily Failure
-        to: smprince@lbl.gov, rly@lbl.gov
+        subject: NWB Inspector Daily Failure - tests
+        to: rly@lbl.gov
         from: NWB Inspector
-        body: "The daily workflow for the NWB Inspector failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
+        body: "The daily test workflow failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
+
+  notify-doc-link-checks-failure:
+    runs-on: ubuntu-latest
+    needs: [run-daily-doc-link-checks]
+    if: ${{ always() && needs.run-daily-doc-link-checks.result == 'failure' }}
+    steps:
+    - uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: NWB Inspector Daily Failure - doc link checks
+        to: rly@lbl.gov
+        from: NWB Inspector
+        body: "The daily documentation link check failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"
+
+  notify-dandi-latest-failure:
+    runs-on: ubuntu-latest
+    needs: [test-dandi-latest]
+    if: ${{ always() && needs.test-dandi-latest.result == 'failure' }}
+    steps:
+    - uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: NWB Inspector Daily Failure - DANDI latest release
+        to: rly@lbl.gov
+        from: NWB Inspector
+        body: "The daily test against the latest released DANDI failed: please check status at https://github.com/NeurodataWithoutBorders/nwbinspector/actions/workflows/dailies.yml"

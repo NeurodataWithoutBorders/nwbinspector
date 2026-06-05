@@ -1,8 +1,17 @@
+import importlib.util
+import tempfile
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from pynwb import NWBFile, ProcessingModule
+import pytest
+from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
+
+HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
+if HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+else:
+    NWBZarrIO = None
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -10,18 +19,22 @@ from nwbinspector.checks import (
     check_experiment_description,
     check_experimenter_exists,
     check_experimenter_form,
+    check_file_extension,
     check_institution,
     check_keywords,
     check_processing_module_name,
+    check_session_id_no_slashes,
     check_session_start_time_future_date,
     check_session_start_time_old_date,
     check_subject_age,
     check_subject_exists,
     check_subject_id_exists,
+    check_subject_id_no_slashes,
     check_subject_proper_age_range,
     check_subject_sex,
     check_subject_species_exists,
     check_subject_species_form,
+    check_subject_weight,
 )
 from nwbinspector.checks._nwbfile_metadata import PROCESSING_MODULE_CONFIG
 from nwbinspector.testing import make_minimal_nwbfile
@@ -50,7 +63,9 @@ def test_check_session_start_time_old_date_fail():
 
 
 def test_check_session_start_time_future_date_pass():
-    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1))
+    nwbfile = NWBFile(
+        session_description="", identifier=str(uuid4()), session_start_time=datetime(2010, 1, 1).astimezone()
+    )
     assert check_session_start_time_future_date(nwbfile) is None
 
 
@@ -267,7 +282,7 @@ def test_check_subject_sex():
 
     assert check_subject_sex(subject=nwbfile.subject) == InspectorMessage(
         message="Subject.sex is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -280,7 +295,7 @@ def test_check_subject_sex_wrong_value():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="Subject.sex should be one of: 'M' (male), 'F' (female), 'O' (other), or 'U' (unknown).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -293,7 +308,7 @@ def test_check_subject_sex_caenorhabditis_elegans_default_sex():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -306,7 +321,7 @@ def test_check_subject_sex_c_elegans_default_sex():
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
         message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
         object_name="subject",
@@ -327,7 +342,7 @@ def test_check_subject_sex_c_elegans_xx_sex():
 
 
 def test_pass_check_subject_age_with_dob():
-    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now())
+    subject = Subject(subject_id="001", sex="F", date_of_birth=datetime.now().astimezone())
     assert check_subject_age(subject) is None
 
 
@@ -335,7 +350,7 @@ def test_check_subject_age_missing():
     subject = Subject(subject_id="001")
     assert check_subject_age(subject) == InspectorMessage(
         message="Subject is missing age and date_of_birth. Please specify at least one of these fields.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -357,7 +372,7 @@ def test_check_subject_age_iso8601_fail():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -375,6 +390,16 @@ def test_check_subject_age_iso8601_range_pass_2():
     assert check_subject_age(subject) is None
 
 
+def test_check_subject_age_iso8601_range_pass_3():
+    subject = Subject(subject_id="001", age="/P3D")
+    assert check_subject_age(subject) is None
+
+
+def test_check_subject_age_iso8601_range_pass_4():
+    subject = Subject(subject_id="001", age="/")
+    assert check_subject_age(subject) is None
+
+
 def test_check_subject_age_iso8601_range_fail_1():
     subject = Subject(subject_id="001", age="9 months/12 months")
     assert check_subject_age(subject) == InspectorMessage(
@@ -384,7 +409,7 @@ def test_check_subject_age_iso8601_range_fail_1():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -401,7 +426,7 @@ def test_check_subject_age_iso8601_range_fail_2():
             "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
             "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
         ),
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_age",
         object_type="Subject",
         object_name="subject",
@@ -516,7 +541,7 @@ def test_pass_check_subject_age():
 def test_check_subject_exists():
     assert check_subject_exists(minimal_nwbfile) == InspectorMessage(
         message="Subject is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_exists",
         object_type="NWBFile",
         object_name="root",
@@ -534,7 +559,7 @@ def test_check_subject_id_exists():
     subject = Subject(sex="F")
     assert check_subject_id_exists(subject) == InspectorMessage(
         message="subject_id is missing.",
-        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        importance=Importance.CRITICAL,
         check_function_name="check_subject_id_exists",
         object_type="Subject",
         object_name="subject",
@@ -565,3 +590,177 @@ def test_check_processing_module_name():
 def test_pass_check_processing_module_name():
     processing_module = ProcessingModule(name="ecephys", description="desc")
     assert check_processing_module_name(processing_module) is None
+
+
+def test_pass_check_session_id_no_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session001",
+    )
+    assert check_session_id_no_slashes(nwbfile) is None
+
+
+def test_check_session_id_with_slashes():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        session_id="session/001",
+    )
+    assert check_session_id_no_slashes(nwbfile) == InspectorMessage(
+        message=(
+            "The session_id 'session/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_session_id_no_slashes",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_pass_check_subject_id_no_slashes():
+    subject = Subject(subject_id="subject001")
+    assert check_subject_id_no_slashes(subject) is None
+
+
+def test_check_subject_id_with_slashes():
+    subject = Subject(subject_id="subject/001")
+    assert check_subject_id_no_slashes(subject) == InspectorMessage(
+        message=(
+            "The subject_id 'subject/001' contains slash character(s) '/', which can cause problems "
+            "when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_id_no_slashes",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
+def test_check_file_extension_pass():
+    """Test that valid HDF5 extensions pass the check."""
+    extension_dict = {".nwb": NWBHDF5IO, ".nwb.h5": NWBHDF5IO, ".nwb.zarr": NWBZarrIO}
+
+    for ext, io_class in extension_dict.items():
+        if isinstance(io_class, NWBZarrIO):
+            tmp_path = tempfile.TemporaryDirectory(suffix=ext).name
+        else:
+            tmp_path = tempfile.NamedTemporaryFile(suffix=ext).name
+
+        nwbfile = make_minimal_nwbfile()
+        with io_class(str(tmp_path), mode="w") as io:
+            io.write(nwbfile)
+
+        with io_class(str(tmp_path), mode="r") as io:
+            read_nwbfile = io.read()
+            assert check_file_extension(read_nwbfile) is None
+
+
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
+def test_check_file_extension_fail():
+    """Test that invalid HDF5 extensions fail the check."""
+    invalid_extension_dict = {".txt": NWBHDF5IO, ".nwb.zarr": NWBHDF5IO, ".nwb.h5": NWBZarrIO}
+
+    for ext, io_class in invalid_extension_dict.items():
+        if isinstance(io_class, NWBZarrIO):
+            tmp_path = tempfile.TemporaryDirectory(suffix=ext).name
+        else:
+            tmp_path = tempfile.NamedTemporaryFile(suffix=ext).name
+
+        nwbfile = make_minimal_nwbfile()
+        with io_class(str(tmp_path), mode="w") as io:
+            io.write(nwbfile)
+
+        with io_class(str(tmp_path), mode="r") as io:
+            read_nwbfile = io.read()
+            result = check_file_extension(read_nwbfile)
+            msg = f"The file extension '{ext}' does not follow the recommended naming convention."
+            assert msg in result.message
+
+
+def test_check_subject_weight_pass():
+    """Test that valid weight formats pass the check."""
+    valid_weights = ["2.3 kg", "25 kg", "0.5 kg", "100 g"]
+    for weight in valid_weights:
+        subject = Subject(subject_id="001", weight=weight)
+        assert check_subject_weight(subject) is None, f"Weight '{weight}' should pass the check"
+
+
+def test_check_subject_weight_none():
+    """Test that None weight passes the check (weight is optional)."""
+    subject = Subject(subject_id="001")
+    assert check_subject_weight(subject) is None
+
+
+def test_check_subject_weight_fail_no_unit():
+    """Test that weight without unit fails the check."""
+    subject = Subject(subject_id="001", weight="25")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '25' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_multiple_decimals():
+    """Test that weight with multiple decimal points fails the check."""
+    subject = Subject(subject_id="001", weight="2.3.4 kg")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '2.3.4 kg' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_text_only():
+    """Test that weight with only text fails the check."""
+    subject = Subject(subject_id="001", weight="heavy")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight 'heavy' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_weight_fail_no_space():
+    """Test that weight without space between number and unit fails the check."""
+    subject = Subject(subject_id="001", weight="25kg")
+    assert check_subject_weight(subject) == InspectorMessage(
+        message=(
+            "Subject weight '25kg' does not follow the expected form '[numeric] [unit]'. "
+            "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+            "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_weight",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )

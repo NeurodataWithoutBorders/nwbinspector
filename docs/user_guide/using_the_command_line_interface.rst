@@ -22,6 +22,27 @@ the most useful of these options.
 
 
 
+Using the DANDI Configuration
+------------------------------
+
+The NWBInspector includes a built-in DANDI `configuration file <https://github.com/NeurodataWithoutBorders/nwbinspector/blob/dev/src/nwbinspector/_internal_configs/dandi.inspector_config.yaml>`_
+that adjusts the importance levels of certain checks to match
+:dandi-archive:`DANDI Archive <>` requirements. This is useful when preparing files for upload to DANDI, as it
+ensures that critical checks required for DANDI validation are properly prioritized.
+
+To use the DANDI configuration from the command line, use the ``--config`` flag with the keyword ``dandi``:
+
+::
+
+    nwbinspector path/to/my/data.nwb --config dandi
+
+
+The DANDI configuration elevates certain checks (e.g. ``check_subject_exists``, ``check_subject_species_exists``, etc.)
+to ``CRITICAL`` importance, meaning they must pass for DANDI validation to succeed. A full list of the additional DANDI requirements
+can be found in the `DANDI documentation <https://docs.dandiarchive.org/user-guide-sharing/validating-files/#missing-dandi-metadata>`_.
+
+
+
 Streaming
 ---------
 
@@ -128,6 +149,42 @@ For example,
 
     nwbinspector path/to/my/data/dir/ --n-jobs -1
 
+
+
+Skipping Specific Checks
+------------------------
+
+The NWBInspector provides the ``--ignore`` flag to skip specific checks by name. This is useful when you have
+legitimate data that triggers heuristic-based checks, or when certain checks are not applicable to your use case.
+
+To skip a single check:
+
+::
+
+    nwbinspector path/to/my/data.nwb --ignore check_time_intervals_duration
+
+To skip multiple checks, provide a comma-separated list (no spaces):
+
+::
+
+    nwbinspector path/to/my/data.nwb --ignore check_time_intervals_duration,check_units_table_duration
+
+.. note::
+
+    Some checks are heuristic-based and may produce false positives for edge cases. For example,
+    ``check_time_intervals_duration`` and ``check_units_table_duration`` flag sessions longer than one year,
+    which is typically an error but may be valid for certain long-running experiments. Use the ``--ignore``
+    flag to skip these checks when you have verified the data is correct.
+
+
+Selecting Specific Checks
+-------------------------
+
+Conversely, if you only want to run specific checks, use the ``--select`` flag:
+
+::
+
+    nwbinspector path/to/my/data.nwb --select check_subject_exists,check_subject_species_exists
 
 
 External Modules

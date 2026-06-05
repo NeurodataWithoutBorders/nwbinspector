@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "windows-latest"]  # TODO: update mac and streaming methods
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - run: git fetch --prune --unshallow --tags
@@ -29,7 +29,7 @@ jobs:
           pip install pytest-cov
 
       - name: Install package
-        run: pip install ".[dandi]"
+        run: pip install ".[dandi,zarr]"
 
       - name: Run pytest on stream tests with coverage
         run: |
@@ -49,7 +49,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' }}
           file: ./cli_coverage.xml
 
   build-and-test-no-dandi:
@@ -73,7 +73,7 @@ jobs:
         run: pip install pytest
 
       - name: Install package
-        run: pip install .
+        run: pip install ".[zarr]"
 
       - name: Run pytest with coverage
         run: pytest -rsx

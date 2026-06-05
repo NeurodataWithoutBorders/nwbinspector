@@ -106,8 +106,8 @@ def test_fail_check_index_series_points_to_image():
         object_name="stimuli",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         object_type="IndexSeries",
-        message="Pointing an IndexSeries to a TimeSeries will be deprecated. Please point to an Images container "
-        "instead.",  # TODO - update message when PyNWB 3.0 is released
+        message="Pointing an IndexSeries to a TimeSeries is deprecated. Please point to an Images container "
+        "instead.",
         location="/",
         check_function_name="check_index_series_points_to_image",
     )
