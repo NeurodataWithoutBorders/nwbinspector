@@ -163,14 +163,16 @@ def test_check_image_series_starting_frame_without_external_file_pass_no_externa
 
 def test_check_image_series_starting_frame_without_external_file_pass_with_external():
     """Test that an ImageSeries with external_file passes regardless of starting_frame."""
+    # Build a valid ImageSeries, then set the external attributes post-construction to avoid
+    # construction-time validation (newer PyNWB requires num_samples for external series timed by rate).
     image_series = ImageSeries(
         name="TestImageSeries",
-        external_file=["test.mp4"],
-        format="external",
-        starting_frame=[0],
         rate=1.0,
+        data=np.zeros(shape=(3, 3, 3, 3)),
         unit="TestUnit",
     )
+    image_series.external_file = ["test.mp4"]
+    image_series.starting_frame = [0]
     assert check_image_series_starting_frame_without_external_file(image_series=image_series) is None
 
 
