@@ -173,6 +173,7 @@ def test_check_image_series_starting_frame_without_external_file_pass_with_exter
     )
     image_series.external_file = ["test.mp4"]
     image_series.starting_frame = [0]
+    image_series.fields["data"] = None  # mimic a real external series (data is read-only, so null it directly)
     assert check_image_series_starting_frame_without_external_file(image_series=image_series) is None
 
 
