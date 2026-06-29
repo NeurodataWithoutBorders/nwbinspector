@@ -35,6 +35,8 @@ jobs:
           channels: conda-forge
           auto-activate-base: false
 
+      - name: Install package and s3fs
+        run: pip install ".[dandi]" s3fs
       - name: Install package
         run: pip install ".[dandi,zarr]" s3fs
 
