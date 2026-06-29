@@ -20,7 +20,7 @@ if _HAS_HDMF_ZARR:
 else:
     _DATASET_TYPES = (h5py.Dataset,)
 
-available_checks = list()
+available_checks: list = []
 
 
 # TODO: neurodata_type could have annotation hdmf.utils.ExtenderMeta, which seems to apply to all currently checked
