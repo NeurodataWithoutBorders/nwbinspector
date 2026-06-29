@@ -5,6 +5,7 @@
 ### Improvements
 
 ### Fixes
+* Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707)
 
 # v0.7.2 (May 19, 2026)
 
