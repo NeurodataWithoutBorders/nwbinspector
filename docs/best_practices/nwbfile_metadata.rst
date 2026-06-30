@@ -277,7 +277,13 @@ If the precise age is unknown, an age range can be given by "[lower bound]/[uppe
 that the age is in between 10 and 20 days. If only the lower bound is known, then including only the slash after that lower bound can be used to indicate a
 missing bound. For instance, "P90Y/" would indicate that the age is 90 years or older.
 
-Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age`
+The ``age`` is measured relative to a reference point, controlled by the ``age__reference`` field of the
+:ref:`nwb-schema:sec-Subject`. The only supported values are ``"birth"`` (the default) and ``"gestational"``. Use
+``"gestational"`` when the age is measured from conception rather than from birth, as is common for embryonic or
+prenatal preparations.
+
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age` and
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age_reference`
 
 
 

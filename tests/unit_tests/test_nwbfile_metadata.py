@@ -27,6 +27,7 @@ from nwbinspector.checks import (
     check_session_start_time_future_date,
     check_session_start_time_old_date,
     check_subject_age,
+    check_subject_age_reference,
     check_subject_exists,
     check_subject_id_exists,
     check_subject_id_no_slashes,
@@ -468,6 +469,43 @@ def test_check_subject_age_with_years_fail():
         ),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_proper_age_range",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_age_reference_default_pass():
+    subject = Subject(subject_id="001", age="P1D")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_birth_pass():
+    subject = Subject(subject_id="001", age="P1D", age__reference="birth")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_gestational_pass():
+    subject = Subject(subject_id="001", age="P1D", age__reference="gestational")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_none_pass():
+    # Files written before age__reference existed (or by other tools) may have no reference set.
+    subject = Subject(subject_id="001", age="P1D")
+    subject.fields["age__reference"] = None
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_fail():
+    # PyNWB rejects invalid references at construction time, so emulate a file written by another
+    # tool with an unsupported value by overriding the field after construction.
+    subject = Subject(subject_id="001", age="P1D")
+    subject.fields["age__reference"] = "conception"
+    assert check_subject_age_reference(subject) == InspectorMessage(
+        message=("Subject age reference, 'conception', is not one of the valid options (['birth', 'gestational'])."),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age_reference",
         object_type="Subject",
         object_name="subject",
         location="/general/subject",
