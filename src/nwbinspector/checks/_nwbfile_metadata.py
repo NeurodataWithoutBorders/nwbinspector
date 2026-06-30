@@ -184,7 +184,7 @@ def check_publication_list_format(nwbfile: NWBFile) -> Optional[Iterable[Inspect
         if "," in publication:
             # Check if the comma appears to separate multiple DOIs/URLs
             parts = [p.strip() for p in publication.split(",")]
-            doi_indicators = ["doi:", "doi.org/", "dx.doi.org/"]
+            doi_indicators = ["doi:", "doi.org/"]
             doi_like_parts = [part for part in parts if any(indicator in part.lower() for indicator in doi_indicators)]
             if len(doi_like_parts) > 1:
                 yield InspectorMessage(
