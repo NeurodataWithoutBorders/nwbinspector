@@ -503,9 +503,7 @@ def test_check_subject_age_reference_fail():
     subject = Subject(subject_id="001", age="P1D")
     subject.fields["age__reference"] = "conception"
     assert check_subject_age_reference(subject) == InspectorMessage(
-        message=(
-            "Subject age reference, 'conception', is not one of the valid options (['birth', 'gestational'])."
-        ),
+        message=("Subject age reference, 'conception', is not one of the valid options (['birth', 'gestational'])."),
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_subject_age_reference",
         object_type="Subject",
