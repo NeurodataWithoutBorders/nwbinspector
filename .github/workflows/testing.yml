@@ -26,11 +26,11 @@ jobs:
     env:
       TESTING_FILES_FOLDER_PATH: ./204919/testing_files/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: git fetch --prune --unshallow --tags
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -49,7 +49,7 @@ jobs:
 
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: ${{ github.actor != 'dependabot[bot]' }}
@@ -64,11 +64,11 @@ jobs:
         os: ["ubuntu-latest"]
         python-version: ["3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: git fetch --prune --unshallow --tags
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -85,10 +85,10 @@ jobs:
     name: Verify install hint when hdmf-zarr is absent
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
