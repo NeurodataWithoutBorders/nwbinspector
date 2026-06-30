@@ -151,6 +151,19 @@ Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_not_in
 
 
 
+.. _best_practice_spike_times_without_nans:
+
+No NaN Spike Times
+~~~~~~~~~~~~~~~~~~
+
+Spike times are physical event timestamps and must always be valid floating-point numbers. A NaN value in the
+``spike_times`` column typically indicates a conversion bug or array padding that was not cleaned up before writing
+to NWB. Unlike missing data in continuous signals, a spike either occurred at a specific time or it did not, so
+NaN is never meaningful. Clean your spike time arrays to remove any NaN values before adding them to the Units table.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_spike_times_without_nans`
+
+
 .. _best_practice_ascending_spike_times:
 
 Ascending Spike Times

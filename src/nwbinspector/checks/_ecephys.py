@@ -245,6 +245,23 @@ def check_spike_times_not_in_unobserved_interval(units_table: Units, nunits: int
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_spike_times_without_nans(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check if the Units table contains NaN values in spike times.
+
+    Best Practice: :ref:`best_practice_spike_times_without_nans`
+    """
+    if "spike_times" not in units_table:
+        return None
+
+    if np.any(np.isnan(np.asarray(units_table["spike_times"].target.data[:]))):
+        return InspectorMessage(
+            message="Units table contains NaN spike times. Spike times should be valid timestamps in seconds."
+        )
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
     """
     Check that spike times are strictly ascending for each unit.
