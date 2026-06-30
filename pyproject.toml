@@ -33,7 +33,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "pynwb>=3.1",   # NWB Inspector should always be used with most recent minor versions of PyNWB
+    "pynwb>=4.0",   # NWB Inspector should always be used with most recent minor versions of PyNWB
     "fsspec",
     "requests",
     "aiohttp",
