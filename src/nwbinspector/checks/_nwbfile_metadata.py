@@ -234,6 +234,25 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_age_reference(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if the Subject age reference, when specified, is one of the supported options.
+
+    Best Practice: :ref:`best_practice_subject_age`
+    """
+    valid_options = ["birth", "gestational"]
+    if subject.age__reference is not None and subject.age__reference not in valid_options:
+        return InspectorMessage(
+            message=(
+                f"Subject age reference, '{subject.age__reference}', is not one of the valid options "
+                f"({valid_options})."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
