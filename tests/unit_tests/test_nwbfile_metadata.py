@@ -1,10 +1,17 @@
+import importlib.util
 import tempfile
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from hdmf_zarr import NWBZarrIO
+import pytest
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
+
+HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
+if HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+else:
+    NWBZarrIO = None
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
@@ -20,6 +27,7 @@ from nwbinspector.checks import (
     check_session_start_time_future_date,
     check_session_start_time_old_date,
     check_subject_age,
+    check_subject_age_reference,
     check_subject_exists,
     check_subject_id_exists,
     check_subject_id_no_slashes,
@@ -467,6 +475,43 @@ def test_check_subject_age_with_years_fail():
     )
 
 
+def test_check_subject_age_reference_default_pass():
+    subject = Subject(subject_id="001", age="P1D")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_birth_pass():
+    subject = Subject(subject_id="001", age="P1D", age__reference="birth")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_gestational_pass():
+    subject = Subject(subject_id="001", age="P1D", age__reference="gestational")
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_none_pass():
+    # Files written before age__reference existed (or by other tools) may have no reference set.
+    subject = Subject(subject_id="001", age="P1D")
+    subject.fields["age__reference"] = None
+    assert check_subject_age_reference(subject) is None
+
+
+def test_check_subject_age_reference_fail():
+    # PyNWB rejects invalid references at construction time, so emulate a file written by another
+    # tool with an unsupported value by overriding the field after construction.
+    subject = Subject(subject_id="001", age="P1D")
+    subject.fields["age__reference"] = "conception"
+    assert check_subject_age_reference(subject) == InspectorMessage(
+        message=("Subject age reference, 'conception', is not one of the valid options (['birth', 'gestational'])."),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_subject_age_reference",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
 def test_pass_check_subject_species_exists():
     subject = Subject(subject_id="001", species="Homo sapiens")
     assert check_subject_species_exists(subject) is None
@@ -635,6 +680,7 @@ def test_check_subject_id_with_slashes():
     )
 
 
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
 def test_check_file_extension_pass():
     """Test that valid HDF5 extensions pass the check."""
     extension_dict = {".nwb": NWBHDF5IO, ".nwb.h5": NWBHDF5IO, ".nwb.zarr": NWBZarrIO}
@@ -654,6 +700,7 @@ def test_check_file_extension_pass():
             assert check_file_extension(read_nwbfile) is None
 
 
+@pytest.mark.skipif(not HAS_HDMF_ZARR, reason="hdmf-zarr is not installed")
 def test_check_file_extension_fail():
     """Test that invalid HDF5 extensions fail the check."""
     invalid_extension_dict = {".txt": NWBHDF5IO, ".nwb.zarr": NWBHDF5IO, ".nwb.h5": NWBZarrIO}

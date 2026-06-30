@@ -1,17 +1,17 @@
+import importlib.util
 import os
 from datetime import datetime
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
 from typing import Type, Union
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 
-import hdmf_zarr
 import numpy as np
 from hdmf.backends.io import HDMFIO
 from hdmf.common import DynamicTable
 from natsort import natsorted
-from pynwb import NWBFile, TimeSeries
+from pynwb import NWBHDF5IO, NWBFile, TimeSeries
 from pynwb.behavior import Position, SpatialSeries
 from pynwb.file import Subject, TimeIntervals
 
@@ -34,10 +34,14 @@ from nwbinspector.checks import (
     check_timestamps_match_first_dimension,
 )
 from nwbinspector.testing import make_minimal_nwbfile
-from nwbinspector.tools import BACKEND_IO_CLASSES
 from nwbinspector.utils import FilePathType
 
-IO_CLASSES_TO_BACKEND = {v: k for k, v in BACKEND_IO_CLASSES.items()}
+HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
+if HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
+else:
+    NWBZarrIO = None  # sentinel; classes referencing it are skipped via skipUnless
+
 EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
 
 
@@ -51,9 +55,11 @@ def add_big_dataset_no_compression(nwbfile: NWBFile, zarr: bool = False) -> None
     # Zarr automatically compresses by default
     # So to get a test case that is not compressed, forcibly disable the compressor
     if zarr:
+        from hdmf_zarr import ZarrDataIO
+
         time_series = TimeSeries(
             name="test_time_series_1",
-            data=hdmf_zarr.ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
+            data=ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
             rate=1.0,
             unit="",
         )
@@ -122,7 +128,7 @@ class TestInspectorOnBackend(TestCase):
 
     @classmethod
     def get_extension(cls) -> str:
-        backend_name = IO_CLASSES_TO_BACKEND[cls.BackendIOClass]
+        backend_name = "zarr" if cls.BackendIOClass.__name__ == "NWBZarrIO" else "hdf5"
         return cls._backend_extensions[backend_name]
 
     @staticmethod
@@ -172,7 +178,7 @@ class TestInspectorOnBackend(TestCase):
 
 
 class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = False
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_hdf5.txt"
     maxDiff = None
@@ -190,7 +196,7 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         nwbfiles = list()
         for j in range(num_nwbfiles):
             nwbfiles.append(make_minimal_nwbfile())
-        add_big_dataset_no_compression(nwbfiles[0], zarr=cls.BackendIOClass is BACKEND_IO_CLASSES["zarr"])
+        add_big_dataset_no_compression(nwbfiles[0], zarr=cls.BackendIOClass.__name__ == "NWBZarrIO")
         add_regular_timestamps(nwbfiles[0])
         add_flipped_data_orientation_to_processing(nwbfiles[0])
         add_non_matching_timestamps_dimension(nwbfiles[0])
@@ -703,14 +709,15 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
             self.assertIsNotNone(nwbfile)
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_zarr.txt"
     skip_validate = True
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_hdf5.txt"
     skip_validate = False
     maxDiff = None
@@ -827,14 +834,15 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
         )
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestDANDIConfigZarr(TestDANDIConfigHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_zarr.txt"
     skip_validate = True
 
 
 class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = True
     maxDiff = None
 
@@ -866,7 +874,7 @@ class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
-    BackendIOClass = BACKEND_IO_CLASSES["hdf5"]
+    BackendIOClass = NWBHDF5IO
     skip_validate = True
     maxDiff = None
 
@@ -921,12 +929,14 @@ class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
         assert test_messages == expected_messages
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestCheckUniqueIdentifiersPassZarr(TestCheckUniqueIdentifiersPassHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
 
 
+@skipUnless(HAS_HDMF_ZARR, "hdmf-zarr is not installed")
 class TestCheckUniqueIdentifiersFailZarr(TestCheckUniqueIdentifiersFailHDF5):
-    BackendIOClass = BACKEND_IO_CLASSES["zarr"]
+    BackendIOClass = NWBZarrIO
 
 
 def test_dandi_config_in_vitro_injection():

@@ -26,14 +26,14 @@ jobs:
 
     steps:
     - name: Checkout local branch of source repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         # Fetch all commits so that versioneer will return something compatible
         # with semantic-version
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
 
@@ -44,7 +44,7 @@ jobs:
 
     - name: Install this branch of NWB Inspector
       run: |
-        pip install -e .
+        pip install -e ".[zarr]"
 
     - name: Run all NWB Inspector tests
       run: pytest -rsx

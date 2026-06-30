@@ -1,4 +1,31 @@
-# v0.7.1 (Upcoming)
+# v0.7.3 (Upcoming)
+
+### New Checks
+* Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
+* Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
+
+### Improvements
+* Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
+* Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
+
+### Fixes
+* Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
+* Skipped Ontobee in the documentation external link check, which frequently timed out and caused spurious CI failures. [#709](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/709)
+* Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)
+
+# v0.7.2 (May 19, 2026)
+
+### New Checks
+
+### Improvements
+* Made `hdmf-zarr` an optional dependency to restore pip-installability when `numcodecs` wheels are unavailable. Install with `pip install nwbinspector[zarr]` to enable Zarr-backed NWB file inspection. The local-file read path now delegates to `pynwb.read_nwb`, which produces a clear install hint when a Zarr file is encountered without the `[zarr]` extra. [#698](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/698)
+* Reorganized CI so upstream-dev test failures no longer gate PRs. Dev-branch jobs (`test-pynwb-dev`, `test-dandi-dev`, `test-dandi-dev-live`) moved from `deploy-tests.yml` into a new `dev-dailies.yml` scheduled workflow. Also added per-workflow failure emails, centralized the `testing.yml` Python and OS matrices into shared text files, renamed `dev-gallery.yml` to `pynwb-dev-tests.yml`, and rewrote `read-nwbfile-tests.yml` to use a named conda environment (`environment-ros3.yml`) so the ROS3-enabled h5py from conda-forge activates correctly on Windows runners. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+### Fixes
+* Fixed ROS3 streaming in `read_nwbfile` after h5py began enforcing an explicit `aws_region` for the ROS3 driver. Added a `backend_kwargs` keyword-only parameter to `read_nwbfile` that forwards arbitrary kwargs to the underlying `NWBHDF5IO` constructor on the streaming paths (`fsspec`, `ros3`); ROS3 callers now pass `backend_kwargs={"aws_region": "us-east-1"}`. The generic escape hatch avoids having to surface each new upstream kwarg individually. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+* Deprecated `read_nwbfile_and_io`; it will be removed after 2026-11-13. Use `read_nwbfile` instead; the IO object is accessible from the returned NWBFile via `nwbfile.get_read_io()`. [#700](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/700)
+
+# v0.7.1 (March 26, 2026)
 
 ### New Checks
 
