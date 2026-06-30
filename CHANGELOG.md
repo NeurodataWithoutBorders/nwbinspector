@@ -57,6 +57,7 @@
 * Added `check_image_series_starting_frame_without_external_file` to verify that `starting_frame` is not set when `external_file` is not used in an `ImageSeries`. [#235](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/235)
 * Added `check_sweeptable_deprecated` to detect usage of the deprecated `SweepTable` in NWB files with schema version >= 2.4.0, which should use `IntracellularRecordingsTable` instead. [#657](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/657)
 * Added `check_time_series_data_is_not_empty` to detect empty `.data` fields in `TimeSeries` containers, which often indicate incomplete data entry or conversion errors. Skips `ImageSeries` with `external_file` set, where empty data is intentional. [#668](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/668)
+* Added `check_publication_list_format` to detect comma-separated DOIs/URLs in `related_publications` entries that should be separate list entries. [#419](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/419)
 
 ### Improvements
 * Added documentation to API and CLI docs on how to use the dandi config option. [#624](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/624)

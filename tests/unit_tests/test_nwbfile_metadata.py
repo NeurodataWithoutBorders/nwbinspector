@@ -23,6 +23,7 @@ from nwbinspector.checks import (
     check_institution,
     check_keywords,
     check_processing_module_name,
+    check_publication_list_format,
     check_session_id_no_slashes,
     check_session_start_time_future_date,
     check_session_start_time_old_date,
@@ -274,6 +275,110 @@ def test_check_doi_publications_multiple_fail():
             object_name="root",
             location="/",
         ),
+    ]
+
+
+def test_check_publication_list_format_pass():
+    """Test that properly formatted publications pass the check."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["https://doi.org/10.1234/abc", "https://doi.org/10.5678/def"],
+    )
+    assert check_publication_list_format(nwbfile) is None
+
+
+def test_check_publication_list_format_pass_single_comma_in_title():
+    """Test that a single publication with a comma in the title passes (not multiple DOIs)."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["Some publication title, with comma"],
+    )
+    assert check_publication_list_format(nwbfile) is None
+
+
+def test_check_publication_list_format_pass_no_publications():
+    """Test that no related_publications passes the check."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    assert check_publication_list_format(nwbfile) is None
+
+
+def test_check_publication_list_format_fail_comma_separated_doi_urls():
+    """Test detection of comma-separated DOI URLs in a single entry."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["https://doi.org/10.1234/abc,https://doi.org/10.5678/def"],
+    )
+    assert check_publication_list_format(nwbfile) == [
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications contains a comma-separated list "
+                "'https://doi.org/10.1234/abc,https://doi.org/10.5678/def'. "
+                "Each publication should be a separate entry in the list, not combined in a single string."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_publication_list_format",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
+    ]
+
+
+def test_check_publication_list_format_fail_comma_separated_doi_prefix():
+    """Test detection of comma-separated DOI prefixes in a single entry."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=["doi:10.1234/abc, doi:10.5678/def"],
+    )
+    assert check_publication_list_format(nwbfile) == [
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications contains a comma-separated list "
+                "'doi:10.1234/abc, doi:10.5678/def'. "
+                "Each publication should be a separate entry in the list, not combined in a single string."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_publication_list_format",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
+    ]
+
+
+def test_check_publication_list_format_bytestring_fail():
+    """Test that bytestrings are properly decoded and checked."""
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+        related_publications=[b"https://doi.org/10.1234/abc,https://doi.org/10.5678/def"],
+    )
+    assert check_publication_list_format(nwbfile) == [
+        InspectorMessage(
+            message=(
+                "Metadata /general/related_publications contains a comma-separated list "
+                "'https://doi.org/10.1234/abc,https://doi.org/10.5678/def'. "
+                "Each publication should be a separate entry in the list, not combined in a single string."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_publication_list_format",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
     ]
 
 
