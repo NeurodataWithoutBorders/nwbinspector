@@ -109,8 +109,9 @@ This section lists the available checks organized by their importance level.
 """)
 
         for importance_level, checks in dd.items():
-            f.write(f"""{importance_level}
-{'-' * (len(f'{importance_level}') + 1)}
+            heading = f"{importance_level} ({len(checks)})"
+            f.write(f"""{heading}
+{'-' * len(heading)}
 
 """)
 
