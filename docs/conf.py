@@ -51,6 +51,12 @@ html_context = {
     "conf_py_path": "/docs/",
 }
 
+# linkcheck
+# Ontobee is frequently slow or unreachable, so external link checking skips it to avoid spurious failures.
+linkcheck_ignore = [
+    r"https://ontobee\.org/?.*",
+]
+
 # --------------------------------------------------
 # Extension configuration
 # --------------------------------------------------
