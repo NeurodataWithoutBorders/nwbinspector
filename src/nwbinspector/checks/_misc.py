@@ -18,8 +18,12 @@ def check_decomposition_series_unit(
     """
     unit = decomposition_series.unit
     metric = decomposition_series.metric
+    normalized_metric = metric.lower() if metric is not None else None
 
-    if unit in ("no unit", ""):
+    # The PyNWB default "no unit" is almost always wrong for a DecompositionSeries since the metric
+    # carries enough information to determine a real unit. A truly empty unit is left to the more
+    # general `check_missing_unit` so that the same field is not flagged by two checks at once.
+    if unit == "no unit":
         return InspectorMessage(
             message=(
                 f"DecompositionSeries is missing a valid unit (current value: '{unit}'). "
@@ -28,7 +32,7 @@ def check_decomposition_series_unit(
             )
         )
 
-    if metric == "phase" and unit not in ("radians", "degrees"):
+    if normalized_metric == "phase" and unit not in ("radians", "degrees"):
         return InspectorMessage(
             message=(
                 f"DecompositionSeries with metric 'phase' should have unit 'radians' or 'degrees', "
@@ -36,7 +40,7 @@ def check_decomposition_series_unit(
             )
         )
 
-    if metric == "amplitude" and decomposition_series.source_timeseries is not None:
+    if normalized_metric == "amplitude" and decomposition_series.source_timeseries is not None:
         source_unit = decomposition_series.source_timeseries.unit
         if unit != source_unit:
             return InspectorMessage(

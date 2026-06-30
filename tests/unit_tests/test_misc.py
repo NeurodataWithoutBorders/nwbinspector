@@ -57,10 +57,25 @@ def test_fail_decomposition_series_unit_no_unit():
     assert "amplitude" in result.message
 
 
-def test_fail_decomposition_series_unit_empty_string():
+def test_decomposition_series_unit_empty_string_deferred_to_missing_unit():
+    # A truly empty unit is left to the general `check_missing_unit` so the field is not flagged twice.
     ds = _make_decomposition_series(metric="power", unit="")
+    assert check_decomposition_series_unit(ds) is None
+
+
+def test_fail_decomposition_series_unit_phase_case_insensitive_metric():
+    ds = _make_decomposition_series(metric="Phase", unit="volts")
     result = check_decomposition_series_unit(ds)
-    assert result is not None
+    assert result == InspectorMessage(
+        message=(
+            "DecompositionSeries with metric 'phase' should have unit 'radians' or 'degrees', " "but has unit 'volts'."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_decomposition_series_unit",
+        object_type="DecompositionSeries",
+        object_name="test",
+        location="/",
+    )
 
 
 def test_pass_decomposition_series_unit_amplitude_matches_source():
