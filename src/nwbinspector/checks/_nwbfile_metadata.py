@@ -168,6 +168,35 @@ def check_doi_publications(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessa
     return None
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_publication_list_format(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if related_publications entries contain comma-separated values that should be separate list entries.
+
+    Best Practice: :ref:`best_practice_doi_publications`
+    """
+    if not nwbfile.related_publications:
+        return None
+    for publication in nwbfile.related_publications:
+        publication = publication.decode() if isinstance(publication, bytes) else publication
+        # Check for comma-separated DOIs or URLs within a single entry
+        # Look for patterns like "doi:xxx,doi:yyy" or "https://doi.org/xxx,https://doi.org/yyy"
+        if "," in publication:
+            # Check if the comma appears to separate multiple DOIs/URLs
+            parts = [p.strip() for p in publication.split(",")]
+            doi_indicators = ["doi:", "doi.org/"]
+            doi_like_parts = [part for part in parts if any(indicator in part.lower() for indicator in doi_indicators)]
+            if len(doi_like_parts) > 1:
+                yield InspectorMessage(
+                    message=(
+                        f"Metadata /general/related_publications contains a comma-separated list '{publication}'. "
+                        "Each publication should be a separate entry in the list, not combined in a single string."
+                    )
+                )
+
+    return None
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
