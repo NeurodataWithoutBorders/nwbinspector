@@ -424,6 +424,18 @@ def test_check_table_values_for_dict_json_case_fail():
     ]
 
 
+def test_check_table_values_for_dict_empty_column():
+    """Regression test for https://github.com/NeurodataWithoutBorders/nwbinspector/issues/712.
+
+    An empty table has columns with zero-length data; the check must skip them instead of
+    raising IndexError on ``column.data[0]``.
+    """
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+
+    assert check_table_values_for_dict(table=table) is None
+
+
 def test_check_col_not_nan_pass():
     table = DynamicTable(name="test_table", description="")
     for name in ["test_column_not_nan", "test_column_string"]:

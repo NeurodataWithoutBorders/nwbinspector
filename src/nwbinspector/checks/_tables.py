@@ -252,7 +252,12 @@ def check_table_values_for_dict(
 ) -> Optional[Iterable[InspectorMessage]]:
     """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
     for column in table.columns:
-        if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
+        if (
+            not hasattr(column, "data")
+            or isinstance(column, VectorIndex)
+            or len(column.data) == 0
+            or not isinstance(column.data[0], str)
+        ):
             continue
         for string in cache_data_selection(data=column.data, selection=slice(nelems)):
             if is_dict_in_string(string=string):
