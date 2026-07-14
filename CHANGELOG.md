@@ -1,6 +1,7 @@
 # v0.7.3 (Upcoming)
 
 ### New Checks
+* Added `check_image_series_external_file_forward_slashes` to detect backslashes in `ImageSeries.external_file` paths. Such paths are produced by platform-dependent path joining on Windows and silently fail to resolve on POSIX systems and against archive asset keys such as those used by DANDI. [#697](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/697)
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
