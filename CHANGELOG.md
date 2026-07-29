@@ -3,7 +3,8 @@
 ### New Checks
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
-* Added `check_hed_annotations_valid` and `check_hed_lab_metadata_exists` for HED annotations written with the `ndx-hed` extension. Each error found by the HED validator becomes its own inspector message, with errors that repeat down a column collapsed into one. The checks require the extension, which is a new optional dependency installed with `pip install nwbinspector[hed]`. [#718](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/718)
+* Added `check_meanings_table_includes_all_values` to detect values of a categorical column that have no entry in its `MeaningsTable`. [#718](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/718)
+* Added `check_hed_annotations_valid`, `check_hed_lab_metadata_exists`, and `check_hed_value_vector_not_in_meanings_table` for HED annotations written with the `ndx-hed` extension. Each error found by the HED validator becomes its own inspector message, with errors that repeat down a column collapsed into one. Validating the annotations requires the extension, which is a new optional dependency installed with `pip install nwbinspector[hed]`. [#718](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/718)
 
 ### Improvements
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)

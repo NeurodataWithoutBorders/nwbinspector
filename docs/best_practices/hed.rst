@@ -1,7 +1,7 @@
 HED Annotations
 ===============
 
-`HED <https://www.hed-resources.org>`_ (Hierarchical Event Descriptors) is a controlled vocabulary for
+`HED <https://www.hedtags.org/hed-resources/>`_ (Hierarchical Event Descriptors) is a controlled vocabulary for
 annotating events and other tabular data. In NWB, HED annotations are stored with the
 `ndx-hed <https://github.com/hed-standard/ndx-hed>`_ extension, which adds ``HedTags`` and ``HedValueVector``
 columns to any :ref:`hdmf-schema:sec-dynamictable` and a ``HedLabMetaData`` object that records the version of
@@ -47,3 +47,16 @@ requires reading the whole table into memory, which the inspector avoids so that
 on files read over a network. Run ``HedNWBValidator.validate_file`` from ``ndx-hed`` directly to get it.
 
 Check function: :py:meth:`~nwbinspector.checks._hed.check_hed_annotations_valid`
+
+.. _best_practice_hed_value_vector_meanings_table:
+
+Annotate a MeaningsTable with HedTags, Not HedValueVector
+---------------------------------------------------------
+
+A ``MeaningsTable`` assigns a meaning to each individual value of a categorical column, so its HED annotations
+are complete HED strings stored in a ``HedTags`` column, one annotation per value. A ``HedValueVector`` is the
+opposite construct: a single template annotation with a ``#`` placeholder that each value of a column is
+substituted into. A template has no role inside a ``MeaningsTable``, and the ``ndx-hed`` validator rejects
+files that place one there.
+
+Check function: :py:meth:`~nwbinspector.checks._hed.check_hed_value_vector_not_in_meanings_table`

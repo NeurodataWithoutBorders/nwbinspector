@@ -3,7 +3,7 @@
 from collections import defaultdict
 from typing import Any, Iterable, Optional
 
-from hdmf.common import DynamicTable
+from hdmf.common import DynamicTable, MeaningsTable
 from pynwb import NWBFile
 
 from .._registration import Importance, InspectorMessage, register_check
@@ -170,5 +170,31 @@ def check_hed_annotations_valid(table: DynamicTable) -> Optional[Iterable[Inspec
 
     for issues_in_group in grouped_issues.values():
         yield InspectorMessage(message=_format_issue_message(issues=issues_in_group))
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=MeaningsTable)
+def check_hed_value_vector_not_in_meanings_table(meanings_table: MeaningsTable) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that a MeaningsTable does not store its HED annotations in a HedValueVector column.
+
+    A MeaningsTable assigns a meaning to each individual value of a categorical column, so its HED
+    annotations are complete HED strings in a ``HedTags`` column. A ``HedValueVector`` is a template
+    with a ``#`` placeholder that a value from the column is substituted into, which has no role in a
+    MeaningsTable.
+
+    Best Practice: :ref:`best_practice_hed_value_vector_meanings_table`
+    """
+    for column in meanings_table.columns:
+        if type(column).__name__ == "HedValueVector":
+            yield InspectorMessage(
+                message=(
+                    f"Column '{column.name}' of MeaningsTable '{meanings_table.name}' is a HedValueVector, "
+                    "which is not allowed in a MeaningsTable. A MeaningsTable assigns a HED annotation to "
+                    "each individual value of a categorical column, so its annotations must be complete "
+                    "HED strings stored in a HedTags column."
+                )
+            )
 
     return None

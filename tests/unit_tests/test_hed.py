@@ -7,13 +7,14 @@ These require the ``ndx-hed`` package, which is an optional dependency of the NW
 from datetime import datetime, timezone
 
 import pytest
-from hdmf.common import DynamicTable, VectorData
+from hdmf.common import DynamicTable, MeaningsTable, VectorData
 from pynwb import NWBFile
 
 from nwbinspector import Importance, InspectorMessage, default_check_registry
 from nwbinspector.checks import (
     check_hed_annotations_valid,
     check_hed_lab_metadata_exists,
+    check_hed_value_vector_not_in_meanings_table,
 )
 
 pytest.importorskip("ndx_hed", reason="The 'ndx-hed' package is required for the HED checks.")
@@ -195,6 +196,51 @@ def test_check_hed_annotations_valid_of_a_value_vector():
     assert "'InvalidValueTag'" in messages[0].message
 
 
+def _make_meanings_table(annotation_column) -> MeaningsTable:
+    target = VectorData(name="response", description="Response codes.", data=["go", "stop"])
+    meanings_table = MeaningsTable(target=target, description="Meanings of response codes.")
+    meanings_table.add_row(value="go", meaning="A go trial.")
+    meanings_table.add_row(value="stop", meaning="A stop trial.")
+    meanings_table.add_column(
+        name=annotation_column.pop("name"), description="HED annotations of the values.", **annotation_column
+    )
+
+    return meanings_table
+
+
+def test_check_hed_value_vector_not_in_meanings_table_pass():
+    meanings_table = _make_meanings_table(
+        annotation_column=dict(name="HED", col_cls=HedTags, data=["Sensory-event", "Agent-action"])
+    )
+
+    assert check_hed_value_vector_not_in_meanings_table(meanings_table=meanings_table) is None
+
+
+def test_check_hed_value_vector_not_in_meanings_table_fail():
+    meanings_table = _make_meanings_table(
+        annotation_column=dict(name="template", col_cls=HedValueVector, data=[1, 2], hed="Duration/# s")
+    )
+
+    messages = list(check_hed_value_vector_not_in_meanings_table(meanings_table=meanings_table))
+
+    assert messages == [
+        InspectorMessage(
+            message=(
+                "Column 'template' of MeaningsTable 'response_meanings' is a HedValueVector, "
+                "which is not allowed in a MeaningsTable. A MeaningsTable assigns a HED annotation to "
+                "each individual value of a categorical column, so its annotations must be complete "
+                "HED strings stored in a HedTags column."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_hed_value_vector_not_in_meanings_table",
+            object_type="MeaningsTable",
+            object_name="response_meanings",
+            location="/",
+        )
+    ]
+
+
 def test_hed_checks_are_registered():
     assert "check_hed_lab_metadata_exists" in default_check_registry
     assert "check_hed_annotations_valid" in default_check_registry
+    assert "check_hed_value_vector_not_in_meanings_table" in default_check_registry

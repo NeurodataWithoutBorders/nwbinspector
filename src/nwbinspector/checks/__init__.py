@@ -28,6 +28,7 @@ from ._general import (
 from ._hed import (
     check_hed_annotations_valid,
     check_hed_lab_metadata_exists,
+    check_hed_value_vector_not_in_meanings_table,
 )
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
@@ -91,6 +92,7 @@ from ._tables import (
     check_dynamic_table_region_data_validity,
     check_empty_table,
     check_ids_unique,
+    check_meanings_table_includes_all_values,
     check_single_row,
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
@@ -165,6 +167,7 @@ __all__ = [
     "check_roi_response_series_link_to_plane_segmentation",
     "check_single_row",
     "check_ids_unique",
+    "check_meanings_table_includes_all_values",
     "check_empty_table",
     "check_col_not_nan",
     "check_column_binary_capability",
@@ -206,4 +209,5 @@ __all__ = [
     "check_units_table_has_spikes",
     "check_hed_lab_metadata_exists",
     "check_hed_annotations_valid",
+    "check_hed_value_vector_not_in_meanings_table",
 ]
