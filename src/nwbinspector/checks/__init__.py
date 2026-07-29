@@ -25,6 +25,10 @@ from ._general import (
     check_name_colons,
     check_name_slashes,
 )
+from ._hed import (
+    check_hed_annotations_valid,
+    check_hed_lab_metadata_exists,
+)
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
     check_intracellular_electrode_location_allen_ccf,
@@ -200,4 +204,6 @@ __all__ = [
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
+    "check_hed_lab_metadata_exists",
+    "check_hed_annotations_valid",
 ]
