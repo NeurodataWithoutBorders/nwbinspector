@@ -13,6 +13,7 @@ from nwbinspector import Importance, InspectorMessage, Severity
 from nwbinspector.checks import (
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
+    check_single_chunk_dataset_compression,
     check_small_dataset_compression,
 )
 
@@ -90,6 +91,65 @@ class TestNWBContainers(TestCase):
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(file=file, gb_size=0.001)
             self.assertIsNone(obj=check_large_dataset_compression(nwb_container=nwb_container))
+
+    def test_check_single_chunk_dataset_compression(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            dataset = file.create_dataset(name="test_dataset", shape=(10,), dtype="float64", chunks=(10,))
+            nwb_container = NWBContainer(name="test_container")
+            nwb_container.fields.update(dataset=dataset)
+
+            result = check_single_chunk_dataset_compression(nwb_container=nwb_container, mb_lower_bound=0)
+
+            self.assertEqual(
+                first=result,
+                second=InspectorMessage(
+                    message=(
+                        "test_dataset is stored as a single uncompressed chunk. Consider leaving small datasets "
+                        "unchunked or enabling chunking and compression for larger datasets."
+                    ),
+                    importance=Importance.BEST_PRACTICE_SUGGESTION,
+                    check_function_name="check_single_chunk_dataset_compression",
+                    object_type="NWBContainer",
+                    object_name="test_container",
+                    location="/",
+                ),
+            )
+
+    def test_check_single_chunk_dataset_compression_at_threshold(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            dataset = file.create_dataset(name="test_dataset", shape=(10,), dtype="float64", chunks=(10,))
+            nwb_container = NWBContainer(name="test_container")
+            nwb_container.fields.update(dataset=dataset)
+
+            self.assertIsNone(
+                obj=check_single_chunk_dataset_compression(nwb_container=nwb_container, mb_lower_bound=0.00008)
+            )
+
+    def test_check_single_chunk_dataset_compression_ignores_unchunked_dataset(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            dataset = file.create_dataset(name="test_dataset", shape=(10,), dtype="float64")
+            nwb_container = NWBContainer(name="test_container")
+            nwb_container.fields.update(dataset=dataset)
+
+            self.assertIsNone(obj=check_single_chunk_dataset_compression(nwb_container=nwb_container, mb_lower_bound=0))
+
+    def test_check_single_chunk_dataset_compression_ignores_compressed_dataset(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            dataset = file.create_dataset(
+                name="test_dataset", shape=(10,), dtype="float64", chunks=(10,), compression="gzip"
+            )
+            nwb_container = NWBContainer(name="test_container")
+            nwb_container.fields.update(dataset=dataset)
+
+            self.assertIsNone(obj=check_single_chunk_dataset_compression(nwb_container=nwb_container, mb_lower_bound=0))
+
+    def test_check_single_chunk_dataset_compression_ignores_multiple_chunks(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            dataset = file.create_dataset(name="test_dataset", shape=(10,), dtype="float64", chunks=(5,))
+            nwb_container = NWBContainer(name="test_container")
+            nwb_container.fields.update(dataset=dataset)
+
+            self.assertIsNone(obj=check_single_chunk_dataset_compression(nwb_container=nwb_container, mb_lower_bound=0))
 
 
 def test_no_error_raised_when_dataset_is_compressed():
