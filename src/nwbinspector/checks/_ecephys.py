@@ -84,9 +84,7 @@ def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[In
     waveform_spike_index = _read_index_data(getattr(waveforms_column, "target", None))
     electrode_unit_ends = _read_index_data(electrodes_column)
 
-    waveform_unit_lengths = (
-        _ragged_row_lengths(waveform_unit_ends, n_units) if waveform_unit_ends is not None else None
-    )
+    waveform_unit_lengths = _ragged_row_lengths(waveform_unit_ends, n_units) if waveform_unit_ends is not None else None
     electrode_unit_lengths = (
         _ragged_row_lengths(electrode_unit_ends, n_units) if electrode_unit_ends is not None else None
     )
@@ -100,9 +98,7 @@ def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[In
         )
         return None
 
-    if len(waveform_spike_index) and (
-        waveform_spike_index[0] < 0 or np.any(np.diff(waveform_spike_index) < 0)
-    ):
+    if len(waveform_spike_index) and (waveform_spike_index[0] < 0 or np.any(np.diff(waveform_spike_index) < 0)):
         yield InspectorMessage(
             message=(
                 "This Units table has malformed waveforms ragged indices. "
@@ -118,9 +114,8 @@ def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[In
     except TypeError:
         n_waveform_rows = None
 
-    if (
-        (len(waveform_unit_ends) and waveform_unit_ends[-1] > n_spike_index_rows)
-        or (n_waveform_rows is not None and len(waveform_spike_index) and waveform_spike_index[-1] > n_waveform_rows)
+    if (len(waveform_unit_ends) and waveform_unit_ends[-1] > n_spike_index_rows) or (
+        n_waveform_rows is not None and len(waveform_spike_index) and waveform_spike_index[-1] > n_waveform_rows
     ):
         yield InspectorMessage(
             message=(

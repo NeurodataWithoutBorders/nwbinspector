@@ -30,9 +30,7 @@ from nwbinspector.checks import (
 
 
 def _make_units_with_waveforms(waveform_electrode_counts, electrode_counts):
-    nwbfile = NWBFile(
-        session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
-    )
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
     device = nwbfile.create_device(name="dev")
     group = nwbfile.create_electrode_group(name="electrode_group", description="desc", location="loc", device=device)
     n_electrodes = max(1, max(electrode_counts, default=0))
