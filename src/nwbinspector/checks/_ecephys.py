@@ -107,12 +107,18 @@ def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[In
         )
         return None
 
+    assert waveform_unit_ends is not None
+    assert electrode_unit_ends is not None
+    assert waveform_spike_index is not None
     n_spike_index_rows = len(waveform_spike_index)
     waveform_payload = getattr(getattr(waveforms_column, "target", None), "target", None)
-    try:
-        n_waveform_rows = len(waveform_payload)
-    except TypeError:
+    if waveform_payload is None:
         n_waveform_rows = None
+    else:
+        try:
+            n_waveform_rows = len(waveform_payload)
+        except TypeError:
+            n_waveform_rows = None
 
     if (len(waveform_unit_ends) and waveform_unit_ends[-1] > n_spike_index_rows) or (
         n_waveform_rows is not None and len(waveform_spike_index) and waveform_spike_index[-1] > n_waveform_rows
