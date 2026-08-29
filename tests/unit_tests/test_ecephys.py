@@ -25,7 +25,103 @@ from nwbinspector.checks import (
     check_units_resolution_is_valid,
     check_units_table_duration,
     check_units_table_has_spikes,
+    check_units_waveforms_electrodes,
 )
+
+
+def _make_units_with_waveforms(waveform_electrode_counts, electrode_counts):
+    nwbfile = NWBFile(
+        session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+    )
+    device = nwbfile.create_device(name="dev")
+    group = nwbfile.create_electrode_group(name="electrode_group", description="desc", location="loc", device=device)
+    n_electrodes = max(1, max(electrode_counts, default=0))
+    for _ in range(n_electrodes):
+        nwbfile.add_electrode(location="unknown", group=group)
+
+    units = Units(name="units")
+    nwbfile.units = units
+    for unit_index, (waveform_electrode_count, electrode_count) in enumerate(
+        zip(waveform_electrode_counts, electrode_counts)
+    ):
+        units.add_unit(
+            spike_times=[float(unit_index), float(unit_index) + 0.1],
+            electrodes=list(range(electrode_count)),
+            waveforms=np.zeros((2, waveform_electrode_count, 4)),
+        )
+    return units
+
+
+def test_check_units_waveforms_electrodes_pass():
+    units_table = _make_units_with_waveforms([2], [2])
+    assert check_units_waveforms_electrodes(units_table) is None
+
+
+def test_check_units_waveforms_electrodes_reports_transposed_dimension():
+    units_table = _make_units_with_waveforms([10], [2])
+    results = check_units_waveforms_electrodes(units_table)
+
+    assert results is not None
+    assert len(results) == 1
+    assert results[0].message == (
+        "Units row 0 stores 10 waveform channels per spike but references 2 electrodes. "
+        "The waveform electrode dimension may be transposed."
+    )
+    assert results[0].importance == Importance.CRITICAL
+
+
+def test_check_units_waveforms_electrodes_reports_only_affected_units():
+    units_table = _make_units_with_waveforms([2, 3], [2, 2])
+    results = check_units_waveforms_electrodes(units_table)
+
+    assert results is not None
+    assert len(results) == 1
+    assert "Units row 1" in results[0].message
+
+
+def test_check_units_waveforms_electrodes_reports_inconsistent_spike_dimensions():
+    units_table = _make_units_with_waveforms([2], [2])
+    units_table["waveforms"].target.data[1] = 3
+
+    results = check_units_waveforms_electrodes(units_table)
+
+    assert results is not None
+    assert len(results) == 1
+    assert "inconsistent waveform electrode dimensions" in results[0].message
+    assert "2, 1" in results[0].message
+
+
+def test_check_units_waveforms_electrodes_skips_missing_columns():
+    units_table = Units(name="units")
+    units_table.add_unit(spike_times=[0.0])
+    assert check_units_waveforms_electrodes(units_table) is None
+
+
+def test_check_units_waveforms_electrodes_skips_empty_table():
+    units_table = Units(name="units")
+    assert check_units_waveforms_electrodes(units_table) is None
+
+
+def test_check_units_waveforms_electrodes_reports_malformed_indices():
+    units_table = _make_units_with_waveforms([2], [2])
+    units_table["waveforms"].data[0] = 99
+
+    results = check_units_waveforms_electrodes(units_table)
+
+    assert results is not None
+    assert len(results) == 1
+    assert "incomplete" in results[0].message
+
+
+def test_check_units_waveforms_electrodes_reports_incomplete_nested_indices():
+    units_table = _make_units_with_waveforms([2], [2])
+    units_table["waveforms"].target.data[1] = 99
+
+    results = check_units_waveforms_electrodes(units_table)
+
+    assert results is not None
+    assert len(results) == 1
+    assert "incomplete" in results[0].message
 
 
 def test_check_units_table_has_spikes_fail():
