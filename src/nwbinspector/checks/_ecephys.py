@@ -72,6 +72,8 @@ def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[In
     Only the small index arrays are read; the waveform samples themselves are not
     accessed.  A malformed index is reported as a critical finding because the
     waveform/electrode relationship cannot be validated safely.
+
+    Best Practice: :ref:`best_practice_units_waveforms_electrodes`
     """
     if "waveforms" not in units_table or "electrodes" not in units_table:
         return None
