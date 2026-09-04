@@ -5,6 +5,7 @@
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
 ### Improvements
+* Simplified `get_package_version` to call `importlib.metadata.version` directly. Its `pkg_resources` fallback was unreachable, since `importlib.metadata` raises `PackageNotFoundError` rather than the `ModuleNotFoundError` it caught, and the project requires Python 3.10. [#752](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/752)
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
