@@ -9,6 +9,7 @@
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
 ### Fixes
+* `calculate_number_of_cpu` now raises `ValueError` instead of `AssertionError` for an out-of-range request, so the validation is not stripped under `python -O`. The message for a request that is too negative now explains the limit instead of saying fewer CPUs were requested than available. [#755](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/755)
 * Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Skipped Ontobee in the documentation external link check, which frequently timed out and caused spurious CI failures. [#709](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/709)
 * Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)
