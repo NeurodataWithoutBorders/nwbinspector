@@ -9,6 +9,7 @@
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
 ### Fixes
+* Fixed `check_column_binary_capability`, `check_table_values_for_dict`, `check_col_not_nan`, and `check_table_time_columns_are_not_negative` raising `IndexError` (reported as ERROR-level messages) on tables that have columns but no rows. These checks now return early and leave the reporting to `check_empty_table`. [#728](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/728)
 * Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Skipped Ontobee in the documentation external link check, which frequently timed out and caused spurious CI failures. [#709](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/709)
 * Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)

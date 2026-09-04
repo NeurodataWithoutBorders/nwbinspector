@@ -651,3 +651,52 @@ def test_check_time_intervals_duration_pass_without_additional_time_columns():
     table.add_row(start_time=15.0, stop_time=25.0, custom_time=20.0)
 
     assert check_time_intervals_duration(table) is None
+
+
+def _make_empty_table_with_columns() -> DynamicTable:
+    """A table with declared columns but no rows, which is valid NWB and should only trigger check_empty_table."""
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="float_column", description="", data=np.array([], dtype=float))
+    table.add_column(name="string_column", description="", data=np.array([], dtype=str))
+    table.add_column(name="start_time", description="", data=np.array([], dtype=float))
+    return table
+
+
+def test_check_column_binary_capability_pass_empty_table():
+    assert list(check_column_binary_capability(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_table_values_for_dict_pass_empty_table():
+    assert list(check_table_values_for_dict(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_col_not_nan_pass_empty_table():
+    assert list(check_col_not_nan(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_table_time_columns_are_not_negative_pass_empty_table():
+    assert list(check_table_time_columns_are_not_negative(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
+    """Regression test: a written zero-row table used to raise IndexError inside four table checks."""
+    from pynwb import NWBHDF5IO
+
+    from nwbinspector import inspect_nwbfile_object
+    from nwbinspector.testing import make_minimal_nwbfile
+
+    nwbfile = make_minimal_nwbfile()
+    trials = TimeIntervals(name="trials", description="")
+    trials.add_column(name="float_column", description="", data=np.array([], dtype=float))
+    nwbfile.trials = trials
+
+    nwbfile_path = tmp_path / "empty_trials.nwb"
+    with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+        io.write(nwbfile)
+
+    with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        messages = list(inspect_nwbfile_object(nwbfile_object=io.read()))
+
+    error_messages = [message for message in messages if message.importance is Importance.ERROR]
+    assert error_messages == []
+    assert any(message.check_function_name == "check_empty_table" for message in messages)
