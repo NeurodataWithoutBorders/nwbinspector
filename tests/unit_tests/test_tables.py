@@ -694,8 +694,17 @@ def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
     with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
         io.write(nwbfile)
 
+    # Pass the checks explicitly: other test modules register deliberately broken check functions into the global
+    # registry, and those would show up as ERROR messages if the default check list were used
+    checks = [
+        check_empty_table,
+        check_column_binary_capability,
+        check_table_values_for_dict,
+        check_col_not_nan,
+        check_table_time_columns_are_not_negative,
+    ]
     with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
-        messages = list(inspect_nwbfile_object(nwbfile_object=io.read()))
+        messages = list(inspect_nwbfile_object(nwbfile_object=io.read(), checks=checks))
 
     error_messages = [message for message in messages if message.importance is Importance.ERROR]
     assert error_messages == []
