@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from typing import Type, Union
 from unittest import TestCase, skipUnless
 
+import h5py
 import numpy as np
 from hdmf.backends.io import HDMFIO
 from hdmf.common import DynamicTable
@@ -43,6 +44,12 @@ else:
     NWBZarrIO = None  # sentinel; classes referencing it are skipped via skipUnless
 
 EXPECTED_REPORTS_FOLDER_PATH = Path(__file__).parent / "expected_reports"
+
+
+def get_open_hdf5_file_paths() -> set[Path]:
+    """Return the paths of every HDF5 file currently held open by the HDF5 library in this process."""
+    file_ids = h5py.h5f.get_obj_ids(h5py.h5f.OBJ_ALL, h5py.h5f.OBJ_FILE)
+    return {Path(h5py.h5f.get_name(file_id).decode()).resolve() for file_id in file_ids}
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
@@ -871,6 +878,14 @@ class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
         expected_message = []
 
         assert test_message == expected_message
+
+    def test_inspect_all_leaves_no_open_files(self):
+        """The identifier pre-scan used to read every file through PyNWB without closing the IO object."""
+        list(inspect_all(path=self.tempdir, select=["check_data_orientation"], skip_validate=self.skip_validate))
+
+        open_file_paths = get_open_hdf5_file_paths()
+        leaked_file_paths = {path for path in open_file_paths if path.is_relative_to(self.tempdir.resolve())}
+        assert leaked_file_paths == set()
 
 
 class TestCheckUniqueIdentifiersFailHDF5(TestInspectorOnBackend):
