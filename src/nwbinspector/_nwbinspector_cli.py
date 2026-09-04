@@ -214,7 +214,9 @@ def _nwbinspector_cli(
 
     if json_file_path is not None:
         if Path(json_file_path).exists() and not overwrite:
-            raise FileExistsError(f"The file {json_file_path} already exists! Specify the '-o' flag to overwrite.")
+            raise FileExistsError(
+                f"The file {json_file_path} already exists! Pass the '--overwrite' flag to overwrite."
+            )
         with open(file=json_file_path, mode="w") as fp:
             json_report = dict(header=_get_report_header(), messages=messages)
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
