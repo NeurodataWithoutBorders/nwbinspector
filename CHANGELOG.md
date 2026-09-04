@@ -5,6 +5,7 @@
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
 ### Improvements
+* `check_regular_timestamps` no longer reads the entire timestamps dataset (twice) into memory. It now reads the first and last `nelems` timestamps and compares the total span of the series against the step, so a gap or rate change anywhere in the series is still detected while the memory used no longer grows with the length of the series. Pass `nelems=None` to restore the full read. [#742](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/742)
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 

@@ -8,35 +8,83 @@ from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
-from ..utils import get_data_shape, is_ascending_series, is_regular_series
+from ..utils import (
+    cache_data_selection,
+    get_data_shape,
+    is_ascending_series,
+    is_regular_series,
+)
+
+NELEMS = 200
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_regular_timestamps(
-    time_series: TimeSeries, time_tolerance_decimals: int = 9, gb_severity_threshold: float = 1.0
+    time_series: TimeSeries,
+    time_tolerance_decimals: int = 9,
+    gb_severity_threshold: float = 1.0,
+    nelems: Optional[int] = NELEMS,
 ) -> Optional[InspectorMessage]:
-    """If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate)."""
-    if (
-        time_series.timestamps is not None
-        and len(time_series.timestamps) > 2
-        and is_regular_series(series=time_series.timestamps, tolerance_decimals=time_tolerance_decimals)
-        and (time_series.timestamps[1] - time_series.timestamps[0]) != 0
-    ):
-        timestamps = np.array(time_series.timestamps)
-        if timestamps.size * timestamps.dtype.itemsize > gb_severity_threshold * 1e9:
-            severity = Severity.HIGH
-        else:
-            severity = Severity.LOW
-        return InspectorMessage(
-            severity=severity,
-            message=(
-                "TimeSeries appears to have a constant sampling rate. "
-                f"Consider specifying starting_time={time_series.timestamps[0]} "
-                f"and rate={1 / (time_series.timestamps[1] - time_series.timestamps[0])} instead of timestamps."
-            ),
-        )
+    """
+    If the TimeSeries uses timestamps, check if they are regular (i.e., they have a constant rate).
 
-    return None
+    Parameters
+    ----------
+    time_series : TimeSeries
+    time_tolerance_decimals : int, optional
+        Consecutive differences are rounded to this many decimals before being compared.
+    gb_severity_threshold : float, optional
+        Timestamps larger than this many gigabytes are reported with high severity.
+    nelems : int, optional
+        Only the first and last {nelems} timestamps are read, along with the total span of the series, so that a
+        large dataset is not loaded into memory. The series is only reported as regular if both ends have the same
+        constant step and the total span matches that step, so a gap or rate change anywhere in the series is still
+        detected. Use None to read the entire array.
+    """
+    timestamps = time_series.timestamps
+    if timestamps is None:
+        return None
+
+    number_of_timestamps = len(timestamps)
+    if number_of_timestamps <= 2:
+        return None
+
+    if nelems is None or number_of_timestamps <= 2 * nelems:
+        head = np.asarray(cache_data_selection(data=timestamps, selection=slice(None)))
+        if not is_regular_series(series=head, tolerance_decimals=time_tolerance_decimals):
+            return None
+        step = head[1] - head[0]
+    else:
+        head = np.asarray(cache_data_selection(data=timestamps, selection=slice(nelems)))
+        tail = np.asarray(cache_data_selection(data=timestamps, selection=slice(-nelems, None)))
+        if not (
+            is_regular_series(series=head, tolerance_decimals=time_tolerance_decimals)
+            and is_regular_series(series=tail, tolerance_decimals=time_tolerance_decimals)
+        ):
+            return None
+        step = head[1] - head[0]
+        if round(step - (tail[1] - tail[0]), time_tolerance_decimals) != 0:
+            return None
+        # Any gap, rate change, or jitter in the unread middle section changes the total span of the series
+        expected_span = step * (number_of_timestamps - 1)
+        if abs((tail[-1] - head[0]) - expected_span) > abs(step) / 2:
+            return None
+
+    if step == 0:
+        return None
+
+    itemsize = getattr(timestamps, "dtype", head.dtype).itemsize
+    if number_of_timestamps * itemsize > gb_severity_threshold * 1e9:
+        severity = Severity.HIGH
+    else:
+        severity = Severity.LOW
+    return InspectorMessage(
+        severity=severity,
+        message=(
+            "TimeSeries appears to have a constant sampling rate. "
+            f"Consider specifying starting_time={head[0]} and rate={1 / step} instead of timestamps."
+        ),
+    )
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
