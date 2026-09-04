@@ -5,6 +5,7 @@
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
 ### Improvements
+* Removed the `stream` and `version_id` arguments of `inspect_all` and the `driver` and `max_retries` arguments of `inspect_nwbfile`, all of which had been deprecated for removal after 3/1/2025. Use `inspect_dandiset`, `inspect_dandi_file_path`, or `inspect_url` to inspect files on the DANDI archive. [#750](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/750)
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
