@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
-from pynwb import NWBFile
+from pynwb import NWBHDF5IO, NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.file import Subject
 from pynwb.misc import Units
@@ -512,6 +512,91 @@ class TestCheckAscendingSpikeTimes(TestCase):
     def test_ascending_spike_times_nelems(self):
         self.units_table.add_unit(spike_times=[0.0, 0.1, 0.05])
         assert check_ascending_spike_times(units_table=self.units_table, nelems=2) is None
+
+
+class TestUnitsChecksBoundedReads(TestCase):
+    """The Units checks must not read every spike time in the file; see the boundary-index helper in _ecephys.py."""
+
+    number_of_units = 10
+    spikes_per_unit = 500_000  # 5M float64 spike times, a 40 MB dataset
+
+    @classmethod
+    def setUpClass(cls):
+        from tempfile import mkdtemp
+
+        cls.tempdir = mkdtemp()
+        cls.nwbfile_path = f"{cls.tempdir}/units.nwb"
+        nwbfile = NWBFile(
+            session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+        )
+        for _ in range(cls.number_of_units):
+            nwbfile.add_unit(spike_times=np.arange(cls.spikes_per_unit) / 30000.0)
+        with NWBHDF5IO(path=cls.nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        from shutil import rmtree
+
+        rmtree(cls.tempdir, ignore_errors=True)
+
+    def _peak_memory(self, check_function) -> float:
+        import tracemalloc
+
+        with NWBHDF5IO(path=self.nwbfile_path, mode="r") as io:
+            units_table = io.read().units
+            tracemalloc.start()
+            result = check_function(units_table)
+            _, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+        assert result is None
+        return peak / 1e6
+
+    def test_check_negative_spike_times_reads_boundary_spikes_only(self):
+        assert self._peak_memory(check_negative_spike_times) < 1.0
+
+    def test_check_units_table_duration_reads_boundary_spikes_only(self):
+        assert self._peak_memory(check_units_table_duration) < 1.0
+
+    def test_check_ascending_spike_times_reads_nelems_per_unit(self):
+        assert self._peak_memory(check_ascending_spike_times) < 1.0
+
+    def test_check_spike_times_without_nans_reads_in_chunks(self):
+        # One 1M-element chunk plus its boolean mask is about 9 MB; the full 40 MB dataset must never be resident
+        assert self._peak_memory(check_spike_times_without_nans) < 15.0
+
+
+def test_check_negative_spike_times_in_later_unit():
+    """The negative time is the first spike of the third unit, well past the first 200 flat values."""
+    units_table = Units()
+    units_table.add_unit(spike_times=np.arange(300) / 100.0)
+    units_table.add_unit(spike_times=np.arange(300) / 100.0)
+    units_table.add_unit(spike_times=[-1.0, 0.5])
+    assert check_negative_spike_times(units_table=units_table) is not None
+
+
+def test_check_spike_times_without_nans_padding_in_later_unit():
+    """NaN padding at the end of the third unit's train, well past the first 200 flat values."""
+    units_table = Units()
+    units_table.add_unit(spike_times=np.arange(300) / 100.0)
+    units_table.add_unit(spike_times=np.arange(300) / 100.0)
+    units_table.add_unit(spike_times=[0.5, 0.6, np.nan, np.nan])
+    assert check_spike_times_without_nans(units_table=units_table) is not None
+
+
+def test_check_ascending_spike_times_on_disk_slices_through_index(tmp_path):
+    """Descending times in the second unit must be found when reading a written file through the index array."""
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+    nwbfile.add_unit(spike_times=[0.0, 0.1, 0.2])
+    nwbfile.add_unit(spike_times=[1.0, 0.9, 1.2])
+    nwbfile_path = tmp_path / "units.nwb"
+    with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+        io.write(nwbfile)
+
+    with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        result = check_ascending_spike_times(units_table=io.read().units)
+        assert result is not None
+        assert result.message.startswith("Unit 1 contains descending spike times")
 
 
 def test_check_units_table_duration_pass():
