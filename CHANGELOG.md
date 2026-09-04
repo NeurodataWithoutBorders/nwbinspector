@@ -9,6 +9,7 @@
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
 ### Fixes
+* Fixed `check_image_series_external_file_valid` raising `TypeError` on an NWBFile that has not been written to disk (no container source to resolve relative paths against), and `check_spatial_series_dims`, `check_spatial_series_radians_magnitude`, and `check_spatial_series_degrees_magnitude` raising on a SpatialSeries whose data is a plain list. These surfaced as ERROR-level messages from `inspect_nwbfile_object`. [#732](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/732)
 * Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Skipped Ontobee in the documentation external link check, which frequently timed out and caused spurious CI failures. [#709](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/709)
 * Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)

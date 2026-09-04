@@ -215,3 +215,95 @@ def test_fail_check_spatial_series_unit_none():
     spatial_series.fields["unit"] = None
     result = check_spatial_series_unit(spatial_series)
     assert result is not None
+
+
+def test_check_spatial_series_dims_list_data():
+    """PyNWB accepts a plain list for data; the check must not assume a .shape attribute."""
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]],
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_dims(spatial_series) == InspectorMessage(
+        message="SpatialSeries should have 1 column (x), 2 columns (x, y), or 3 columns (x, y, z).",
+        importance=Importance.CRITICAL,
+        check_function_name="check_spatial_series_dims",
+        object_type="SpatialSeries",
+        object_name="SpatialSeries",
+        location="/",
+    )
+
+
+def test_pass_check_spatial_series_dims_list_data():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_dims(spatial_series) is None
+
+
+def test_check_spatial_series_radians_magnitude_list_data():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0], [3.0, 10.0]],
+        unit="radians",
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_radians_magnitude(spatial_series) == InspectorMessage(
+        message="SpatialSeries with units of radians must have values between -2pi and 2pi.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spatial_series_radians_magnitude",
+        object_type="SpatialSeries",
+        object_name="SpatialSeries",
+        location="/",
+    )
+
+
+def test_pass_check_spatial_series_radians_magnitude_list_data():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        unit="radians",
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_radians_magnitude(spatial_series) is None
+
+
+def test_check_spatial_series_degrees_magnitude_list_data():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0], [3.0, 400.0]],
+        unit="degrees",
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_degrees_magnitude(spatial_series) == InspectorMessage(
+        message="SpatialSeries with units of degrees must have values between -360 and 360.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_spatial_series_degrees_magnitude",
+        object_type="SpatialSeries",
+        object_name="SpatialSeries",
+        location="/",
+    )
+
+
+def test_pass_check_spatial_series_degrees_magnitude_list_data():
+    spatial_series = SpatialSeries(
+        name="SpatialSeries",
+        description="description",
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        unit="degrees",
+        rate=3.0,
+        reference_frame="reference_frame",
+    )
+    assert check_spatial_series_degrees_magnitude(spatial_series) is None
