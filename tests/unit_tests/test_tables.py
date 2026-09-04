@@ -52,8 +52,8 @@ class TestCheckDynamicTableRegion(TestCase):
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message=(
-                "Some elements of dyn_tab are out of range because they are greater than the length of the target "
-                "table. Note that data should contain indices, not ids."
+                "Some elements of dyn_tab are out of range because they are greater than or equal to the length of "
+                "the target table. Note that data should contain indices, not ids."
             ),
             importance=Importance.CRITICAL,
             check_function_name="check_dynamic_table_region_data_validity",
@@ -61,6 +61,31 @@ class TestCheckDynamicTableRegion(TestCase):
             object_name="dyn_tab",
             location="/",
         )
+
+    def test_check_dynamic_table_region_data_validity_eq_len(self):
+        """An index equal to the table length is the first out-of-range value and must be flagged."""
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1], table=self.table)
+        dynamic_table_region.data[:] = [0, len(self.table)]
+
+        assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
+            message=(
+                "Some elements of dyn_tab are out of range because they are greater than or equal to the length of "
+                "the target table. Note that data should contain indices, not ids."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_dynamic_table_region_data_validity",
+            object_type="DynamicTableRegion",
+            object_name="dyn_tab",
+            location="/",
+        )
+
+    def test_pass_check_dynamic_table_region_data_last_index(self):
+        """The last valid index is len(table) - 1 and must not be flagged."""
+        dynamic_table_region = DynamicTableRegion(
+            name="dyn_tab", description="desc", data=[0, len(self.table) - 1], table=self.table
+        )
+
+        assert check_dynamic_table_region_data_validity(dynamic_table_region) is None
 
     def test_pass_check_dynamic_table_region_data(self):
         dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1, 2], table=self.table)

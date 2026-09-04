@@ -26,11 +26,11 @@ def check_dynamic_table_region_data_validity(
     dynamic_table_region: DynamicTableRegion, nelems: Optional[int] = NELEMS
 ) -> Optional[InspectorMessage]:
     """Check if a DynamicTableRegion is valid."""
-    if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
+    if np.any(np.asarray(dynamic_table_region.data[:nelems]) >= len(dynamic_table_region.table)):
         return InspectorMessage(
             message=(
-                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than the "
-                "length of the target table. Note that data should contain indices, not ids."
+                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than or "
+                "equal to the length of the target table. Note that data should contain indices, not ids."
             )
         )
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) < 0):
