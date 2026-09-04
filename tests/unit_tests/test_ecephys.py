@@ -519,6 +519,8 @@ class TestUnitsChecksBoundedReads(TestCase):
 
     number_of_units = 10
     spikes_per_unit = 500_000  # 5M float64 spike times, a 40 MB dataset
+    tempdir: str
+    nwbfile_path: str
 
     @classmethod
     def setUpClass(cls):
