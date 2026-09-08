@@ -4,7 +4,7 @@ from numbers import Real
 from typing import Iterable, Optional
 
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion, VectorIndex
+from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorIndex
 from pynwb.file import TimeIntervals, Units
 
 from .._registration import Importance, InspectorMessage, register_check
@@ -399,3 +399,55 @@ def check_time_intervals_duration(
                 )
             )
     return None
+
+
+def _normalize_categorical_value(value: object) -> str:
+    """Normalize a value of a categorical column for comparison against the MeaningsTable entries."""
+    if isinstance(value, bytes):
+        value = value.decode("utf-8")
+
+    return str(value)
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=MeaningsTable)
+def check_meanings_table_includes_all_values(
+    meanings_table: MeaningsTable, maximum_number_of_listed_values: int = 5
+) -> Optional[InspectorMessage]:
+    """
+    Check that every value of the column annotated by a MeaningsTable has an entry in the table.
+
+    The values ``None``, ``""``, and ``"n/a"`` mark missing data and do not need an entry. The reverse
+    is allowed: a MeaningsTable may contain entries for values that never occur in the column.
+
+    Best Practice: :ref:`best_practice_meanings_table_includes_all_values`
+    """
+    target = meanings_table.target
+    if target is None or "value" not in meanings_table.colnames:
+        return None
+
+    known_values = {_normalize_categorical_value(value=value) for value in meanings_table["value"].data[:]}
+
+    missing_values: list[str] = []  # in order of first appearance, so that the message is deterministic
+    for value in target.data[:]:
+        if value is None or (isinstance(value, Real) and np.isnan(value)):
+            continue
+        normalized_value = _normalize_categorical_value(value=value)
+        if normalized_value in ("", "n/a") or normalized_value in known_values or normalized_value in missing_values:
+            continue
+        missing_values.append(normalized_value)
+
+    if not missing_values:
+        return None
+
+    listed_values = ", ".join(f"'{value}'" for value in missing_values[:maximum_number_of_listed_values])
+    number_of_unlisted_values = len(missing_values) - min(len(missing_values), maximum_number_of_listed_values)
+    if number_of_unlisted_values > 0:
+        listed_values += f" (and {number_of_unlisted_values} more)"
+
+    return InspectorMessage(
+        message=(
+            f"Column '{target.name}' contains values that have no entry in its MeaningsTable "
+            f"'{meanings_table.name}': {listed_values}. Every value of the annotated column should have "
+            "an entry in the 'value' column of the MeaningsTable describing its meaning."
+        )
+    )

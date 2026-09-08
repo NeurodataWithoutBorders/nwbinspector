@@ -142,3 +142,17 @@ descendants of :ref:`hdmf-schema:sec-dynamictable` such as :ref:`nwb-schema:sec-
 ``ElectrodesTable``. In PyNWB, rows of :ref:`hdmf-schema:sec-dynamictable` increment as you add rows, so this
 variable is unique by default. If you would like to make values of ``id`` non-unique, a better
 solution would be to store these values as a custom column and use the default ``id`` values.
+
+.. _best_practice_meanings_table_includes_all_values:
+
+Complete MeaningsTables
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``MeaningsTable`` describes the meaning of each value that a categorical column can take. Every value that
+occurs in the annotated column should have an entry in the ``value`` column of its ``MeaningsTable``; a value
+without an entry has no recorded meaning, and tools that consume the meanings (for example, HED annotations of
+the categories) cannot process it. The reverse is allowed: the ``MeaningsTable`` may contain entries for values
+that never occur in the column, such as a condition that was planned but not run. The values ``None``, ``""``,
+and ``"n/a"`` mark missing data and do not need an entry.
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_meanings_table_includes_all_values`

@@ -3,7 +3,7 @@ import platform
 from unittest import TestCase
 
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion
+from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorData
 from numpy.lib import NumpyVersion
 from pynwb.file import Device, ElectrodeGroup, ElectrodesTable, TimeIntervals, Units
 
@@ -14,6 +14,7 @@ from nwbinspector.checks import (
     check_dynamic_table_region_data_validity,
     check_empty_table,
     check_ids_unique,
+    check_meanings_table_includes_all_values,
     check_single_row,
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
@@ -651,3 +652,59 @@ def test_check_time_intervals_duration_pass_without_additional_time_columns():
     table.add_row(start_time=15.0, stop_time=25.0, custom_time=20.0)
 
     assert check_time_intervals_duration(table) is None
+
+
+def _make_meanings_table(column_values: list, mapped_values: list) -> MeaningsTable:
+    target = VectorData(name="response", description="Response codes.", data=column_values)
+    meanings_table = MeaningsTable(target=target, description="Meanings of response codes.")
+    for value in mapped_values:
+        meanings_table.add_row(value=value, meaning=f"The meaning of {value}.")
+
+    return meanings_table
+
+
+def test_check_meanings_table_includes_all_values_pass():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "go"], mapped_values=["go", "stop"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_extra_entries_are_allowed():
+    """The reverse direction is not an error: entries for values that never occur in the column."""
+    meanings_table = _make_meanings_table(column_values=["go", "go"], mapped_values=["go", "stop", "pause"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_missing_data_needs_no_entry():
+    meanings_table = _make_meanings_table(column_values=["go", "n/a", "", None], mapped_values=["go"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_fail():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "pause"], mapped_values=["go"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) == InspectorMessage(
+        message=(
+            "Column 'response' contains values that have no entry in its MeaningsTable "
+            "'response_meanings': 'stop', 'pause'. Every value of the annotated column should have "
+            "an entry in the 'value' column of the MeaningsTable describing its meaning."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_meanings_table_includes_all_values",
+        object_type="MeaningsTable",
+        object_name="response_meanings",
+        location="/",
+    )
+
+
+def test_check_meanings_table_includes_all_values_lists_only_a_few_values():
+    column_values = [f"code_{index}" for index in range(8)]
+    meanings_table = _make_meanings_table(column_values=column_values, mapped_values=["code_0"])
+
+    message = check_meanings_table_includes_all_values(meanings_table=meanings_table).message
+    assert "'code_1'" in message
+    assert "'code_5'" in message
+    assert "'code_6'" not in message
+    assert "(and 2 more)" in message
