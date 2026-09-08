@@ -7,6 +7,7 @@ from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
 from pynwb.device import Device, DeviceModel
 from pynwb.file import Subject
+from pynwb.image import ImageSeries
 from pynwb.ophys import (
     ImageSegmentation,
     ImagingPlane,
@@ -22,6 +23,7 @@ from nwbinspector.checks import (
     check_excitation_lambda_in_nm,
     check_image_series_data_size,  # Technically an ImageSeries check, but test is more convenient here
     check_imaging_plane_location_allen_ccf,
+    check_photon_series_undeclared_depth,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
@@ -424,3 +426,109 @@ def test_skip_check_imaging_plane_location_allen_ccf_non_mouse():
 def test_skip_check_imaging_plane_location_allen_ccf_no_subject():
     imaging_plane = _make_nwbfile_with_imaging_plane(location="my_custom_region", species=None)
     assert check_imaging_plane_location_allen_ccf(imaging_plane) is None
+
+
+def _make_imaging_plane(grid_spacing=None, origin_coords=None):
+    """Build a standalone ImagingPlane with the requested geometry declarations."""
+    device_model = DeviceModel(name="Model", description="microscope model", manufacturer="Manufacturer")
+    device = Device(name="Microscope", description="a microscope", model=device_model)
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    geometry = {}
+    if grid_spacing is not None:
+        geometry.update(grid_spacing=grid_spacing, grid_spacing_unit="meters")
+    if origin_coords is not None:
+        geometry.update(origin_coords=origin_coords, origin_coords_unit="meters")
+
+    return ImagingPlane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        description="an imaging plane",
+        device=device,
+        excitation_lambda=600.0,
+        indicator="GFP",
+        location="V1",
+        **geometry,
+    )
+
+
+def _make_photon_series(shape, imaging_plane, dimension=None):
+    return TwoPhotonSeries(
+        name="TwoPhotonSeries",
+        imaging_plane=imaging_plane,
+        data=np.ones(shape),
+        dimension=dimension,
+        unit="n.a.",
+        rate=30.0,
+    )
+
+
+class TestCheckPhotonSeriesUndeclaredDepth(TestCase):
+    def test_undeclared_singleton_depth_triggers(self):
+        """The dandiset 000491 shape: 4D with depth 1 and no geometry declared anywhere."""
+        imaging_plane = _make_imaging_plane()
+        photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) == InspectorMessage(
+            message=(
+                "The data is four-dimensional with a depth axis of length 1, but neither "
+                "the series nor its imaging plane ('ImagingPlane') declares a depth. Set "
+                "'grid_spacing' (or 'origin_coords') on the imaging plane to three components, or "
+                "'dimension' on the series, so the data can be interpreted as a volume. If the axis is a "
+                "leftover from splitting channels or planes, store the data as (time, rows, columns) instead."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_photon_series_undeclared_depth",
+            object_type="TwoPhotonSeries",
+            object_name="TwoPhotonSeries",
+            location="/",
+        )
+
+    def test_undeclared_real_depth_triggers(self):
+        """A depth greater than one is still uninterpretable as a volume without a declared geometry."""
+        imaging_plane = _make_imaging_plane()
+        photon_series = _make_photon_series(shape=(20, 10, 10, 4), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is not None
+
+    def test_planar_series_passes(self):
+        imaging_plane = _make_imaging_plane()
+        photon_series = _make_photon_series(shape=(20, 10, 10), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is None
+
+    def test_declared_volume_passes(self):
+        imaging_plane = _make_imaging_plane(grid_spacing=[0.01, 0.01, 0.02])
+        photon_series = _make_photon_series(shape=(20, 10, 10, 4), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is None
+
+    def test_singleton_depth_declared_by_grid_spacing_passes(self):
+        imaging_plane = _make_imaging_plane(grid_spacing=[0.01, 0.01, 0.02])
+        photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is None
+
+    def test_singleton_depth_declared_by_origin_coords_passes(self):
+        imaging_plane = _make_imaging_plane(origin_coords=[1.0, 2.0, 3.0])
+        photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is None
+
+    def test_singleton_depth_declared_by_dimension_passes(self):
+        imaging_plane = _make_imaging_plane()
+        photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane, dimension=[10, 10, 1])
+
+        assert check_photon_series_undeclared_depth(photon_series) is None
+
+    def test_two_component_grid_spacing_still_triggers(self):
+        """A planar grid_spacing does not declare a depth, so the axis is still undeclared."""
+        imaging_plane = _make_imaging_plane(grid_spacing=[0.01, 0.01])
+        photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane)
+
+        assert check_photon_series_undeclared_depth(photon_series) is not None
+
+    def test_plain_image_series_is_ignored(self):
+        """An ImageSeries has no imaging plane, so it has no depth semantics to check."""
+        image_series = ImageSeries(name="ImageSeries", data=np.ones((20, 10, 10, 1)), unit="n.a.", rate=30.0)
+
+        assert check_photon_series_undeclared_depth(image_series) is None

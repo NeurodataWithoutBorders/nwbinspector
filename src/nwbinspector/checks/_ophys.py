@@ -2,6 +2,7 @@
 
 from typing import Iterable, Optional
 
+from pynwb.image import ImageSeries
 from pynwb.ophys import (
     ImagingPlane,
     OpticalChannel,
@@ -134,3 +135,46 @@ def check_imaging_plane_location_allen_ccf(imaging_plane: ImagingPlane) -> Optio
         )
 
     return None
+
+
+def _declares_depth(image_series: ImageSeries, imaging_plane: ImagingPlane) -> bool:
+    """Return True when the file states somewhere that the series has a depth axis."""
+    for declaration in (image_series.dimension, imaging_plane.grid_spacing, imaging_plane.origin_coords):
+        if declaration is not None and len(declaration) == 3:
+            return True
+    return False
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+def check_photon_series_undeclared_depth(image_series: ImageSeries) -> Optional[InspectorMessage]:
+    """
+    Check that a four-dimensional photon series declares the geometry of its depth axis.
+
+    NWB defines the fourth axis of a photon series as depth, so a reader must treat such a series as
+    volumetric. Without a three-component ``grid_spacing`` or ``origin_coords`` on the imaging plane,
+    or a three-component ``dimension`` on the series, nothing in the file says how the planes are
+    spaced or where they sit, so the data cannot be interpreted as a volume. A depth of one is the
+    common case and is usually a channel axis that was never squeezed out.
+
+    Best Practice: :ref:`best_practice_photon_series_declared_depth`
+    """
+    imaging_plane = getattr(image_series, "imaging_plane", None)
+    if imaging_plane is None:  # a plain ImageSeries has no imaging plane and no depth semantics
+        return None
+
+    data_shape = get_data_shape(image_series.data, strict_no_data_load=True)
+    if data_shape is None or len(data_shape) != 4:
+        return None
+
+    if _declares_depth(image_series=image_series, imaging_plane=imaging_plane):
+        return None
+
+    return InspectorMessage(
+        message=(
+            f"The data is four-dimensional with a depth axis of length {data_shape[3]}, but neither "
+            f"the series nor its imaging plane ('{imaging_plane.name}') declares a depth. Set "
+            "'grid_spacing' (or 'origin_coords') on the imaging plane to three components, or "
+            "'dimension' on the series, so the data can be interpreted as a volume. If the axis is a "
+            "leftover from splitting channels or planes, store the data as (time, rows, columns) instead."
+        )
+    )

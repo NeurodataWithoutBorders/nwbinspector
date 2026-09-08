@@ -1,6 +1,7 @@
 # v0.7.3 (Upcoming)
 
 ### New Checks
+* Added `check_photon_series_undeclared_depth`, which flags a four-dimensional `TwoPhotonSeries` or `OnePhotonSeries` when neither the series' `dimension` nor the imaging plane's `grid_spacing` or `origin_coords` declares a third dimension. Without one of those the depth axis has no spacing or position, so the data cannot be interpreted as a volume. [#758](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/758)
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
