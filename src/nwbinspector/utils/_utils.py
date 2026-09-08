@@ -5,6 +5,7 @@ import os
 import re
 from functools import lru_cache
 from importlib import import_module
+from importlib.metadata import version as importlib_version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union
 
@@ -158,17 +159,13 @@ def get_package_version(name: str) -> version.Version:
     -------
     version : Version
         The package version as an object from packaging.version.Version, which allows comparison to other versions.
+
+    Raises
+    ------
+    importlib.metadata.PackageNotFoundError
+        If no distribution with that name is installed.
     """
-    try:
-        from importlib.metadata import version as importlib_version
-
-        package_version = importlib_version(name)
-    except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
-        from pkg_resources import get_distribution
-
-        package_version = get_distribution(name).version
-
-    return version.parse(package_version)
+    return version.parse(importlib_version(name))
 
 
 def calculate_number_of_cpu(requested_cpu: int = 1) -> int:

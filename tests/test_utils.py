@@ -215,3 +215,17 @@ def test_get_nwbfiles_from_path_nested_zarr_directory(tmp_path):
     result = get_nwbfiles_from_path(tmp_path)
 
     assert nested_zarr in result
+
+
+def test_get_package_version():
+    from packaging.version import Version
+
+    assert isinstance(get_package_version(name="nwbinspector"), Version)
+    assert get_package_version(name="pynwb") >= Version("4.0")
+
+
+def test_get_package_version_missing_package():
+    from importlib.metadata import PackageNotFoundError
+
+    with pytest.raises(PackageNotFoundError):
+        get_package_version(name="a-package-that-is-not-installed")
