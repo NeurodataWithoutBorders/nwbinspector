@@ -1,7 +1,8 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 
-from typing import Iterable, Optional
+from typing import Iterable, Iterator, Optional, Union
 
+import h5py
 import numpy as np
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
@@ -15,6 +16,53 @@ from ..utils import get_data_shape
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
 DURATION_THRESHOLD = 31557600.0
+
+
+def _get_spike_times_index(units_table: Units) -> np.ndarray:
+    """Return the cumulative end index of each unit's spike train, which is a small array (one integer per unit)."""
+    return np.asarray(units_table["spike_times"].data[:])
+
+
+def _get_boundary_spike_indices(spike_times_index: np.ndarray) -> np.ndarray:
+    """
+    Return the sorted, unique flat indices of the first and last spike of every non-empty unit.
+
+    Reading only these values answers questions about sorted spike trains (a negative first spike, NaN padding at
+    the end of a train, the total duration) without loading every spike time in the file.
+    """
+    if len(spike_times_index) == 0:
+        return np.array([], dtype=spike_times_index.dtype)
+
+    # The leading zero must share the dtype of the index array: mixing uint64 with a signed integer array
+    # promotes the result to float64, which cannot be used as a fancy index
+    first_spike_indices = np.concatenate(
+        [
+            np.zeros(shape=1, dtype=spike_times_index.dtype),
+            spike_times_index[spike_times_index != spike_times_index[-1]],
+        ]
+    )
+    last_spike_indices = spike_times_index[spike_times_index != 0] - 1
+
+    return np.unique(np.concatenate([first_spike_indices, last_spike_indices]))
+
+
+def _iterate_chunks(data: Union[h5py.Dataset, np.ndarray, list], chunk_size: int = 500_000) -> Iterator[np.ndarray]:
+    """Yield contiguous slices of a one-dimensional array-like without loading all of it at once."""
+    for start in range(0, len(data), chunk_size):
+        yield np.asarray(data[start : start + chunk_size])
+
+
+def _read_boundary_spike_times(units_table: Units) -> np.ndarray:
+    """Read the first and last spike time of every non-empty unit in a single selection."""
+    boundary_indices = _get_boundary_spike_indices(spike_times_index=_get_spike_times_index(units_table=units_table))
+    if len(boundary_indices) == 0:
+        return np.array([], dtype=float)
+
+    spike_times_data = units_table["spike_times"].target.data
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    return np.asarray(spike_times_data[boundary_indices])
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
@@ -36,10 +84,15 @@ def check_units_table_has_spikes(units_table: Units) -> Optional[InspectorMessag
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Units)
 def check_negative_spike_times(units_table: Units) -> Optional[InspectorMessage]:
-    """Check if the Units table contains negative spike times."""
+    """
+    Check if the Units table contains negative spike times.
+
+    Spike trains are sorted within each unit, so only the first spike of each unit is read.
+    Unsorted trains are reported by ``check_ascending_spike_times``.
+    """
     if "spike_times" not in units_table:
         return None
-    if np.any(np.asarray(units_table["spike_times"].target.data[:]) < 0):
+    if np.any(_read_boundary_spike_times(units_table=units_table) < 0):
         return InspectorMessage(
             message=(
                 "This Units table contains negative spike times. Time should generally be aligned to the earliest "
@@ -249,12 +302,16 @@ def check_spike_times_without_nans(units_table: Units) -> Optional[InspectorMess
     """
     Check if the Units table contains NaN values in spike times.
 
+    A NaN can appear anywhere in a train, so every spike time is scanned, but in chunks so that the memory
+    used does not grow with the size of the dataset.
+
     Best Practice: :ref:`best_practice_spike_times_without_nans`
     """
     if "spike_times" not in units_table:
         return None
 
-    if np.any(np.isnan(np.asarray(units_table["spike_times"].target.data[:]))):
+    spike_times_data = units_table["spike_times"].target.data
+    if any(np.isnan(chunk).any() for chunk in _iterate_chunks(data=spike_times_data)):
         return InspectorMessage(
             message="Units table contains NaN spike times. Spike times should be valid timestamps in seconds."
         )
@@ -278,10 +335,17 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
 
     resolution_is_set = units_table.resolution is not None
 
-    for unit_id in range(len(units_table)):
-        spike_times = units_table["spike_times"][unit_id]
-        if nelems is not None:
-            spike_times = spike_times[:nelems]
+    spike_times_index = _get_spike_times_index(units_table=units_table)
+    spike_times_data = units_table["spike_times"].target.data
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.array(spike_times_data)
+
+    start = 0
+    for unit_id, stop in enumerate(spike_times_index):
+        # Slice the flat dataset directly so that at most nelems values per unit are read from disk or over the network
+        read_stop = stop if nelems is None else min(stop, start + nelems)
+        spike_times = np.asarray(spike_times_data[start:read_stop])
+        start = stop
 
         diffs = np.diff(spike_times)
 
@@ -394,31 +458,8 @@ def check_units_table_duration(
     if "spike_times" not in units_table:
         return None
 
-    # Read the index array (cumulative indices marking end of each unit's spikes)
-    # This is small - just one integer per unit
-    idxs = np.asarray(units_table["spike_times"].data[:])
-
-    if len(idxs) == 0:
-        return None
-
-    # Build indices for first and last spike of each unit
-    # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
-    # Last spike indices: idxs - 1 for each unit
-    first_spike_idxs = np.concatenate([[np.uint64(0)], idxs[idxs != idxs[-1]]])
-    last_spike_idxs = idxs[idxs != 0] - 1
-
-    # Combine into single array of indices to read, then read all at once
-    all_indices = np.concatenate([first_spike_idxs, last_spike_idxs])
-    all_indices = np.unique(all_indices)  # Remove duplicates for efficiency
-
-    # Read only the needed spike times in one operation
-    spike_times_data = units_table["spike_times"].target.data
-
-    # needed to get tests to work on example data that is a list, not an h5py dataset
-    if isinstance(spike_times_data, list):
-        spike_times_data = np.array(spike_times_data)
-
-    boundary_spike_times = spike_times_data[all_indices]
+    # The first and last spike of every unit bound the duration, and are read in one selection
+    boundary_spike_times = _read_boundary_spike_times(units_table=units_table)
 
     if len(boundary_spike_times) == 0:
         return None

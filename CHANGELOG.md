@@ -5,6 +5,7 @@
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
 ### Improvements
+* `check_negative_spike_times` and `check_units_table_duration` now read only the first and last spike of each unit through a shared helper, `check_ascending_spike_times` reads at most `nelems` spike times per unit directly through the index array instead of materializing each unit's full train, and `check_spike_times_without_nans` scans the spike times in fixed-size chunks. None of these checks loads every spike time in the file into memory any more. [#744](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/744)
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
