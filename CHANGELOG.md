@@ -7,6 +7,7 @@
 ### Improvements
 * Raised the minimum required PyNWB to `>=4.0` to track the latest PyNWB release. [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
+* Added support for Python 3.14 and bumped the CI "latest Python" matrix pins from 3.13 to 3.14. The `macos-latest` + Python 3.14 combination is excluded from CI until `numcodecs` (pulled in by the `[zarr]` extra) publishes a macOS cp314 wheel; Linux and Windows are fully covered. [#713](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/713)
 
 ### Fixes
 * Fixed the docstring of `check_name_slashes` and a typo in the message of `check_empty_string_for_optional_attribute` ("Improve by omitting"). [#754](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/754)
