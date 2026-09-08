@@ -4,13 +4,17 @@ from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
 
+import av
 import numpy as np
 from pynwb import NWBHDF5IO, H5DataIO
+from pynwb.device import Device, DeviceModel
 from pynwb.image import ImageSeries
+from pynwb.ophys import ImagingPlane, OpticalChannel, TwoPhotonSeries
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_image_series_data_size,
+    check_image_series_external_file_format,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
@@ -19,6 +23,19 @@ from nwbinspector.checks import (
 from nwbinspector.testing import make_minimal_nwbfile
 
 TESTING_FILES_FOLDER_PATH = os.environ.get("TESTING_FILES_FOLDER_PATH", None)
+
+
+def _write_video(path, codec, pixel_format):
+    """Write a five frame 64 by 64 video so that a real codec can be read back from it."""
+    with av.open(str(path), "w") as container:
+        stream = container.add_stream(codec, rate=10)
+        stream.width, stream.height, stream.pix_fmt = 64, 64, pixel_format
+        for frame_index in range(5):
+            array = np.full(shape=(64, 64, 3), fill_value=frame_index * 20, dtype=np.uint8)
+            for packet in stream.encode(av.VideoFrame.from_ndarray(array, format="rgb24")):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
 
 
 @unittest.skipIf(
@@ -263,3 +280,127 @@ class TestCheckImageSeriesStoredInternally(unittest.TestCase):
                 )
                 == expected_message
             )
+
+
+class TestExternalFileFormat(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tmpdir = Path(mkdtemp())
+        for file_name, codec, pixel_format in [
+            ("h264.mp4", "libx264", "yuv420p"),
+            ("vp9.webm", "libvpx-vp9", "yuv420p"),
+            ("h264.mkv", "libx264", "yuv420p"),
+            ("mjpeg.avi", "mjpeg", "yuvj420p"),
+            ("ffv1.mkv", "ffv1", "yuv420p"),
+            ("rawvideo.avi", "rawvideo", "yuv420p"),
+        ]:
+            _write_video(path=cls.tmpdir / file_name, codec=codec, pixel_format=pixel_format)
+
+        cls.nwbfile_path = cls.tmpdir / "test.nwb"
+        nwbfile = make_minimal_nwbfile()
+        for series_name, file_name in [
+            ("StandardMP4", "h264.mp4"),
+            ("StandardWebM", "vp9.webm"),
+            ("LegacyContainer", "h264.mkv"),
+            ("LegacyCodec", "mjpeg.avi"),
+            ("Lossless", "ffv1.mkv"),
+            ("Uncompressed", "rawvideo.avi"),
+            ("Missing", "missing.mp4"),
+        ]:
+            nwbfile.add_acquisition(
+                ImageSeries(
+                    name=series_name,
+                    rate=1.0,
+                    external_file=[f"./{file_name}"],
+                    format="external",
+                    num_samples=1,
+                )
+            )
+        with NWBHDF5IO(path=cls.nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(cls.tmpdir)
+
+    def setUp(self):
+        self.io = NWBHDF5IO(path=self.nwbfile_path, mode="r")
+        self.nwbfile = self.io.read()
+
+    def tearDown(self):
+        self.io.close()
+
+    def test_standard_container_and_codec_passes(self):
+        assert check_image_series_external_file_format(image_series=self.nwbfile.acquisition["StandardMP4"]) is None
+        assert check_image_series_external_file_format(image_series=self.nwbfile.acquisition["StandardWebM"]) is None
+
+    def test_lossy_codec_in_legacy_container(self):
+        """The codec is H.264, so the container can be changed without re-encoding."""
+        messages = check_image_series_external_file_format(image_series=self.nwbfile.acquisition["LegacyContainer"])
+
+        assert len(messages) == 1
+        assert messages[0] == InspectorMessage(
+            message=(
+                "The external file './h264.mkv' uses the '.mkv' container, which is not a standard "
+                "container for sharing video. Please use MP4 or WebM instead. The codec is already a "
+                "recommended one, so the container can be changed without re-encoding: "
+                "ffmpeg -i ./h264.mkv -c copy output.mp4"
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_image_series_external_file_format",
+            object_type="ImageSeries",
+            object_name="LegacyContainer",
+            location="/acquisition/LegacyContainer",
+        )
+
+    def test_legacy_codec(self):
+        """A re-encoding settles the container as well, so the container is not reported separately."""
+        messages = check_image_series_external_file_format(image_series=self.nwbfile.acquisition["LegacyCodec"])
+
+        assert len(messages) == 1
+        assert messages[0].message == (
+            "The external file './mjpeg.avi' uses the 'mjpeg' codec, which is not one of the standard "
+            "video codecs. Please use H.264, VP8, VP9 or AV1 in an MP4 or WebM container, or FFV1 if the "
+            "video has to stay lossless. Note that H.264 is covered by patents while VP8, VP9 and AV1 are "
+            "royalty-free."
+        )
+
+    def test_lossless_codec_passes(self):
+        """The container of a lossless video is not reported, so FFV1 passes whatever holds it."""
+        assert check_image_series_external_file_format(image_series=self.nwbfile.acquisition["Lossless"]) is None
+
+    def test_uncompressed_codec(self):
+        messages = check_image_series_external_file_format(image_series=self.nwbfile.acquisition["Uncompressed"])
+
+        assert len(messages) == 1
+        assert "'rawvideo' codec" in messages[0].message
+
+    def test_missing_file_is_ignored(self):
+        """A missing external file is already reported by check_image_series_external_file_valid."""
+        assert check_image_series_external_file_format(image_series=self.nwbfile.acquisition["Missing"]) is None
+
+    def test_two_photon_series_is_ignored(self):
+        """The external file of a TwoPhotonSeries is imaging data, such as a TIFF stack, rather than video."""
+        device_model = DeviceModel(name="Model", description="microscope model", manufacturer="Manufacturer")
+        imaging_plane = ImagingPlane(
+            name="ImagingPlane",
+            optical_channel=OpticalChannel(
+                name="OpticalChannel", description="an optical channel", emission_lambda=500.0
+            ),
+            description="an imaging plane",
+            device=Device(name="Microscope", description="a microscope", model=device_model),
+            excitation_lambda=600.0,
+            indicator="GFP",
+            location="V1",
+        )
+        two_photon_series = TwoPhotonSeries(
+            name="TwoPhotonSeries",
+            imaging_plane=imaging_plane,
+            rate=1.0,
+            external_file=["./frames.tif"],
+            format="external",
+            num_samples=1,
+            unit="n.a.",
+        )
+
+        assert check_image_series_external_file_format(image_series=two_photon_series) is None

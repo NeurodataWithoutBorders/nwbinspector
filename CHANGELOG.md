@@ -1,6 +1,7 @@
 # v0.7.3 (Upcoming)
 
 ### New Checks
+* Added `check_image_series_external_file_format`, which flags `ImageSeries` external files stored in a legacy video container or with a legacy codec. Lossy video should use H.264, VP8, VP9 or AV1 in an MP4 or WebM container, and lossless video should use FFV1 rather than an uncompressed or legacy lossless codec.
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
