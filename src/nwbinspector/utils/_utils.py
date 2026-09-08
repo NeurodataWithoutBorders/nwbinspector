@@ -178,12 +178,20 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
         The desired number of CPUs to use.
 
         The default is 1.
+
+    Raises
+    ------
+    ValueError
+        If the request exceeds the number of available CPUs or is more negative than -(total_cpu - 1).
     """
     total_cpu = os.cpu_count() or 1  # Annotations say os.cpu_count can return None for some reason
-    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
-    assert requested_cpu >= -(
-        total_cpu - 1
-    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    if requested_cpu > total_cpu:
+        raise ValueError(f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!")
+    if requested_cpu < -(total_cpu - 1):
+        raise ValueError(
+            f"Requested CPUs ({requested_cpu}) is below the minimum of -{total_cpu - 1} "
+            f"(negative values leave that many of the {total_cpu} available CPUs unused)!"
+        )
     if requested_cpu > 0:
         return requested_cpu
     else:
