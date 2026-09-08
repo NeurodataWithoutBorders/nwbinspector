@@ -41,6 +41,10 @@ from ._images import (
     check_order_of_images_len,
     check_order_of_images_unique,
 )
+from ._misc import (
+    check_decomposition_series_source_timeseries,
+    check_decomposition_series_unit,
+)
 from ._nwb_containers import (
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
@@ -200,4 +204,6 @@ __all__ = [
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
+    "check_decomposition_series_unit",
+    "check_decomposition_series_source_timeseries",
 ]
