@@ -46,6 +46,9 @@
 
 # v0.7.0 (Feb 23, 2026)
 
+### New Features
+* Added specifiable output format for reports based on file extension. Reports saved with `.md` extension use Markdown format, `.html`/`.htm` use HTML format with styled output, and all others default to RST format. [#153](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/153)
+
 ### New Checks
 * Added `check_file_extension` for NWB file extension best practice recommendations (`.nwb`, `.nwb.h5`, or `.nwb.zarr`) [#625](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/625)
 * Added `check_time_series_duration` to detect unusually long TimeSeries durations (default threshold: 1 year). [#627](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/627)

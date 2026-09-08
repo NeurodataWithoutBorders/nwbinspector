@@ -14,7 +14,9 @@ from ._formatting import (
     print_to_console,
     save_report,
     MessageFormatter,
-    FormatterOptions,
+    RstFormatter,
+    MarkdownFormatter,
+    HtmlFormatter,
     InspectorOutputJSONEncoder,
 )
 from ._organization import organize_messages
@@ -52,7 +54,9 @@ __all__ = [
     "print_to_console",
     "save_report",
     "MessageFormatter",
-    "FormatterOptions",
+    "RstFormatter",
+    "MarkdownFormatter",
+    "HtmlFormatter",
     "organize_messages",
     "__version__",
     # Public submodules
