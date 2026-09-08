@@ -11,6 +11,7 @@ from pynwb.image import ImageSeries
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_image_series_data_size,
+    check_image_series_external_file_forward_slashes,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
@@ -112,6 +113,64 @@ def test_check_image_series_external_file_valid_pass_non_external():
     image_series = ImageSeries(name="TestImageSeries", rate=1.0, data=np.zeros(shape=(3, 3, 3, 3)), unit="TestUnit")
 
     assert check_image_series_external_file_valid(image_series=image_series) is None
+
+
+def _make_external_image_series(external_file: list, name: str = "TestImageSeries") -> ImageSeries:
+    return ImageSeries(
+        name=name,
+        rate=1.0,
+        external_file=external_file,
+        starting_frame=list(range(len(external_file))),  # PyNWB requires one starting frame per external file
+        format="external",
+        num_samples=len(external_file),
+    )
+
+
+def test_check_image_series_external_file_forward_slashes_pass():
+    image_series = _make_external_image_series(external_file=["sub-1/ses-1_image/video_external_file_0.mp4"])
+
+    assert check_image_series_external_file_forward_slashes(image_series=image_series) is None
+
+
+def test_check_image_series_external_file_forward_slashes_pass_non_external():
+    image_series = ImageSeries(name="TestImageSeries", rate=1.0, data=np.zeros(shape=(3, 3, 3, 3)), unit="TestUnit")
+
+    assert check_image_series_external_file_forward_slashes(image_series=image_series) is None
+
+
+def test_check_image_series_external_file_forward_slashes_trigger():
+    image_series = _make_external_image_series(external_file=["ses-1_image\\abc123_external_file_0.mp4"])
+
+    assert check_image_series_external_file_forward_slashes(image_series=image_series)[0] == InspectorMessage(
+        message=(
+            "The external file 'ses-1_image\\abc123_external_file_0.mp4' contains a backslash ('\\'). "
+            "Please use forward slashes ('/') as path separators so the path resolves on all platforms."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_image_series_external_file_forward_slashes",
+        object_type="ImageSeries",
+        object_name="TestImageSeries",
+        location="/",
+    )
+
+
+def test_check_image_series_external_file_forward_slashes_bytestring_trigger():
+    """The paths may be read back as bytes depending on the h5py version."""
+    image_series = _make_external_image_series(external_file=[b"ses-1_image\\abc123_external_file_0.mp4"])
+
+    assert len(check_image_series_external_file_forward_slashes(image_series=image_series)) == 1
+
+
+def test_check_image_series_external_file_forward_slashes_trigger_multiple_files():
+    image_series = _make_external_image_series(
+        external_file=["good/video_0.mp4", "bad\\video_1.mp4", "bad\\video_2.mp4"]
+    )
+
+    messages = check_image_series_external_file_forward_slashes(image_series=image_series)
+
+    assert len(messages) == 2
+    assert "bad\\video_1.mp4" in messages[0].message
+    assert "bad\\video_2.mp4" in messages[1].message
 
 
 def test_check_small_image_series_stored_internally():
