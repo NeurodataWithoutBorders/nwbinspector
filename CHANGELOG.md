@@ -10,6 +10,7 @@
 
 ### Fixes
 * Fixed `configure_checks` appending the `SKIP` entries of a config to the caller's `ignore` list in place. [#746](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/746)
+* Fixed the docstring of `check_name_slashes` and a typo in the message of `check_empty_string_for_optional_attribute` ("Improve by omitting"). [#754](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/754)
 * Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
 * Skipped Ontobee in the documentation external link check, which frequently timed out and caused spurious CI failures. [#709](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/709)
 * Fixed `run_checks` raising `TypeError` when a `progress_bar_class` was passed without `progress_bar_options`; the keyword arguments are now coalesced to an empty dict before being forwarded to the progress-bar constructor. [#701](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/701)
