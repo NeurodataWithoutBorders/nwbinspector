@@ -10,6 +10,7 @@
 * Bumped GitHub Actions workflow dependencies (`actions/checkout` v4 -> v6, `actions/setup-python` v5 -> v6, `codecov/codecov-action` v4 -> v5) to migrate off Node.js 20, which GitHub is removing from runners on 2026-09-16. [#702](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/702)
 
 ### Fixes
+* `calculate_number_of_cpu` now raises `ValueError` instead of `AssertionError` for an out-of-range request, so the validation is not stripped under `python -O`. The message for a request that is too negative now explains the limit instead of saying fewer CPUs were requested than available. [#755](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/755)
 * Fixed `configure_checks` appending the `SKIP` entries of a config to the caller's `ignore` list in place. [#746](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/746)
 * Fixed the docstring of `check_name_slashes` and a typo in the message of `check_empty_string_for_optional_attribute` ("Improve by omitting"). [#754](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/754)
 * Fixed unit tests that failed at construction time against recent PyNWB and HDMF. [#707](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/707) [#708](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/708)
