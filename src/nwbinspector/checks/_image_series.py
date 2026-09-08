@@ -55,6 +55,69 @@ def check_image_series_external_file_relative(image_series: ImageSeries) -> Opti
     return None
 
 
+RECOMMENDED_LOSSY_CONTAINERS = (".mp4", ".webm")
+RECOMMENDED_LOSSY_CODECS = ("h264", "vp8", "vp9", "av1")
+RECOMMENDED_LOSSLESS_CODECS = ("ffv1",)
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ImageSeries)
+def check_image_series_external_file_format(image_series: ImageSeries) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if the external_file of an ImageSeries uses a standard video container and codec.
+
+    Best Practice: :ref:`best_practice_external_file_format`
+    """
+    # False positive case; TwoPhotonSeries are a subclass of ImageSeries, but their external files are imaging
+    # data such as TIFF stacks rather than video
+    if isinstance(image_series, TwoPhotonSeries) or image_series.external_file is None:
+        return None
+    try:
+        import av
+    except ImportError:  # the format cannot be read without PyAV, so nothing can be said about it
+        return None
+
+    nwbfile_path = Path(get_nwbfile_path_from_internal_object(neurodata_object=image_series))
+    for file_path in image_series.external_file:
+        file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
+        resolved_path = Path(file_path) if Path(file_path).is_absolute() else nwbfile_path.parent / file_path
+        if not resolved_path.exists():  # reported by check_image_series_external_file_valid
+            continue
+        try:
+            with av.open(str(resolved_path)) as container:
+                if not container.streams.video:
+                    continue
+                codec = container.streams.video[0].codec_context.codec.canonical_name
+        except av.FFmpegError:  # not a media file, or one that cannot be opened
+            continue
+
+        if codec not in RECOMMENDED_LOSSY_CODECS and codec not in RECOMMENDED_LOSSLESS_CODECS:
+            yield InspectorMessage(
+                message=(
+                    f"The external file '{file_path}' uses the '{codec}' codec, which is not one of the standard "
+                    "video codecs. Please use H.264, VP8, VP9 or AV1 in an MP4 or WebM container, or FFV1 if the "
+                    "video has to stay lossless. Note that H.264 is covered by patents while VP8, VP9 and AV1 are "
+                    "royalty-free."
+                )
+            )
+            continue  # the re-encoding settles the container as well
+
+        if codec in RECOMMENDED_LOSSLESS_CODECS:
+            continue  # every tool that reads FFV1 handles its containers alike, so the container gains nothing
+
+        suffix = PurePosixPath(file_path).suffix.lower()
+        if suffix not in RECOMMENDED_LOSSY_CONTAINERS:
+            yield InspectorMessage(
+                message=(
+                    f"The external file '{file_path}' uses the '{suffix}' container, which is not a standard "
+                    "container for sharing video. Please use MP4 or WebM instead. The codec is already a "
+                    "recommended one, so the container can be changed without re-encoding: "
+                    f"ffmpeg -i {file_path} -c copy output.mp4"
+                )
+            )
+
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: float = 20.0) -> Optional[InspectorMessage]:
     """
