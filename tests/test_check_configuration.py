@@ -86,6 +86,17 @@ class TestCheckConfiguration(TestCase):
         checks_out = configure_checks(checks=self.checks, config=config)
         self.assertListEqual(list1=[x.__name__ for x in checks_out], list2=[x.__name__ for x in self.checks[:3]])
 
+    def test_configure_checks_skip_does_not_mutate_ignore(self):
+        """SKIP entries in the config used to be appended to the caller's ignore list in place."""
+        config = dict(SKIP=["check_timestamps_match_first_dimension"])
+        ignore = ["check_small_dataset_compression"]
+        checks_out = configure_checks(checks=self.checks, config=config, ignore=ignore)
+
+        self.assertListEqual(list1=ignore, list2=["check_small_dataset_compression"])
+        self.assertListEqual(
+            list1=[x.__name__ for x in checks_out], list2=["check_regular_timestamps", "check_data_orientation"]
+        )
+
     def test_bad_schema(self):
         config = dict(WRONG="test")
         with self.assertRaises(expected_exception=ValidationError):
