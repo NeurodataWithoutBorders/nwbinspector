@@ -9,7 +9,7 @@ COMMON_DESCRIPTION_PLACEHOLDERS = ["no description", "no desc", "none", "placeho
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=None)
 def check_name_slashes(neurodata_object: object) -> Optional[InspectorMessage]:
-    """Check if there  has been added for the session."""
+    """Check if an object name contains a forward or backward slash."""
     if hasattr(neurodata_object, "name") and any((x in neurodata_object.name for x in ["/", "\\"])):
         return InspectorMessage(message="Object name contains slashes.")
 

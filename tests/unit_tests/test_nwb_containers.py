@@ -119,7 +119,7 @@ def test_hit_check_empty_string_for_optional_attribute():
     )
 
     assert check_empty_string_for_optional_attribute(nwb_container=nwbfile)[0] == InspectorMessage(
-        message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve my omitting '
+        message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve by omitting '
         "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         location="/",
