@@ -150,14 +150,21 @@ def inspect_all(
         futures = []
         # concurrents uses None instead of -1 for 'auto' mode
         max_workers = None if calculated_number_of_jobs == -1 else calculated_number_of_jobs
+        # Check functions are not sent to the workers directly: configured checks are copies made by
+        # `configure_checks`, and those copies cannot be pickled. Each worker instead rebuilds the same
+        # list from the check names, the config, and the importance threshold.
+        check_names = [check.__name__ for check in checks]
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             for nwbfile_path in nwbfiles:
                 futures.append(
                     executor.submit(
                         _pickle_inspect_nwb,
                         nwbfile_path=str(nwbfile_path),
-                        checks=checks,
+                        check_names=check_names,
+                        config=config,
+                        importance_threshold=importance_threshold,
                         skip_validate=skip_validate,
+                        modules=modules,
                     )
                 )
             async_nwbfiles_iterable = as_completed(futures)
@@ -170,11 +177,23 @@ def inspect_all(
 
 def _pickle_inspect_nwb(
     nwbfile_path: str,
-    checks: Optional[list] = None,
+    check_names: Optional[list[str]] = None,
+    config: Optional[dict] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-) -> Iterable[Union[InspectorMessage, None]]:
-    """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    checks = checks or available_checks
+    modules: OptionalListOfStrings = None,
+) -> list[Union[InspectorMessage, None]]:
+    """
+    Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor.
+
+    The list of checks is rebuilt inside the worker from the check names and the config rather than being
+    pickled from the parent process. Configured checks are function copies that cannot be pickled, and even an
+    unconfigured check pickled by reference would lose any importance changes applied by the config.
+    """
+    for module in modules or []:
+        importlib.import_module(module)
+
+    checks = configure_checks(config=config, select=check_names, importance_threshold=importance_threshold)
 
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
