@@ -6,6 +6,7 @@ import numpy as np
 from pynwb.behavior import CompassDirection, SpatialSeries
 
 from .._registration import Importance, InspectorMessage, register_check
+from ..utils import get_data_shape
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=SpatialSeries)
@@ -15,7 +16,8 @@ def check_spatial_series_dims(spatial_series: SpatialSeries) -> Optional[Inspect
 
     Best Practice: :ref:`best_practice_spatial_series_dimensionality`
     """
-    if len(spatial_series.data.shape) > 1 and spatial_series.data.shape[1] > 3:
+    data_shape = get_data_shape(spatial_series.data)
+    if data_shape is not None and len(data_shape) > 1 and data_shape[1] > 3:
         return InspectorMessage(
             message="SpatialSeries should have 1 column (x), 2 columns (x, y), or 3 columns (x, y, z)."
         )
@@ -50,7 +52,7 @@ def check_spatial_series_radians_magnitude(
     Best Practice: :ref:`best_practice_spatial_series_values`
     """
     if spatial_series.unit in ("radian", "radians"):
-        data = spatial_series.data[:nelems]
+        data = np.asarray(spatial_series.data[:nelems])
         if np.any(data > (2 * np.pi)) or np.any(data < (-2 * np.pi)):
             return InspectorMessage(
                 message="SpatialSeries with units of radians must have values between -2pi and 2pi."
@@ -69,7 +71,7 @@ def check_spatial_series_degrees_magnitude(
     Best Practice: :ref:`best_practice_spatial_series_values`
     """
     if spatial_series.unit in ("degree", "degrees"):
-        data = spatial_series.data[:nelems]
+        data = np.asarray(spatial_series.data[:nelems])
         if np.any(data > 360) or np.any(data < -360):
             return InspectorMessage(
                 message="SpatialSeries with units of degrees must have values between -360 and 360."
