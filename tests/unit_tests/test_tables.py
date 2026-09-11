@@ -52,7 +52,8 @@ class TestCheckDynamicTableRegion(TestCase):
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message=(
-                "Some elements of dyn_tab are out of range because they are greater than the length of the target "
+                "Some elements of dyn_tab are out of range because they are greater than or equal to the length of "
+                "the target "
                 "table. Note that data should contain indices, not ids."
             ),
             importance=Importance.CRITICAL,
@@ -61,6 +62,16 @@ class TestCheckDynamicTableRegion(TestCase):
             object_name="dyn_tab",
             location="/",
         )
+
+    def test_check_dynamic_table_region_data_validity_equal_len(self):
+        # The valid table indices are 0 through len(table) - 1.
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1], table=self.table)
+        dynamic_table_region.data[:] = [0, len(self.table)]
+
+        result = check_dynamic_table_region_data_validity(dynamic_table_region)
+
+        assert result is not None
+        assert "greater than or equal to the length" in result.message
 
     def test_pass_check_dynamic_table_region_data(self):
         dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1, 2], table=self.table)
