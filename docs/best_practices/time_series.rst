@@ -183,7 +183,8 @@ chunk individually. This is especially important when writing NWBFiles that are 
 `MatNWB instructions <https://matnwb.readthedocs.io/en/latest/pages/tutorials/dataPipe.html>`_
 
 Check functions: :py::meth:`~nwbinspector.checks._nwb_containers.check_large_dataset_compression`,
-:py::meth:`~nwbinspector.checks._nwb_containers.check_small_dataset_compression`
+:py::meth:`~nwbinspector.checks._nwb_containers.check_small_dataset_compression`,
+:py::meth:`~nwbinspector.checks._nwb_containers.check_single_chunk_dataset_compression`
 
 
 

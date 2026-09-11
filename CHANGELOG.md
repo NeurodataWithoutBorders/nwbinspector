@@ -1,6 +1,7 @@
 # v0.7.3 (Upcoming)
 
 ### New Checks
+* Added `check_single_chunk_dataset_compression` to flag large HDF5 datasets stored as a single uncompressed chunk, with guidance to use contiguous storage for smaller data or chunking and compression for larger data. [#722](https://github.com/NeurodataWithoutBorders/nwbinspector/issues/722)
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 

@@ -44,6 +44,7 @@ from ._images import (
 from ._nwb_containers import (
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
+    check_single_chunk_dataset_compression,
     check_small_dataset_compression,
 )
 from ._nwbfile_metadata import (
@@ -131,6 +132,7 @@ __all__ = [
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",
+    "check_single_chunk_dataset_compression",
     "check_keywords",
     "check_institution",
     "check_subject_age",

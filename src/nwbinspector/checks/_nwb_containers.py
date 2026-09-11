@@ -95,6 +95,41 @@ def check_small_dataset_compression(
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
+def check_single_chunk_dataset_compression(
+    nwb_container: NWBContainer, mb_lower_bound: float = 50.0
+) -> Optional[InspectorMessage]:
+    """
+    Check if a large HDF5 dataset is stored as one uncompressed chunk.
+
+    Unchunked datasets are not reported: contiguous storage is appropriate for
+    smaller datasets. A dataset that is chunked as one uncompressed block is
+    less useful for both access and storage once it is larger than
+    ``mb_lower_bound``.
+
+    Best Practice: :ref:`best_practice_compression`
+    """
+    for field in getattr(nwb_container, "fields", dict()).values():
+        if not isinstance(field, h5py.Dataset):
+            continue
+
+        if (
+            field.compression is None
+            and field.chunks is not None
+            and field.size * field.dtype.itemsize > mb_lower_bound * 1e6
+            and all(chunk >= size for chunk, size in zip(field.chunks, field.shape))
+        ):
+            return InspectorMessage(
+                message=(
+                    f"{os.path.split(field.name)[1]} is stored as a single uncompressed chunk. "
+                    "Consider leaving small datasets unchunked or enabling chunking and compression for larger "
+                    "datasets."
+                )
+            )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBContainer)
 def check_empty_string_for_optional_attribute(nwb_container: NWBContainer) -> Optional[Iterable[InspectorMessage]]:
     """
     Check if any NWBContainer has optional fields that are written as an empty string.
