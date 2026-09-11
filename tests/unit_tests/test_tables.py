@@ -377,6 +377,13 @@ def test_check_table_values_for_dict_non_str():
     assert check_table_values_for_dict(table=table) is None
 
 
+def test_check_table_values_for_dict_empty_table():
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="test_column", description="")
+
+    assert check_table_values_for_dict(table=table) is None
+
+
 def test_check_table_values_for_dict_pass():
     table = DynamicTable(name="test_table", description="")
     table.add_column(name="test_column", description="")
