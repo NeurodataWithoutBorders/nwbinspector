@@ -203,6 +203,7 @@ def _nwbinspector_cli(
             n_jobs=n_jobs,
             skip_validate=skip_validate,
             progress_bar=show_progress_bar,
+            modules=handled_modules,
         )
         nfiles_detected = len(get_nwbfiles_from_path(path=path))
     try:
