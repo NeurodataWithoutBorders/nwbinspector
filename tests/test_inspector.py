@@ -361,6 +361,61 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
         ]
         self.assertCountEqual(first=test_results, second=true_results)
 
+    def test_inspect_all_parallel_with_config(self):
+        """Configured checks are function copies that cannot be pickled; workers must rebuild them from the config."""
+        config = dict(
+            CRITICAL=["check_regular_timestamps"],
+            BEST_PRACTICE_SUGGESTION=["check_data_orientation"],
+        )
+        select = [x.__name__ for x in self.checks]
+
+        parallel_results = list(
+            inspect_all(
+                path=self.tempdir,
+                config=config,
+                select=select,
+                n_jobs=2,
+                skip_validate=self.skip_validate,
+            )
+        )
+        serial_results = list(
+            inspect_all(
+                path=self.tempdir,
+                config=config,
+                select=select,
+                n_jobs=1,
+                skip_validate=self.skip_validate,
+            )
+        )
+
+        self.assertCountEqual(first=parallel_results, second=serial_results)
+
+        regular_timestamps_results = [
+            x for x in parallel_results if x.check_function_name == "check_regular_timestamps"
+        ]
+        orientation_results = [x for x in parallel_results if x.check_function_name == "check_data_orientation"]
+        assert len(regular_timestamps_results) > 0
+        assert len(orientation_results) > 0
+        for message in regular_timestamps_results:
+            assert message.importance is Importance.CRITICAL
+        for message in orientation_results:
+            assert message.importance is Importance.BEST_PRACTICE_SUGGESTION
+
+    def test_inspect_all_parallel_with_config_skip(self):
+        """SKIP entries in the config must be respected by the workers as well."""
+        config = dict(SKIP=["check_small_dataset_compression"])
+
+        parallel_results = list(
+            inspect_all(
+                path=self.tempdir,
+                config=config,
+                n_jobs=2,
+                skip_validate=self.skip_validate,
+            )
+        )
+        assert all(x.check_function_name != "check_small_dataset_compression" for x in parallel_results)
+        assert any(x.check_function_name == "check_regular_timestamps" for x in parallel_results)
+
     def test_inspect_all_directory(self):
         """Test that inspect_all will find the file when given a valid path (in the case of Zarr, this path may be a directory)."""
         test_results = list(
