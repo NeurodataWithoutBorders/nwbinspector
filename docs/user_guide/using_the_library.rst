@@ -147,6 +147,69 @@ See the section on :ref:`advanced_streaming_api` for more customized usage of th
 
 
 
+Formatting Inspection Results
+-----------------------------
+
+The NWBInspector provides several formatter classes for rendering inspection results in different formats. Each formatter
+inherits from :py:class:`~nwbinspector._formatting.MessageFormatter` and provides format-specific rendering of section
+headers and report summaries.
+
+**Available Formatters:**
+
+- :py:class:`~nwbinspector.RstFormatter` - RST format with ``=``/``-``/``~`` section headings (default)
+- :py:class:`~nwbinspector.MarkdownFormatter` - Markdown format with ``#``/``##``/``###`` section headings
+- :py:class:`~nwbinspector.HtmlFormatter` - HTML format with professional styling and color-coded importance levels
+
+To format inspection results, use the :py:func:`~nwbinspector.format_messages` function with your chosen formatter:
+
+.. code-block:: python
+
+    from nwbinspector import inspect_nwbfile, format_messages, RstFormatter
+
+    messages = list(inspect_nwbfile(nwbfile_path="path_to_single_nwbfile"))
+    formatted_report = format_messages(messages=messages, formatter=RstFormatter())
+    print(formatted_report)
+
+For Markdown output:
+
+.. code-block:: python
+
+    from nwbinspector import inspect_nwbfile, format_messages, MarkdownFormatter
+
+    messages = list(inspect_nwbfile(nwbfile_path="path_to_single_nwbfile"))
+    formatted_report = format_messages(messages=messages, formatter=MarkdownFormatter())
+
+    with open("report.md", "w") as f:
+        f.write(formatted_report)
+
+For HTML output with professional styling:
+
+.. code-block:: python
+
+    from nwbinspector import inspect_nwbfile, format_messages, HtmlFormatter
+
+    messages = list(inspect_nwbfile(nwbfile_path="path_to_single_nwbfile"))
+    formatted_report = format_messages(messages=messages, formatter=HtmlFormatter())
+
+    with open("report.html", "w") as f:
+        f.write(formatted_report)
+
+The ``format_messages`` function also accepts optional parameters for customizing the report organization:
+
+.. code-block:: python
+
+    from nwbinspector import inspect_nwbfile, format_messages, MarkdownFormatter
+
+    messages = list(inspect_nwbfile(nwbfile_path="path_to_single_nwbfile"))
+    formatted_report = format_messages(
+        messages=messages,
+        formatter=MarkdownFormatter(),
+        levels=["importance", "file_path"],  # Custom organization levels
+        reverse=[True, False],  # Reverse order for each level
+    )
+
+
+
 Examining the Default Check Registry
 ------------------------------------
 

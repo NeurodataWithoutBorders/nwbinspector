@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from enum import Enum
@@ -41,38 +42,18 @@ def _get_report_header() -> dict[str, str]:
     )
 
 
-class FormatterOptions:
-    """Class structure for defining all free attributes for the design of a report format."""
+class MessageFormatter(ABC):
+    """
+    Abstract base class for message formatters.
 
-    def __init__(
-        self, indent_size: int = 2, indent: Optional[str] = None, section_headers: tuple[str, ...] = ("=", "-", "~")
-    ) -> None:
-        """
-        Class that defines all the format parameters used by the generic MessageFormatter.
+    For full customization of all format parameters, subclass this class and implement
+    the abstract methods.
+    """
 
-        Parameters
-        ----------
-        indent_size : int, optional
-            Defines the spacing between numerical sectioning and section name or message.
-            Defaults to 2 spaces.
-        indent : str, optional
-            Defines the specific indentation to inject between numerical sectioning and section name or message.
-            Overrides indent_size.
-            Defaults to " " * indent_size.
-        section_headers : tuple of strings
-            List of characters that will be injected under the display of each new section of the report.
-            If levels is longer than this list, the last item will be repeated over the remaining levels.
-            If levels is shorter than this list, only the first len(levels) of items will be used.
-            Defaults to the .rst style for three subsections: ["=", "-", "~"]
-        """
-        # TODO
-        # Future custom options could include section break sizes, section-specific indents, etc.
-        self.indent = indent if indent is not None else " " * indent_size
-        self.section_headers = section_headers
-
-
-class MessageFormatter:
-    """For full customization of all format parameters, use this class instead of the 'format_messages' function."""
+    # Section header characters to use for each level of nesting
+    section_headers: tuple[str, ...] = ("=", "-", "~")
+    # Indentation between numerical sectioning and section name or message
+    indent: str = "  "
 
     def __init__(
         self,
@@ -80,7 +61,6 @@ class MessageFormatter:
         levels: list[str],
         reverse: Optional[list[bool]] = None,
         detailed: bool = False,
-        formatter_options: Optional[FormatterOptions] = None,
         nfiles_detected: Optional[int] = None,
     ) -> None:
         self.nmessages = len(messages)
@@ -96,16 +76,10 @@ class MessageFormatter:
         )
         self.collection_levels = set([x for x in InspectorMessage.__annotations__]) - set(levels) - set(["severity"])
         self.reverse = reverse
-        if formatter_options is None:
-            self.formatter_options = FormatterOptions()
-        else:
-            assert isinstance(
-                formatter_options, FormatterOptions
-            ), "'formatter_options' is not an instance of FormatterOptions!"
-            self.formatter_options = formatter_options
-        self.formatter_options.section_headers = self.formatter_options.section_headers + (
-            self.formatter_options.section_headers[-1],
-        ) * (self.nlevels - len(self.formatter_options.section_headers))
+        # Extend section_headers to cover all levels
+        self._extended_section_headers = self.section_headers + (self.section_headers[-1],) * (
+            self.nlevels - len(self.section_headers)
+        )
         self.message_counter = 0
         self.formatted_messages: list = []
 
@@ -142,9 +116,60 @@ class MessageFormatter:
         return message_header
 
     def _get_message_increment(self, level_counter: list[int]) -> str:
-        return (
-            f"{'.'.join(np.array(level_counter, dtype=str))}.{self.message_counter}" f"{self.formatter_options.indent}"
-        )
+        return f"{'.'.join(np.array(level_counter, dtype=str))}.{self.message_counter}{self.indent}"
+
+    @abstractmethod
+    def _format_section_header(self, section_name: str, level: int) -> list[str]:
+        """
+        Format a section header for the specific output format.
+
+        Parameters
+        ----------
+        section_name : str
+            The name/title of the section including the numerical prefix.
+        level : int
+            The nesting level of the section (0-indexed).
+
+        Returns
+        -------
+        list of str
+            The formatted section header lines to append to the output.
+        """
+        pass
+
+    def _get_report_prefix(self) -> list[str]:
+        """Return lines to add at the very start of the report. Override for formats like HTML."""
+        return []
+
+    def _get_report_suffix(self) -> list[str]:
+        """Return lines to add at the very end of the report. Override for formats like HTML."""
+        return []
+
+    def _format_report_summary(self, report_header: dict[str, str]) -> list[str]:
+        """Format the report summary section. Override for format-specific styling."""
+        lines = [
+            "*" * 50,
+            "NWBInspector Report Summary",
+            "",
+            f"Timestamp: {report_header['Timestamp']}",
+            f"Platform: {report_header['Platform']}",
+            f"NWBInspector version: {report_header['NWBInspector_version']}",
+            "",
+        ]
+
+        if self.nfiles_detected is not None:
+            lines.append(f"Scanned {self.nfiles_detected} file(s).")
+        if self.nmessages == 0:
+            lines.append("No issues found!")
+        else:
+            lines.append(f"Found {self.nmessages} issues across {self.nfiles_with_issues} file(s):")
+
+        for importance_level, number_of_results in self.message_count_by_importance.items():
+            increment = " " * (8 - len(str(number_of_results)))
+            lines.append(f"{increment}{number_of_results} - {importance_level}")
+
+        lines.extend(["*" * 50, "", ""])
+        return lines
 
     def _add_subsection(
         self,
@@ -158,12 +183,10 @@ class MessageFormatter:
             this_level_counter.append(0)
             for i, (key, val) in enumerate(organized_messages.items()):  # Add section header and recurse
                 this_level_counter[-1] = i
-                increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{self.formatter_options.indent}"
+                increment = f"{'.'.join(np.array(this_level_counter, dtype=str))}{self.indent}"
                 section_name = f"{increment}{self._get_name(obj=key)}"
-                self.formatted_messages.append(section_name)
-                self.formatted_messages.extend(
-                    [f"{self.formatter_options.section_headers[len(this_level_counter) - 1]}" * len(section_name), ""]
-                )
+                level = len(this_level_counter) - 1
+                self.formatted_messages.extend(self._format_section_header(section_name=section_name, level=level))
                 self._add_subsection(organized_messages=val, levels=levels[1:], level_counter=this_level_counter)
         else:  # Final section, display message information
             if levels[0] == "file_path" and not self.detailed:
@@ -198,32 +221,129 @@ class MessageFormatter:
 
     def format_messages(self) -> list[str]:
         """Deploy recursive addition of sections, terminating with message display."""
+        # Add format-specific prefix (e.g., HTML doctype and opening tags)
+        self.formatted_messages.extend(self._get_report_prefix())
+
+        # Add format-specific report summary
         report_header = _get_report_header()
-        self.formatted_messages.extend(
+        self.formatted_messages.extend(self._format_report_summary(report_header))
+
+        # Add the organized messages
+        self._add_subsection(organized_messages=self.initial_organized_messages, levels=self.levels, level_counter=[])
+
+        # Add format-specific suffix (e.g., HTML closing tags)
+        self.formatted_messages.extend(self._get_report_suffix())
+
+        return self.formatted_messages
+
+
+class RstFormatter(MessageFormatter):
+    """Formatter that outputs in reStructuredText (RST) format with underline-style section headers."""
+
+    section_headers: tuple[str, ...] = ("=", "-", "~")
+
+    def _format_section_header(self, section_name: str, level: int) -> list[str]:
+        """Format section header using RST underline style."""
+        header_char = self._extended_section_headers[level]
+        return [section_name, header_char * len(section_name), ""]
+
+
+class MarkdownFormatter(MessageFormatter):
+    """Formatter that outputs in Markdown format with prefix-style section headers (#, ##, ###)."""
+
+    section_headers: tuple[str, ...] = ("#", "##", "###")
+
+    def _format_section_header(self, section_name: str, level: int) -> list[str]:
+        """Format section header using Markdown prefix style."""
+        header_prefix = self._extended_section_headers[level]
+        return [f"{header_prefix} {section_name}", ""]
+
+
+class HtmlFormatter(MessageFormatter):
+    """Formatter that outputs in HTML format with proper document structure."""
+
+    section_headers: tuple[str, ...] = ("h2", "h3", "h4", "h5", "h6")
+
+    def _get_report_prefix(self) -> list[str]:
+        """Return HTML document opening structure."""
+        return [
+            "<!DOCTYPE html>",
+            "<html>",
+            "<head>",
+            "    <meta charset='utf-8'>",
+            "    <title>NWBInspector Report</title>",
+            "    <style>",
+            "        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; background: #f8f9fa; }",
+            "        .summary { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; }",
+            "        .summary h1 { margin-top: 0; color: #333; }",
+            "        .summary-meta { color: #666; font-size: 14px; margin-bottom: 20px; }",
+            "        .summary-stats { background: #f8f9fa; padding: 15px; border-radius: 4px; }",
+            "        .importance-list { list-style: none; padding: 0; margin: 10px 0 0 0; }",
+            "        .importance-list li { padding: 5px 0; }",
+            "        .importance-count { font-weight: bold; color: #333; }",
+            "        .critical { color: #dc3545; }",
+            "        .best-practice-violation { color: #fd7e14; }",
+            "        .best-practice-suggestion { color: #ffc107; }",
+            "        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-top: 30px; }",
+            "        h3 { color: #555; margin-top: 20px; }",
+            "        .message { margin: 15px 0; padding: 15px; background: #fff; border-left: 4px solid #007bff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }",
+            "        .message-header { font-weight: 500; color: #333; }",
+            "        .message-content { color: #666; margin-top: 8px; }",
+            "    </style>",
+            "</head>",
+            "<body>",
+        ]
+
+    def _get_report_suffix(self) -> list[str]:
+        """Return HTML document closing structure."""
+        return [
+            "</body>",
+            "</html>",
+        ]
+
+    def _format_report_summary(self, report_header: dict[str, str]) -> list[str]:
+        """Format the report summary section with HTML styling."""
+        lines = [
+            "<div class='summary'>",
+            "    <h1>NWBInspector Report</h1>",
+            "    <div class='summary-meta'>",
+            f"        <p><strong>Timestamp:</strong> {report_header['Timestamp']}</p>",
+            f"        <p><strong>Platform:</strong> {report_header['Platform']}</p>",
+            f"        <p><strong>NWBInspector version:</strong> {report_header['NWBInspector_version']}</p>",
+            "    </div>",
+            "    <div class='summary-stats'>",
+        ]
+
+        if self.nfiles_detected is not None:
+            lines.append(f"        <p>Scanned <strong>{self.nfiles_detected}</strong> file(s).</p>")
+
+        if self.nmessages == 0:
+            lines.append("        <p style='color: #28a745; font-weight: bold;'>✓ No issues found!</p>")
+        else:
+            lines.append(
+                f"        <p>Found <strong>{self.nmessages}</strong> issues across <strong>{self.nfiles_with_issues}</strong> file(s):</p>"
+            )
+            lines.append("        <ul class='importance-list'>")
+            for importance_level, number_of_results in self.message_count_by_importance.items():
+                css_class = importance_level.lower().replace("_", "-")
+                lines.append(
+                    f"            <li><span class='importance-count {css_class}'>{number_of_results}</span> {importance_level}</li>"
+                )
+            lines.append("        </ul>")
+
+        lines.extend(
             [
-                "*" * 50,
-                "NWBInspector Report Summary",
-                "",
-                f"Timestamp: {report_header['Timestamp']}",
-                f"Platform: {report_header['Platform']}",
-                f"NWBInspector version: {report_header['NWBInspector_version']}",
+                "    </div>",
+                "</div>",
                 "",
             ]
         )
+        return lines
 
-        if self.nfiles_detected is not None:
-            self.formatted_messages.append(f"Scanned {self.nfiles_detected} file(s).")
-        if self.nmessages == 0:
-            self.formatted_messages.append("No issues found!")
-        else:
-            self.formatted_messages.append(f"Found {self.nmessages} issues across {self.nfiles_with_issues} file(s):")
-
-        for importance_level, number_of_results in self.message_count_by_importance.items():
-            increment = " " * (8 - len(str(number_of_results)))
-            self.formatted_messages.append(f"{increment}{number_of_results} - {importance_level}")
-        self.formatted_messages.extend(["*" * 50, "", ""])
-        self._add_subsection(organized_messages=self.initial_organized_messages, levels=self.levels, level_counter=[])
-        return self.formatted_messages
+    def _format_section_header(self, section_name: str, level: int) -> list[str]:
+        """Format section header using HTML heading tags."""
+        tag = self._extended_section_headers[min(level, len(self._extended_section_headers) - 1)]
+        return [f"<{tag}>{section_name}</{tag}>", ""]
 
 
 def format_messages(
@@ -232,12 +352,48 @@ def format_messages(
     reverse: Optional[list[bool]] = None,
     detailed: bool = False,
     nfiles_detected: Optional[int] = None,
+    output_format: str = "rst",
 ) -> list[str]:
-    """Print InspectorMessages in order specified by the organization structure."""
+    """Print InspectorMessages in order specified by the organization structure.
+
+    Parameters
+    ----------
+    messages : list of InspectorMessage
+        The messages to format.
+    levels : list of str, optional
+        The levels to organize by. Defaults to ["file_path", "importance"].
+    reverse : list of bool, optional
+        Whether to reverse each level. Defaults to False for all levels.
+    detailed : bool, optional
+        Whether to show detailed output. Defaults to False.
+    nfiles_detected : int, optional
+        Number of files detected during inspection.
+    output_format : str, optional
+        The output format for the report. Can be "rst" or "markdown".
+        Defaults to "rst".
+
+    Returns
+    -------
+    list of str
+        The formatted message lines.
+    """
     levels = levels or ["file_path", "importance"]
 
-    message_formatter = MessageFormatter(
-        messages=messages, levels=levels, reverse=reverse, detailed=detailed, nfiles_detected=nfiles_detected
+    # Select the appropriate formatter class based on output format
+    formatter_class: type[MessageFormatter]
+    if output_format == "markdown":
+        formatter_class = MarkdownFormatter
+    elif output_format == "html":
+        formatter_class = HtmlFormatter
+    else:
+        formatter_class = RstFormatter
+
+    message_formatter = formatter_class(
+        messages=messages,
+        levels=levels,
+        reverse=reverse,
+        detailed=detailed,
+        nfiles_detected=nfiles_detected,
     )
     formatted_messages = message_formatter.format_messages()
 

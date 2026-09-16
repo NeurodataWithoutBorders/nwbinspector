@@ -127,6 +127,25 @@ There are many common options you can specify with flags, such as saving the rep
     nwbinspector path/to/my/data.nwb --report-file-path path/to/my/nwbinspector_report.txt
 
 
+The report format is automatically determined based on the file extension:
+
+- ``.md`` - Markdown format with ``#``/``##``/``###`` section headings
+- ``.html`` or ``.htm`` - HTML format with professional styling, color-coded importance levels, and a styled summary section
+- All other extensions (including ``.txt``, ``.rst``) - RST format with ``=``/``-``/``~`` section headings (default)
+
+For example, to save a Markdown-formatted report:
+
+::
+
+    nwbinspector path/to/my/data.nwb --report-file-path path/to/my/nwbinspector_report.md
+
+Or an HTML report with styled output:
+
+::
+
+    nwbinspector path/to/my/data.nwb --report-file-path path/to/my/nwbinspector_report.html
+
+
 If a report file from a previous run of the inspector is already present at the location, it can be overwritten with
 the ``-o`` or ``--overwrite`` flag...
 
