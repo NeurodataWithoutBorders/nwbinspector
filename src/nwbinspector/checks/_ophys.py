@@ -148,33 +148,32 @@ def _declares_depth(image_series: ImageSeries, imaging_plane: ImagingPlane) -> b
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_photon_series_undeclared_depth(image_series: ImageSeries) -> Optional[InspectorMessage]:
     """
-    Check that a four-dimensional photon series declares the geometry of its depth axis.
+    Check that a photon series with a depth axis of length one is either planar or a described volume.
 
-    NWB defines the fourth axis of a photon series as depth, so a reader must treat such a series as
-    volumetric. Without a three-component ``grid_spacing`` or ``origin_coords`` on the imaging plane,
-    or a three-component ``dimension`` on the series, nothing in the file says how the planes are
-    spaced or where they sit, so the data cannot be interpreted as a volume. A depth of one is the
-    common case and is usually a channel axis that was never squeezed out.
+    Readers tell a plane from a volume by the number of axes, so a trailing axis of length one turns a
+    planar recording into a one-plane volume. That axis is usually a channel or plane axis left in place
+    after splitting a recording into one series per channel. A single plane should be stored with three
+    axes, and a real one-plane volume should give the spacing or position of its planes through a
+    three-component ``grid_spacing`` or ``origin_coords`` on the imaging plane.
 
-    Best Practice: :ref:`best_practice_photon_series_declared_depth`
+    Best Practice: :ref:`best_practice_photon_series_depth_axis`
     """
     imaging_plane = getattr(image_series, "imaging_plane", None)
     if imaging_plane is None:  # a plain ImageSeries has no imaging plane and no depth semantics
         return None
 
     data_shape = get_data_shape(image_series.data, strict_no_data_load=True)
-    if data_shape is None or len(data_shape) != 4:
+    if data_shape is None or len(data_shape) != 4 or data_shape[3] != 1:
         return None
 
-    if _declares_depth(image_series=image_series, imaging_plane=imaging_plane):
+    if _describes_depth(imaging_plane=imaging_plane):
         return None
 
     return InspectorMessage(
         message=(
-            f"The data is four-dimensional with a depth axis of length {data_shape[3]}, but neither "
-            f"the series nor its imaging plane ('{imaging_plane.name}') declares a depth. Set "
-            "'grid_spacing' (or 'origin_coords') on the imaging plane to three components, or "
-            "'dimension' on the series, so the data can be interpreted as a volume. If the axis is a "
-            "leftover from splitting channels or planes, store the data as (time, rows, columns) instead."
+            f"The data is four-dimensional with a depth axis of length 1, but the imaging plane "
+            f"('{imaging_plane.name}') does not describe the depth axis. If the recording is a single plane, "
+            "store the data as (time, width, height). If it is a one-plane volume, set a three-component "
+            "'grid_spacing' or 'origin_coords' on the imaging plane."
         )
     )
