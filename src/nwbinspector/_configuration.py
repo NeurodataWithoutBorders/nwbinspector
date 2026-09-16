@@ -114,7 +114,7 @@ def configure_checks(
     checks_out: list = []
     if config is not None:
         validate_config(config=config)
-        ignore = ignore or []
+        ignore = list(ignore) if ignore is not None else []  # copy, so SKIP entries never leak into the caller's list
         for check in checks:
             mapped_check = copy_check(check=check)
             for importance_name, func_names in config.items():
