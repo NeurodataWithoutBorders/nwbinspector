@@ -464,17 +464,16 @@ def _make_photon_series(shape, imaging_plane, dimension=None):
 
 class TestCheckPhotonSeriesUndeclaredDepth(TestCase):
     def test_undeclared_singleton_depth_triggers(self):
-        """The dandiset 000491 shape: 4D with depth 1 and no geometry declared anywhere."""
+        """A 4D series with a depth of one and no geometry on the imaging plane."""
         imaging_plane = _make_imaging_plane()
         photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane)
 
         assert check_photon_series_undeclared_depth(photon_series) == InspectorMessage(
             message=(
-                "The data is four-dimensional with a depth axis of length 1, but neither "
-                "the series nor its imaging plane ('ImagingPlane') declares a depth. Set "
-                "'grid_spacing' (or 'origin_coords') on the imaging plane to three components, or "
-                "'dimension' on the series, so the data can be interpreted as a volume. If the axis is a "
-                "leftover from splitting channels or planes, store the data as (time, rows, columns) instead."
+                "The data is four-dimensional with a depth axis of length 1, but the imaging plane "
+                "('ImagingPlane') does not describe the depth axis. If the recording is a single plane, "
+                "store the data as (time, width, height). If it is a one-plane volume, set a three-component "
+                "'grid_spacing' or 'origin_coords' on the imaging plane."
             ),
             importance=Importance.BEST_PRACTICE_VIOLATION,
             check_function_name="check_photon_series_undeclared_depth",
@@ -483,12 +482,12 @@ class TestCheckPhotonSeriesUndeclaredDepth(TestCase):
             location="/",
         )
 
-    def test_undeclared_real_depth_triggers(self):
-        """A depth greater than one is still uninterpretable as a volume without a declared geometry."""
+    def test_undescribed_real_depth_passes(self):
+        """A depth greater than one is a volume whatever the imaging plane says, so it is out of scope here."""
         imaging_plane = _make_imaging_plane()
         photon_series = _make_photon_series(shape=(20, 10, 10, 4), imaging_plane=imaging_plane)
 
-        assert check_photon_series_undeclared_depth(photon_series) is not None
+        assert check_photon_series_undeclared_depth(photon_series) is None
 
     def test_planar_series_passes(self):
         imaging_plane = _make_imaging_plane()
