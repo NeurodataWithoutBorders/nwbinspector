@@ -56,6 +56,33 @@ def check_image_series_external_file_relative(image_series: ImageSeries) -> Opti
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+def check_image_series_external_file_forward_slashes(
+    image_series: ImageSeries,
+) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that the external_file paths specified by an ImageSeries use forward slashes as separators.
+
+    Backslashes are produced by platform-dependent path joining on Windows, but they do not resolve as separators
+    on POSIX systems or against archive asset keys such as those used by DANDI.
+
+    Best Practice: :ref:`best_practice_image_series_external_file_forward_slashes`
+    """
+    if image_series.external_file is None:
+        return None
+    for file_path in image_series.external_file:
+        file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
+        if "\\" in file_path:
+            yield InspectorMessage(
+                message=(
+                    f"The external file '{file_path}' contains a backslash ('\\'). "
+                    "Please use forward slashes ('/') as path separators so the path resolves on all platforms."
+                )
+            )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: float = 20.0) -> Optional[InspectorMessage]:
     """
     Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file.
