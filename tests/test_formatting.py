@@ -83,22 +83,58 @@ def test_save_report_existing_file_message_names_overwrite_flag(tmp_path):
 
 
 def test_cli_existing_json_file_message_names_overwrite_flag(tmp_path):
+    """The existence check runs before the inspection, so no NWB file is needed to reach it."""
     from click.testing import CliRunner
-    from pynwb import NWBHDF5IO
 
     from nwbinspector._nwbinspector_cli import _nwbinspector_cli
-    from nwbinspector.testing import make_minimal_nwbfile
 
-    nwbfile_path = tmp_path / "test.nwb"
-    with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
-        io.write(make_minimal_nwbfile())
     json_file_path = tmp_path / "report.json"
     json_file_path.write_text("{}")
 
-    result = CliRunner().invoke(
-        _nwbinspector_cli, [str(nwbfile_path), "--json-file-path", str(json_file_path), "--skip-validate"]
-    )
+    result = CliRunner().invoke(_nwbinspector_cli, [str(tmp_path), "--json-file-path", str(json_file_path)])
 
     assert isinstance(result.exception, FileExistsError)
     assert "--overwrite" in str(result.exception)
     assert "-o'" not in str(result.exception)
+
+
+def test_cli_existing_report_file_message_names_overwrite_flag(tmp_path):
+    from click.testing import CliRunner
+
+    from nwbinspector._nwbinspector_cli import _nwbinspector_cli
+
+    report_file_path = tmp_path / "report.txt"
+    report_file_path.write_text("existing")
+
+    result = CliRunner().invoke(_nwbinspector_cli, [str(tmp_path), "--report-file-path", str(report_file_path)])
+
+    assert isinstance(result.exception, FileExistsError)
+    assert "--overwrite" in str(result.exception)
+
+
+def test_cli_overwrite_flag_allows_existing_output_files(tmp_path):
+    """With --overwrite the up-front check passes and both files are written, here for an empty folder."""
+    from click.testing import CliRunner
+
+    from nwbinspector._nwbinspector_cli import _nwbinspector_cli
+
+    json_file_path = tmp_path / "report.json"
+    json_file_path.write_text("{}")
+    report_file_path = tmp_path / "report.txt"
+    report_file_path.write_text("existing")
+
+    result = CliRunner().invoke(
+        _nwbinspector_cli,
+        [
+            str(tmp_path),
+            "--json-file-path",
+            str(json_file_path),
+            "--report-file-path",
+            str(report_file_path),
+            "--overwrite",
+        ],
+    )
+
+    assert result.exception is None, result.output
+    assert json_file_path.read_text() != "{}"
+    assert report_file_path.read_text() != "existing"

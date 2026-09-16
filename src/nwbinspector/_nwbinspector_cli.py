@@ -142,6 +142,14 @@ def _nwbinspector_cli(
     show_progress_bar = True if progress_bar is None else strtobool(progress_bar)
     handled_modules = [] if modules is None else modules.split(",")
 
+    # Refuse an existing output file before the inspection runs, so the user does not learn of it only after a
+    # whole folder or dandiset has been scanned
+    for output_file_path in (json_file_path, report_file_path):
+        if output_file_path is not None and Path(output_file_path).exists() and not overwrite:
+            raise FileExistsError(
+                f"The file {output_file_path} already exists! Pass the '--overwrite' flag to overwrite."
+            )
+
     # Trigger the import of custom checks that have been registered and exposed to their respective modules
     for module in handled_modules:
         importlib.import_module(name=module)
@@ -214,10 +222,6 @@ def _nwbinspector_cli(
         raise SystemExit(1)
 
     if json_file_path is not None:
-        if Path(json_file_path).exists() and not overwrite:
-            raise FileExistsError(
-                f"The file {json_file_path} already exists! Pass the '--overwrite' flag to overwrite."
-            )
         with open(file=json_file_path, mode="w") as fp:
             json_report = dict(header=_get_report_header(), messages=messages)
             json.dump(obj=json_report, fp=fp, cls=InspectorOutputJSONEncoder)
