@@ -61,13 +61,10 @@ and the right choice for each depends on whether the video is lossy or lossless.
 
 For lossy video, use H.264, VP8, VP9 or AV1 in an MP4 or WebM container. All four codecs are efficient and
 widely supported, and which of them to pick depends on the tooling and hardware available. H.264 is covered by patents
-managed through a patent pool, while VP8, VP9 and AV1 are royalty-free. MP4 and WebM are the two containers that every
-platform supports and the only two a browser can play: Safari supports neither Matroska (``.mkv``) nor the other
-legacy containers, and the
-`MDN container guide <https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Containers>`_ lists MP4 and
-WebM as the only two with universal support. Most scientific video is in ``.avi`` or ``.mov`` with a legacy codec such
-as MJPEG, MPEG-4 Part 2 (``mp4v``, DIVX, XVID), WMV or DV, because that is what the camera SDK or the operating system
-produced by default, not because either was chosen.
+managed through a patent pool, while VP8, VP9 and AV1 are royalty-free. MP4 and WebM are the containers with the widest
+support, including in web browsers, which lets a video be viewed without downloading it. Scientific video is often in
+``.avi`` or ``.mov`` with an older codec such as MJPEG, MPEG-4 Part 2 (``mp4v``, DIVX, XVID), WMV or DV, because that
+is what the camera software produced by default.
 
 When only the container is wrong, no re-encoding is needed. The stream is copied byte for byte and only the container
 headers are rewritten, which takes seconds even for a large file: ``ffmpeg -i input.mkv -c copy output.mp4``. When the
