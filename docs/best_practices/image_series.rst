@@ -59,8 +59,8 @@ Use a standard video container and codec
 The format of a video has two parts, the codec that the frames are encoded with and the container that holds them,
 and the right choice for each depends on whether the video is lossy or lossless.
 
-For lossy video, use H.264, VP8, VP9 or AV1 in an MP4 or WebM container. All four codecs are efficient and play
-everywhere, and which of them to pick depends on the tooling and hardware available. H.264 is covered by patents
+For lossy video, use H.264, VP8, VP9 or AV1 in an MP4 or WebM container. All four codecs are efficient and
+widely supported, and which of them to pick depends on the tooling and hardware available. H.264 is covered by patents
 managed through a patent pool, while VP8, VP9 and AV1 are royalty-free. MP4 and WebM are the two containers that every
 platform supports and the only two a browser can play: Safari supports neither Matroska (``.mkv``) nor the other
 legacy containers, and the
