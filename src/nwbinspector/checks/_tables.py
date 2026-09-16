@@ -18,6 +18,7 @@ from ..utils import (
 )
 
 NELEMS = 200
+MAX_DURATION = 3600 * 24 * 365.25  # default: 1 year
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTableRegion)
@@ -25,11 +26,11 @@ def check_dynamic_table_region_data_validity(
     dynamic_table_region: DynamicTableRegion, nelems: Optional[int] = NELEMS
 ) -> Optional[InspectorMessage]:
     """Check if a DynamicTableRegion is valid."""
-    if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
+    if np.any(np.asarray(dynamic_table_region.data[:nelems]) >= len(dynamic_table_region.table)):
         return InspectorMessage(
             message=(
-                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than the "
-                "length of the target table. Note that data should contain indices, not ids."
+                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than or "
+                "equal to the length of the target table. Note that data should contain indices, not ids."
             )
         )
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) < 0):
@@ -49,12 +50,54 @@ def check_empty_table(table: DynamicTable) -> Optional[InspectorMessage]:
     return None
 
 
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
+def check_time_intervals_start_time_not_constant(
+    time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
+) -> Optional[InspectorMessage]:
+    """
+    Check if all start_time values are identical.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+    nelems: int, optional
+        Only check the first {nelems} elements. This is useful in case there columns are
+        very long so you don't need to load the entire array into memory. Use None to
+        load the entire arrays.
+    """
+    if len(time_intervals.id) <= 1:
+        return None
+
+    start_times = np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
+    if np.all(start_times == start_times[0]):
+        return InspectorMessage(
+            message=(
+                f"All start_time values are the same value {start_times[0]}. "
+                "start_times should be in non-decreasing order and should be "
+                "with respect to the session start time."
+            )
+        )
+
+    return None
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(
     time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
 ) -> Optional[InspectorMessage]:
     """
-    Check that time columns are in ascending order.
+    Check that start_time values are in non-decreasing order.
+
+    Despite the function name suggesting multiple time columns, this only checks ``start_time``.
+    It was originally written to check all columns ending in ``_time``, but was narrowed in
+    PR #382 (see issue #375) because other time columns are not required to be ascending
+    across rows. For example, a ``SleepStates`` table may contain overlapping state
+    annotations where multiple states (e.g. WAKEtheta, QWake, WAKEnontheta) start at the
+    same time with different stop times, making ``stop_time`` non-ascending by design.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
 
     Parameters
     ----------
@@ -100,7 +143,7 @@ def check_time_intervals_stop_after_start(
     if np.any(
         np.asarray(cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
         - np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
-        < 0
+        <= 0
     ):
         return InspectorMessage(
             message=(
@@ -127,6 +170,9 @@ def check_column_binary_capability(
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
     """
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     pre_defined_column_names = [column["name"] for column in getattr(table, "__columns__", list())]
     for column in table.columns:
         if column.name in pre_defined_column_names:
@@ -208,6 +254,9 @@ def check_table_values_for_dict(
     table: DynamicTable, nelems: Optional[int] = NELEMS
 ) -> Optional[Iterable[InspectorMessage]]:
     """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
@@ -227,6 +276,9 @@ def check_table_values_for_dict(
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = NELEMS) -> Optional[Iterable[InspectorMessage]]:
     """Check if all the values in a single column of a table are NaN."""
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column in table.columns:
         if (
             not hasattr(column, "data")
@@ -281,6 +333,9 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
     ----------
     table: DynamicTable
     """
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column_name in table.colnames:
         if column_name.endswith("_time"):
             first_timestamp = table[column_name][0]
@@ -291,4 +346,68 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
                     " It is recommended to align the `session_start_time` or `timestamps_reference_time` to be the earliest time value that occurs in the data, and shift all other signals accordingly."
                 )
 
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
+def check_time_intervals_duration(
+    time_intervals: TimeIntervals, duration_threshold: float = MAX_DURATION
+) -> Optional[InspectorMessage]:
+    """
+    Check if the duration spanned by time columns in a TimeIntervals table exceeds a threshold.
+
+    This check examines start_time, stop_time, and any other columns ending in _time.
+
+    Best Practice: :ref:`best_practice_time_interval_time_columns`
+
+    Parameters
+    ----------
+    time_intervals: TimeIntervals
+        The table to check
+    duration_threshold: float, optional
+        Maximum expected duration in seconds. Default is 1 year (365.25 days).
+    """
+    if len(time_intervals.id) == 0:
+        return None
+
+    start_times = []
+    stop_times = []
+
+    # Check for start_time and stop_time columns
+    start_times.append(float(np.nanmin(time_intervals["start_time"][:NELEMS])))
+    stop_times.append(float(np.nanmax(time_intervals["stop_time"][-NELEMS:])))
+
+    # Check for other time columns
+    for column_name in time_intervals.colnames:
+        if (
+            column_name.endswith("_time")
+            and column_name not in ["start_time", "stop_time"]
+            and len(time_intervals[column_name]) > 0
+        ):
+            data = time_intervals[column_name]
+            head = data[:NELEMS]
+            tail = data[-NELEMS:]
+            head_all_nan = np.all(np.isnan(head))
+            tail_all_nan = np.all(np.isnan(tail))
+            if head_all_nan and tail_all_nan:
+                continue
+            if not head_all_nan:
+                start_times.append(float(np.nanmin(head)))
+            if not tail_all_nan:
+                stop_times.append(float(np.nanmax(tail)))
+
+    if start_times and stop_times:
+        duration = np.nanmax(stop_times) - np.nanmin(start_times)
+
+        if duration > duration_threshold:
+            duration_years = duration / 31557600.0
+            threshold_years = duration_threshold / 31557600.0
+            return InspectorMessage(
+                message=(
+                    f"TimeIntervals table '{time_intervals.name}' has a duration of {duration:.2f} seconds "
+                    f"({duration_years:.2f} years), which exceeds the threshold of "
+                    f"{duration_threshold:.2f} seconds ({threshold_years:.2f} years). "
+                    "Please verify that this is correct."
+                )
+            )
     return None

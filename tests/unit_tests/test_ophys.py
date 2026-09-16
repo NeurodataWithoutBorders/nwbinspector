@@ -6,6 +6,7 @@ import numpy as np
 from hdmf.common.table import DynamicTable, DynamicTableRegion
 from pynwb import NWBFile
 from pynwb.device import Device, DeviceModel
+from pynwb.file import Subject
 from pynwb.ophys import (
     ImageSegmentation,
     ImagingPlane,
@@ -20,6 +21,7 @@ from nwbinspector.checks import (
     check_emission_lambda_in_nm,
     check_excitation_lambda_in_nm,
     check_image_series_data_size,  # Technically an ImageSeries check, but test is more convenient here
+    check_imaging_plane_location_allen_ccf,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
@@ -361,3 +363,64 @@ def test_false_positive_skip_check_image_series_data_size():
     )
 
     assert check_image_series_data_size(image_series=two_photon_series, gb_lower_bound=0.1) is None
+
+
+def _make_nwbfile_with_imaging_plane(location, species=None):
+    """Helper to create an NWBFile with an ImagingPlane at the given location."""
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    if species is not None:
+        nwbfile.subject = Subject(subject_id="001", species=species)
+    device = nwbfile.create_device(name="Microscope")
+    optical_channel = OpticalChannel(name="OpticalChannel", description="an optical channel", emission_lambda=500.0)
+    imaging_plane = nwbfile.create_imaging_plane(
+        name="ImagingPlane",
+        optical_channel=optical_channel,
+        imaging_rate=30.0,
+        description="a very interesting part of the brain",
+        device=device,
+        excitation_lambda=600.0,
+        indicator="GFP",
+        location=location,
+    )
+    return imaging_plane
+
+
+def test_pass_check_imaging_plane_location_allen_ccf_acronym():
+    imaging_plane = _make_nwbfile_with_imaging_plane(location="VISp", species="Mus musculus")
+    assert check_imaging_plane_location_allen_ccf(imaging_plane) is None
+
+
+def test_pass_check_imaging_plane_location_allen_ccf_full_name():
+    imaging_plane = _make_nwbfile_with_imaging_plane(location="Primary visual area", species="Mus musculus")
+    assert check_imaging_plane_location_allen_ccf(imaging_plane) is None
+
+
+def test_fail_check_imaging_plane_location_allen_ccf():
+    imaging_plane = _make_nwbfile_with_imaging_plane(location="my_custom_region", species="Mus musculus")
+    result = check_imaging_plane_location_allen_ccf(imaging_plane)
+    assert result == InspectorMessage(
+        message=(
+            "ImagingPlane location 'my_custom_region' is not a term in the Allen Mouse Brain CCF ontology. "
+            "Please use either the full name or abbreviation from the Allen Mouse Brain Atlas "
+            "(e.g., 'Primary visual area' or 'VISp'). This check can be ignored if Allen CCF "
+            "terms do not meet your needs."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_imaging_plane_location_allen_ccf",
+        object_type="ImagingPlane",
+        object_name="ImagingPlane",
+    )
+
+
+def test_skip_check_imaging_plane_location_allen_ccf_non_mouse():
+    imaging_plane = _make_nwbfile_with_imaging_plane(location="my_custom_region", species="Homo sapiens")
+    assert check_imaging_plane_location_allen_ccf(imaging_plane) is None
+
+
+def test_skip_check_imaging_plane_location_allen_ccf_no_subject():
+    imaging_plane = _make_nwbfile_with_imaging_plane(location="my_custom_region", species=None)
+    assert check_imaging_plane_location_allen_ccf(imaging_plane) is None

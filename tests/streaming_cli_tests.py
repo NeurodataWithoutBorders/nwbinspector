@@ -33,7 +33,7 @@ def test_dandiset_streaming_cli(tmpdir: py.path.local):
     report_start = test_console_output.index("0  CRITICAL\n")
     expected_report_length = 38
     report_end = report_start + expected_report_length
-    assert test_console_output[report_start:report_end] == expected_console_output[14:]
+    assert test_console_output[report_start:report_end] == expected_console_output[15:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -56,7 +56,7 @@ def test_dandiset_streaming_cli_with_version(tmpdir: py.path.local):
     report_start = test_console_output.index("0  CRITICAL\n")
     expected_report_length = 38
     report_end = report_start + expected_report_length
-    assert test_console_output[report_start:report_end] == expected_console_output[14:]
+    assert test_console_output[report_start:report_end] == expected_console_output[15:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -86,7 +86,7 @@ def test_dandiset_streaming_cli_saved_report(tmpdir: py.path.local):
     report_start = test_report.index("0  CRITICAL\n")
     expected_report_length = 38
     report_end = report_start + expected_report_length
-    assert test_report[report_start:report_end] == expected_report[14:]
+    assert test_report[report_start:report_end] == expected_report[15:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")
@@ -119,7 +119,7 @@ def test_dandiset_streaming_cli_with_version_saved_report(tmpdir: py.path.local)
     report_start = test_report.index("0  CRITICAL\n")
     expected_report_length = 38
     report_end = report_start + expected_report_length
-    assert test_report[report_start:report_end] == expected_report[14:]
+    assert test_report[report_start:report_end] == expected_report[15:]
 
 
 @pytest.mark.skipif(not STREAMING_TESTS_ENABLED, reason=DISABLED_STREAMING_TESTS_REASON or "")

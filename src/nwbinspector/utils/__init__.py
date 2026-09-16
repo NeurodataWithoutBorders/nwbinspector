@@ -11,6 +11,7 @@ from ._utils import (
     get_package_version,
     calculate_number_of_cpu,
     get_data_shape,
+    get_nwbfiles_from_path,
     PathType,  # TODO: deprecate in favor of explicit typing
     FilePathType,  # TODO: deprecate in favor of explicit typing
     OptionalListOfStrings,  # TODO: deprecate in favor of explicit typing
@@ -29,4 +30,5 @@ __all__ = [
     "get_package_version",
     "calculate_number_of_cpu",
     "get_data_shape",
+    "get_nwbfiles_from_path",
 ]

@@ -18,6 +18,8 @@ from nwbinspector.checks import (
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
     check_time_interval_time_columns,
+    check_time_intervals_duration,
+    check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
 )
 
@@ -30,7 +32,9 @@ class TestCheckDynamicTableRegion(TestCase):
             self.table.add_row(test_column=1)
 
     def test_check_dynamic_table_region_data_validity_lt_zero(self):
-        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[-1, 0], table=self.table)
+        # Build with valid indices, then assign out-of-range values to bypass HDMF's construction-time bounds check
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1], table=self.table)
+        dynamic_table_region.data[:] = [-1, 0]
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message="Some elements of dyn_tab are out of range because they are less than 0.",
@@ -42,12 +46,14 @@ class TestCheckDynamicTableRegion(TestCase):
         )
 
     def test_check_dynamic_table_region_data_validity_gt_len(self):
-        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 20], table=self.table)
+        # Build with valid indices, then assign out-of-range values to bypass HDMF's construction-time bounds check
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1], table=self.table)
+        dynamic_table_region.data[:] = [0, 20]
 
         assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
             message=(
-                "Some elements of dyn_tab are out of range because they are greater than the length of the target "
-                "table. Note that data should contain indices, not ids."
+                "Some elements of dyn_tab are out of range because they are greater than or equal to the length of "
+                "the target table. Note that data should contain indices, not ids."
             ),
             importance=Importance.CRITICAL,
             check_function_name="check_dynamic_table_region_data_validity",
@@ -55,6 +61,31 @@ class TestCheckDynamicTableRegion(TestCase):
             object_name="dyn_tab",
             location="/",
         )
+
+    def test_check_dynamic_table_region_data_validity_eq_len(self):
+        """An index equal to the table length is the first out-of-range value and must be flagged."""
+        dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1], table=self.table)
+        dynamic_table_region.data[:] = [0, len(self.table)]
+
+        assert check_dynamic_table_region_data_validity(dynamic_table_region) == InspectorMessage(
+            message=(
+                "Some elements of dyn_tab are out of range because they are greater than or equal to the length of "
+                "the target table. Note that data should contain indices, not ids."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_dynamic_table_region_data_validity",
+            object_type="DynamicTableRegion",
+            object_name="dyn_tab",
+            location="/",
+        )
+
+    def test_pass_check_dynamic_table_region_data_last_index(self):
+        """The last valid index is len(table) - 1 and must not be flagged."""
+        dynamic_table_region = DynamicTableRegion(
+            name="dyn_tab", description="desc", data=[0, len(self.table) - 1], table=self.table
+        )
+
+        assert check_dynamic_table_region_data_validity(dynamic_table_region) is None
 
     def test_pass_check_dynamic_table_region_data(self):
         dynamic_table_region = DynamicTableRegion(name="dyn_tab", description="desc", data=[0, 1, 2], table=self.table)
@@ -79,6 +110,66 @@ def test_check_empty_table_without_data():
         object_name="test_table",
         location="/",
     )
+
+
+def test_check_time_intervals_start_time_not_constant_fail_all_zero():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=0.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) == InspectorMessage(
+        message=(
+            "All start_time values are the same value 0.0. "
+            "start_times should be in non-decreasing order and should be "
+            "with respect to the session start time."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_time_intervals_start_time_not_constant",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_start_time_not_constant_fail_nonzero():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=5.0, stop_time=6.0)
+    time_intervals.add_row(start_time=5.0, stop_time=7.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) == InspectorMessage(
+        message=(
+            "All start_time values are the same value 5.0. "
+            "start_times should be in non-decreasing order and should be "
+            "with respect to the session start time."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_time_intervals_start_time_not_constant",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_start_time_not_constant_pass():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+    time_intervals.add_row(start_time=1.0, stop_time=2.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_not_constant_pass_empty():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
+
+
+def test_check_time_intervals_start_time_not_constant_pass_single_row():
+    """A single row with start_time=0 is fine."""
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=0.0, stop_time=1.0)
+
+    assert check_time_intervals_start_time_not_constant(time_intervals) is None
 
 
 def test_check_time_interval_time_columns():
@@ -111,6 +202,24 @@ def test_check_time_intervals_stop_after_start():
     time_intervals = TimeIntervals(name="test_table", description="desc")
     time_intervals.add_row(start_time=2.0, stop_time=1.5)
     time_intervals.add_row(start_time=3.0, stop_time=1.5)
+
+    assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
+        message=(
+            "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
+            "session start time."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_time_intervals_stop_after_start",
+        object_type="TimeIntervals",
+        object_name="test_table",
+        location="/",
+    )
+
+
+def test_check_time_intervals_stop_equal_start():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    time_intervals.add_row(start_time=2.0, stop_time=2.0)
+    time_intervals.add_row(start_time=3.0, stop_time=3.5)
 
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
         message=(
@@ -498,3 +607,130 @@ def test_table_time_columns_are_not_negative_multidimensional_pass():
     test_table.add_row(test_time=[0.0, 1.0, 2.0, 3.0])
 
     assert check_table_time_columns_are_not_negative(test_table) is None
+
+
+def test_check_time_intervals_duration_pass_short():
+    """Test that short duration tables pass the check."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=10.0)
+    table.add_row(start_time=15.0, stop_time=25.0)
+    table.add_row(start_time=30.0, stop_time=100.0)
+
+    assert check_time_intervals_duration(table) is None
+
+
+def test_check_time_intervals_duration_fail_exceeds_threshold():
+    """Test that tables with duration exceeding 1 year fail."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=one_year + 1000, stop_time=one_year + 2000)
+
+    result = check_time_intervals_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+    assert result.importance == Importance.CRITICAL
+
+
+def test_check_time_intervals_duration_pass_empty():
+    """Test that empty tables pass."""
+    table = TimeIntervals(name="trials", description="test trials")
+    assert check_time_intervals_duration(table) is None
+
+
+def test_check_time_intervals_duration_pass_custom_threshold():
+    """Test that custom threshold works correctly."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_row(start_time=0.0, stop_time=100.0)
+    table.add_row(start_time=150.0, stop_time=200.0)
+
+    # Should fail with 100 second threshold
+    result = check_time_intervals_duration(table, duration_threshold=100.0)
+    assert result is not None
+
+    # Should pass with 300 second threshold
+    result = check_time_intervals_duration(table, duration_threshold=300.0)
+    assert result is None
+
+
+def test_check_time_intervals_duration_with_additional_time_columns():
+    """Test that the check considers additional time columns ending in '_time'."""
+    one_year = 31557600.0
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=100.0, custom_time=0.0)
+    table.add_row(start_time=150.0, stop_time=200.0, custom_time=one_year + 1000)
+
+    result = check_time_intervals_duration(table)
+    assert result is not None
+    assert "trials" in result.message
+    assert "exceeds the threshold" in result.message
+
+
+def test_check_time_intervals_duration_pass_without_additional_time_columns():
+    """Test that check passes additional time columns that are within the threshold."""
+    table = TimeIntervals(name="trials", description="test trials")
+    table.add_column(name="custom_time", description="custom time column")
+    table.add_row(start_time=0.0, stop_time=10.0, custom_time=5.0)
+    table.add_row(start_time=15.0, stop_time=25.0, custom_time=20.0)
+
+    assert check_time_intervals_duration(table) is None
+
+
+def _make_empty_table_with_columns() -> DynamicTable:
+    """A table with declared columns but no rows, which is valid NWB and should only trigger check_empty_table."""
+    table = DynamicTable(name="test_table", description="")
+    table.add_column(name="float_column", description="", data=np.array([], dtype=float))
+    table.add_column(name="string_column", description="", data=np.array([], dtype=str))
+    table.add_column(name="start_time", description="", data=np.array([], dtype=float))
+    return table
+
+
+def test_check_column_binary_capability_pass_empty_table():
+    assert list(check_column_binary_capability(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_table_values_for_dict_pass_empty_table():
+    assert list(check_table_values_for_dict(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_col_not_nan_pass_empty_table():
+    assert list(check_col_not_nan(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_check_table_time_columns_are_not_negative_pass_empty_table():
+    assert list(check_table_time_columns_are_not_negative(table=_make_empty_table_with_columns()) or []) == []
+
+
+def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
+    """Regression test: a written zero-row table used to raise IndexError inside four table checks."""
+    from pynwb import NWBHDF5IO
+
+    from nwbinspector import inspect_nwbfile_object
+    from nwbinspector.testing import make_minimal_nwbfile
+
+    nwbfile = make_minimal_nwbfile()
+    trials = TimeIntervals(name="trials", description="")
+    trials.add_column(name="float_column", description="", data=np.array([], dtype=float))
+    nwbfile.trials = trials
+
+    nwbfile_path = tmp_path / "empty_trials.nwb"
+    with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+        io.write(nwbfile)
+
+    # Pass the checks explicitly: other test modules register deliberately broken check functions into the global
+    # registry, and those would show up as ERROR messages if the default check list were used
+    checks = [
+        check_empty_table,
+        check_column_binary_capability,
+        check_table_values_for_dict,
+        check_col_not_nan,
+        check_table_time_columns_are_not_negative,
+    ]
+    with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        messages = list(inspect_nwbfile_object(nwbfile_object=io.read(), checks=checks))
+
+    error_messages = [message for message in messages if message.importance is Importance.ERROR]
+    assert error_messages == []
+    assert any(message.check_function_name == "check_empty_table" for message in messages)

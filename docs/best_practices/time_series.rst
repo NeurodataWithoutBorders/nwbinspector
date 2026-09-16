@@ -29,13 +29,19 @@ Check functions: :py:meth:`~nwbinspector.checks._time_series.check_data_orientat
 Units of Measurement
 ~~~~~~~~~~~~~~~~~~~~
 
-Time-related values should always in seconds. This includes ``rate`` (if applicable), which should should be in Hz.
+Time-related values should always be in seconds. This includes ``rate`` (if applicable), which should be in Hz.
 
 Every :ref:`nwb-schema:sec-TimeSeries` instance has ``unit`` as an attribute, which is meant to indicate the unit of
 measurement for that data, using the appropriate type from the
 :wikipedia:`International System of Units (SI) <International_System_of_Units>`.
 
-Check function: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`
+A common mistake is to provide timestamps in milliseconds or microseconds instead of seconds, which results in
+unusually long durations (e.g., appearing to span years instead of hours). Similarly, providing the sampling period
+(time between samples) instead of the rate (frequency in Hz) leads to suspiciously low rate values.
+
+Check functions: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`,
+:py:meth:`~nwbinspector.checks._time_series.check_time_series_duration`,
+:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`
 
 
 

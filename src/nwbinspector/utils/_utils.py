@@ -5,15 +5,18 @@ import os
 import re
 from functools import lru_cache
 from importlib import import_module
+from importlib.metadata import version as importlib_version
 from pathlib import Path
-from typing import Any, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union
 
 import h5py
 import numpy as np
-import zarr
 from hdmf.backends.hdf5.h5_utils import H5Dataset
 from numpy.typing import ArrayLike
 from packaging import version
+
+if TYPE_CHECKING:
+    import zarr
 
 # TODO: deprecat these in favor of explicit typing
 PathType = TypeVar("PathType", str, Path)  # For types that can be either files or folders
@@ -26,7 +29,8 @@ MAX_CACHE_ITEMS = 1000  # lru_cache default is 128 calls of matching input/outpu
 
 @lru_cache(maxsize=MAX_CACHE_ITEMS)
 def _cache_data_retrieval_command(
-    data: Union[h5py.Dataset, zarr.Array], reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]]
+    data: 'Union[h5py.Dataset, "zarr.Array"]',
+    reduced_selection: tuple[tuple[Optional[int], Optional[int], Optional[int]]],
 ) -> np.ndarray:
     """LRU caching for _cache_data_selection cannot be applied to list inputs; this expects the tuple or Dataset."""
     selection = tuple([slice(*reduced_slice) for reduced_slice in reduced_selection])  # reconstitute the slices
@@ -155,17 +159,13 @@ def get_package_version(name: str) -> version.Version:
     -------
     version : Version
         The package version as an object from packaging.version.Version, which allows comparison to other versions.
+
+    Raises
+    ------
+    importlib.metadata.PackageNotFoundError
+        If no distribution with that name is installed.
     """
-    try:
-        from importlib.metadata import version as importlib_version
-
-        package_version = importlib_version(name)
-    except ModuleNotFoundError:  # Remove the except clause when minimal supported version becomes 3.8
-        from pkg_resources import get_distribution
-
-        package_version = get_distribution(name).version
-
-    return version.parse(package_version)
+    return version.parse(importlib_version(name))
 
 
 def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
@@ -178,12 +178,20 @@ def calculate_number_of_cpu(requested_cpu: int = 1) -> int:
         The desired number of CPUs to use.
 
         The default is 1.
+
+    Raises
+    ------
+    ValueError
+        If the request exceeds the number of available CPUs or is more negative than -(total_cpu - 1).
     """
     total_cpu = os.cpu_count() or 1  # Annotations say os.cpu_count can return None for some reason
-    assert requested_cpu <= total_cpu, f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!"
-    assert requested_cpu >= -(
-        total_cpu - 1
-    ), f"Requested fewer CPUs ({requested_cpu}) than are available ({total_cpu})!"
+    if requested_cpu > total_cpu:
+        raise ValueError(f"Requested more CPUs ({requested_cpu}) than are available ({total_cpu})!")
+    if requested_cpu < -(total_cpu - 1):
+        raise ValueError(
+            f"Requested CPUs ({requested_cpu}) is below the minimum of -{total_cpu - 1} "
+            f"(negative values leave that many of the {total_cpu} available CPUs unused)!"
+        )
     if requested_cpu > 0:
         return requested_cpu
     else:
@@ -256,3 +264,26 @@ def strtobool(val: str) -> bool:
         return False
     else:
         raise ValueError(f"Invalid truth value {val!r}")
+
+
+def get_nwbfiles_from_path(path: PathType) -> list[Path]:
+    """
+    Given a path, return a list of NWB files.
+
+    A directory whose name ends with ``.nwb.zarr`` is treated as a single NWB file (a Zarr store),
+    not as a folder to recurse into. Other directories are recursed for ``*.nwb*`` paths.
+    """
+    in_path = Path(path)
+    if in_path.is_dir() and in_path.name.endswith(".nwb.zarr"):
+        nwbfiles = [in_path]
+    elif in_path.is_dir():
+        nwbfiles = list(in_path.rglob("*.nwb*"))
+
+        # Remove any macOS sidecar files
+        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
+    elif in_path.is_file():
+        nwbfiles = [in_path]
+    else:
+        raise ValueError(f"{in_path} should be a directory or an NWB file.")
+
+    return nwbfiles

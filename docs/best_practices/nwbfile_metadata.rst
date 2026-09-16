@@ -4,6 +4,21 @@ NWBFile Metadata
 An :ref:`nwb-schema:sec-NWBFile` object generally contains data from a single experimental session.
 
 
+.. _best_practice_file_extension:
+
+File Extensions
+---------------
+
+NWB file paths should contain `.nwb` in their file extension to indicate that they are NWB files.
+To further help tools and users quickly identify the underlying backend type, an additional option is to attach the backend as a second suffix.
+Recommended file extensions are:
+
+1. ``.nwb`` (minimum recommendation)
+2. ``.nwb.h5`` (also acceptable for NWB HDF5 files)
+3. ``.nwb.zarr`` (also acceptable for NWB Zarr stores)
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_file_extension`
+
 
 File Organization
 -----------------
@@ -166,7 +181,12 @@ of the form ``'doi: ###'`` or as an external link of the form ``'http://dx.doi.o
 This allows metadata collection programs, such as those on the :dandi-archive:`DANDI archive <>` to easily form direct
 hyperlinks to the publications.
 
-Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_doi_publications`
+Each publication should be a separate entry in the list. Do not combine multiple DOIs or URLs into a single
+comma-separated string. For example, use ``["https://doi.org/10.1234/abc", "https://doi.org/10.5678/def"]`` instead of
+``["https://doi.org/10.1234/abc,https://doi.org/10.5678/def"]``.
+
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_doi_publications` and
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_publication_list_format`
 
 
 
@@ -234,6 +254,21 @@ The ``strain`` of a :ref:`nwb-schema:sec-Subject` should be set to further indic
 
 
 
+.. _best_practice_subject_weight:
+
+Subject Weight
+~~~~~~~~~~~~~~
+
+The ``weight`` of a :ref:`nwb-schema:sec-Subject` should follow the form '[numeric] [unit]', e.g. '2.3 kg'.
+The weight should include a numeric value followed by a space and a unit string. Without a unit, the weight is ambiguous.
+The unit should follow standard SI unit conventions (see `The International System of Units, 9th edition <https://doi.org/10.59161/AUEZ1291>`_),
+e.g. 'kg' for kilograms, 'g' for grams, 'mg' for milligrams, etc.
+The unit should be one of: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'.
+
+Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_weight`
+
+
+
 .. _best_practice_subject_age:
 
 Subject Age
@@ -247,7 +282,13 @@ If the precise age is unknown, an age range can be given by "[lower bound]/[uppe
 that the age is in between 10 and 20 days. If only the lower bound is known, then including only the slash after that lower bound can be used to indicate a
 missing bound. For instance, "P90Y/" would indicate that the age is 90 years or older.
 
-Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age`
+The ``age`` is measured relative to a reference point, controlled by the ``age__reference`` field of the
+:ref:`nwb-schema:sec-Subject`. The only supported values are ``"birth"`` (the default) and ``"gestational"``. Use
+``"gestational"`` when the age is measured from conception rather than from birth, as is common for embryonic or
+prenatal preparations.
+
+Check functions: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age` and
+:py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_age_reference`
 
 
 

@@ -6,6 +6,7 @@ manifest.json
 # Testing
 tests/testing_config.json
 */testing_files/*
+tests/fixtures/
 
 # Python byte-compiled / optimized / DLL files
 __pycache__/
@@ -37,3 +38,4 @@ dist/
 # Doc build
 /docs/_build/*
 _build/
+uv.lock

@@ -5,7 +5,8 @@ Timestamp: 2024-09-04 14:08:54.703671-04:00
 Platform: macOS-14.6.1-arm64-arm-64bit
 NWBInspector version: 0.4.38
 
-Found 10 issues over 1 files:
+Scanned 1 file(s).
+Found 10 issues across 1 file(s):
        3 - CRITICAL
        1 - BEST_PRACTICE_VIOLATION
        6 - BEST_PRACTICE_SUGGESTION

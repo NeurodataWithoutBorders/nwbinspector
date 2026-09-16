@@ -1,0 +1,17 @@
+# Conda environment for ROS3 streaming tests.
+#
+# h5py from conda-forge ships compiled with the ROS3 virtual file driver enabled,
+# which the PyPI wheels still do not (see https://github.com/h5py/h5py/issues/1884).
+# This file is consumed by `.github/workflows/read-nwbfile-tests.yml` via
+# `setup-miniconda`'s `environment-file` input, following the same pattern PyNWB uses
+# to keep ROS3 tests green on Windows.
+
+name: ros3
+channels:
+  - conda-forge
+dependencies:
+  - h5py
+  - pytest
+  - pytest-cov
+  - fsspec
+  - pip

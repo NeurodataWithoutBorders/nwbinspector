@@ -27,6 +27,7 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    behavior
    ecephys
    ophys
+   icephys
    ogen
    image_series
    images

@@ -6,20 +6,25 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable, Optional, Type, Union
-from warnings import filterwarnings, warn
+from warnings import filterwarnings
 
 import pynwb
-from hdmf_zarr import ZarrIO
 from natsort import natsorted
+from packaging import version
 from tqdm import tqdm
 
 from ._configuration import configure_checks
 from ._registration import Importance, InspectorMessage, available_checks
-from .tools._read_nwbfile import read_nwbfile, read_nwbfile_and_io
+from .tools._read_nwbfile import (
+    _MissingHdmfZarrError,
+    _read_nwbfile_and_io,
+    read_nwbfile,
+)
 from .utils import (
     OptionalListOfStrings,
     PathType,
     calculate_number_of_cpu,
+    get_nwbfiles_from_path,
 )
 
 
@@ -34,18 +39,18 @@ def inspect_all(
     progress_bar: bool = True,
     progress_bar_class: Type[tqdm] = tqdm,
     progress_bar_options: Optional[dict] = None,
-    stream: bool = False,  # TODO: remove after 3/1/2025
-    version_id: Optional[str] = None,  # TODO: remove after 3/1/2025
     modules: OptionalListOfStrings = None,
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
 
+    To inspect a Dandiset or a file on the DANDI archive, use ``inspect_dandiset``, ``inspect_dandi_file_path``,
+    or ``inspect_url`` instead.
+
     Parameters
     ----------
     path : PathType
-        File path to an NWBFile, folder path to iterate over recursively and scan all NWBFiles present, or a
-        six-digit identifier of the DANDISet.
+        File path to an NWBFile, or folder path to iterate over recursively and scan all NWBFiles present.
     config : dict, optional
         If a dictionary, it must be valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
@@ -86,7 +91,6 @@ def inspect_all(
         List of external module names to load; examples would be namespace extensions.
         These modules may also contain their own custom checks for their extensions.
     """
-    in_path = Path(path)
     importance_threshold = (
         Importance[importance_threshold] if isinstance(importance_threshold, str) else importance_threshold
     )
@@ -95,49 +99,12 @@ def inspect_all(
     for module in modules:
         importlib.import_module(module)
 
-    # TODO: remove these blocks after 3/1/2025
-    if version_id is not None:
-        deprecation_message = (
-            "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
-        )
-        warn(message=deprecation_message, category=DeprecationWarning, stacklevel=2)
-    if stream:
-        from ._dandi_inspection import inspect_dandiset
-
-        warning_message = (
-            "The `stream` argument is deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandiset` instead."
-        )
-        warn(message=warning_message, category=DeprecationWarning, stacklevel=2)
-
-        for message in inspect_dandiset(
-            dandiset_id=str(path),
-            dandiset_version=version_id,
-            config=config,
-            ignore=ignore,
-            select=select,
-            skip_validate=skip_validate,
-        ):
-            yield message
-
-        return None
-
     calculated_number_of_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
         progress_bar_options = dict(position=0, leave=False)
 
-    if in_path.is_dir() and (in_path.match("*.nwb*")) and ZarrIO.can_read(in_path):
-        nwbfiles = [in_path]  # if it is a zarr directory
-    elif in_path.is_dir():
-        nwbfiles = list(in_path.rglob("*.nwb*"))
+    nwbfiles = get_nwbfiles_from_path(path=path)
 
-        # Remove any macOS sidecar files
-        nwbfiles = [nwbfile for nwbfile in nwbfiles if not nwbfile.name.startswith("._")]
-    elif in_path.is_file():
-        nwbfiles = [in_path]
-    else:
-        raise ValueError(f"{in_path} should be a directory or an NWB file.")
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
@@ -147,16 +114,19 @@ def inspect_all(
         try:
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
+        except _MissingHdmfZarrError:
+            raise  # missing-hdmf-zarr propagates directly to the caller
         except Exception as exception:
-            continue  # read failure errors will be returned as part of inspect_nwbfile
+            continue  # other read failure errors will be returned as part of inspect_nwbfile
 
     if len(identifiers) != len(nwbfiles):
         for identifier, nwbfiles_with_identifier in identifiers.items():
             if len(nwbfiles_with_identifier) > 1:
+                non_unique_files = natsorted([x.name for x in nwbfiles_with_identifier])
                 yield InspectorMessage(
                     message=(
                         f"The identifier '{identifier}' is used across the .nwb files: "
-                        f"{natsorted([x.name for x in nwbfiles_with_identifier])}. "
+                        f"{non_unique_files}. "
                         "The identifier of any NWBFile should be a completely unique value - "
                         "we recommend using uuid4 to achieve this."
                     ),
@@ -165,7 +135,7 @@ def inspect_all(
                     object_type="NWBFile",
                     object_name="root",
                     location="/",
-                    file_path=str(path),
+                    file_path=str(non_unique_files[-1]),  # report an example file_path with non-unique identifier
                 )
 
     nwbfiles_iterable = nwbfiles
@@ -180,14 +150,21 @@ def inspect_all(
         futures = []
         # concurrents uses None instead of -1 for 'auto' mode
         max_workers = None if calculated_number_of_jobs == -1 else calculated_number_of_jobs
+        # Check functions are not sent to the workers directly: configured checks are copies made by
+        # `configure_checks`, and those copies cannot be pickled. Each worker instead rebuilds the same
+        # list from the check names, the config, and the importance threshold.
+        check_names = [check.__name__ for check in checks]
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             for nwbfile_path in nwbfiles:
                 futures.append(
                     executor.submit(
                         _pickle_inspect_nwb,
                         nwbfile_path=str(nwbfile_path),
-                        checks=checks,
+                        check_names=check_names,
+                        config=config,
+                        importance_threshold=importance_threshold,
                         skip_validate=skip_validate,
+                        modules=modules,
                     )
                 )
             async_nwbfiles_iterable = as_completed(futures)
@@ -195,27 +172,35 @@ def inspect_all(
                 async_nwbfiles_iterable = progress_bar_class(async_nwbfiles_iterable, **progress_bar_options)
             for future in async_nwbfiles_iterable:
                 for message in future.result():
-                    if stream:
-                        message.file_path = nwbfiles[message.file_path]
                     yield message
 
 
 def _pickle_inspect_nwb(
     nwbfile_path: str,
-    checks: Optional[list] = None,
+    check_names: Optional[list[str]] = None,
+    config: Optional[dict] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-) -> Iterable[Union[InspectorMessage, None]]:
-    """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    checks = checks or available_checks
+    modules: OptionalListOfStrings = None,
+) -> list[Union[InspectorMessage, None]]:
+    """
+    Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor.
+
+    The list of checks is rebuilt inside the worker from the check names and the config rather than being
+    pickled from the parent process. Configured checks are function copies that cannot be pickled, and even an
+    unconfigured check pickled by reference would lose any importance changes applied by the config.
+    """
+    for module in modules or []:
+        importlib.import_module(module)
+
+    checks = configure_checks(config=config, select=check_names, importance_threshold=importance_threshold)
 
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 def inspect_nwbfile(
     nwbfile_path: Union[str, Path],
-    driver: Optional[str] = None,  # TODO: remove after 3/1/2025
     skip_validate: bool = False,
-    max_retries: Optional[int] = None,  # TODO: remove after 3/1/2025
     checks: Optional[list] = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
@@ -225,10 +210,12 @@ def inspect_nwbfile(
     """
     Open an NWB file, inspect the contents, and return suggestions for improvements according to best practices.
 
+    To inspect a file on the DANDI archive, use ``inspect_dandi_file_path`` or ``inspect_url`` instead.
+
     Parameters
     ----------
     nwbfile_path : FilePathType
-        Path to the NWB file on disk or on S3.
+        Path to the NWB file on disk.
     skip_validate : bool
         Skip the PyNWB validation step.
         The default is False, which is recommended.
@@ -256,13 +243,6 @@ def inspect_nwbfile(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
     checks = checks or available_checks
-    # TODO: remove error after 3/1/2025
-    if driver is not None or max_retries is not None:
-        message = (
-            "The `driver` and `max_retries` arguments are deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandi_file_path` instead."
-        )
-        raise ValueError(message)
 
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")
@@ -270,7 +250,7 @@ def inspect_nwbfile(
 
     io = None
     try:
-        in_memory_nwbfile, io = read_nwbfile_and_io(nwbfile_path=nwbfile_path)
+        in_memory_nwbfile, io = _read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
             validation_result = pynwb.validate(path=nwbfile_path)
@@ -298,6 +278,12 @@ def inspect_nwbfile(
         ):
             inspector_message.file_path = nwbfile_path  # type: ignore
             yield inspector_message
+    except _MissingHdmfZarrError:
+        # Missing-hdmf-zarr (a Zarr file without hdmf-zarr installed) propagates directly to
+        # the caller instead of being wrapped into an inspector message. Other ImportErrors
+        # raised during inspection (e.g., from a check function) fall through to the wrap-as-ERROR
+        # branch below, preserving the existing behavior for unrelated failures.
+        raise
     except Exception as exception:
         exception_name = f"{type(exception).__module__}.{type(exception).__name__}"
         yield InspectorMessage(
@@ -410,6 +396,7 @@ def run_checks(
     checks: list,
     progress_bar_class: Optional[Type[tqdm]] = None,
     progress_bar_options: Optional[dict] = None,
+    nwb_schema_version: Optional[version.Version] = None,
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Run checks on an open NWBFile object.
@@ -425,6 +412,10 @@ def run_checks(
         Defaults to not displaying progress per set of checks over an individual file.
     progress_bar_options : dict, optional
         Dictionary of keyword arguments to pass directly to the `progress_bar_class`.
+    nwb_schema_version : packaging.version.Version, optional
+        The NWB schema version of the file being inspected.
+        If not provided, will be read from nwbfile.read_io.nwb_version if available.
+        This arg is mostly used for tests. Usually it is best to leave as None.
 
     Yields
     ------
@@ -433,11 +424,25 @@ def run_checks(
         Otherwise, has length zero (if cast as `list`), or raises `StopIteration` (if explicitly calling `next`).
     """
     if progress_bar_class is not None:
-        check_progress = progress_bar_class(iterable=checks, total=len(checks), **progress_bar_options)
+        check_progress = progress_bar_class(iterable=checks, total=len(checks), **(progress_bar_options or {}))
     else:
         check_progress = checks
 
+    # Get NWB schema version from the nwbfile's read_io if not provided
+    if nwb_schema_version is None:
+        nwb_version_info = getattr(getattr(nwbfile, "read_io", None), "nwb_version", None)
+        nwb_schema_version = version.parse(nwb_version_info[0]) if nwb_version_info else None
+
     for check_function in check_progress:
+        # Skip check if schema version constraints are not met
+        if nwb_schema_version is not None:
+            version_lt = getattr(check_function, "nwb_schema_version_lt", None)
+            version_gt = getattr(check_function, "nwb_schema_version_gt", None)
+            if version_lt is not None and nwb_schema_version >= version.parse(version_lt):
+                continue
+            if version_gt is not None and nwb_schema_version <= version.parse(version_gt):
+                continue
+
         for nwbfile_object in nwbfile.objects.values():
             if check_function.neurodata_type is not None and not issubclass(
                 type(nwbfile_object), check_function.neurodata_type

@@ -2,20 +2,27 @@
 
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Iterable, Optional
 
 from isodate import Duration, parse_duration
-from pynwb import NWBFile, ProcessingModule
+from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
 
 from .._registration import Importance, InspectorMessage, register_check
+from ..tools import get_nwbfile_path_from_internal_object
 from ..utils import is_module_installed
+
+_HAS_HDMF_ZARR = is_module_installed("hdmf_zarr")
+if _HAS_HDMF_ZARR:
+    from hdmf_zarr import NWBZarrIO
 
 duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
 species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
+weight_form_regex = r"(?i)^\d+(\.\d+)? (kg|g|mg|ug|μg|ng|pg)$"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
@@ -180,7 +187,7 @@ def check_keywords(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
 def check_subject_exists(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """Check if subject exists."""
     if nwbfile.subject is None:
@@ -209,7 +216,36 @@ def check_doi_publications(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessa
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_publication_list_format(nwbfile: NWBFile) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check if related_publications entries contain comma-separated values that should be separate list entries.
+
+    Best Practice: :ref:`best_practice_doi_publications`
+    """
+    if not nwbfile.related_publications:
+        return None
+    for publication in nwbfile.related_publications:
+        publication = publication.decode() if isinstance(publication, bytes) else publication
+        # Check for comma-separated DOIs or URLs within a single entry
+        # Look for patterns like "doi:xxx,doi:yyy" or "https://doi.org/xxx,https://doi.org/yyy"
+        if "," in publication:
+            # Check if the comma appears to separate multiple DOIs/URLs
+            parts = [p.strip() for p in publication.split(",")]
+            doi_indicators = ["doi:", "doi.org/"]
+            doi_like_parts = [part for part in parts if any(indicator in part.lower() for indicator in doi_indicators)]
+            if len(doi_like_parts) > 1:
+                yield InspectorMessage(
+                    message=(
+                        f"Metadata /general/related_publications contains a comma-separated list '{publication}'. "
+                        "Each publication should be a separate entry in the list, not combined in a single string."
+                    )
+                )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     """Check if the Subject age is in ISO 8601 or our extension of it for ranges."""
     if subject.age is None and subject.date_of_birth is None:
@@ -221,12 +257,16 @@ def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     if re.fullmatch(pattern=duration_regex, string=subject.age):
         return None
 
-    if "/" in subject.age:
+    if subject.age.count("/") == 1:  # a range; more than one slash is malformed and falls through to the message
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
-        if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and (
+        lower_valid = (
+            re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) or subject_lower_age_bound == ""
+        )
+        upper_valid = (
             re.fullmatch(pattern=duration_regex, string=subject_upper_age_bound) or subject_upper_age_bound == ""
-        ):
+        )
+        if lower_valid and upper_valid:
             return None
 
     return InspectorMessage(
@@ -246,7 +286,8 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
 
     Best Practice: :ref:`best_practice_subject_age`
     """
-    if subject.age is not None and "/" in subject.age:
+    # More than one slash is malformed and is reported by check_subject_age, so only a single slash is a range here
+    if subject.age is not None and subject.age.count("/") == 1:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
         if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and re.fullmatch(
@@ -272,6 +313,25 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+def check_subject_age_reference(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if the Subject age reference, when specified, is one of the supported options.
+
+    Best Practice: :ref:`best_practice_subject_age`
+    """
+    valid_options = ["birth", "gestational"]
+    if subject.age__reference is not None and subject.age__reference not in valid_options:
+        return InspectorMessage(
+            message=(
+                f"Subject age reference, '{subject.age__reference}', is not one of the valid options "
+                f"({valid_options})."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if subject_id is defined.
@@ -280,6 +340,31 @@ def check_subject_id_exists(subject: Subject) -> Optional[InspectorMessage]:
     """
     if subject.subject_id is None:
         return InspectorMessage(message="subject_id is missing.")
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
+def check_subject_weight(subject: Subject) -> Optional[InspectorMessage]:
+    """
+    Check if subject weight follows the form '[numeric] [unit]', e.g. '2.3 kg'.
+
+    The weight should include a numeric value followed by a space and a unit string.
+    Without a unit, the weight is ambiguous.
+
+    Best Practice: :ref:`best_practice_subject_weight`
+    """
+    if subject.weight is None:
+        return None
+
+    if not re.fullmatch(weight_form_regex, subject.weight):
+        return InspectorMessage(
+            message=(
+                f"Subject weight '{subject.weight}' does not follow the expected form '[numeric] [unit]'. "
+                "For example, '2.3 kg'. Without a unit, the weight is ambiguous. "
+                "Valid units are: 'kg', 'g', 'mg', 'ug', 'μg', 'ng', 'pg'."
+            )
+        )
 
     return None
 
@@ -302,7 +387,7 @@ def _check_subject_sex_c_elegans(sex: str) -> Optional[InspectorMessage]:
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=Subject)
+@register_check(importance=Importance.CRITICAL, neurodata_type=Subject)
 def check_subject_sex(subject: Subject) -> Optional[InspectorMessage]:
     """
     Check if the subject sex has been specified and ensure that it has has the correct form depending on the species.
@@ -398,5 +483,50 @@ def check_subject_id_no_slashes(subject: Subject) -> Optional[InspectorMessage]:
                 f"when constructing paths in DANDI. Please replace slashes with another character (e.g., '-' or '_')."
             )
         )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_file_extension(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check if the file extension contains ".nwb".
+    If a backend storage type is specified, check that it matches the backend storage type.
+
+    NWB files should use appropriate extensions based on their backend:
+    - .nwb (minimum recommendation), .nwb.h5 (HDF5), or .nwb.zarr (Zarr)
+
+    Best Practice: :ref:`best_practice_file_extension`
+    """
+    file_path = get_nwbfile_path_from_internal_object(nwbfile)
+
+    # Only perform the check if we can determine the file path
+    if file_path is not None:
+        file_extension = "".join(Path(file_path).suffixes)  # Concatenate all suffixes for multi-part extensions
+        all_valid_extensions = [".nwb", ".nwb.h5", ".nwb.zarr"]
+
+        read_io = nwbfile.get_read_io()
+        if isinstance(read_io, NWBHDF5IO):
+            valid_extensions = [".nwb", ".nwb.h5"]
+            backend = "HDF5"
+        elif _HAS_HDMF_ZARR and isinstance(read_io, NWBZarrIO):
+            valid_extensions = [".nwb", ".nwb.zarr"]
+            backend = "Zarr"
+        else:
+            valid_extensions = all_valid_extensions
+            backend = ""
+
+        # check the extension ends with .nwb or .nwb.h5/.nwb.zarr
+        msg = (
+            f"The file extension '{file_extension}' does not follow the recommended naming convention. "
+            f"{backend} NWB files should use one of the following file name extensions: {', '.join(valid_extensions)}."
+        )
+        if not any(file_extension.endswith(pattern) for pattern in valid_extensions):
+            return InspectorMessage(message=msg)
+
+        # check the extension matches the backend storage type
+        invalid_extensions = set(all_valid_extensions) - set(valid_extensions)
+        if any(file_extension.endswith(pattern) for pattern in invalid_extensions):
+            return InspectorMessage(message=msg)
 
     return None

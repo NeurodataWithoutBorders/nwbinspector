@@ -2,7 +2,7 @@ Extensions
 ==========
 
 Extend the core NWB schema only when necessary. Extensions are an essential mechanism to integrate
-data with NWB that is otherwise not supported. However, we here need to consider that there are certain costs associated
+data with NWB that is otherwise not supported. However, we need to consider that there are certain costs associated
 with extensions, *e.g.*, cost of creating, supporting, documenting, and maintaining new extensions and effort for users
 to use and learn already-created extensions. As such, users should attempt to use core ``neurodata_types`` or
 pre-existing extensions before creating new ones. :ref:`hdmf-schema:sec-dynamictable`, which are used throughout the
@@ -16,18 +16,113 @@ If an extension is required, tutorials for the process may be found through the
 It is also encouraged for extensions to contain their own check functions for their own best practices.
 See the :ref:`adding_custom_checks` section of the Developer Guide for how to do this.
 
+Define new ``neurodata_types`` at the top-level (do not nest type definitions)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Rather than nesting definitions of ``neurodata_types``, all new types should be defined
+at the top-level of the schema. To include a specific ``neurodata_type`` in another type
+use the ``neurodata_type_inc`` key instead. For example:
 
-Use Existing Neurodata Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs::
+
+    .. tab:: Do This
+
+       .. tabs::
+
+            .. code-tab:: py Python
+
+                from pynwb.spec import NWBGroupSpec
+
+                # Define the first type
+                type1_ext = NWBGroupSpec(
+                    name='custom_type1',
+                    doc='Example extension type 1',
+                    neurodata_type_def='MyNewType1',
+                    neurodata_type_inc='LabMetaData',
+                )
+
+                # Then define the second type and include the first type
+                type2_ext = NWBGroupSpec(
+                    name='custom_type2',
+                    doc='Example extension type 2',
+                    neurodata_type_def='MyNewType2',
+                    groups=[NWBGroupSpec(neurodata_type_inc='MyNewType1',
+                                         doc='Included group of type MyNewType1')]
+                )
+
+            .. code-tab:: yaml YAML
+
+                groups:
+                - neurodata_type_def: MyNewType1
+                  neurodata_type_inc: LabMetaData
+                  name: custom_type1
+                  doc: Example extension type 1
+                - neurodata_type_def: MyNewType2
+                  neurodata_type_inc: NWBContainer
+                  name: custom_type2
+                  doc: Example extension type 2
+                  groups:
+                  - neurodata_type_inc: MyNewType1
+                    doc: Included group of type MyNewType1
+
+    .. tab:: Do NOT do this
+
+        .. tabs::
+
+            .. code-tab:: py Python
+
+                from pynwb.spec import NWBGroupSpec
+
+                # Do NOT define a new type via ``neurodata_type_def`` within the
+                # definition of another type. Always define the types separately
+                # and use ``neurodata_type_inc`` to include the type
+                type2_ext = NWBGroupSpec(
+                    name='custom_type2',
+                    doc='Example extension type 2',
+                    neurodata_type_def='MyNewType2',
+                    groups=[NWBGroupSpec(
+                        name='custom_type1',
+                        doc='Example extension type 1',
+                        neurodata_type_def='MyNewType1',
+                        neurodata_type_inc='LabMetaData',
+                    )]
+                )
+
+            .. code-tab:: yaml YAML
+
+                groups:
+                - neurodata_type_def: MyNewType2
+                  neurodata_type_inc: NWBContainer
+                  name: custom_type2
+                  doc: Example extension type 2
+                  groups:
+                  - neurodata_type_def: MyNewType1
+                    neurodata_type_inc: LabMetaData
+                    name: custom_type1
+                    doc: Example extension type 1
+
+Build on and reuse existing neurodata types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When possible, use existing types when creating extensions either by creating new ``neurodata_types`` that inherit from
 existing ones, or by creating ``neurodata_types`` that contain existing ones. Building on existing types facilitates the
 reuse of existing functionality and interpretation of the data. If a community extension already exists that has a
-similar scope, it is preferable to use that extension rather than creating a new one.
+similar scope, it is preferable to use that extension rather than creating a new one. For example:
+
+* Extend :ref:`nwb-schema:sec-TimeSeries` for storing timeseries data. NWB provides main types of :ref:`nwb-schema:sec-TimeSeries`
+  and you should identify the most specific type of :ref:`nwb-schema:sec-TimeSeries` relevant for your use case
+  (e.g., extend :ref:`nwb-schema:sec-ElectricalSeries` to define a new kind of electrical recording).
+* Extend :ref:`hdmf-schema:sec-dynamictable` to store tabular data.
+* Extend :ref:`nwb-schema:sec-TimeIntervals` to store specific annotations of intervals in time.
 
 
-Provide Documentation
+Strive for backward compatible changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NWB is already incorporated in many tools - proposing a change that will make already released NWB datasets non-compliant will cause a lot of confusion and will lead to significant cost to update codes.
+
+
+Provide documentation
 ~~~~~~~~~~~~~~~~~~~~~
 
 When creating extensions be sure to provide thorough, meaningful documentation as part of the extension specification.
@@ -35,7 +130,7 @@ Explain all fields (groups, datasets, attributes, links etc.) and describe what 
 should be used.
 
 
-Write the Specification to the NWBFile
+Write the specification to the NWBFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can store the specification (core and extension) within the NWBFile through caching.
@@ -45,3 +140,81 @@ anybody who receives the data also receives the necessary data to interpret it.
 .. note::
     In :pynwb-docs:`PyNWB <>`, the extension is cached automatically. This can be specified explicitly with
     ``io.write(filepath, cache_spec=True)``
+
+
+Use Attributes for small metadata related to a particular data object (Group or Dataset)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Attributes should be used mainly to store small metadata (usually less than 64 Kbytes, which is approximately 1900
+characters for a string attribute) that is associated with a particular Group or Dataset. Typical uses of
+attributes are, e.g., to define the ``unit`` of measurement of a dataset or to store a short ``description`` of
+a group or dataset. For larger data, datasets should be used instead.
+
+In practice, the main difference is that in PyNWB and MatNWB all attributes are read into memory when reading the
+NWB file. If you would like to allow users to read a file without reading all of these particular data values, use a
+Dataset.
+
+
+Link data to relevant metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Often metadata relevant to a particular type of data is stored elsewhere, e.g., information
+about the ``Device`` used. To ensure relevant metadata can be uniquely identified, the data
+should include links to the relevant metadata. NWB provides a few key mechanisms for linking:
+
+* Use ``links`` (defined via :py:class:`~pynwb.spec.NWBLinkSpec`) to link to a particular dataset or group
+* Use :ref:`hdmf-schema:sec-dynamictableregion` to link to a set of rows in a :ref:`hdmf-schema:sec-dynamictable`
+* Use a ``dataset`` with an object reference data type to store collections of links
+  to other objects, e.g., the following dtype to define a dataset of links to :ref:`nwb-schema:sec-TimeSeries`
+
+.. code-block:: yaml
+
+    dtype:
+        target_type: TimeSeries
+        reftype: object
+
+
+Best practices for object names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Names for groups, datasets, attributes, or links should typically:
+
+* **Use lowercase letters only**
+* **Use underscores instead of spaces to separate parts in names**. E.g., use the name
+  ``starting_time`` instead of ``starting time``
+* **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
+
+
+Best practices for naming ``neurodata_types``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For defining new types via ``neurodata_type_def`` use:
+
+* **Use camelcase:**  notation, i.e., names of types should NOT include spaces,
+  always start with an uppercase letter, and use a single capitalized letter to
+  separate parts of the name. E.g,. ``neurodata_type_def: LaserMeasurement``
+* **Use the postfix "Series" when extending a TimeSeries type.** E.g., when
+  creating a new :ref:`nwb-schema:sec-TimeSeries` for laser measurements then add ``Series`` to
+  the type name, e.g,. ``neurodata_type_def: LaserMeasurementSeries``
+* **Use the postfix "Table" when extending a DynamicTable type.** e.g.,
+  ``neurodata_type_def: LaserSettingsTable``
+* **Explicit**. E.g., avoid the use of ambiguous abbreviation in names.
+
+
+Limit flexibility: Consider data reuse and tool developers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One of the aims of NWB is to make reusing data easier. This means that when proposing an extension you need to put yourself in the shoes of someone who will receive an NWB dataset and attempt to analyze it. Additionally, consider developers that will try to write tools that take NWB datasets as inputs. It’s worth assessing how much additional code different ways of approaching your extension will lead to.
+
+
+Use the ``ndx-template`` to create new extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By using the :nwb_extension_git:`ndx-template` to create new extensions helps ensure
+that extensions can be easily shared and reused and published via the :ndx-catalog:`NDX Catalog <>`.
+
+
+Get the community involved
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Try to reach out to colleagues working with the type of data you are trying to add support for. The more eyes you will get on your extension the better it will get.
