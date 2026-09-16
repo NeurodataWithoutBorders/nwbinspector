@@ -111,6 +111,19 @@ Check functions: :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_
 :py:meth:`~nwbinspector.checks._ecephys.check_units_resolution_is_valid`
 
 
+.. _best_practice_units_waveforms_electrodes:
+
+Waveform Electrode Dimension
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a ``Units`` table stores individual ``waveforms``, each spike's waveform must contain one waveform row for
+every electrode listed in that unit's ``electrodes`` entry. A mismatch usually means the electrode and sample axes
+were transposed when the data was written. Keep the electrode order consistent with the referenced electrode table
+and verify the dimensions before sharing the NWB file.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_waveforms_electrodes`
+
+
 .. _best_practice_spike_times_not_in_samples:
 
 Spike Times in Seconds

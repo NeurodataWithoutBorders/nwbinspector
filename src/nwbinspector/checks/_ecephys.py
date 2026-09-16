@@ -17,6 +17,31 @@ NELEMS = 200
 DURATION_THRESHOLD = 31557600.0
 
 
+def _read_index_data(index: object) -> Optional[np.ndarray]:
+    """Read a ragged-array index without touching the indexed payload."""
+    if not hasattr(index, "target"):
+        return None
+    try:
+        data = getattr(index, "data")
+        values = np.asarray(data[:])
+    except (AttributeError, IndexError, TypeError, ValueError):
+        return None
+
+    if values.ndim != 1 or not np.issubdtype(values.dtype, np.integer):
+        return None
+    return values.astype(np.int64, copy=False)
+
+
+def _ragged_row_lengths(index_data: np.ndarray, nrows: int) -> Optional[np.ndarray]:
+    """Return row lengths from cumulative ragged-array indices."""
+    if len(index_data) != nrows:
+        return None
+    if len(index_data) and (np.any(index_data < 0) or np.any(np.diff(index_data) < 0)):
+        return None
+    starts = np.concatenate((np.array([0], dtype=np.int64), index_data[:-1]))
+    return index_data - starts
+
+
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
 def check_units_table_has_spikes(units_table: Units) -> Optional[InspectorMessage]:
     """
@@ -31,6 +56,118 @@ def check_units_table_has_spikes(units_table: Units) -> Optional[InspectorMessag
                 "A Units table without spike times is likely an error or misuse of the neurodata type."
             )
         )
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_units_waveforms_electrodes(units_table: Units) -> Optional[Iterable[InspectorMessage]]:
+    """Check that each unit's waveform channel count matches its electrode references.
+
+    ``Units.waveforms`` is a doubly-ragged column.  Its outer index groups spikes by
+    unit and its nested index groups waveform rows (one row per electrode) by spike.
+    Comparing the nested index increments with the ``electrodes`` index catches the
+    common mistake of swapping the electrode and sample dimensions when calling
+    :meth:`~pynwb.misc.Units.add_unit`.
+
+    Only the small index arrays are read; the waveform samples themselves are not
+    accessed.  A malformed index is reported as a critical finding because the
+    waveform/electrode relationship cannot be validated safely.
+
+    Best Practice: :ref:`best_practice_units_waveforms_electrodes`
+    """
+    if "waveforms" not in units_table or "electrodes" not in units_table:
+        return None
+
+    n_units = len(units_table)
+    waveforms_column = units_table["waveforms"]
+    electrodes_column = units_table["electrodes"]
+
+    waveform_unit_ends = _read_index_data(waveforms_column)
+    waveform_spike_index = _read_index_data(getattr(waveforms_column, "target", None))
+    electrode_unit_ends = _read_index_data(electrodes_column)
+
+    waveform_unit_lengths = _ragged_row_lengths(waveform_unit_ends, n_units) if waveform_unit_ends is not None else None
+    electrode_unit_lengths = (
+        _ragged_row_lengths(electrode_unit_ends, n_units) if electrode_unit_ends is not None else None
+    )
+
+    if waveform_unit_lengths is None or electrode_unit_lengths is None or waveform_spike_index is None:
+        yield InspectorMessage(
+            message=(
+                "This Units table has malformed waveforms or electrodes ragged indices. "
+                "The waveform electrode dimension could not be checked against the electrode references."
+            )
+        )
+        return None
+
+    if len(waveform_spike_index) and (waveform_spike_index[0] < 0 or np.any(np.diff(waveform_spike_index) < 0)):
+        yield InspectorMessage(
+            message=(
+                "This Units table has malformed waveforms ragged indices. "
+                "The per-spike waveform electrode dimension could not be checked."
+            )
+        )
+        return None
+
+    assert waveform_unit_ends is not None
+    assert electrode_unit_ends is not None
+    assert waveform_spike_index is not None
+    n_spike_index_rows = len(waveform_spike_index)
+    waveform_payload = getattr(getattr(waveforms_column, "target", None), "target", None)
+    if waveform_payload is None:
+        n_waveform_rows = None
+    else:
+        try:
+            n_waveform_rows = len(waveform_payload)
+        except TypeError:
+            n_waveform_rows = None
+
+    if (len(waveform_unit_ends) and waveform_unit_ends[-1] > n_spike_index_rows) or (
+        n_waveform_rows is not None and len(waveform_spike_index) and waveform_spike_index[-1] > n_waveform_rows
+    ):
+        yield InspectorMessage(
+            message=(
+                "This Units table has incomplete waveforms ragged indices. "
+                "The per-spike waveform electrode dimension could not be checked."
+            )
+        )
+        return None
+
+    for unit_index in range(n_units):
+        spike_start = 0 if unit_index == 0 else int(waveform_unit_ends[unit_index - 1])
+        spike_stop = int(waveform_unit_ends[unit_index])
+        if spike_stop == spike_start:
+            continue
+
+        spike_boundaries = waveform_spike_index[spike_start:spike_stop]
+        previous_boundary = 0 if spike_start == 0 else int(waveform_spike_index[spike_start - 1])
+        waveform_electrode_counts = np.diff(
+            np.concatenate((np.array([previous_boundary], dtype=np.int64), spike_boundaries))
+        )
+        expected_electrode_count = int(electrode_unit_lengths[unit_index])
+
+        if len(waveform_electrode_counts) == 0:
+            continue
+
+        if not np.all(waveform_electrode_counts == waveform_electrode_counts[0]):
+            counts = ", ".join(str(int(count)) for count in waveform_electrode_counts)
+            yield InspectorMessage(
+                message=(
+                    f"Units row {unit_index} has inconsistent waveform electrode dimensions "
+                    f"across spikes ({counts}) but references {expected_electrode_count} electrodes. "
+                    "The waveforms may be malformed or transposed."
+                )
+            )
+        elif int(waveform_electrode_counts[0]) != expected_electrode_count:
+            observed_electrode_count = int(waveform_electrode_counts[0])
+            yield InspectorMessage(
+                message=(
+                    f"Units row {unit_index} stores {observed_electrode_count} waveform channels per spike "
+                    f"but references {expected_electrode_count} electrodes. "
+                    "The waveform electrode dimension may be transposed."
+                )
+            )
+
     return None
 
 
