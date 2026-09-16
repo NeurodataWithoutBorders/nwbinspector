@@ -121,21 +121,27 @@ def test_get_package_version_value():
 class TestCalulcateNumberOfCPU(TestCase):
     total_cpu = os.cpu_count()
 
-    def test_request_more_than_available_assert(self):
+    def test_request_more_than_available(self):
         requested_cpu = 2500
         with self.assertRaisesWith(
-            exc_type=AssertionError,
+            exc_type=ValueError,
             exc_msg=f"Requested more CPUs ({requested_cpu}) than are available ({self.total_cpu})!",
         ):
             calculate_number_of_cpu(requested_cpu=requested_cpu)
 
-    def test_request_fewer_than_available_assert(self):
+    def test_request_too_negative(self):
         requested_cpu = -2500
         with self.assertRaisesWith(
-            exc_type=AssertionError,
-            exc_msg=f"Requested fewer CPUs ({requested_cpu}) than are available ({self.total_cpu})!",
+            exc_type=ValueError,
+            exc_msg=(
+                f"Requested CPUs ({requested_cpu}) is below the minimum of -{self.total_cpu - 1} "
+                f"(negative values leave that many of the {self.total_cpu} available CPUs unused)!"
+            ),
         ):
             calculate_number_of_cpu(requested_cpu=requested_cpu)
+
+    def test_calculate_number_of_cpu_positive_value(self):
+        assert calculate_number_of_cpu(requested_cpu=1) == 1
 
     def test_calculate_number_of_cpu_negative_value(self):
         requested_cpu = -1  # CI only has 2 jobs available
@@ -209,3 +215,17 @@ def test_get_nwbfiles_from_path_nested_zarr_directory(tmp_path):
     result = get_nwbfiles_from_path(tmp_path)
 
     assert nested_zarr in result
+
+
+def test_get_package_version():
+    from packaging.version import Version
+
+    assert isinstance(get_package_version(name="nwbinspector"), Version)
+    assert get_package_version(name="pynwb") >= Version("4.0")
+
+
+def test_get_package_version_missing_package():
+    from importlib.metadata import PackageNotFoundError
+
+    with pytest.raises(PackageNotFoundError):
+        get_package_version(name="a-package-that-is-not-installed")
