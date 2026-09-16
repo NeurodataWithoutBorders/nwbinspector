@@ -199,12 +199,22 @@ class TestSingleChunkDataset(TestCase):
                 ),
             )
 
-    def test_chunk_larger_than_dataset_is_a_single_chunk(self):
+    def test_small_resizable_dataset_passes(self):
+        """Contiguous storage is not available to a resizable dataset, so a small one is left alone."""
         with h5py.File(name=self.file_path, mode="w") as file:
             nwb_container = self.add_dataset_to_nwb_container(
                 file=file, shape=(10, 3), dtype="float64", chunks=(64, 3), maxshape=(None, 3)
             )
-            self.assertIsNotNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+
+    def test_large_resizable_dataset_suggests_chunking_and_compression(self):
+        """Above the threshold the advice is to split and compress, which a resizable dataset can follow."""
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(
+                file=file, shape=(10, 3), dtype="float64", chunks=(64, 3), maxshape=(None, 3)
+            )
+            message = check_single_chunk_dataset(nwb_container=nwb_container, mb_lower_bound=0)
+            self.assertIn(member="Split it into several chunks and enable compression.", container=message.message)
 
     def test_contiguous_dataset_passes(self):
         with h5py.File(name=self.file_path, mode="w") as file:
