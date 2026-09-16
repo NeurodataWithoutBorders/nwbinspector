@@ -137,10 +137,10 @@ def check_imaging_plane_location_allen_ccf(imaging_plane: ImagingPlane) -> Optio
     return None
 
 
-def _declares_depth(image_series: ImageSeries, imaging_plane: ImagingPlane) -> bool:
-    """Return True when the file states somewhere that the series has a depth axis."""
-    for declaration in (image_series.dimension, imaging_plane.grid_spacing, imaging_plane.origin_coords):
-        if declaration is not None and len(declaration) == 3:
+def _describes_depth(imaging_plane: ImagingPlane) -> bool:
+    """Return True when the imaging plane gives the spacing or position of the planes along the depth axis."""
+    for geometry in (imaging_plane.grid_spacing, imaging_plane.origin_coords):
+        if geometry is not None and len(geometry) == 3:
             return True
     return False
 
