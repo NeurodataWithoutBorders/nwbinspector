@@ -133,6 +133,31 @@ known-first-party = ["nwbinspector"]
 
 
 
+[tool.towncrier]
+# Each entry is a file under changelog_entries/ named "<PR number>.<type>.md", so two pull requests never
+# touch the same lines and the release notes are assembled at release time. See docs/developer_guide.rst.
+directory = "changelog_entries"
+filename = "CHANGELOG.md"
+template = "changelog_entries/template.md"
+title_format = "# v{version} ({project_date})"
+issue_format = "[#{issue}](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/{issue})"
+ignore = ["template.md"]
+
+[[tool.towncrier.type]]
+directory = "check"
+name = "New Checks"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "improvement"
+name = "Improvements"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fix"
+name = "Fixes"
+showcontent = true
+
 [tool.codespell]
 skip = '.git*,*.pdf,*.css,allen_ccf_structure_names.json'
 check-hidden = true
@@ -143,4 +168,5 @@ dev = [
     "pre-commit>=4.2.0",
     "pytest>=8.4.2",
     "hdmf-zarr",
+    "towncrier",
 ]
