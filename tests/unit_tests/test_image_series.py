@@ -363,7 +363,7 @@ class TestExternalFileFormat(unittest.TestCase):
                 "recommended one, so the container can be changed without re-encoding: "
                 "ffmpeg -i ./h264.mkv -c copy output.mp4"
             ),
-            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            importance=Importance.BEST_PRACTICE_VIOLATION,
             check_function_name="check_image_series_external_file_format",
             object_type="ImageSeries",
             object_name="LegacyContainer",

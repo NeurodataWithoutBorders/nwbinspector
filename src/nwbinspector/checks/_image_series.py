@@ -63,7 +63,7 @@ RECOMMENDED_LOSSY_CODECS = ("h264", "vp8", "vp9", "av1")
 RECOMMENDED_LOSSLESS_CODECS = ("ffv1",)
 
 
-@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=ImageSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_external_file_format(image_series: ImageSeries) -> Optional[Iterable[InspectorMessage]]:
     """
     Check if the external_file of an ImageSeries uses a standard video container and codec.
@@ -104,8 +104,9 @@ def check_image_series_external_file_format(image_series: ImageSeries) -> Option
             )
             continue  # the re-encoding settles the container as well
 
+        # the container of a lossless video is not reported, since browsers do not play lossless video in any container
         if codec in RECOMMENDED_LOSSLESS_CODECS:
-            continue  # every tool that reads FFV1 handles its containers alike, so the container gains nothing
+            continue
 
         suffix = PurePosixPath(file_path).suffix.lower()
         if suffix not in RECOMMENDED_LOSSY_CONTAINERS:
