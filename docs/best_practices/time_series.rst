@@ -169,6 +169,12 @@ For more information about how to enable chunking and compression on your data, 
 :pynwb-docs:`PyNWB tutorial <tutorials/advanced_io/h5dataio.html#chunking>` or the
 `MatNWB instructions <https://matnwb.readthedocs.io/en/latest/pages/tutorials/dataPipe.html>`_.
 
+A dataset written as one chunk that covers the whole array has the overhead of chunked storage without its benefits.
+Small datasets of that kind are better stored contiguously, and large ones should be split into several chunks and
+compressed.
+
+Check function: :py:meth:`~nwbinspector.checks._nwb_containers.check_single_chunk_dataset`
+
 
 
 .. _best_practice_compression:
