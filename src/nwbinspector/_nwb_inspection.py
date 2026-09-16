@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Iterable, Optional, Type, Union
 from warnings import filterwarnings
 
-import h5py
 import pynwb
 from natsort import natsorted
 from packaging import version
@@ -19,7 +18,7 @@ from ._registration import Importance, InspectorMessage, available_checks
 from .tools._read_nwbfile import (
     _MissingHdmfZarrError,
     _read_nwbfile_and_io,
-    read_nwbfile,
+    _read_nwbfile_identifier,
 )
 from .utils import (
     OptionalListOfStrings,
@@ -173,27 +172,6 @@ def inspect_all(
             for future in async_nwbfiles_iterable:
                 for message in future.result():
                     yield message
-
-
-def _read_nwbfile_identifier(nwbfile_path: Union[str, Path]) -> str:
-    """
-    Read only the identifier of an NWB file, without building the full in-memory NWBFile.
-
-    HDF5 files are opened directly with h5py and closed before returning. Other backends (Zarr) fall back to the
-    full reader, and the IO object is closed afterwards so that no file handles are left open.
-    """
-    nwbfile_path = str(nwbfile_path)
-
-    if h5py.is_hdf5(nwbfile_path):
-        with h5py.File(name=nwbfile_path, mode="r") as file:
-            identifier = file["identifier"][()]
-        return identifier.decode() if isinstance(identifier, bytes) else str(identifier)
-
-    nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
-    try:
-        return nwbfile.identifier
-    finally:
-        nwbfile.get_read_io().close()
 
 
 def _pickle_inspect_nwb(
