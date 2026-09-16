@@ -42,6 +42,23 @@ the library instead, you need only import the ``available_checks`` global variab
 otherwise import your check functions after importing the ``nwbinspector`` in your ``__init__.py``.
 
 
+Adding a Changelog Entry
+------------------------
+
+The release notes are assembled at release time from one file per entry under ``changelog_entries/``, named
+``<PR number>.<type>.md``, so two pull requests never edit the same lines of ``CHANGELOG.md``. The types are
+``check`` (for new checks), ``improvement`` and ``fix``. Write a sentence or two of Markdown saying what changed:
+
+.. code-block:: none
+
+    $ cat changelog_entries/747.fix.md
+    Fixed `configure_checks` appending the `SKIP` entries of a config to the caller's `ignore` list in place.
+
+The ``[#747](...)`` link is generated from the file name, so do not write it into the text. The name has to carry the
+number of the pull request itself, not of the issue it closes; CI checks for that file whenever a pull request changes
+source code. You can preview the assembled section with ``towncrier build --draft --version X.Y.Z``.
+
+
 Disable Tests That Require Network Connection
 ---------------------------------------------
 
@@ -62,7 +79,12 @@ Making a Release
 
 To prepare a release, follow these steps and make a new pull request with the changes:
 
-    1. Update the ``CHANGELOG.md`` header with the upcoming version number and ensure all upcoming changes are included.
+    1. Assemble the changelog entries into ``CHANGELOG.md``. This also deletes the entry files under ``changelog_entries/``.
+
+    .. code-block::
+
+        towncrier build --version X.Y.Z --date "Month D, YYYY"
+
     2. Update the version string in ``pyproject.toml``.
     3. Check the requirements versions and update if needed.
     4. Update dates in ``docs/conf.py`` and ``license.txt`` to the current year if needed.
