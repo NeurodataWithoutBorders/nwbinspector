@@ -1,11 +1,13 @@
 import importlib.util
 import tempfile
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 from pynwb import NWBHDF5IO, NWBFile, ProcessingModule
 from pynwb.file import Subject
+from pynwb.testing.mock.file import mock_NWBFile
 
 HAS_HDMF_ZARR = importlib.util.find_spec("hdmf_zarr") is not None
 if HAS_HDMF_ZARR:
@@ -934,45 +936,43 @@ def test_check_subject_weight_fail_no_space():
     )
 
 
+def _nwbfile_read_with_schema_version(version: str) -> NWBFile:
+    """A mock NWBFile that looks like it was read from a file written with the given schema version."""
+    nwbfile = mock_NWBFile()
+    io = MagicMock(spec=NWBHDF5IO)
+    io.nwb_version = (version, tuple(int(part) if part.isdigit() else part for part in version.split(".")))
+    nwbfile.read_io = io
+    return nwbfile
+
+
 def test_check_nwb_schema_version_official_release_pass():
-    """Test that official schema versions pass the check."""
-    # The current schema version (2.8.0) should be considered official
+    assert check_nwb_schema_version_official_release(_nwbfile_read_with_schema_version("2.8.0")) is None
+
+
+def test_check_nwb_schema_version_official_release_skips_in_memory_files():
+    # An NWBFile that was never read from disk has no schema version to check.
     assert check_nwb_schema_version_official_release(minimal_nwbfile) is None
 
 
 def test_check_nwb_schema_version_official_release_fail():
-    """Test that unofficial schema versions fail the check."""
-    # We need to mock the schema version to test different scenarios
-    import unittest.mock
-
-    # Test development version
-    with unittest.mock.patch("pynwb.get_manager") as mock_manager:
-        mock_catalog = unittest.mock.MagicMock()
-        mock_namespace = unittest.mock.MagicMock()
-        mock_namespace.version = "2.8.0-dev"
-        mock_catalog.get_namespace.return_value = mock_namespace
-        mock_manager.return_value.namespace_catalog = mock_catalog
-
-        result = check_nwb_schema_version_official_release(minimal_nwbfile)
-        assert result == InspectorMessage(
-            message=(
-                "The NWB schema version '2.8.0-dev' appears to be a development or pre-release version. "
-                "For production data, it is recommended to use only official release versions "
-                "(e.g., '2.8.0') to ensure compatibility and reproducibility."
-            ),
-            importance=Importance.BEST_PRACTICE_VIOLATION,
-            check_function_name="check_nwb_schema_version_official_release",
-            object_type="NWBFile",
-            object_name="root",
-            location="/",
-        )
+    nwbfile = _nwbfile_read_with_schema_version("2.8.0-dev")
+    assert check_nwb_schema_version_official_release(nwbfile) == InspectorMessage(
+        message=(
+            "The NWB schema version '2.8.0-dev' appears to be a development or pre-release version. "
+            "For production data, it is recommended to use only official release versions "
+            "(e.g., '2.8.0') to ensure compatibility and reproducibility."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_nwb_schema_version_official_release",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
 
 
-def test_check_nwb_schema_version_pre_release_versions():
-    """Test that various pre-release versions are detected."""
-    import unittest.mock
-
-    test_cases = [
+@pytest.mark.parametrize(
+    ("version", "version_type"),
+    [
         ("2.8.0-alpha", "development or pre-release"),
         ("2.8.0-beta", "development or pre-release"),
         ("2.8.0-rc1", "development or pre-release"),
@@ -980,27 +980,10 @@ def test_check_nwb_schema_version_pre_release_versions():
         ("2.8.0-pre", "development or pre-release"),
         ("2.8.0.custom", "non-standard"),
         ("v2.8.0", "non-standard"),
-    ]
-
-    for version, version_type in test_cases:
-        with unittest.mock.patch("pynwb.get_manager") as mock_manager:
-            mock_catalog = unittest.mock.MagicMock()
-            mock_namespace = unittest.mock.MagicMock()
-            mock_namespace.version = version
-            mock_catalog.get_namespace.return_value = mock_namespace
-            mock_manager.return_value.namespace_catalog = mock_catalog
-
-            result = check_nwb_schema_version_official_release(minimal_nwbfile)
-            assert result is not None
-            assert version in result.message
-            assert version_type in result.message
-
-
-def test_check_nwb_schema_version_exception_handling():
-    """Test that exceptions in schema version detection are handled gracefully."""
-    import unittest.mock
-
-    with unittest.mock.patch("pynwb.get_manager", side_effect=Exception("Mock error")):
-        # Should return None when unable to determine schema version
-        result = check_nwb_schema_version_official_release(minimal_nwbfile)
-        assert result is None
+    ],
+)
+def test_check_nwb_schema_version_pre_release_versions(version: str, version_type: str):
+    result = check_nwb_schema_version_official_release(_nwbfile_read_with_schema_version(version))
+    assert result is not None
+    assert version in result.message
+    assert version_type in result.message
