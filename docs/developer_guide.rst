@@ -81,9 +81,9 @@ To prepare a release, follow these steps and make a new pull request with the ch
 
     1. Assemble the changelog entries into ``CHANGELOG.md``. This also deletes the entry files under ``changelog_entries/``.
 
-    .. code-block::
+       .. code-block::
 
-        towncrier build --version X.Y.Z --date "Month D, YYYY"
+           towncrier build --version X.Y.Z --date "Month D, YYYY"
 
     2. Update the version string in ``pyproject.toml``.
     3. Check the requirements versions and update if needed.
