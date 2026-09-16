@@ -105,6 +105,9 @@ def check_single_chunk_dataset(nwb_container: NWBContainer, mb_lower_bound: floa
     compressed. The missing compression itself is reported by ``check_small_dataset_compression`` and
     ``check_large_dataset_compression``, so this check only speaks to the layout.
 
+    A small dataset that can still be resized is left alone. HDF5 requires chunked storage for a resizable dataset,
+    so the contiguous advice cannot be followed, and such a dataset is often a seed that a pipeline appends to later.
+
     Best Practice: :ref:`best_practice_chunk_data`
     """
     for field in getattr(nwb_container, "fields", dict()).values():
@@ -116,6 +119,8 @@ def check_single_chunk_dataset(nwb_container: NWBContainer, mb_lower_bound: floa
             continue
 
         if field.size * field.dtype.itemsize < mb_lower_bound * 1e6:
+            if any(max_size is None or max_size > size for max_size, size in zip(field.maxshape, field.shape)):
+                continue
             advice = "Contiguous storage would be a better fit for a dataset of this size."
         else:
             advice = "Split it into several chunks and enable compression."
