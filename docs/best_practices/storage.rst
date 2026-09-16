@@ -30,7 +30,8 @@ For more information about how to enable chunking and compression on your data, 
 
 A dataset written as one chunk that covers the whole array has the overhead of chunked storage without its benefits.
 Small datasets of that kind are better stored contiguously, and large ones should be split into several chunks and
-compressed.
+compressed. The exception is a small dataset that can still be resized, since HDF5 requires chunked storage for it;
+such a dataset is usually a seed that a pipeline appends to later, and it is left alone.
 
 Check function: :py:meth:`~nwbinspector.checks._nwb_containers.check_single_chunk_dataset`
 
