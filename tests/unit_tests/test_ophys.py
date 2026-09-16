@@ -514,11 +514,12 @@ class TestCheckPhotonSeriesUndeclaredDepth(TestCase):
 
         assert check_photon_series_undeclared_depth(photon_series) is None
 
-    def test_singleton_depth_declared_by_dimension_passes(self):
+    def test_singleton_depth_with_dimension_still_triggers(self):
+        """A three-component dimension repeats the shape and adds no geometry, so the axis is still undescribed."""
         imaging_plane = _make_imaging_plane()
         photon_series = _make_photon_series(shape=(20, 10, 10, 1), imaging_plane=imaging_plane, dimension=[10, 10, 1])
 
-        assert check_photon_series_undeclared_depth(photon_series) is None
+        assert check_photon_series_undeclared_depth(photon_series) is not None
 
     def test_two_component_grid_spacing_still_triggers(self):
         """A planar grid_spacing does not declare a depth, so the axis is still undeclared."""
