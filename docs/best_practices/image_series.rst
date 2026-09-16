@@ -71,10 +71,9 @@ headers are rewritten, which takes seconds even for a large file: ``ffmpeg -i in
 codec is wrong the re-encoding settles both at once:
 ``ffmpeg -i input.avi -c:v libx264 -crf 18 -pix_fmt yuv420p output.mp4``.
 
-For lossless video, use FFV1. It compresses two to three times smaller than uncompressed video with identical pixel
-values, adds per-frame checksums, and handles grayscale and high bit depth without the chroma subsampling that
-consumer codecs impose, which is why the preservation community standardised on it. FFV1 is normally paired with MKV,
-but the container makes no practical difference here: every tool that reads FFV1 handles MKV and AVI alike, and no
-browser decodes lossless video whatever it is held in. Lossless data should never be re-encoded to a lossy codec.
+For lossless video, use FFV1. It is much smaller than uncompressed video with identical pixel values, adds per-frame
+checksums, and handles grayscale and high bit depth, which is why it is widely used for archival video. FFV1 is usually
+paired with MKV, but the container matters less here, since browsers do not play lossless video in any container. If
+lossless data is important, be careful not to accidentally re-encode it to a lossy codec.
 
 Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_format`
