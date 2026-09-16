@@ -1,7 +1,6 @@
 # v0.7.3 (Upcoming)
 
 ### New Checks
-* Added `check_nwb_schema_version_official_release` to flag files written with a development, pre-release, or otherwise non-standard NWB schema version (e.g., `2.8.0-dev`), read from the file's own `nwb_version`. [#607](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/607)
 * Added `check_spike_times_without_nans` to detect NaN values in Units spike times, which indicate conversion bugs or unclean array padding. [#689](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/689)
 * Added `check_subject_age_reference` to validate that `Subject.age__reference`, when present, is one of the supported values (`"birth"` or `"gestational"`). This catches invalid references in files written by tools that do not enforce the schema constraint. [#250](https://github.com/NeurodataWithoutBorders/nwbinspector/pull/250)
 
