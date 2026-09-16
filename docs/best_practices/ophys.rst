@@ -35,18 +35,21 @@ Photon Series
 -------------
 
 
-.. _best_practice_photon_series_declared_depth:
+.. _best_practice_photon_series_depth_axis:
 
-Declaring a Depth Axis
-~~~~~~~~~~~~~~~~~~~~~~
+Depth Axis
+~~~~~~~~~~
 
-NWB defines the fourth axis of a ``TwoPhotonSeries`` or ``OnePhotonSeries`` as depth, so any reader is obliged to treat
-a four-dimensional series as volumetric. Nothing else in the file says how those planes are spaced or where they sit
-unless you declare it, so a four-dimensional series with no depth geometry cannot be interpreted as a volume.
+The ``data`` of a ``TwoPhotonSeries`` or ``OnePhotonSeries`` is either ``(time, width, height)`` for a single plane or
+``(time, width, height, depth)`` for a volume. Readers use the number of axes to tell the two apart, so a trailing axis
+of length one turns a planar recording into a one-plane volume: viewers render it as a volume, archive metadata counts
+it as volumetric, and readers that expect planar data reject it. This usually happens when a channel or plane axis is
+left in place after splitting a multi-channel recording into one series per channel, which leaves each series with a
+shape like ``(time, width, height, 1)``. If the recording is a single plane, store it with three axes.
 
-If the data is volumetric, declare it: give the ``ImagingPlane`` a three-component ``grid_spacing`` (or
-``origin_coords``), or set a three-component ``dimension`` on the series. If the depth is one, the axis is usually a
-channel or plane axis that was never squeezed out after splitting the data into one series per channel, and the data
-should be stored as ``(time, rows, columns)`` instead.
+If the recording is volumetric, describe the depth geometry so the volume can be interpreted. Set a three-component
+``grid_spacing`` on the ``ImagingPlane``, which gives the spacing between planes, and where known a three-component
+``origin_coords``. Without the spacing, the planes have no known distance from each other, and the volume cannot be
+measured, rendered to scale, or registered to anything.
 
 Check function: :py:meth:`~nwbinspector.checks._ophys.check_photon_series_undeclared_depth`
