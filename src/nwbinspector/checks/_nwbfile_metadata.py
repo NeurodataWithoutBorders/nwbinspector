@@ -27,6 +27,42 @@ weight_form_regex = r"(?i)^\d+(\.\d+)? (kg|g|mg|ug|μg|ng|pg)$"
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
 
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_nwb_schema_version_official_release(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check that the NWB schema version the file was written with is an official release.
+
+    Unofficial versions are development or pre-release versions (e.g., '2.8.0-dev', '2.8.0-alpha',
+    '2.8.0-beta', '2.8.0-rc1') or anything else that is not of the form MAJOR.MINOR.PATCH.
+
+    Best Practice: Use only official, released versions of the NWB schema for
+    production data to ensure compatibility and reproducibility.
+    """
+    # The version is the file's own `nwb_version` attribute, exposed by the IO the file was read with.
+    # An NWBFile built in memory has no read IO and nothing to check.
+    io = nwbfile.get_read_io()
+    nwb_version = getattr(io, "nwb_version", None)
+    if nwb_version is None or nwb_version[0] is None:
+        return None
+    schema_version = nwb_version[0]
+
+    if re.fullmatch(r"\d+\.\d+\.\d+", schema_version):
+        return None
+
+    if re.match(r"^\d+\.\d+\.\d+-(dev|alpha|beta|rc\d*|pre)", schema_version):
+        version_type = "development or pre-release"
+    else:
+        version_type = "non-standard"
+
+    return InspectorMessage(
+        message=(
+            f"The NWB schema version '{schema_version}' appears to be a {version_type} version. "
+            f"For production data, it is recommended to use only official release versions "
+            f"(e.g., '2.8.0') to ensure compatibility and reproducibility."
+        )
+    )
+
+
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
 def check_session_start_time_old_date(nwbfile: NWBFile) -> Optional[InspectorMessage]:
     """
