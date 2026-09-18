@@ -45,3 +45,35 @@ If there is no external file, there should be no starting frame set. This is a l
 older versions of PyNWB (< 2.2.0).
 
 Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_starting_frame_without_external_file`
+
+
+Video Files
+-----------
+
+
+.. _best_practice_external_file_format:
+
+Use a standard video container and codec
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The format of a video has two parts, the codec that the frames are encoded with and the container that holds them,
+and the right choice for each depends on whether the video is lossy or lossless.
+
+For lossy video, use H.264, VP8, VP9 or AV1 in an MP4 or WebM container. All four codecs are efficient and
+widely supported, and which of them to pick depends on the tooling and hardware available. H.264 is covered by patents
+managed through a patent pool, while VP8, VP9 and AV1 are royalty-free. MP4 and WebM are the containers with the widest
+support, including in web browsers, which lets a video be viewed without downloading it. Scientific video is often in
+``.avi`` or ``.mov`` with an older codec such as MJPEG, MPEG-4 Part 2 (``mp4v``, DIVX, XVID), WMV or DV, because that
+is what the camera software produced by default.
+
+When only the container is wrong, no re-encoding is needed. The stream is copied byte for byte and only the container
+headers are rewritten, which takes seconds even for a large file: ``ffmpeg -i input.mkv -c copy output.mp4``. When the
+codec is wrong the re-encoding settles both at once:
+``ffmpeg -i input.avi -c:v libx264 -crf 18 -pix_fmt yuv420p output.mp4``.
+
+For lossless video, use FFV1. It is much smaller than uncompressed video with identical pixel values, adds per-frame
+checksums, and handles grayscale and high bit depth, which is why it is widely used for archival video. FFV1 is usually
+paired with MKV, but the container matters less here, since browsers do not play lossless video in any container. If
+lossless data is important, be careful not to accidentally re-encode it to a lossy codec.
+
+Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_format`
