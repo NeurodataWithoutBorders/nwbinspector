@@ -45,6 +45,7 @@ from ._images import (
 from ._nwb_containers import (
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
+    check_single_chunk_dataset,
     check_small_dataset_compression,
 )
 from ._nwbfile_metadata import (
@@ -78,6 +79,7 @@ from ._ophys import (
     check_emission_lambda_in_nm,
     check_excitation_lambda_in_nm,
     check_imaging_plane_location_allen_ccf,
+    check_photon_series_undeclared_depth,
     check_plane_segmentation_image_mask_shape_against_ref_images,
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
@@ -132,6 +134,7 @@ __all__ = [
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",
+    "check_single_chunk_dataset",
     "check_keywords",
     "check_institution",
     "check_subject_age",
@@ -198,6 +201,7 @@ __all__ = [
     "check_units_resolution_is_set",
     "check_rate_is_positive",
     "check_imaging_plane_location_allen_ccf",
+    "check_photon_series_undeclared_depth",
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
