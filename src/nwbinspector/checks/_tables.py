@@ -258,7 +258,12 @@ def check_table_values_for_dict(
         return None  # an empty table is reported by check_empty_table
 
     for column in table.columns:
-        if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
+        if (
+            not hasattr(column, "data")
+            or isinstance(column, VectorIndex)
+            or len(column.data) == 0
+            or not isinstance(column.data[0], str)
+        ):
             continue
         for string in cache_data_selection(data=column.data, selection=slice(nelems)):
             if is_dict_in_string(string=string):
