@@ -18,7 +18,7 @@ else:
     _DATASET_TYPES = (h5py.Dataset,)
 
 
-def _get_zarr_compression_indicator(array) -> Optional[object]:
+def _get_zarr_compression_indicator(array: "zarr.Array") -> Optional[object]:
     """Return the compressor(s) of a Zarr array, or None when it is uncompressed.
 
     zarr-python 3 replaced ``Array.compressor`` with ``Array.compressors``, a tuple that is empty for an uncompressed
