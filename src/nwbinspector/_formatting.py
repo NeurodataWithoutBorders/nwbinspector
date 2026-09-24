@@ -258,7 +258,9 @@ def save_report(report_file_path: Union[str, Path], formatted_messages: list[str
     report_file_path = Path(report_file_path)
 
     if report_file_path.exists() and not overwrite:
-        raise FileExistsError(f"The file {report_file_path} already exists! Set 'overwrite=True' or pass '-o' flag.")
+        raise FileExistsError(
+            f"The file {report_file_path} already exists! Set 'overwrite=True' or pass the '--overwrite' flag."
+        )
 
     with open(file=report_file_path, mode="w", newline="\n") as file:
         for line in formatted_messages:

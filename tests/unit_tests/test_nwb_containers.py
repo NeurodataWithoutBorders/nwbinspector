@@ -13,6 +13,7 @@ from nwbinspector import Importance, InspectorMessage, Severity
 from nwbinspector.checks import (
     check_empty_string_for_optional_attribute,
     check_large_dataset_compression,
+    check_single_chunk_dataset,
     check_small_dataset_compression,
 )
 
@@ -119,7 +120,7 @@ def test_hit_check_empty_string_for_optional_attribute():
     )
 
     assert check_empty_string_for_optional_attribute(nwb_container=nwbfile)[0] == InspectorMessage(
-        message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve my omitting '
+        message='The attribute "pharmacology" is optional and you have supplied an empty string. Improve by omitting '
         "this attribute (in MatNWB or PyNWB) or entering as None (in PyNWB)",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         location="/",
@@ -145,3 +146,96 @@ def test_check_empty_string_for_optional_attribute_skip_non_string():
         timestamps=[0.0, 0.04, 0.07, 0.1, 0.14, 0.16, 0.21],
     )  # The `data` field will be created by PyNWB but it will be empty and will otherwise raise warning/error via numpy
     assert check_empty_string_for_optional_attribute(nwb_container=image_series) is None
+
+
+class TestSingleChunkDataset(TestCase):
+    def setUp(self):
+        self.test_folder = Path(mkdtemp())
+        self.file_path = str(self.test_folder / "test_file.nwb")
+
+    def tearDown(self):
+        rmtree(self.test_folder)
+
+    @staticmethod
+    def add_dataset_to_nwb_container(file: h5py.File, **dataset_kwargs):
+        dataset = file.create_dataset(name="test_dataset", **dataset_kwargs)
+        nwb_container = NWBContainer(name="test_container")
+        nwb_container.fields.update(dataset=dataset)
+        return nwb_container
+
+    def test_small_single_chunk_suggests_contiguous(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, shape=(10,), dtype="float64", chunks=(10,))
+            self.assertEqual(
+                first=check_single_chunk_dataset(nwb_container=nwb_container),
+                second=InspectorMessage(
+                    message=(
+                        "test_dataset is stored as a single uncompressed chunk. Contiguous storage would be a better "
+                        "fit for a dataset of this size."
+                    ),
+                    importance=Importance.BEST_PRACTICE_SUGGESTION,
+                    check_function_name="check_single_chunk_dataset",
+                    object_type="NWBContainer",
+                    object_name="test_container",
+                    location="/",
+                ),
+            )
+
+    def test_large_single_chunk_suggests_chunking_and_compression(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, shape=(10,), dtype="float64", chunks=(10,))
+            self.assertEqual(
+                first=check_single_chunk_dataset(nwb_container=nwb_container, mb_lower_bound=0.00008),
+                second=InspectorMessage(
+                    message=(
+                        "test_dataset is stored as a single uncompressed chunk. Split it into several chunks and "
+                        "enable compression."
+                    ),
+                    importance=Importance.BEST_PRACTICE_SUGGESTION,
+                    check_function_name="check_single_chunk_dataset",
+                    object_type="NWBContainer",
+                    object_name="test_container",
+                    location="/",
+                ),
+            )
+
+    def test_small_resizable_dataset_passes(self):
+        """Contiguous storage is not available to a resizable dataset, so a small one is left alone."""
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(
+                file=file, shape=(10, 3), dtype="float64", chunks=(64, 3), maxshape=(None, 3)
+            )
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+
+    def test_large_resizable_dataset_suggests_chunking_and_compression(self):
+        """Above the threshold the advice is to split and compress, which a resizable dataset can follow."""
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(
+                file=file, shape=(10, 3), dtype="float64", chunks=(64, 3), maxshape=(None, 3)
+            )
+            message = check_single_chunk_dataset(nwb_container=nwb_container, mb_lower_bound=0)
+            self.assertIn(member="Split it into several chunks and enable compression.", container=message.message)
+
+    def test_contiguous_dataset_passes(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, shape=(10,), dtype="float64")
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+
+    def test_compressed_single_chunk_passes(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(
+                file=file, shape=(10,), dtype="float64", chunks=(10,), compression="gzip"
+            )
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+
+    def test_multiple_chunks_pass(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(file=file, shape=(10, 3), dtype="float64", chunks=(5, 3))
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))
+
+    def test_empty_dataset_passes(self):
+        with h5py.File(name=self.file_path, mode="w") as file:
+            nwb_container = self.add_dataset_to_nwb_container(
+                file=file, shape=(0,), dtype="float64", chunks=(1024,), maxshape=(None,)
+            )
+            self.assertIsNone(obj=check_single_chunk_dataset(nwb_container=nwb_container))

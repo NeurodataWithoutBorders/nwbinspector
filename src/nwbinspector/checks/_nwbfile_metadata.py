@@ -209,7 +209,7 @@ def check_subject_age(subject: Subject) -> Optional[InspectorMessage]:
     if re.fullmatch(pattern=duration_regex, string=subject.age):
         return None
 
-    if "/" in subject.age:
+    if subject.age.count("/") == 1:  # a range; more than one slash is malformed and falls through to the message
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
         lower_valid = (
@@ -238,7 +238,8 @@ def check_subject_proper_age_range(subject: Subject) -> Optional[InspectorMessag
 
     Best Practice: :ref:`best_practice_subject_age`
     """
-    if subject.age is not None and "/" in subject.age:
+    # More than one slash is malformed and is reported by check_subject_age, so only a single slash is a range here
+    if subject.age is not None and subject.age.count("/") == 1:
         subject_lower_age_bound, subject_upper_age_bound = subject.age.split("/")
 
         if re.fullmatch(pattern=duration_regex, string=subject_lower_age_bound) and re.fullmatch(
