@@ -58,7 +58,7 @@ def check_image_series_external_file_relative(image_series: ImageSeries) -> Opti
     return None
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+@register_check(importance=Importance.CRITICAL, neurodata_type=ImageSeries)
 def check_image_series_external_file_forward_slashes(
     image_series: ImageSeries,
 ) -> Optional[Iterable[InspectorMessage]]:

@@ -163,7 +163,7 @@ def test_check_image_series_external_file_forward_slashes_trigger():
             "The external file 'ses-1_image\\abc123_external_file_0.mp4' contains a backslash ('\\'). "
             "Please use forward slashes ('/') as path separators so the path resolves on all platforms."
         ),
-        importance=Importance.BEST_PRACTICE_VIOLATION,
+        importance=Importance.CRITICAL,
         check_function_name="check_image_series_external_file_forward_slashes",
         object_type="ImageSeries",
         object_name="TestImageSeries",
