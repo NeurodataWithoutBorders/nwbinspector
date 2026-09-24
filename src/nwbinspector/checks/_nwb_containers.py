@@ -18,6 +18,17 @@ else:
     _DATASET_TYPES = (h5py.Dataset,)
 
 
+def _get_zarr_compression_indicator(array) -> Optional[object]:
+    """Return the compressor(s) of a Zarr array, or None when it is uncompressed.
+
+    zarr-python 3 replaced ``Array.compressor`` with ``Array.compressors``, a tuple that is empty for an uncompressed
+    array, and ``compressor`` raises for arrays in the Zarr v3 format. zarr-python 2 only has ``compressor``.
+    """
+    if hasattr(type(array), "compressors"):
+        return array.compressors or None
+    return array.compressor
+
+
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBContainer)
 def check_large_dataset_compression(
     nwb_container: NWBContainer, gb_lower_bound: float = 20.0
@@ -38,7 +49,7 @@ def check_large_dataset_compression(
         if isinstance(field, h5py.Dataset):
             compression_indicator = field.compression
         elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
-            compression_indicator = field.compressor
+            compression_indicator = _get_zarr_compression_indicator(field)
 
         field_size_bytes = field.size * field.dtype.itemsize
         if compression_indicator is None and field_size_bytes > gb_lower_bound * 1e9:
@@ -73,7 +84,7 @@ def check_small_dataset_compression(
         if isinstance(field, h5py.Dataset):
             compression_indicator = field.compression
         elif _HAS_HDMF_ZARR and isinstance(field, zarr.Array):
-            compression_indicator = field.compressor
+            compression_indicator = _get_zarr_compression_indicator(field)
 
         if (
             compression_indicator is None
