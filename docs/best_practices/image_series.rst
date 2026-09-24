@@ -35,6 +35,19 @@ When using ``external_file`` the paths passed in the ``external_file`` option sh
 Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_relative`
 
 
+.. _best_practice_image_series_external_file_forward_slashes:
+
+Use forward slashes in external file paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The paths passed in the ``external_file`` option should use forward slashes (``/``) as path separators, even when the
+file is written on Windows. Backslashes are introduced by platform-dependent path joining, but they are not treated as
+separators on POSIX systems, and archive asset keys (such as those used by the DANDI Archive) always use forward
+slashes. A path such as ``ses-1_image\abc123_external_file_0.mp4`` will therefore silently fail to resolve.
+
+Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_forward_slashes`
+
+
 .. _best_practice_starting_frame_only_with_external_file:
 
 Starting frame only with external file
