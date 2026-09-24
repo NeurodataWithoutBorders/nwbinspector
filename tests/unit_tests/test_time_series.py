@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import pynwb
 
-from nwbinspector import Importance, InspectorMessage
+from nwbinspector import Importance, InspectorMessage, Severity
 from nwbinspector.checks import (
     check_data_orientation,
     check_missing_unit,
@@ -42,6 +42,106 @@ def test_check_regular_timestamps():
         object_name="test_time_series",
         location="/",
     )
+
+
+def test_check_regular_timestamps_long_series():
+    """A series longer than 2 * nelems is judged from its head, its tail, and its total span."""
+    timestamps = np.arange(1000) / 30000.0
+    assert check_regular_timestamps(
+        time_series=pynwb.TimeSeries(
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=1000),
+            timestamps=timestamps,
+        )
+    ) == InspectorMessage(
+        message=(
+            "TimeSeries appears to have a constant sampling rate. Consider specifying starting_time=0.0 and "
+            f"rate={1 / (timestamps[1] - timestamps[0])} instead of timestamps."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_regular_timestamps",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_pass_check_regular_timestamps_long_series_with_gap():
+    """A gap in the unread middle section changes the total span and must prevent the message."""
+    timestamps = np.arange(1000) / 30000.0
+    timestamps[500:] += 1.0
+    assert (
+        check_regular_timestamps(
+            time_series=pynwb.TimeSeries(
+                name="test_time_series",
+                unit="test_units",
+                data=np.zeros(shape=1000),
+                timestamps=timestamps,
+            )
+        )
+        is None
+    )
+
+
+def test_pass_check_regular_timestamps_long_series_with_rate_change():
+    """Different steps at the two ends must prevent the message."""
+    timestamps = np.concatenate([np.arange(500) / 30000.0, 500 / 30000.0 + np.arange(500) / 20000.0])
+    assert (
+        check_regular_timestamps(
+            time_series=pynwb.TimeSeries(
+                name="test_time_series",
+                unit="test_units",
+                data=np.zeros(shape=1000),
+                timestamps=timestamps,
+            )
+        )
+        is None
+    )
+
+
+def test_check_regular_timestamps_long_series_jitter_in_middle_trade_off():
+    """
+    Document the trade-off of sampling the ends: a single shifted sample in the unread middle leaves both ends and
+    the total span unchanged, so it is not detected with the default nelems, but it is with nelems=None.
+    """
+    timestamps = np.arange(1000) / 30000.0
+    timestamps[500] += 1e-6
+    time_series = pynwb.TimeSeries(
+        name="test_time_series",
+        unit="test_units",
+        data=np.zeros(shape=1000),
+        timestamps=timestamps,
+    )
+
+    assert check_regular_timestamps(time_series=time_series) is not None
+    assert check_regular_timestamps(time_series=time_series, nelems=None) is None
+
+
+def test_check_regular_timestamps_does_not_load_full_dataset(tmp_path):
+    """Regression test: the check used to read the entire timestamps dataset into memory twice."""
+    import tracemalloc
+
+    number_of_timestamps = 2_000_000  # 16 MB of float64 timestamps
+    nwbfile_path = tmp_path / "regular_timestamps.nwb"
+    with h5py.File(name=nwbfile_path, mode="w") as file:
+        file.create_dataset(name="timestamps", data=np.arange(number_of_timestamps) / 30000.0)
+
+    with h5py.File(name=nwbfile_path, mode="r") as file:
+        time_series = pynwb.TimeSeries(
+            name="test_time_series",
+            unit="test_units",
+            data=np.zeros(shape=number_of_timestamps),
+            timestamps=file["timestamps"],
+        )
+        tracemalloc.start()
+        result = check_regular_timestamps(time_series=time_series)
+        _, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+    assert result is not None
+    assert result.severity is Severity.LOW
+    assert peak < 2_000_000, f"check_regular_timestamps allocated {peak / 1e6:.1f} MB for a 16 MB dataset"
 
 
 def test_pass_check_regular_timestamps():
