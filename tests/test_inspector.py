@@ -130,7 +130,7 @@ class TestInspectorOnBackend(TestCase):
     """A common helper class for testing the NWBInspector on files of a specific backend (HDF5 or Zarr)."""
 
     BackendIOClass: Type[HDMFIO]
-    skip_validate = False  # TODO: can be removed once NWBZarrIO validation issues are resolved
+    skip_validate = False
     _backend_extensions = dict(zarr=".nwb.zarr", hdf5=".hdf5.nwb")
 
     @classmethod
@@ -775,7 +775,6 @@ class TestInspectorAPIAndCLIHDF5(TestInspectorOnBackend):
 class TestInspectorAPIAndCLIZarr(TestInspectorAPIAndCLIHDF5):
     BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_default_report_zarr.txt"
-    skip_validate = True
 
 
 class TestDANDIConfigHDF5(TestInspectorOnBackend):
@@ -900,7 +899,6 @@ class TestDANDIConfigHDF5(TestInspectorOnBackend):
 class TestDANDIConfigZarr(TestDANDIConfigHDF5):
     BackendIOClass = NWBZarrIO
     true_report_file_path = EXPECTED_REPORTS_FOLDER_PATH / "true_nwbinspector_report_with_dandi_config_zarr.txt"
-    skip_validate = True
 
 
 class TestCheckUniqueIdentifiersPassHDF5(TestInspectorOnBackend):
