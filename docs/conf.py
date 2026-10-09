@@ -39,6 +39,12 @@ html_css_files = [
     "css/custom.css",
 ]
 
+# NWB Assistant chat widget (Open Science Assistant); see _static/js/nwb_assistant.js
+html_js_files = [
+    "https://demo.osc.earth/osa-chat-widget.js",
+    "js/nwb_assistant.js",
+]
+
 html_theme_options = {
     "collapse_navigation": False,
 }
