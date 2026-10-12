@@ -18,7 +18,7 @@ from ._registration import Importance, InspectorMessage, available_checks
 from .tools._read_nwbfile import (
     _MissingHdmfZarrError,
     _read_nwbfile_and_io,
-    read_nwbfile,
+    _read_nwbfile_identifier,
 )
 from .utils import (
     OptionalListOfStrings,
@@ -112,11 +112,10 @@ def inspect_all(
     identifiers = defaultdict(list)
     for nwbfile_path in nwbfiles:
         try:
-            nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
-            identifiers[nwbfile.identifier].append(nwbfile_path)
+            identifiers[_read_nwbfile_identifier(nwbfile_path=nwbfile_path)].append(nwbfile_path)
         except _MissingHdmfZarrError:
             raise  # missing-hdmf-zarr propagates directly to the caller
-        except Exception as exception:
+        except Exception:
             continue  # other read failure errors will be returned as part of inspect_nwbfile
 
     if len(identifiers) != len(nwbfiles):
