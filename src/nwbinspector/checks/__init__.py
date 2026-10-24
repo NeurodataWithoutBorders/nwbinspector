@@ -27,8 +27,8 @@ from ._general import (
 )
 from ._hed import (
     check_hed_annotations_valid,
+    check_hed_annotations_warnings,
     check_hed_lab_metadata_exists,
-    check_hed_value_vector_not_in_meanings_table,
 )
 from ._icephys import (
     check_intracellular_electrode_cell_id_exists,
@@ -213,5 +213,5 @@ __all__ = [
     "check_units_table_has_spikes",
     "check_hed_lab_metadata_exists",
     "check_hed_annotations_valid",
-    "check_hed_value_vector_not_in_meanings_table",
+    "check_hed_annotations_warnings",
 ]

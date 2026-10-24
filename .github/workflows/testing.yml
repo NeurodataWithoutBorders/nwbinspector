@@ -40,7 +40,7 @@ jobs:
           pip install pytest-cov
 
       - name: Install package
-        run: pip install ".[dandi,zarr]"
+        run: pip install ".[dandi,zarr,hed]"
       - name: Download testing data and set config path
         run: dandi download "https://sandbox.dandiarchive.org/#/dandiset/204919"
 
