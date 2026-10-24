@@ -108,6 +108,23 @@ class TestExternalFileValid(unittest.TestCase):
             )
 
 
+def test_check_image_series_external_file_valid_pass_in_memory():
+    """An NWBFile that has not been written has no container source, so relative paths cannot be resolved."""
+    nwbfile = make_minimal_nwbfile()
+    image_series = ImageSeries(
+        name="TestImageSeries",
+        external_file=["madeup_file.mp4"],
+        starting_frame=[0],
+        format="external",
+        timestamps=[0.0, 1.0],
+        unit="n.a.",
+    )
+    nwbfile.add_acquisition(image_series)
+
+    assert image_series.get_ancestor("NWBFile").container_source is None
+    assert check_image_series_external_file_valid(image_series=image_series) is None
+
+
 def test_check_image_series_external_file_valid_pass_non_external():
     image_series = ImageSeries(name="TestImageSeries", rate=1.0, data=np.zeros(shape=(3, 3, 3, 3)), unit="TestUnit")
 

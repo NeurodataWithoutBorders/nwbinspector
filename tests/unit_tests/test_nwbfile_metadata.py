@@ -540,6 +540,30 @@ def test_check_subject_age_iso8601_range_fail_2():
     )
 
 
+def test_check_subject_age_iso8601_range_fail_multiple_slashes():
+    """A malformed range with more than one slash should produce the usual message rather than raise."""
+    subject = Subject(subject_id="001", age="P1D/P2D/P3D")
+    assert check_subject_age(subject) == InspectorMessage(
+        message=(
+            "Subject age, 'P1D/P2D/P3D', does not follow ISO 8601 duration format, e.g. 'P2Y' for 2 years "
+            "or 'P23W' for 23 weeks. You may also specify a range using a '/' separator, e.g., 'P1D/P3D' for an "
+            "age range somewhere from 1 to 3 days. If you cannot specify the upper bound of the range, "
+            "you may leave the right side blank, e.g., 'P90Y/' means 90 years old or older."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_age",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
+
+
+def test_check_subject_proper_age_range_pass_multiple_slashes():
+    """The format problem is reported by check_subject_age, so this check should stay quiet and not raise."""
+    subject = Subject(subject_id="001", age="P1D/P2D/P3D")
+    assert check_subject_proper_age_range(subject) is None
+
+
 def test_check_subject_proper_age_range_pass():
     subject = Subject(subject_id="001", age="P1D/P3D")
     assert check_subject_proper_age_range(subject) is None

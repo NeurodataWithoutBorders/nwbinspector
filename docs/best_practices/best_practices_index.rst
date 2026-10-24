@@ -21,6 +21,7 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    :maxdepth: 2
 
    general
+   storage
    nwbfile_metadata
    time_series
    tables

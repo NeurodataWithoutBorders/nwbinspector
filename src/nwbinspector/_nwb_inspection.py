@@ -6,7 +6,7 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable, Optional, Type, Union
-from warnings import filterwarnings, warn
+from warnings import filterwarnings
 
 import pynwb
 from natsort import natsorted
@@ -39,18 +39,18 @@ def inspect_all(
     progress_bar: bool = True,
     progress_bar_class: Type[tqdm] = tqdm,
     progress_bar_options: Optional[dict] = None,
-    stream: bool = False,  # TODO: remove after 3/1/2025
-    version_id: Optional[str] = None,  # TODO: remove after 3/1/2025
     modules: OptionalListOfStrings = None,
 ) -> Iterable[Union[InspectorMessage, None]]:
     """
     Inspect a local NWBFile or folder of NWBFiles and return suggestions for improvements according to best practices.
 
+    To inspect a Dandiset or a file on the DANDI archive, use ``inspect_dandiset``, ``inspect_dandi_file_path``,
+    or ``inspect_url`` instead.
+
     Parameters
     ----------
     path : PathType
-        File path to an NWBFile, folder path to iterate over recursively and scan all NWBFiles present, or a
-        six-digit identifier of the DANDISet.
+        File path to an NWBFile, or folder path to iterate over recursively and scan all NWBFiles present.
     config : dict, optional
         If a dictionary, it must be valid against our JSON configuration schema.
         Can specify a mapping of importance levels and list of check functions whose importance you wish to change.
@@ -98,34 +98,6 @@ def inspect_all(
 
     for module in modules:
         importlib.import_module(module)
-
-    # TODO: remove these blocks after 3/1/2025
-    if version_id is not None:
-        deprecation_message = (
-            "The `version_id` argument is deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandiset` with the argument `dandiset_version` instead."
-        )
-        warn(message=deprecation_message, category=DeprecationWarning, stacklevel=2)
-    if stream:
-        from ._dandi_inspection import inspect_dandiset
-
-        warning_message = (
-            "The `stream` argument is deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandiset` instead."
-        )
-        warn(message=warning_message, category=DeprecationWarning, stacklevel=2)
-
-        for message in inspect_dandiset(
-            dandiset_id=str(path),
-            dandiset_version=version_id,
-            config=config,
-            ignore=ignore,
-            select=select,
-            skip_validate=skip_validate,
-        ):
-            yield message
-
-        return None
 
     calculated_number_of_jobs = calculate_number_of_cpu(requested_cpu=n_jobs)
     if progress_bar_options is None:
@@ -178,14 +150,21 @@ def inspect_all(
         futures = []
         # concurrents uses None instead of -1 for 'auto' mode
         max_workers = None if calculated_number_of_jobs == -1 else calculated_number_of_jobs
+        # Check functions are not sent to the workers directly: configured checks are copies made by
+        # `configure_checks`, and those copies cannot be pickled. Each worker instead rebuilds the same
+        # list from the check names, the config, and the importance threshold.
+        check_names = [check.__name__ for check in checks]
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             for nwbfile_path in nwbfiles:
                 futures.append(
                     executor.submit(
                         _pickle_inspect_nwb,
                         nwbfile_path=str(nwbfile_path),
-                        checks=checks,
+                        check_names=check_names,
+                        config=config,
+                        importance_threshold=importance_threshold,
                         skip_validate=skip_validate,
+                        modules=modules,
                     )
                 )
             async_nwbfiles_iterable = as_completed(futures)
@@ -193,27 +172,35 @@ def inspect_all(
                 async_nwbfiles_iterable = progress_bar_class(async_nwbfiles_iterable, **progress_bar_options)
             for future in async_nwbfiles_iterable:
                 for message in future.result():
-                    if stream:
-                        message.file_path = nwbfiles[message.file_path]
                     yield message
 
 
 def _pickle_inspect_nwb(
     nwbfile_path: str,
-    checks: Optional[list] = None,
+    check_names: Optional[list[str]] = None,
+    config: Optional[dict] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
     skip_validate: bool = False,
-) -> Iterable[Union[InspectorMessage, None]]:
-    """Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor."""
-    checks = checks or available_checks
+    modules: OptionalListOfStrings = None,
+) -> list[Union[InspectorMessage, None]]:
+    """
+    Auxiliary function for inspect_all to run in parallel using the ProcessPoolExecutor.
+
+    The list of checks is rebuilt inside the worker from the check names and the config rather than being
+    pickled from the parent process. Configured checks are function copies that cannot be pickled, and even an
+    unconfigured check pickled by reference would lose any importance changes applied by the config.
+    """
+    for module in modules or []:
+        importlib.import_module(module)
+
+    checks = configure_checks(config=config, select=check_names, importance_threshold=importance_threshold)
 
     return list(inspect_nwbfile(nwbfile_path=nwbfile_path, checks=checks, skip_validate=skip_validate))
 
 
 def inspect_nwbfile(
     nwbfile_path: Union[str, Path],
-    driver: Optional[str] = None,  # TODO: remove after 3/1/2025
     skip_validate: bool = False,
-    max_retries: Optional[int] = None,  # TODO: remove after 3/1/2025
     checks: Optional[list] = None,
     config: Optional[dict] = None,
     ignore: OptionalListOfStrings = None,
@@ -223,10 +210,12 @@ def inspect_nwbfile(
     """
     Open an NWB file, inspect the contents, and return suggestions for improvements according to best practices.
 
+    To inspect a file on the DANDI archive, use ``inspect_dandi_file_path`` or ``inspect_url`` instead.
+
     Parameters
     ----------
     nwbfile_path : FilePathType
-        Path to the NWB file on disk or on S3.
+        Path to the NWB file on disk.
     skip_validate : bool
         Skip the PyNWB validation step.
         The default is False, which is recommended.
@@ -254,13 +243,6 @@ def inspect_nwbfile(
         The default is the lowest level, BEST_PRACTICE_SUGGESTION.
     """
     checks = checks or available_checks
-    # TODO: remove error after 3/1/2025
-    if driver is not None or max_retries is not None:
-        message = (
-            "The `driver` and `max_retries` arguments are deprecated and will be removed after 3/1/2025. "
-            "Please call `nwbinspector.inspect_dandi_file_path` instead."
-        )
-        raise ValueError(message)
 
     nwbfile_path = str(nwbfile_path)
     filterwarnings(action="ignore", message="No cached namespaces found in .*")

@@ -404,7 +404,9 @@ def check_units_table_duration(
     # Build indices for first and last spike of each unit
     # First spike indices: 0 for first unit, then idxs[:-1] for subsequent units
     # Last spike indices: idxs - 1 for each unit
-    first_spike_idxs = np.concatenate([[np.uint64(0)], idxs[idxs != idxs[-1]]])
+    # The leading zero must share the dtype of the index array: mixing uint64 with a signed integer array
+    # promotes the result to float64, which cannot be used as a fancy index
+    first_spike_idxs = np.concatenate([np.zeros(shape=1, dtype=idxs.dtype), idxs[idxs != idxs[-1]]])
     last_spike_idxs = idxs[idxs != 0] - 1
 
     # Combine into single array of indices to read, then read all at once

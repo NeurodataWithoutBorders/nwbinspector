@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from uuid import uuid4
 
@@ -6,7 +7,7 @@ import pynwb
 from hdmf.testing import TestCase
 
 from nwbinspector import Importance, InspectorMessage, Severity, organize_messages
-from nwbinspector.tools import all_of_type
+from nwbinspector.tools import all_of_type, get_s3_urls_and_dandi_paths
 
 
 def test_all_of_type():
@@ -203,3 +204,73 @@ class TestOrganization(TestCase):
             },
         }
         self.assertDictEqual(d1=test_result, d2=true_result)
+
+
+class _FakeRemoteAsset:
+    """Stand-in for dandi.dandiapi.BaseRemoteAsset that records when its content URL was resolved."""
+
+    def __init__(self, path: str, delay: float = 0.0):
+        self.path = path
+        self.delay = delay
+
+    def get_content_url(self, follow_redirects: int = 1, strip_query: bool = True) -> str:
+        start = time.time()
+        time.sleep(self.delay)
+        end = time.time()
+        return (
+            f"https://fake.s3/{self.path}#start={start}&end={end}"
+            f"&follow_redirects={follow_redirects}&strip_query={strip_query}"
+        )
+
+
+class _FakeRemoteDandiset:
+    def __init__(self, assets: list):
+        self._assets = assets
+
+    def get_assets(self):
+        return iter(self._assets)
+
+
+class _FakeDandiAPIClient:
+    def __init__(self, assets: list):
+        self._assets = assets
+
+    def get_dandiset(self, dandiset_id: str, version_id=None):
+        return _FakeRemoteDandiset(assets=self._assets)
+
+
+def _parse_fake_url(url: str) -> dict:
+    fragment = url.split("#", 1)[1]
+    return dict(pair.split("=") for pair in fragment.split("&"))
+
+
+def test_get_s3_urls_and_dandi_paths_serial():
+    assets = [_FakeRemoteAsset(path=f"sub-{j}/sub-{j}.nwb") for j in range(3)]
+    assets.append(_FakeRemoteAsset(path="dandiset.yaml"))
+    client = _FakeDandiAPIClient(assets=assets)
+
+    result = get_s3_urls_and_dandi_paths(dandiset_id="000000", n_jobs=1, client=client)
+
+    assert sorted(result.values()) == [f"sub-{j}/sub-{j}.nwb" for j in range(3)]
+    for url, path in result.items():
+        assert url.startswith(f"https://fake.s3/{path}#")
+        parsed = _parse_fake_url(url)
+        assert parsed["follow_redirects"] == "1"
+        assert parsed["strip_query"] == "True"
+
+
+def test_get_s3_urls_and_dandi_paths_parallel():
+    """Regression test: the parallel branch used to wait on every future after each submit, serializing the work."""
+    delay = 0.5
+    assets = [_FakeRemoteAsset(path=f"sub-{j}/sub-{j}.nwb", delay=delay) for j in range(4)]
+    client = _FakeDandiAPIClient(assets=assets)
+
+    result = get_s3_urls_and_dandi_paths(dandiset_id="000000", n_jobs=2, client=client)
+
+    assert sorted(result.values()) == [f"sub-{j}/sub-{j}.nwb" for j in range(4)]
+
+    intervals = [(float(p["start"]), float(p["end"])) for p in map(_parse_fake_url, result)]
+    overlapping_pairs = [
+        (a, b) for i, a in enumerate(intervals) for b in intervals[i + 1 :] if a[0] < b[1] and b[0] < a[1]
+    ]
+    assert overlapping_pairs, "No two content URL requests ran concurrently; the parallel branch is serialized."

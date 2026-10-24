@@ -26,11 +26,11 @@ def check_dynamic_table_region_data_validity(
     dynamic_table_region: DynamicTableRegion, nelems: Optional[int] = NELEMS
 ) -> Optional[InspectorMessage]:
     """Check if a DynamicTableRegion is valid."""
-    if np.any(np.asarray(dynamic_table_region.data[:nelems]) > len(dynamic_table_region.table)):
+    if np.any(np.asarray(dynamic_table_region.data[:nelems]) >= len(dynamic_table_region.table)):
         return InspectorMessage(
             message=(
-                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than the "
-                "length of the target table. Note that data should contain indices, not ids."
+                f"Some elements of {dynamic_table_region.name} are out of range because they are greater than or "
+                "equal to the length of the target table. Note that data should contain indices, not ids."
             )
         )
     if np.any(np.asarray(dynamic_table_region.data[:nelems]) < 0):
@@ -170,6 +170,9 @@ def check_column_binary_capability(
         very long so you don't need to load the entire array into memory. Use None to
         load the entire arrays.
     """
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     pre_defined_column_names = [column["name"] for column in getattr(table, "__columns__", list())]
     for column in table.columns:
         if column.name in pre_defined_column_names:
@@ -251,6 +254,9 @@ def check_table_values_for_dict(
     table: DynamicTable, nelems: Optional[int] = NELEMS
 ) -> Optional[Iterable[InspectorMessage]]:
     """Check if any values in a row or column of a table contain a string casting of a Python dictionary."""
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column in table.columns:
         if not hasattr(column, "data") or isinstance(column, VectorIndex) or not isinstance(column.data[0], str):
             continue
@@ -270,6 +276,9 @@ def check_table_values_for_dict(
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
 def check_col_not_nan(table: DynamicTable, nelems: Optional[int] = NELEMS) -> Optional[Iterable[InspectorMessage]]:
     """Check if all the values in a single column of a table are NaN."""
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column in table.columns:
         if (
             not hasattr(column, "data")
@@ -324,6 +333,9 @@ def check_table_time_columns_are_not_negative(table: DynamicTable) -> Optional[I
     ----------
     table: DynamicTable
     """
+    if len(table.id) == 0:
+        return None  # an empty table is reported by check_empty_table
+
     for column_name in table.colnames:
         if column_name.endswith("_time"):
             first_timestamp = table[column_name][0]

@@ -556,6 +556,71 @@ def test_check_units_table_duration_fail():
     )
 
 
+def _write_units_with_signed_index(nwbfile_path, spike_times_per_unit: list) -> None:
+    """
+    Write a file whose units/spike_times_index dataset is int64.
+
+    HDMF always writes the index with the smallest unsigned dtype, so the dataset is rewritten with h5py afterwards
+    to mimic a file produced by another writer.
+    """
+    import h5py
+    from pynwb import NWBHDF5IO
+
+    nwbfile = NWBFile(session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone())
+    for spike_times in spike_times_per_unit:
+        nwbfile.add_unit(spike_times=spike_times)
+    with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+        io.write(nwbfile)
+
+    with h5py.File(name=nwbfile_path, mode="r+") as file:
+        index_dataset = file["units/spike_times_index"]
+        index_data = index_dataset[:].astype(np.int64)
+        attributes = dict(index_dataset.attrs)
+        del file["units/spike_times_index"]
+        new_index_dataset = file.create_dataset(name="units/spike_times_index", data=index_data)
+        for key, value in attributes.items():
+            new_index_dataset.attrs[key] = value
+
+
+def test_check_units_table_duration_pass_signed_index(tmp_path):
+    """Regression test: a signed index array used to be promoted to float64 and break the fancy index."""
+    from pynwb import NWBHDF5IO
+
+    nwbfile_path = tmp_path / "signed_index.nwb"
+    _write_units_with_signed_index(nwbfile_path=nwbfile_path, spike_times_per_unit=[[0.0, 1.0, 2.0], [0.5, 1.5, 3.0]])
+
+    with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        units = io.read().units
+        assert units["spike_times"].data.dtype == np.int64
+
+        assert check_units_table_duration(units) is None
+
+
+def test_check_units_table_duration_fail_signed_index(tmp_path):
+    from pynwb import NWBHDF5IO
+
+    nwbfile_path = tmp_path / "signed_index.nwb"
+    _write_units_with_signed_index(
+        nwbfile_path=nwbfile_path, spike_times_per_unit=[[0.0, 1.0, 2.0], [0.5, 1.5, 40000000.0]]
+    )
+
+    with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+        units = io.read().units
+        assert units["spike_times"].data.dtype == np.int64
+
+        result = check_units_table_duration(units)
+        assert result is not None
+        assert result.message == (
+            "Units table has a duration of 40000000.00 seconds "
+            "(1.27 years), which exceeds the threshold of "
+            "31557600.00 seconds (1.00 years). "
+            "This may indicate that spike_times are not in seconds that or there is a data quality issue."
+        )
+        assert result.importance is Importance.CRITICAL
+        assert result.check_function_name == "check_units_table_duration"
+        assert result.object_name == "units"
+
+
 def test_check_units_table_duration_custom_threshold():
     """Test units table duration check with custom threshold."""
     units = Units(name="units")
