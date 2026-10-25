@@ -33,6 +33,7 @@ _HED_LAB_META_DATA_NAME = "hed_schema"
 _WARNING_CODES_REPORTED_ELSEWHERE = ("SIDECAR_KEY_MISSING",)
 
 _MAXIMUM_NUMBER_OF_LISTED_COLUMNS = 3
+_MAXIMUM_NUMBER_OF_LISTED_VALUES = 5
 
 # hedtools ends many messages with the character span of the problem, which is not useful without the string
 _CHARACTER_SPAN_PATTERN = re.compile(r"\s*Problem spans string indexes: \d+, \d+\s*$")
@@ -84,10 +85,10 @@ def _validate_table(table: DynamicTable, check_for_warnings: bool, assemble: boo
     return HedNWBValidator(hed_lab_meta_data).validate_table(table, error_handler=error_handler, assemble=assemble)
 
 
-def _describe_location(issue: dict[str, Any]) -> str:
+def _describe_location(issue: dict[str, Any], include_row: bool) -> str:
     """Describe where in the table the HED of an issue comes from."""
     column_name = issue.get("ec_column", None)
-    row_index = issue.get("ec_row", None)
+    row_index = issue.get("ec_row", None) if include_row else None
     sidecar_column_name = issue.get("ec_sidecarColumnName", None)
     sidecar_key_name = issue.get("ec_sidecarKeyName", None)
 
@@ -103,6 +104,8 @@ def _describe_location(issue: dict[str, Any]) -> str:
         assembled = issue.get("ec_HedString", None)
         assembled_text = f" ('{assembled}')" if assembled else ""
         return f" in the combined HED of row index {row_index}{assembled_text}"
+    if issue.get("ec_row", None) is not None:
+        return " in the combined HED of rows"
 
     return ""
 
@@ -114,7 +117,8 @@ def _group_key(issue: dict[str, Any]) -> tuple:
     The validator reports each distinct value of a column once, with the number of rows holding it, so a
     mistake in a column of free values, such as a word where a number is expected, is still reported once per
     value. Issues with the same code in the same column, or of the same MeaningsTable value, are therefore
-    reported as one message, as are issues with the same code in the combined HED of different rows.
+    reported as one message that lists the HED strings, as are issues with the same code in the combined HED
+    of different rows.
     """
     return (
         issue.get("code", None),
@@ -125,8 +129,22 @@ def _group_key(issue: dict[str, Any]) -> tuple:
     )
 
 
+def _describe_occurrence(issue: dict[str, Any]) -> str:
+    """Describe a HED string with an issue by the first row that holds it and the number of rows that do."""
+    hed_string = issue.get("ec_HedString", issue.get("source_tag", None))
+    number_of_rows = int(issue.get("row_count", 1))
+    rows_text = f", {number_of_rows} rows" if number_of_rows > 1 else ""
+
+    return f"'{hed_string}' (row index {issue['ec_row']}{rows_text})"
+
+
 def _format_issues(issues: list[dict[str, Any]], kind: str) -> str:
-    """Compose the message for a group of issues that share a code and a location."""
+    """
+    Compose the message for a group of issues that share a code and a location.
+
+    The message of the first issue is shown. When the group holds more than one issue, the HED strings that
+    have the issue are listed, so that every value to fix is named without a message for each.
+    """
     first_issue = issues[0]
     code = first_issue.get("code", None)
     code_text = f" {code}" if code is not None else ""
@@ -136,19 +154,30 @@ def _format_issues(issues: list[dict[str, Any]], kind: str) -> str:
     if not reported_message.endswith("."):
         reported_message += "."
 
-    message = f"HED {kind}{code_text}{_describe_location(issue=first_issue)}: {reported_message}"
+    location = _describe_location(issue=first_issue, include_row=len(issues) == 1)
+    message = f"HED {kind}{code_text}{location}: {reported_message}"
 
-    if first_issue.get("ec_row", None) is not None:
-        number_of_rows = sum(int(issue.get("row_count", 1)) for issue in issues)
-        if len(issues) > 1:
-            message += (
-                f" The same {kind} occurs for {len(issues)} different values on {number_of_rows} rows in total; "
-                "only the first is shown."
-            )
-        elif number_of_rows > 1:
-            message += f" The same value occurs on {number_of_rows} rows; only the first is shown."
+    if first_issue.get("ec_row", None) is None:
+        return message
+    if len(issues) == 1:
+        number_of_rows = int(first_issue.get("row_count", 1))
+        if number_of_rows > 1:
+            message += f" The same HED string occurs on {number_of_rows} rows."
+        return message
 
-    return message
+    listed_issues = issues[:_MAXIMUM_NUMBER_OF_LISTED_VALUES]
+    occurrences_text = ", ".join(_describe_occurrence(issue=issue) for issue in listed_issues)
+    if len(issues) > len(listed_issues):
+        occurrences_text += f" (and {len(issues) - len(listed_issues)} more)"
+
+    if first_issue.get("ec_column", None) is None:  # The combined HED of a row is validated row by row
+        return f"{message} {len(issues)} rows have this {kind}: {occurrences_text}."
+
+    number_of_rows = sum(int(issue.get("row_count", 1)) for issue in issues)
+    return (
+        f"{message} {len(issues)} different HED strings on {number_of_rows} rows have this {kind}: "
+        f"{occurrences_text}."
+    )
 
 
 def _yield_grouped_messages(issues: list[dict[str, Any]], kind: str) -> Iterable[InspectorMessage]:
@@ -201,8 +230,8 @@ def check_hed_annotations_valid(table: DynamicTable) -> Optional[Iterable[Inspec
     each row is assembled from all of them and validated as a whole, which catches errors such as a tag
     repeated in two columns. Tables without HED are not read.
 
-    Errors with the same code in the same place, such as a word in a column of numbers, are reported as one
-    message.
+    Errors with the same code in the same place, such as words in a column of numbers, are reported as one
+    message that lists the HED strings with the error.
 
     This check requires the ``ndx-hed`` package, which is installed with `pip install nwbinspector[hed]`.
 

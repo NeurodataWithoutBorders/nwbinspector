@@ -218,12 +218,12 @@ def test_check_hed_annotations_valid_collapses_rows_with_the_same_value():
 
     assert _messages(check_hed_annotations_valid, table) == [
         "HED error TAG_INVALID in column 'HED' at row index 1: 'Badtag' in Badtag is not a valid base HED tag. "
-        "The same value occurs on 500 rows; only the first is shown."
+        "The same HED string occurs on 500 rows."
     ]
 
 
-def test_check_hed_annotations_valid_collapses_the_values_of_a_value_vector():
-    """Every value is a different invalid tag once substituted, but they share a cause and are reported once."""
+def test_check_hed_annotations_valid_lists_the_values_of_a_value_vector():
+    """Each value is a different invalid tag once substituted; they share a cause and are listed in one message."""
     nwbfile = _make_nwbfile()
     table = DynamicTable(name="responses", description="")
     table.add_column(name="age", description="", col_cls=HedValueVector, hed="Age/# s")
@@ -233,12 +233,23 @@ def test_check_hed_annotations_valid_collapses_the_values_of_a_value_vector():
 
     messages = _messages(check_hed_annotations_valid, table)
     assert len(messages) == 1
-    assert messages[0].startswith(
-        "HED error VALUE_INVALID in column 'age' at row index 0: 'Age/old s' has an invalid " "value portion"
-    )
+    assert messages[0].startswith("HED error VALUE_INVALID in column 'age': 'Age/old s' has an invalid value portion")
     assert messages[0].endswith(
-        "The same error occurs for 3 different values on 6 rows in total; only the first is shown."
+        "3 different HED strings on 6 rows have this error: 'Age/old s' (row index 0, 3 rows), "
+        "'Age/young s' (row index 1, 2 rows), 'Age/adult s' (row index 3)."
     )
+
+
+def test_check_hed_annotations_valid_lists_different_mistakes_in_the_hed_column():
+    nwbfile = _make_nwbfile()
+    tags = ["Sensory-event", "Badtag", "Sensory-eventzz", "Badtag"] + [f"Typo-{index}" for index in range(5)]
+    table = _add_hed_tags_table(nwbfile=nwbfile, tags=tags)
+
+    assert _messages(check_hed_annotations_valid, table) == [
+        "HED error TAG_INVALID in column 'HED': 'Badtag' in Badtag is not a valid base HED tag. 7 different HED "
+        "strings on 8 rows have this error: 'Badtag' (row index 1, 2 rows), 'Sensory-eventzz' (row index 2), "
+        "'Typo-0' (row index 4), 'Typo-1' (row index 5), 'Typo-2' (row index 6) (and 2 more)."
+    ]
 
 
 def test_check_hed_annotations_valid_value_vector_template():
@@ -298,9 +309,8 @@ def test_check_hed_annotations_valid_combined_row():
     table.add_column(name="HED", description="", col_cls=HedTags, data=["Sensory-event"] * 3)
 
     assert _messages(check_hed_annotations_valid, table) == [
-        "HED error TAG_EXPRESSION_REPEATED in the combined HED of row index 0 ('Sensory-event,Sensory-event'): "
-        'Repeated tag - "Sensory-event". The same error occurs for 2 different values on 2 rows in total; '
-        "only the first is shown."
+        'HED error TAG_EXPRESSION_REPEATED in the combined HED of rows: Repeated tag - "Sensory-event". 2 rows '
+        "have this error: 'Sensory-event,Sensory-event' (row index 0), 'Sensory-event,Sensory-event' (row index 2)."
     ]
 
 
@@ -348,7 +358,7 @@ def test_check_hed_annotations_warnings_extended_tag():
         _expected_message(
             message=(
                 "HED warning TAG_EXTENDED in column 'HED' at row index 0: Hed tag is extended. '/My-extension' in "
-                "Item/My-extension. The same value occurs on 3 rows; only the first is shown."
+                "Item/My-extension. The same HED string occurs on 3 rows."
             ),
             table=table,
             check_function=check_hed_annotations_warnings,

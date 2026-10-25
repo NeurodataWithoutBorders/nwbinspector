@@ -51,7 +51,8 @@ the rows reads the whole table, which for a table of 100,000 rows takes several 
 
 Each value is validated once, so an error is reported at the first row that holds the value, with the number of
 rows that hold it. Errors with the same code in the same column, such as several different words in a column of
-numbers, are reported together as a single message.
+numbers, are reported together as a single message that lists the HED strings with the error, the first row of
+each, and how many rows hold it.
 
 Warnings of the validator, such as a tag that extends the schema, are reported separately as suggestions. They
 are gathered without assembling the rows.
