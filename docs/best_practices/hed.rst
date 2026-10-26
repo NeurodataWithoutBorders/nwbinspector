@@ -9,11 +9,7 @@ annotating events and other tabular data. In NWB, HED annotations are stored wit
 into; and ``HedDurationVector``, the ``duration`` column of an ``EventsTable`` with such a template. A
 categorical column is annotated with a ``HedTags`` column named ``HED`` in its ``MeaningsTable``, which gives the
 HED of each value. A ``HedLabMetaData`` object records the version of the HED schema in use and any HED
-definitions. Because the annotations are drawn from a formal vocabulary, they can be validated.
-
-Validating HED annotations requires the ``ndx-hed`` package, which is not installed by default. Install it with
-``pip install nwbinspector[hed]``. Without it, the NWB Inspector reads files that contain HED annotations and
-reports each table that has them as not validated.
+definitions.
 
 .. _best_practice_hed_lab_metadata:
 
@@ -37,25 +33,26 @@ Check function: :py:meth:`~nwbinspector.checks._hed.check_hed_lab_metadata_exist
 Use Valid HED Annotations
 -------------------------
 
-Every HED annotation in the file should validate against the declared HED schema. Common errors are tags that
-are not in the schema, references to definitions that do not exist, values that do not fit the template of their
-column once substituted for the ``#`` placeholder, and a ``HedValueVector`` placed in a ``MeaningsTable``.
+Every HED annotation in the file should be valid against the declared HED schema:
 
-The NWB Inspector validates each table that carries HED with the validator that ``ndx-hed`` provides, and does not
-read the tables that carry none. The validator works in stages: the templates, the ``MeaningsTable`` HED, and the
-definitions first, then the values of each annotated column, then the ``HED`` column. Once those pass, the HED
-of each row is assembled from all of its annotations and validated as a whole, which catches errors such as a
-tag that appears both in the ``HED`` column and in the HED of a categorical value. Each stage runs only if the
-earlier ones found no errors, so fixing the reported errors can reveal further ones on the next run. Assembling
-the rows reads the whole table, which for a table of 100,000 rows takes several seconds.
+- Every tag should be in the schema, spelled as the schema spells it.
+- Every ``Def/`` tag should refer to a definition given in the ``HedLabMetaData``.
+- The template of a ``HedValueVector`` or ``HedDurationVector`` should be valid, and every value of the column
+  should be valid in its place, for example a number where the tag takes a number with units.
+- The HED of a categorical value belongs in a ``HedTags`` column named ``HED`` in the ``MeaningsTable`` of the
+  column, one complete HED string for each value. A ``MeaningsTable`` should not hold a ``HedValueVector``.
+- The HED of each row, combined from the ``HED`` column, the HED of the row's categorical values, and the
+  templates of its value columns, should also be valid as a whole. For example, the same tag should not appear
+  both in the ``HED`` column and in the HED of a categorical value of the same row.
 
-Each value is validated once, so an error is reported at the first row that holds the value, with the number of
-rows that hold it. Errors with the same code in the same column, such as several different words in a column of
-numbers, are reported together as a single message that lists the HED strings with the error, the first row of
-each, and how many rows hold it.
+Check function: :py:meth:`~nwbinspector.checks._hed.check_hed_annotations_valid`
 
-Warnings of the validator, such as a tag that extends the schema, are reported separately as suggestions. They
-are gathered without assembling the rows.
+.. _best_practice_hed_extensions:
 
-Check functions: :py:meth:`~nwbinspector.checks._hed.check_hed_annotations_valid` and
-:py:meth:`~nwbinspector.checks._hed.check_hed_annotations_warnings`
+Prefer Tags from the Schema
+---------------------------
+
+HED allows a tag to be extended with a term of your own, such as ``Item/My-device``, but other people and tools
+know only the terms in the schema. Use a tag from the schema where one fits, and extend a tag only where none does.
+
+Check function: :py:meth:`~nwbinspector.checks._hed.check_hed_annotations_warnings`

@@ -228,7 +228,11 @@ def check_hed_annotations_valid(table: DynamicTable) -> Optional[Iterable[Inspec
     The table is validated by ``ndx-hed``, which covers its ``HedTags``, ``HedValueVector``, and
     ``HedDurationVector`` columns and the HED of the MeaningsTables of its columns. Once those pass, the HED of
     each row is assembled from all of them and validated as a whole, which catches errors such as a tag
-    repeated in two columns. Tables without HED are not read.
+    repeated in two columns. Tables without HED are not read. Assembling the rows reads the whole table, which
+    for a table of 100,000 rows takes several seconds.
+
+    The validator works in stages and stops at the first stage that finds errors, so fixing the reported errors
+    can reveal further ones on the next run.
 
     Errors with the same code in the same place, such as words in a column of numbers, are reported as one
     message that lists the HED strings with the error.
@@ -269,7 +273,7 @@ def check_hed_annotations_warnings(table: DynamicTable) -> Optional[Iterable[Ins
 
     This check requires the ``ndx-hed`` package, which is installed with `pip install nwbinspector[hed]`.
 
-    Best Practice: :ref:`best_practice_hed_annotations`
+    Best Practice: :ref:`best_practice_hed_extensions`
     """
     if not _HAS_NDX_HED:
         return None
