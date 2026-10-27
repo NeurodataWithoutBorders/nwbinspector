@@ -44,7 +44,7 @@ jobs:
 
     - name: Install this branch of NWB Inspector
       run: |
-        pip install -e ".[zarr]"
+        pip install -e ".[zarr,video]"
 
     - name: Run all NWB Inspector tests
       run: pytest -rsx
