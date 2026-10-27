@@ -3,13 +3,16 @@ HED Annotations
 
 `HED <https://www.hedtags.org/hed-resources/>`_ (Hierarchical Event Descriptors) is a controlled vocabulary for
 annotating events and other tabular data. In NWB, HED annotations are stored with the
-`ndx-hed <https://github.com/hed-standard/ndx-hed>`_ extension. It adds three kinds of column to any
-:ref:`hdmf-schema:sec-dynamictable`: ``HedTags``, a column named ``HED`` that holds a HED string for each row;
-``HedValueVector``, a column of values with a HED template such as ``Age/# s`` that each value is substituted
-into; and ``HedDurationVector``, the ``duration`` column of an ``EventsTable`` with such a template. A
-categorical column is annotated with a ``HedTags`` column named ``HED`` in its ``MeaningsTable``, which gives the
-HED of each value. A ``HedLabMetaData`` object records the version of the HED schema in use and any HED
-definitions.
+`ndx-hed <https://github.com/hed-standard/ndx-hed>`_ extension, which provides:
+
+- ``HedTags``: a column named ``HED`` in any :ref:`hdmf-schema:sec-dynamictable` that holds a HED string for
+  each row.
+- ``HedValueVector``: a column of values with a HED template, such as ``Age/# s``, that each value is
+  substituted into.
+- ``HedDurationVector``: the ``duration`` column of an ``EventsTable``, with such a template.
+- ``HedTags`` in a ``MeaningsTable``: a column named ``HED`` that gives the HED of each value of a categorical
+  column.
+- ``HedLabMetaData``: the version of the HED schema in use and any HED definitions.
 
 .. _best_practice_hed_lab_metadata:
 
