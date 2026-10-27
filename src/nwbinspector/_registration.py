@@ -30,6 +30,7 @@ def register_check(
     neurodata_type: object,
     nwb_schema_version_lt: Optional[str] = None,
     nwb_schema_version_gt: Optional[str] = None,
+    nwb_schema_version_gte: Optional[str] = None,
 ) -> Callable:
     """
     Wrap a check function with this decorator to add it to the check registry and automatically parse some output.
@@ -54,6 +55,9 @@ def register_check(
     nwb_schema_version_gt : str, optional
         Only run this check on NWB files with schema version greater than this value.
         Useful for checks that only apply to newer schema versions.
+    nwb_schema_version_gte : str, optional
+        Only run this check on NWB files with schema version greater than or equal to this value.
+        Useful for checks of a neurodata type that was added in this schema version.
     """
 
     def register_check_and_auto_parse(check_function: Callable) -> Callable:
@@ -71,6 +75,7 @@ def register_check(
         check_function.neurodata_type = neurodata_type  # type: ignore
         check_function.nwb_schema_version_lt = nwb_schema_version_lt  # type: ignore
         check_function.nwb_schema_version_gt = nwb_schema_version_gt  # type: ignore
+        check_function.nwb_schema_version_gte = nwb_schema_version_gte  # type: ignore
 
         @wraps(check_function)
         def auto_parse_some_output(
