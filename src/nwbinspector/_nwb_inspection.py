@@ -438,9 +438,12 @@ def run_checks(
         if nwb_schema_version is not None:
             version_lt = getattr(check_function, "nwb_schema_version_lt", None)
             version_gt = getattr(check_function, "nwb_schema_version_gt", None)
+            version_gte = getattr(check_function, "nwb_schema_version_gte", None)
             if version_lt is not None and nwb_schema_version >= version.parse(version_lt):
                 continue
             if version_gt is not None and nwb_schema_version <= version.parse(version_gt):
+                continue
+            if version_gte is not None and nwb_schema_version < version.parse(version_gte):
                 continue
 
         for nwbfile_object in nwbfile.objects.values():

@@ -421,7 +421,11 @@ def _normalize_categorical_value(value: object) -> str:
     return str(value)
 
 
-@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=MeaningsTable)
+@register_check(
+    importance=Importance.BEST_PRACTICE_VIOLATION,
+    neurodata_type=MeaningsTable,
+    nwb_schema_version_gte="2.10.0",  # MeaningsTable was added in NWB schema 2.10.0
+)
 def check_meanings_table_includes_all_values(
     meanings_table: MeaningsTable, maximum_number_of_listed_values: int = 5
 ) -> Optional[InspectorMessage]:

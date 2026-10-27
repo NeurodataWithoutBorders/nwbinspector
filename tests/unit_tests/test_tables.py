@@ -724,6 +724,10 @@ def test_check_meanings_table_includes_all_values_fail():
     )
 
 
+def test_check_meanings_table_includes_all_values_requires_nwb_schema_2_10():
+    assert check_meanings_table_includes_all_values.nwb_schema_version_gte == "2.10.0"
+
+
 def test_check_meanings_table_includes_all_values_lists_only_a_few_values():
     column_values = [f"code_{index}" for index in range(8)]
     meanings_table = _make_meanings_table(column_values=column_values, mapped_values=["code_0"])
