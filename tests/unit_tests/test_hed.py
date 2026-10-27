@@ -28,7 +28,6 @@ from ndx_hed import (  # noqa: E402
     HedTags,
     HedValueVector,
 )
-from ndx_hed.utils import bids2nwb  # noqa: E402
 
 HED_SCHEMA_VERSION = "8.4.0"
 DEFINITIONS = "(Definition/Go-cue, (Sensory-event, Visual-presentation))"
@@ -410,12 +409,6 @@ def test_hed_checks_on_a_file_read_from_disk(tmp_path):
         ]
 
 
-@pytest.mark.xfail(
-    not hasattr(bids2nwb, "_value_text"),  # added by the fix, https://github.com/hed-standard/ndx-hed/pull/206
-    strict=True,
-    raises=TypeError,
-    reason="ndx-hed 0.3.0rc1 builds the sidecar of a boolean categorical column read from a file with numpy keys",
-)
 def test_hed_checks_on_a_boolean_categorical_column_read_from_disk(tmp_path):
     nwbfile = _make_nwbfile()
     table = _add_categorical_table(
