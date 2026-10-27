@@ -15,6 +15,7 @@ from nwbinspector.checks import (
     check_empty_table,
     check_ids_unique,
     check_meanings_table_includes_all_values,
+    check_meanings_table_values_unique,
     check_single_row,
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
@@ -795,3 +796,41 @@ def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
     error_messages = [message for message in messages if message.importance is Importance.ERROR]
     assert error_messages == []
     assert any(message.check_function_name == "check_empty_table" for message in messages)
+
+
+def test_check_meanings_table_values_unique_pass():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "go"], mapped_values=["go", "stop"])
+
+    assert check_meanings_table_values_unique(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_values_unique_fail():
+    meanings_table = _make_meanings_table(
+        column_values=["go", "stop"], mapped_values=["go", "stop", "go", "pause", "stop", "go"]
+    )
+
+    assert check_meanings_table_values_unique(meanings_table=meanings_table) == InspectorMessage(
+        message=(
+            "MeaningsTable 'response_meanings' repeats values in its 'value' column: 'go' (3 entries), "
+            "'stop' (2 entries). Each value should have exactly one entry, so that its meaning is unambiguous."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_meanings_table_values_unique",
+        object_type="MeaningsTable",
+        object_name="response_meanings",
+        location="/",
+    )
+
+
+def test_check_meanings_table_values_unique_lists_only_a_few_values():
+    mapped_values = [f"code_{index}" for index in range(8)] * 2
+    meanings_table = _make_meanings_table(column_values=["code_0"], mapped_values=mapped_values)
+
+    message = check_meanings_table_values_unique(meanings_table=meanings_table).message
+    assert "'code_4' (2 entries)" in message
+    assert "'code_5'" not in message
+    assert "(and 3 more)" in message
+
+
+def test_check_meanings_table_values_unique_requires_nwb_schema_2_10():
+    assert check_meanings_table_values_unique.nwb_schema_version_gte == "2.10.0"
