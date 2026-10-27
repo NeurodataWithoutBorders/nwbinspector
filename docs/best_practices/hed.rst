@@ -14,6 +14,12 @@ annotating events and other tabular data. In NWB, HED annotations are stored wit
   column.
 - ``HedLabMetaData``: the version of the HED schema in use and any HED definitions.
 
+.. note::
+
+    ``MeaningsTable`` and ``EventsTable`` were added in NWB schema 2.10.0 (``MeaningsTable`` through
+    hdmf-common schema 1.9.0). Writing them requires PyNWB 4.0.0 or later and HDMF 5.0.0 or later. ``ndx-hed``
+    0.3.0, the first release that supports them, requires PyNWB 4.2.0 and HDMF 6.2.0.
+
 .. _best_practice_hed_lab_metadata:
 
 Declare the HED Schema Version

@@ -155,4 +155,9 @@ the categories) cannot process it. The reverse is allowed: the ``MeaningsTable``
 that never occur in the column, such as a condition that was planned but not run. The values ``None``, ``""``,
 and ``"n/a"`` mark missing data and do not need an entry.
 
+.. note::
+
+    ``MeaningsTable`` was added in hdmf-common schema 1.9.0, which is part of NWB schema 2.10.0. Writing one
+    requires HDMF 5.0.0 or later and, through PyNWB, PyNWB 4.0.0 or later.
+
 Check function: :py:meth:`~nwbinspector.checks._tables.check_meanings_table_includes_all_values`
