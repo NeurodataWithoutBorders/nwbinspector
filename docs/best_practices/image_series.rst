@@ -76,4 +76,8 @@ checksums, and handles grayscale and high bit depth, which is why it is widely u
 paired with MKV, but the container matters less here, since browsers do not play lossless video in any container. If
 lossless data is important, be careful not to accidentally re-encode it to a lossy codec.
 
-Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_format`
+Reading the format of a video requires PyAV, which is installed with ``pip install nwbinspector[video]``. Without it,
+the NWB Inspector reports that the videos of the file were not checked.
+
+Check functions: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_format` and
+:py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_format_checked`

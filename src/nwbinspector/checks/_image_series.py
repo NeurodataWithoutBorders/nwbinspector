@@ -3,11 +3,13 @@
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Iterable, Optional
 
+from pynwb import NWBFile
 from pynwb.image import ImageSeries
 from pynwb.ophys import TwoPhotonSeries
 
 from .._registration import Importance, InspectorMessage, register_check
 from ..tools import get_nwbfile_path_from_internal_object
+from ..utils import is_module_installed
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=ImageSeries)
@@ -76,7 +78,7 @@ def check_image_series_external_file_format(image_series: ImageSeries) -> Option
         return None
     try:
         import av
-    except ImportError:  # the format cannot be read without PyAV, so nothing can be said about it
+    except ImportError:  # reported by check_image_series_external_file_format_checked
         return None
 
     nwbfile_path = Path(get_nwbfile_path_from_internal_object(neurodata_object=image_series))
@@ -120,6 +122,35 @@ def check_image_series_external_file_format(image_series: ImageSeries) -> Option
             )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_image_series_external_file_format_checked(nwbfile: NWBFile) -> Optional[InspectorMessage]:
+    """
+    Check that the format of the external files of the ImageSeries in a file can be checked, which requires PyAV.
+
+    Without PyAV, check_image_series_external_file_format cannot read the external files, and this check reports it
+    once per file, so that videos that were not checked are not mistaken for videos that passed.
+
+    Best Practice: :ref:`best_practice_external_file_format`
+    """
+    if is_module_installed(module_name="av"):
+        return None
+    has_external_video = any(
+        isinstance(neurodata_object, ImageSeries)
+        and not isinstance(neurodata_object, TwoPhotonSeries)
+        and neurodata_object.external_file is not None
+        for neurodata_object in nwbfile.objects.values()
+    )
+    if not has_external_video:
+        return None
+
+    return InspectorMessage(
+        message=(
+            "This file has ImageSeries with external video files, but their format was not checked because the "
+            "'av' package (PyAV) is not installed. Install it with `pip install nwbinspector[video]`."
+        )
+    )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)

@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 from pathlib import Path
 from shutil import rmtree
@@ -15,6 +16,7 @@ from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_image_series_data_size,
     check_image_series_external_file_format,
+    check_image_series_external_file_format_checked,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
@@ -421,3 +423,47 @@ class TestExternalFileFormat(unittest.TestCase):
         )
 
         assert check_image_series_external_file_format(image_series=two_photon_series) is None
+
+
+def _make_nwbfile_with_external_video():
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(
+        ImageSeries(
+            name="TestImageSeries",
+            external_file=["video.mp4"],
+            starting_frame=[0],
+            format="external",
+            timestamps=[0.0, 1.0],
+            unit="n.a.",
+        )
+    )
+    return nwbfile
+
+
+def test_check_image_series_external_file_format_checked_without_pyav(monkeypatch):
+    """Without PyAV the format of the external videos cannot be read, and the file says so."""
+    monkeypatch.setitem(sys.modules, "av", None)  # makes `import av` fail as if PyAV were not installed
+
+    assert check_image_series_external_file_format_checked(
+        nwbfile=_make_nwbfile_with_external_video()
+    ) == InspectorMessage(
+        message=(
+            "This file has ImageSeries with external video files, but their format was not checked because the "
+            "'av' package (PyAV) is not installed. Install it with `pip install nwbinspector[video]`."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_image_series_external_file_format_checked",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_image_series_external_file_format_checked_pass_with_pyav():
+    assert check_image_series_external_file_format_checked(nwbfile=_make_nwbfile_with_external_video()) is None
+
+
+def test_check_image_series_external_file_format_checked_pass_without_external_video(monkeypatch):
+    monkeypatch.setitem(sys.modules, "av", None)
+
+    assert check_image_series_external_file_format_checked(nwbfile=make_minimal_nwbfile()) is None
