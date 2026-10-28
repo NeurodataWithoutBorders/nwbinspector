@@ -834,3 +834,11 @@ def test_check_meanings_table_values_unique_lists_only_a_few_values():
 
 def test_check_meanings_table_values_unique_requires_nwb_schema_2_10():
     assert check_meanings_table_values_unique.nwb_schema_version_gte == "2.10.0"
+
+
+def test_check_meanings_table_checks_compare_bytes_as_text():
+    """Text read from a file can be bytes; it should match entries written as str."""
+    meanings_table = _make_meanings_table(column_values=[b"go", b"stop"], mapped_values=["go", b"stop", "stop"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+    assert "'stop' (2 entries)" in check_meanings_table_values_unique(meanings_table=meanings_table).message
