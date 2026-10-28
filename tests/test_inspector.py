@@ -55,11 +55,18 @@ def add_big_dataset_no_compression(nwbfile: NWBFile, zarr: bool = False) -> None
     # Zarr automatically compresses by default
     # So to get a test case that is not compressed, forcibly disable the compressor
     if zarr:
-        from hdmf_zarr import ZarrDataIO
+        from importlib.metadata import version
 
+        from hdmf_zarr import ZarrDataIO
+        from packaging.version import Version
+
+        # hdmf-zarr 0.14 moved to zarr v3 and renamed the argument
+        disable_compression = (
+            dict(compressors=False) if Version(version("hdmf-zarr")) >= Version("0.14.0") else dict(compressor=False)
+        )
         time_series = TimeSeries(
             name="test_time_series_1",
-            data=ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), compressor=False),
+            data=ZarrDataIO(np.zeros(shape=int(1.1e9 / np.dtype("float").itemsize)), **disable_compression),
             rate=1.0,
             unit="",
         )
