@@ -32,6 +32,8 @@ from ._icephys import (
 )
 from ._image_series import (
     check_image_series_data_size,
+    check_image_series_external_file_format,
+    check_image_series_external_file_format_checked,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
@@ -125,6 +127,8 @@ __all__ = [
     "check_name_slashes",
     "check_name_colons",
     "check_image_series_data_size",
+    "check_image_series_external_file_format",
+    "check_image_series_external_file_format_checked",
     "check_image_series_external_file_relative",
     "check_image_series_external_file_valid",
     "check_image_series_starting_frame_without_external_file",
