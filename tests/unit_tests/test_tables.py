@@ -15,7 +15,6 @@ from nwbinspector.checks import (
     check_empty_table,
     check_ids_unique,
     check_meanings_table_includes_all_values,
-    check_meanings_table_values_unique,
     check_single_row,
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
@@ -703,7 +702,7 @@ def test_check_meanings_table_includes_all_values_extra_entries_are_allowed():
 
 
 def test_check_meanings_table_includes_all_values_missing_data_needs_no_entry():
-    meanings_table = _make_meanings_table(column_values=["go", "n/a", "", None], mapped_values=["go"])
+    meanings_table = _make_meanings_table(column_values=["go", "n/a", "", None, float("nan")], mapped_values=["go"])
 
     assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
 
@@ -723,10 +722,6 @@ def test_check_meanings_table_includes_all_values_fail():
         object_name="response_meanings",
         location="/",
     )
-
-
-def test_check_meanings_table_includes_all_values_requires_nwb_schema_2_10():
-    assert check_meanings_table_includes_all_values.nwb_schema_version_gte == "2.10.0"
 
 
 def test_check_meanings_table_includes_all_values_lists_only_a_few_values():
@@ -798,47 +793,22 @@ def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
     assert any(message.check_function_name == "check_empty_table" for message in messages)
 
 
-def test_check_meanings_table_values_unique_pass():
-    meanings_table = _make_meanings_table(column_values=["go", "stop", "go"], mapped_values=["go", "stop"])
-
-    assert check_meanings_table_values_unique(meanings_table=meanings_table) is None
-
-
-def test_check_meanings_table_values_unique_fail():
-    meanings_table = _make_meanings_table(
-        column_values=["go", "stop"], mapped_values=["go", "stop", "go", "pause", "stop", "go"]
-    )
-
-    assert check_meanings_table_values_unique(meanings_table=meanings_table) == InspectorMessage(
-        message=(
-            "MeaningsTable 'response_meanings' repeats values in its 'value' column: 'go' (3 entries), "
-            "'stop' (2 entries). Each value should have exactly one entry, so that its meaning is unambiguous."
-        ),
-        importance=Importance.BEST_PRACTICE_VIOLATION,
-        check_function_name="check_meanings_table_values_unique",
-        object_type="MeaningsTable",
-        object_name="response_meanings",
-        location="/",
-    )
-
-
-def test_check_meanings_table_values_unique_lists_only_a_few_values():
-    mapped_values = [f"code_{index}" for index in range(8)] * 2
-    meanings_table = _make_meanings_table(column_values=["code_0"], mapped_values=mapped_values)
-
-    message = check_meanings_table_values_unique(meanings_table=meanings_table).message
-    assert "'code_4' (2 entries)" in message
-    assert "'code_5'" not in message
-    assert "(and 3 more)" in message
-
-
-def test_check_meanings_table_values_unique_requires_nwb_schema_2_10():
-    assert check_meanings_table_values_unique.nwb_schema_version_gte == "2.10.0"
-
-
-def test_check_meanings_table_checks_compare_bytes_as_text():
+def test_check_meanings_table_includes_all_values_compares_bytes_as_text():
     """Text read from a file can be bytes; it should match entries written as str."""
-    meanings_table = _make_meanings_table(column_values=[b"go", b"stop"], mapped_values=["go", b"stop", "stop"])
+    meanings_table = _make_meanings_table(column_values=[b"go", b"stop"], mapped_values=["go", b"stop"])
 
     assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
-    assert "'stop' (2 entries)" in check_meanings_table_values_unique(meanings_table=meanings_table).message
+
+
+def test_check_meanings_table_includes_all_values_compares_numpy_values_as_python_values():
+    meanings_table = _make_meanings_table(column_values=np.array([1.0, 2.0, 1.0]), mapped_values=[1.0, 2.0])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_compares_types():
+    """An integer column does not match entries written as strings, as a dict lookup would not find them."""
+    meanings_table = _make_meanings_table(column_values=[1, 2, 1], mapped_values=["1", "2"])
+
+    message = check_meanings_table_includes_all_values(meanings_table=meanings_table).message
+    assert "'response_meanings': 1, 2." in message

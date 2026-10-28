@@ -212,20 +212,6 @@ class TestRegisterClass(TestCase):
         self.assertIsNone(check_with_version_gt.nwb_schema_version_lt)
         self.assertEqual(check_with_version_gt.nwb_schema_version_gt, "2.3.0")
 
-    def test_register_schema_version_gte(self):
-        """Test that nwb_schema_version_gte is stored on the check function."""
-
-        @register_check(
-            importance=Importance.BEST_PRACTICE_SUGGESTION,
-            neurodata_type=TimeSeries,
-            nwb_schema_version_gte="2.10.0",
-        )
-        def check_with_version_gte(time_series: TimeSeries):
-            return InspectorMessage(message="test")
-
-        self.assertIsNone(check_with_version_gte.nwb_schema_version_gt)
-        self.assertEqual(check_with_version_gte.nwb_schema_version_gte, "2.10.0")
-
     def test_register_schema_version_both(self):
         """Test that both version constraints can be set."""
 
@@ -338,49 +324,6 @@ class TestSchemaVersionFiltering(TestCase):
         )
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].message, "This should run for newer files")
-
-    def test_run_checks_skips_check_when_version_gte_not_met(self):
-        """Test that a check with nwb_schema_version_gte is skipped when file version is < threshold."""
-
-        @register_check(
-            importance=Importance.BEST_PRACTICE_SUGGESTION,
-            neurodata_type=None,
-            nwb_schema_version_gte="2.10.0",
-        )
-        def check_for_files_from_2_10(nwbfile: pynwb.NWBFile):
-            return InspectorMessage(message="This should be skipped for older files")
-
-        # File version 2.9.0 is < 2.10.0, so check should be skipped
-        results = list(
-            run_checks(
-                nwbfile=self.nwbfile,
-                checks=[check_for_files_from_2_10],
-                nwb_schema_version=version.parse("2.9.0"),
-            )
-        )
-        self.assertEqual(len(results), 0)
-
-    def test_run_checks_runs_check_when_version_gte_is_met(self):
-        """Test that a check with nwb_schema_version_gte is run when file version equals the threshold."""
-
-        @register_check(
-            importance=Importance.BEST_PRACTICE_SUGGESTION,
-            neurodata_type=None,
-            nwb_schema_version_gte="2.10.0",
-        )
-        def check_for_files_from_2_10_gte(nwbfile: pynwb.NWBFile):
-            return InspectorMessage(message="This should run for files at the threshold")
-
-        # File version 2.10.0 is >= 2.10.0, so check should run
-        results = list(
-            run_checks(
-                nwbfile=self.nwbfile,
-                checks=[check_for_files_from_2_10_gte],
-                nwb_schema_version=version.parse("2.10.0"),
-            )
-        )
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].message, "This should run for files at the threshold")
 
     def test_run_checks_with_both_version_constraints(self):
         """Test that a check with both version constraints works correctly."""

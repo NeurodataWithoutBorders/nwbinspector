@@ -1,6 +1,5 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 
-from collections import Counter
 from numbers import Real
 from typing import Iterable, Optional
 
@@ -414,94 +413,56 @@ def check_time_intervals_duration(
     return None
 
 
-def _normalize_categorical_value(value: object) -> str:
+def _normalize_categorical_value(value: object) -> object:
     """Normalize a value of a categorical column for comparison against the MeaningsTable entries."""
     if isinstance(value, bytes):
-        value = value.decode("utf-8")
+        return value.decode("utf-8")
 
-    return str(value)
+    return value.item() if isinstance(value, np.generic) else value
 
 
-@register_check(
-    importance=Importance.BEST_PRACTICE_VIOLATION,
-    neurodata_type=MeaningsTable,
-    nwb_schema_version_gte="2.10.0",  # MeaningsTable was added in NWB schema 2.10.0
-)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=MeaningsTable)
 def check_meanings_table_includes_all_values(
     meanings_table: MeaningsTable, maximum_number_of_listed_values: int = 5
 ) -> Optional[InspectorMessage]:
     """
     Check that every value of the column annotated by a MeaningsTable has an entry in the table.
 
-    The values ``None``, ``""``, and ``"n/a"`` mark missing data and do not need an entry. The reverse
-    is allowed: a MeaningsTable may contain entries for values that never occur in the column.
+    Values are compared by type and value, so the integer 1 does not match an entry for the string "1". The values
+    ``None``, NaN, ``""``, and ``"n/a"`` mark missing data and do not need an entry. The reverse is allowed: a
+    MeaningsTable may contain entries for values that never occur in the column.
 
     Best Practice: :ref:`best_practice_meanings_table_includes_all_values`
     """
-    target = meanings_table.target
-    if target is None or "value" not in meanings_table.colnames:
-        return None
-
-    known_values = {_normalize_categorical_value(value=value) for value in meanings_table["value"].data[:]}
-
-    missing_values: list[str] = []  # in order of first appearance, so that the message is deterministic
-    for value in target.data[:]:
-        if value is None or (isinstance(value, Real) and np.isnan(value)):
-            continue
+    known_values = set()
+    for value in meanings_table["value"].data[:]:
         normalized_value = _normalize_categorical_value(value=value)
-        if normalized_value in ("", "n/a") or normalized_value in known_values or normalized_value in missing_values:
+        known_values.add((type(normalized_value), normalized_value))
+
+    # A dict keeps the order of first appearance, so that the message is deterministic
+    missing_values: dict[tuple[type, object], None] = dict()
+    for value in meanings_table.target.data[:]:
+        normalized_value = _normalize_categorical_value(value=value)
+        if normalized_value is None or normalized_value in ("", "n/a"):
             continue
-        missing_values.append(normalized_value)
+        if isinstance(normalized_value, float) and np.isnan(normalized_value):
+            continue
+        key = (type(normalized_value), normalized_value)
+        if key not in known_values:
+            missing_values[key] = None
 
     if not missing_values:
         return None
 
-    listed_values = ", ".join(f"'{value}'" for value in missing_values[:maximum_number_of_listed_values])
+    listed_values = ", ".join(repr(value) for _, value in list(missing_values)[:maximum_number_of_listed_values])
     number_of_unlisted_values = len(missing_values) - min(len(missing_values), maximum_number_of_listed_values)
     if number_of_unlisted_values > 0:
         listed_values += f" (and {number_of_unlisted_values} more)"
 
     return InspectorMessage(
         message=(
-            f"Column '{target.name}' contains values that have no entry in its MeaningsTable "
+            f"Column '{meanings_table.target.name}' contains values that have no entry in its MeaningsTable "
             f"'{meanings_table.name}': {listed_values}. Every value of the annotated column should have "
             "an entry in the 'value' column of the MeaningsTable describing its meaning."
-        )
-    )
-
-
-@register_check(
-    importance=Importance.BEST_PRACTICE_VIOLATION,
-    neurodata_type=MeaningsTable,
-    nwb_schema_version_gte="2.10.0",  # MeaningsTable was added in NWB schema 2.10.0
-)
-def check_meanings_table_values_unique(
-    meanings_table: MeaningsTable, maximum_number_of_listed_values: int = 5
-) -> Optional[InspectorMessage]:
-    """
-    Check that each value has at most one entry in a MeaningsTable.
-
-    Best Practice: :ref:`best_practice_meanings_table_values_unique`
-    """
-    if "value" not in meanings_table.colnames:
-        return None
-
-    # A Counter keeps the order of first appearance, so that the message is deterministic
-    counts = Counter(_normalize_categorical_value(value=value) for value in meanings_table["value"].data[:])
-    repeated_values = [(value, count) for value, count in counts.items() if count > 1]
-    if not repeated_values:
-        return None
-
-    listed_values = ", ".join(
-        f"'{value}' ({count} entries)" for value, count in repeated_values[:maximum_number_of_listed_values]
-    )
-    number_of_unlisted_values = len(repeated_values) - min(len(repeated_values), maximum_number_of_listed_values)
-    if number_of_unlisted_values > 0:
-        listed_values += f" (and {number_of_unlisted_values} more)"
-
-    return InspectorMessage(
-        message=(
-            f"MeaningsTable '{meanings_table.name}' repeats values in its 'value' column: {listed_values}. "
-            "Each value should have exactly one entry, so that its meaning is unambiguous."
         )
     )
