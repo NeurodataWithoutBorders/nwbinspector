@@ -3,7 +3,7 @@ import platform
 from unittest import TestCase
 
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion
+from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorData
 from numpy.lib import NumpyVersion
 from pynwb.file import Device, ElectrodeGroup, ElectrodesTable, TimeIntervals, Units
 
@@ -14,6 +14,8 @@ from nwbinspector.checks import (
     check_dynamic_table_region_data_validity,
     check_empty_table,
     check_ids_unique,
+    check_meanings_table_includes_all_values,
+    check_meanings_table_values_unique,
     check_single_row,
     check_table_time_columns_are_not_negative,
     check_table_values_for_dict,
@@ -678,6 +680,62 @@ def test_check_time_intervals_duration_pass_without_additional_time_columns():
     assert check_time_intervals_duration(table) is None
 
 
+def _make_meanings_table(column_values: list, mapped_values: list) -> MeaningsTable:
+    target = VectorData(name="response", description="Response codes.", data=column_values)
+    meanings_table = MeaningsTable(target=target, description="Meanings of response codes.")
+    for value in mapped_values:
+        meanings_table.add_row(value=value, meaning=f"The meaning of {value}.")
+
+    return meanings_table
+
+
+def test_check_meanings_table_includes_all_values_pass():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "go"], mapped_values=["go", "stop"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_extra_entries_are_allowed():
+    """The reverse direction is not an error: entries for values that never occur in the column."""
+    meanings_table = _make_meanings_table(column_values=["go", "go"], mapped_values=["go", "stop", "pause"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_missing_data_needs_no_entry():
+    meanings_table = _make_meanings_table(column_values=["go", "n/a", "", None, float("nan")], mapped_values=["go"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_fail():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "pause"], mapped_values=["go"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) == InspectorMessage(
+        message=(
+            "Column 'response' contains values that have no entry in its MeaningsTable "
+            "'response_meanings': 'stop', 'pause'. Every value of the annotated column should have "
+            "an entry in the 'value' column of the MeaningsTable describing its meaning."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_meanings_table_includes_all_values",
+        object_type="MeaningsTable",
+        object_name="response_meanings",
+        location="/",
+    )
+
+
+def test_check_meanings_table_includes_all_values_lists_only_a_few_values():
+    column_values = [f"code_{index}" for index in range(8)]
+    meanings_table = _make_meanings_table(column_values=column_values, mapped_values=["code_0"])
+
+    message = check_meanings_table_includes_all_values(meanings_table=meanings_table).message
+    assert "'code_1'" in message
+    assert "'code_5'" in message
+    assert "'code_6'" not in message
+    assert "(and 2 more)" in message
+
+
 def _make_empty_table_with_columns() -> DynamicTable:
     """A table with declared columns but no rows, which is valid NWB and should only trigger check_empty_table."""
     table = DynamicTable(name="test_table", description="")
@@ -734,3 +792,67 @@ def test_empty_table_with_columns_on_disk_produces_no_errors(tmp_path):
     error_messages = [message for message in messages if message.importance is Importance.ERROR]
     assert error_messages == []
     assert any(message.check_function_name == "check_empty_table" for message in messages)
+
+
+def test_check_meanings_table_includes_all_values_compares_bytes_as_text():
+    """Text read from a file can be bytes; it should match entries written as str."""
+    meanings_table = _make_meanings_table(column_values=[b"go", b"stop"], mapped_values=["go", b"stop"])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_compares_numpy_values_as_python_values():
+    meanings_table = _make_meanings_table(column_values=np.array([1.0, 2.0, 1.0]), mapped_values=[1.0, 2.0])
+
+    assert check_meanings_table_includes_all_values(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_includes_all_values_compares_types():
+    """An integer column does not match entries written as strings, as a dict lookup would not find them."""
+    meanings_table = _make_meanings_table(column_values=[1, 2, 1], mapped_values=["1", "2"])
+
+    message = check_meanings_table_includes_all_values(meanings_table=meanings_table).message
+    assert "'response_meanings': 1, 2." in message
+
+
+def test_check_meanings_table_values_unique_pass():
+    meanings_table = _make_meanings_table(column_values=["go", "stop", "go"], mapped_values=["go", "stop"])
+
+    assert check_meanings_table_values_unique(meanings_table=meanings_table) is None
+
+
+def test_check_meanings_table_values_unique_fail():
+    meanings_table = _make_meanings_table(
+        column_values=["go", "stop"], mapped_values=["go", "stop", "go", "pause", "stop", "go"]
+    )
+
+    assert check_meanings_table_values_unique(meanings_table=meanings_table) == InspectorMessage(
+        message=(
+            "MeaningsTable 'response_meanings' repeats values in its 'value' column: 'go' (3 entries), "
+            "'stop' (2 entries). Each value should have exactly one entry, so that its meaning is unambiguous."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_meanings_table_values_unique",
+        object_type="MeaningsTable",
+        object_name="response_meanings",
+        location="/",
+    )
+
+
+def test_check_meanings_table_values_unique_lists_only_a_few_values():
+    mapped_values = [f"code_{index}" for index in range(8)] * 2
+    meanings_table = _make_meanings_table(column_values=["code_0"], mapped_values=mapped_values)
+
+    message = check_meanings_table_values_unique(meanings_table=meanings_table).message
+    assert "'code_4' (2 entries)" in message
+    assert "'code_5'" not in message
+    assert "(and 3 more)" in message
+
+
+def test_check_meanings_table_values_unique_compares_types():
+    """Text read from a file can be bytes and matches str, but the integer 1 and the string "1" are distinct."""
+    meanings_table = _make_meanings_table(column_values=[1], mapped_values=[1, "1", "go", b"go"])
+
+    message = check_meanings_table_values_unique(meanings_table=meanings_table).message
+    assert "'go' (2 entries)" in message
+    assert "'1'" not in message
