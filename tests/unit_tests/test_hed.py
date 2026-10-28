@@ -420,3 +420,32 @@ def test_hed_checks_on_a_boolean_categorical_column_read_from_disk(tmp_path):
 
     with NWBHDF5IO(path, "r") as io:
         assert _messages(check_hed_annotations_valid, io.read().acquisition[table.name]) == []
+
+
+def test_check_hed_annotations_valid_combined_row_on_one_row():
+    nwbfile = _make_nwbfile()
+    table = _add_categorical_table(
+        nwbfile=nwbfile, values=["go", "stop"], hed_by_value={"go": "Sensory-event", "stop": "Agent-action"}
+    )
+    table.add_column(name="HED", description="", col_cls=HedTags, data=["Sensory-event", "Red"])
+
+    assert _messages(check_hed_annotations_valid, table) == [
+        "HED error TAG_EXPRESSION_REPEATED in the combined HED of row index 0 ('Sensory-event,Sensory-event'): "
+        'Repeated tag - "Sensory-event".'
+    ]
+
+
+def test_hed_checks_when_the_validator_raises(monkeypatch):
+    from hed.errors import HedFileError
+
+    def raise_hed_file_error(self, table, error_handler=None, assemble=True):
+        raise HedFileError("SCHEMA_LOAD_FAILED", "The HED schema could not be loaded.", "")
+
+    nwbfile = _make_nwbfile()
+    table = _add_hed_tags_table(nwbfile=nwbfile, tags=["Sensory-event"])
+    monkeypatch.setattr(_hed.HedNWBValidator, "validate_table", raise_hed_file_error)
+
+    messages = _messages(check_hed_annotations_valid, table)
+    assert len(messages) == 1
+    assert messages[0].startswith("The HED annotations of this table could not be validated:")
+    assert _messages(check_hed_annotations_warnings, table) == []
