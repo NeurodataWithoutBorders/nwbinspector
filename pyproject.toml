@@ -54,6 +54,9 @@ dandi = [
 zarr = [
     "hdmf-zarr",
 ]
+hed = [
+    "ndx-hed>=0.3.0",  # supports pynwb>=4.0 and validates boolean and integer categorical columns read from files
+]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
