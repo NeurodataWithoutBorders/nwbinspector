@@ -163,3 +163,14 @@ find the other.
     requires HDMF 5.0.0 or later and, through PyNWB, PyNWB 4.0.0 or later.
 
 Check function: :py:meth:`~nwbinspector.checks._tables.check_meanings_table_includes_all_values`
+
+.. _best_practice_meanings_table_values_unique:
+
+Unique MeaningsTable Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each value in the ``value`` column of a ``MeaningsTable`` should appear only once. Two entries for the same value
+make its meaning ambiguous, and tools that look up the meaning of a value, such as HED tools, silently use one
+of them.
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_meanings_table_values_unique`

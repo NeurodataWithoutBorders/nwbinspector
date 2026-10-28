@@ -1,5 +1,6 @@
 """Check functions that can apply to any descendant of DynamicTable."""
 
+from collections import Counter
 from numbers import Real
 from typing import Iterable, Optional
 
@@ -464,5 +465,40 @@ def check_meanings_table_includes_all_values(
             f"Column '{meanings_table.target.name}' contains values that have no entry in its MeaningsTable "
             f"'{meanings_table.name}': {listed_values}. Every value of the annotated column should have "
             "an entry in the 'value' column of the MeaningsTable describing its meaning."
+        )
+    )
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=MeaningsTable)
+def check_meanings_table_values_unique(
+    meanings_table: MeaningsTable, maximum_number_of_listed_values: int = 5
+) -> Optional[InspectorMessage]:
+    """
+    Check that each value has at most one entry in a MeaningsTable.
+
+    Values are compared by type and value, as in check_meanings_table_includes_all_values.
+
+    Best Practice: :ref:`best_practice_meanings_table_values_unique`
+    """
+    # A Counter keeps the order of first appearance, so that the message is deterministic
+    counts: Counter[tuple[type, object]] = Counter()
+    for value in meanings_table["value"].data[:]:
+        normalized_value = _normalize_categorical_value(value=value)
+        counts[(type(normalized_value), normalized_value)] += 1
+    repeated_values = [(value, count) for (_, value), count in counts.items() if count > 1]
+    if not repeated_values:
+        return None
+
+    listed_values = ", ".join(
+        f"{value!r} ({count} entries)" for value, count in repeated_values[:maximum_number_of_listed_values]
+    )
+    number_of_unlisted_values = len(repeated_values) - min(len(repeated_values), maximum_number_of_listed_values)
+    if number_of_unlisted_values > 0:
+        listed_values += f" (and {number_of_unlisted_values} more)"
+
+    return InspectorMessage(
+        message=(
+            f"MeaningsTable '{meanings_table.name}' repeats values in its 'value' column: {listed_values}. "
+            "Each value should have exactly one entry, so that its meaning is unambiguous."
         )
     )
