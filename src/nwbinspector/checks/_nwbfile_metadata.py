@@ -334,7 +334,12 @@ def _check_subject_sex_defaults(sex: str) -> Optional[InspectorMessage]:
 def _check_subject_sex_c_elegans(sex: str) -> Optional[InspectorMessage]:
     """Check if the subject sex has been specified properly for the C. elegans species."""
     if sex not in ("XO", "XX"):
-        return InspectorMessage(message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).")
+        return InspectorMessage(
+            message=(
+                "For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite), "
+                "or 'O' with 'XO' or 'XX' in `c_elegans_sex` (CElegansSubject of ndx-subjects)."
+            )
+        )
 
     return None
 
@@ -346,6 +351,10 @@ def check_subject_sex(subject: Subject) -> Optional[InspectorMessage]:
 
     Best Practice: :ref:`best_practice_subject_sex`
     """
+    # CElegansSubject of the ndx-subjects extension fixes `sex` to "O" and records
+    # XX (hermaphrodite) or XO (male) in a separate `c_elegans_sex` field
+    if getattr(subject, "c_elegans_sex", None) in ("XO", "XX") and subject.sex in (None, "", "O"):
+        return None
     if subject and not subject.sex:
         return InspectorMessage(message="Subject.sex is missing.")
     if subject.species in ("Caenorhabditis elegans", "C. elegans"):
