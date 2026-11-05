@@ -129,10 +129,6 @@ and sleep stages with the `SCORE library <https://github.com/hed-standard/hed-sc
      - HED annotation
    * - Waking
      - ``Awake``
-   * - Quiet waking
-     - ``Awake, Resting``
-   * - Drowsiness
-     - ``Drowsy``
    * - Non-REM sleep, not divided into stages (as is usual in rodents)
      - ``Asleep``
    * - Non-REM stage 1, 2 or 3
