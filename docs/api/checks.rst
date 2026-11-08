@@ -51,3 +51,7 @@ ImageSeries
 Images
 ------
 .. automodule:: nwbinspector.checks._images
+
+HED
+---
+.. automodule:: nwbinspector.checks._hed
