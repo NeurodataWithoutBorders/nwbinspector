@@ -231,6 +231,8 @@ The ``sex`` of the :ref:`nwb-schema:sec-Subject` should be specified as a single
 following four possibilities: "M" (male), "F" (female), "U" (unknown), or "O" (other, for asexual species).
 
 C. elegans are an exception to this rule. For C. elegans, the sex should either be "XO" (male) or "XX" (hermaphrodite).
+The ``CElegansSubject`` type of the `ndx-subjects <https://github.com/catalystneuro/ndx-subjects>`_ extension
+fixes ``sex`` to "O" and records "XO" or "XX" in its ``c_elegans_sex`` field instead, which is also accepted.
 
 Check function: :py:meth:`~nwbinspector.checks._nwbfile_metadata.check_subject_sex`
 
