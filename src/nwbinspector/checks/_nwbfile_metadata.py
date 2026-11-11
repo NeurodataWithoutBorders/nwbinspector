@@ -21,7 +21,8 @@ duration_regex = (
     r"^P(?!$)(\d+(?:\.\d+)?Y)?(\d+(?:\.\d+)?M)?(\d+(?:\.\d+)?W)?(\d+(?:\.\d+)?D)?(T(?=\d)(\d+(?:\.\d+)?H)?(\d+(?:\.\d+)"
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
-species_form_regex = r"([A-Z][a-z]* [a-z]+)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
+# Latin binomial (e.g., "Mus musculus"), optionally followed by a subspecies name (e.g., "Canis lupus familiaris")
+species_form_regex = r"([A-Z][a-z]* [a-z]+( [a-z]+)?)|(http://purl.obolibrary.org/obo/NCBITaxon_\d+)"
 weight_form_regex = r"(?i)^\d+(\.\d+)? (kg|g|mg|ug|μg|ng|pg)$"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
@@ -381,7 +382,8 @@ def check_subject_species_exists(subject: Subject) -> Optional[InspectorMessage]
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=Subject)
 def check_subject_species_form(subject: Subject) -> Optional[InspectorMessage]:
     """
-    Check if the subject species follows latin binomial form or is a link to an NCBI taxonomy in the form of a Term IRI.
+    Check if the subject species follows latin binomial (or trinomial, for subspecies) form or is a link to an NCBI
+    taxonomy in the form of a Term IRI.
 
     The Term IRI can be found at the https://ontobee.org/ database.
 

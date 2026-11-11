@@ -696,14 +696,37 @@ def test_check_subject_species_missing():
     )
 
 
-def check_subject_species_latin_binomial_pass():
+def test_check_subject_species_latin_binomial_pass():
     subject = Subject(subject_id="001", species="Homo sapiens")
     assert check_subject_species_form(subject) is None
 
 
-def check_subject_species_ncbi_pass():
+@pytest.mark.parametrize("species", ["Canis lupus familiaris", "Mustela putorius furo", "Mus musculus domesticus"])
+def test_check_subject_species_latin_trinomial_pass(species):
+    subject = Subject(subject_id="001", species=species)
+    assert check_subject_species_form(subject) is None
+
+
+def test_check_subject_species_ncbi_pass():
     subject = Subject(subject_id="001", species="http://purl.obolibrary.org/obo/NCBITaxon_7954")
     assert check_subject_species_form(subject) is None
+
+
+def test_check_subject_species_too_many_words():
+    subject = Subject(subject_id="001", species="Canis lupus familiaris extra")
+
+    assert check_subject_species_form(subject) == InspectorMessage(
+        message=(
+            "Subject species 'Canis lupus familiaris extra' should either be in Latin binomial form (e.g., "
+            "'Mus musculus' and 'Homo sapiens') or be a NCBI taxonomy link "
+            "(e.g., 'http://purl.obolibrary.org/obo/NCBITaxon_280675')."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_subject_species_form",
+        object_type="Subject",
+        object_name="subject",
+        location="/general/subject",
+    )
 
 
 def test_check_subject_species_not_binomial():
