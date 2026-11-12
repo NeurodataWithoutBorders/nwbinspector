@@ -253,7 +253,9 @@ def inspect_nwbfile(
         in_memory_nwbfile, io = _read_nwbfile_and_io(nwbfile_path=nwbfile_path)
 
         if not skip_validate:
-            validation_result = pynwb.validate(path=nwbfile_path)
+            # Validate through the open io rather than the path. `pynwb.validate(path=...)` forwards HDF5-only
+            # arguments to whichever backend it picks, which raises on every Zarr file.
+            validation_result = pynwb.validate(io=io)
             if isinstance(validation_result, tuple):
                 validation_errors = validation_result[0]
             else:
