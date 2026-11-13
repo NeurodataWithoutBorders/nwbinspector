@@ -1,10 +1,14 @@
 import h5py
 import numpy as np
 import pynwb
+from pynwb.event import EventsTable
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_data_orientation,
+    check_events_table_timestamp_ascending,
+    check_events_timestamps_ascending,
+    check_events_timestamps_not_empty,
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
@@ -685,3 +689,65 @@ def test_check_time_series_data_is_not_empty_fail_with_empty_3d_array():
     result = check_time_series_data_is_not_empty(time_series=time_series)
     assert result is not None
     assert "empty" in result.message.lower()
+
+
+class _EventsLike(pynwb.core.NWBDataInterface):
+    """Stands in for an extension type that holds timestamps outside a TimeSeries, such as ndx-events Events."""
+
+    __nwbfields__ = ("timestamps",)
+
+    def __init__(self, name, timestamps):
+        super().__init__(name=name)
+        self.timestamps = timestamps
+
+
+def test_check_events_timestamps_ascending_pass():
+    assert check_events_timestamps_ascending(_EventsLike(name="events", timestamps=np.arange(1000.0))) is None
+
+
+def test_check_events_timestamps_ascending_fail():
+    timestamps = np.arange(1000.0)
+    timestamps[600:] -= 700.0  # a step back after the first nelems values
+    assert check_events_timestamps_ascending(_EventsLike(name="events", timestamps=timestamps)) == InspectorMessage(
+        message="events timestamps are not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_events_timestamps_ascending",
+        object_type="_EventsLike",
+        object_name="events",
+        location="/",
+    )
+
+
+def test_check_events_timestamps_ascending_skips_time_series():
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
+    assert check_events_timestamps_ascending(time_series) is None  # check_timestamps_ascending covers it
+
+
+def test_check_events_timestamps_not_empty_fail():
+    message = check_events_timestamps_not_empty(_EventsLike(name="events", timestamps=np.array([], dtype=float)))
+    assert message is not None and message.message.startswith("events has no timestamps.")
+
+
+def test_check_events_timestamps_not_empty_pass():
+    assert check_events_timestamps_not_empty(_EventsLike(name="events", timestamps=np.array([1.0]))) is None
+
+
+def test_check_events_table_timestamp_ascending_pass():
+    events_table = EventsTable(name="events", description="test events")
+    for timestamp in (1.0, 2.0, 3.0):
+        events_table.add_row(timestamp=timestamp)
+    assert check_events_table_timestamp_ascending(events_table) is None
+
+
+def test_check_events_table_timestamp_ascending_fail():
+    events_table = EventsTable(name="events", description="test events")
+    for timestamp in (1.0, 3.0, 2.0):
+        events_table.add_row(timestamp=timestamp)
+    assert check_events_table_timestamp_ascending(events_table) == InspectorMessage(
+        message="The timestamp column of events is not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_events_table_timestamp_ascending",
+        object_type="EventsTable",
+        object_name="events",
+        location="/",
+    )

@@ -103,6 +103,9 @@ from ._tables import (
 )
 from ._time_series import (
     check_data_orientation,
+    check_events_table_timestamp_ascending,
+    check_events_timestamps_ascending,
+    check_events_timestamps_not_empty,
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
@@ -187,6 +190,9 @@ __all__ = [
     "check_missing_unit",
     "check_regular_timestamps",
     "check_timestamps_ascending",
+    "check_events_timestamps_ascending",
+    "check_events_timestamps_not_empty",
+    "check_events_table_timestamp_ascending",
     "check_data_orientation",
     "check_timestamps_without_nans",
     "check_timestamps_match_first_dimension",

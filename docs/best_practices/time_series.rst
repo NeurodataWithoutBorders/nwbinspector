@@ -88,7 +88,13 @@ A primary implication is that the values in :ref:`nwb-schema:TimeSeries.timestam
 corresponding ordering of their indices in the :ref:`nwb-schema:TimeSeries.data <sec-TimeSeries>` array, should always
 be strictly increasing.
 
-Check function: :py:meth:`~nwbinspector.checks._time_series.check_timestamps_ascending`
+The same holds for the times of events stored outside a :ref:`nwb-schema:sec-TimeSeries`: the ``timestamp`` column
+of an ``EventsTable``, and the ``timestamps`` of extension types such as the ``Events`` and ``LabeledEvents`` of
+``ndx-events``.
+
+Check functions: :py:meth:`~nwbinspector.checks._time_series.check_timestamps_ascending`,
+:py:meth:`~nwbinspector.checks._time_series.check_events_timestamps_ascending`,
+:py:meth:`~nwbinspector.checks._time_series.check_events_table_timestamp_ascending`
 
 
 
