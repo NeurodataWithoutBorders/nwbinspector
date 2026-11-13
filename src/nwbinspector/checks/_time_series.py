@@ -115,9 +115,23 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries) -> Optional[
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_timestamps_ascending(time_series: TimeSeries, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
-    """Check that the values in the timestamps array are strictly increasing."""
-    if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
+    """
+    Check that the values in the timestamps array are strictly increasing.
+
+    The first ``nelems`` timestamps are read in full, and ``nelems`` more are sampled evenly over the whole array, so
+    that a step back in the middle or at the end of a long series is found without reading all of it.
+
+    Best Practice: :ref:`best_practice_timestamps_ascending`
+    """
+    timestamps = time_series.timestamps
+    if timestamps is None:
+        return None
+    if not is_ascending_series(timestamps, nelems=nelems):
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
+    if nelems is not None and len(timestamps) > nelems:
+        indices = np.unique(np.linspace(0, len(timestamps) - 1, nelems).astype(int))
+        if not is_ascending_series(np.asarray(timestamps[indices])):
+            return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
     return None
 

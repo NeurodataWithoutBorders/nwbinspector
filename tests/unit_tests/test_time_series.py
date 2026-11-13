@@ -265,6 +265,39 @@ def test_check_timestamps_ascending_fail():
     )
 
 
+def test_check_timestamps_ascending_step_back_after_first_elements_fail():
+    """A single step back far beyond the first nelems timestamps, as when rows were stored in table order."""
+    timestamps = np.arange(1000, dtype=float)
+    timestamps[600:] -= 700.0
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=np.zeros(1000), timestamps=timestamps
+    )
+    assert check_timestamps_ascending(time_series, nelems=200) == InspectorMessage(
+        message="test_time_series timestamps are not ascending.",
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_ascending",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamps_ascending_step_back_at_end_fail():
+    timestamps = np.arange(1000, dtype=float)
+    timestamps[-1] = 0.5
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=np.zeros(1000), timestamps=timestamps
+    )
+    assert check_timestamps_ascending(time_series, nelems=200) is not None
+
+
+def test_pass_check_timestamps_ascending_long_series_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=np.zeros(1000), timestamps=np.arange(1000, dtype=float)
+    )
+    assert check_timestamps_ascending(time_series, nelems=200) is None
+
+
 def test_check_timestamps_ascending_with_nans_fail():
     time_series = pynwb.TimeSeries(
         name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 3, 2]
