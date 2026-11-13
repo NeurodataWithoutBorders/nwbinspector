@@ -17,6 +17,7 @@ from nwbinspector.checks import (
     check_image_series_data_size,
     check_image_series_external_file_format,
     check_image_series_external_file_format_checked,
+    check_image_series_external_file_forward_slashes,
     check_image_series_external_file_relative,
     check_image_series_external_file_valid,
     check_image_series_starting_frame_without_external_file,
@@ -467,3 +468,30 @@ def test_check_image_series_external_file_format_checked_pass_without_external_v
     monkeypatch.setitem(sys.modules, "av", None)
 
     assert check_image_series_external_file_format_checked(nwbfile=make_minimal_nwbfile()) is None
+
+
+def test_check_image_series_external_file_forward_slashes_pass():
+    image_series = ImageSeries(
+        name="video", unit="n.a.", external_file=["session_folder/video.avi"], format="external", timestamps=[0.0]
+    )
+    assert check_image_series_external_file_forward_slashes(image_series) is None
+
+
+def test_check_image_series_external_file_forward_slashes_fail():
+    """Backslash-separated links, as written for the videos of DANDI:000559."""
+    image_series = ImageSeries(
+        name="video", unit="n.a.", external_file=["session_folder\\video.avi"], format="external", timestamps=[0.0]
+    )
+    assert check_image_series_external_file_forward_slashes(image_series) == [
+        InspectorMessage(
+            message=(
+                "The external file 'session_folder\\video.avi' separates folders with backslashes, so it resolves "
+                "only on Windows. Use forward slashes: 'session_folder/video.avi'."
+            ),
+            importance=Importance.BEST_PRACTICE_VIOLATION,
+            check_function_name="check_image_series_external_file_forward_slashes",
+            object_type="ImageSeries",
+            object_name="video",
+            location="/",
+        )
+    ]
