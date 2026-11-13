@@ -4,6 +4,7 @@ import pynwb
 
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
+    check_conversion_and_offset_finite,
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
@@ -685,3 +686,56 @@ def test_check_time_series_data_is_not_empty_fail_with_empty_3d_array():
     result = check_time_series_data_is_not_empty(time_series=time_series)
     assert result is not None
     assert "empty" in result.message.lower()
+
+
+def test_check_conversion_and_offset_finite_pass():
+    time_series = pynwb.TimeSeries(name="position", unit="meters", data=[1, 2], rate=1.0, conversion=0.001, offset=0.5)
+    assert check_conversion_and_offset_finite(time_series) is None
+
+
+def test_check_conversion_and_offset_finite_nan_conversion_fail():
+    """A NaN conversion, as written for the position of DANDI:000218."""
+    time_series = pynwb.TimeSeries(name="position", unit="meters", data=[1, 2], rate=1.0, conversion=np.nan)
+    assert check_conversion_and_offset_finite(time_series) == [
+        InspectorMessage(
+            message=(
+                "position has conversion nan, so its data cannot be scaled to 'meters'. The conversion must be a "
+                "finite, non-zero number."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_conversion_and_offset_finite",
+            object_type="TimeSeries",
+            object_name="position",
+            location="/",
+        )
+    ]
+
+
+def test_check_conversion_and_offset_finite_zero_conversion_fail():
+    time_series = pynwb.TimeSeries(name="position", unit="meters", data=[1, 2], rate=1.0, conversion=0.0)
+    messages = check_conversion_and_offset_finite(time_series)
+    assert messages is not None and len(messages) == 1
+
+
+def test_check_conversion_and_offset_finite_infinite_offset_fail():
+    time_series = pynwb.TimeSeries(name="position", unit="meters", data=[1, 2], rate=1.0, offset=np.inf)
+    messages = check_conversion_and_offset_finite(time_series)
+    assert messages is not None and "offset inf" in messages[0].message
+
+
+def test_check_conversion_and_offset_finite_channel_conversion_fail():
+    nwbfile = make_minimal_nwbfile()
+    device = nwbfile.create_device(name="device")
+    group = nwbfile.create_electrode_group(name="group", description="", location="CA1", device=device)
+    for _ in range(3):
+        nwbfile.add_electrode(location="CA1", group=group, group_name="group")
+    electrodes = nwbfile.create_electrode_table_region(region=[0, 1, 2], description="")
+    series = pynwb.ecephys.ElectricalSeries(
+        name="lfp",
+        data=np.zeros((10, 3), dtype=np.int16),
+        electrodes=electrodes,
+        rate=1250.0,
+        channel_conversion=[1.0, np.nan, 0.0],
+    )
+    messages = check_conversion_and_offset_finite(series)
+    assert messages is not None and "2 channel_conversion values" in messages[0].message

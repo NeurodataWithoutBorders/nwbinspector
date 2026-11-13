@@ -1,6 +1,6 @@
 """Check functions that can apply to any descendant of TimeSeries."""
 
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
 from pynwb import TimeSeries
@@ -326,5 +326,46 @@ def check_rate_not_below_threshold(
                 f"If the sampling period of the data is indeed {time_series.rate} seconds, the rate should be set to {1.0 / time_series.rate} Hz instead."
             )
         )
+
+    return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_conversion_and_offset_finite(time_series: TimeSeries) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that the scaling of a TimeSeries is usable.
+
+    ``data * conversion + offset`` gives the values in ``unit``. A NaN, infinite or zero ``conversion``, or a NaN or
+    infinite ``offset``, makes every scaled value meaningless. The ``channel_conversion`` of an ElectricalSeries, which
+    scales each channel the same way, is checked too.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
+    """
+    conversion, offset = time_series.conversion, time_series.offset
+    if conversion is not None and (not np.isfinite(conversion) or conversion == 0):
+        yield InspectorMessage(
+            message=(
+                f"{time_series.name} has conversion {conversion}, so its data cannot be scaled to '{time_series.unit}'. "
+                "The conversion must be a finite, non-zero number."
+            )
+        )
+    if offset is not None and not np.isfinite(offset):
+        yield InspectorMessage(
+            message=(
+                f"{time_series.name} has offset {offset}, so its data cannot be scaled to '{time_series.unit}'. "
+                "The offset must be a finite number."
+            )
+        )
+    channel_conversion = getattr(time_series, "channel_conversion", None)
+    if channel_conversion is not None:
+        values = np.asarray(channel_conversion[:], dtype=float)
+        bad = ~np.isfinite(values) | (values == 0)
+        if bad.any():
+            yield InspectorMessage(
+                message=(
+                    f"{time_series.name} has {int(bad.sum())} channel_conversion values that are NaN, infinite or "
+                    "zero, so those channels cannot be scaled. Each value must be a finite, non-zero number."
+                )
+            )
 
     return None

@@ -39,9 +39,14 @@ A common mistake is to provide timestamps in milliseconds or microseconds instea
 unusually long durations (e.g., appearing to span years instead of hours). Similarly, providing the sampling period
 (time between samples) instead of the rate (frequency in Hz) leads to suspiciously low rate values.
 
+The values in ``unit`` are ``data * conversion + offset``. ``conversion`` must be a finite, non-zero number and
+``offset`` a finite number, and so must each value of the ``channel_conversion`` of an
+:ref:`nwb-schema:sec-ElectricalSeries`; otherwise no value of the series can be scaled.
+
 Check functions: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`,
 :py:meth:`~nwbinspector.checks._time_series.check_time_series_duration`,
-:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`
+:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`,
+:py:meth:`~nwbinspector.checks._time_series.check_conversion_and_offset_finite`
 
 
 
