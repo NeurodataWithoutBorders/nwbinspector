@@ -11,6 +11,7 @@ from nwbinspector.checks import (
     check_rate_not_below_threshold,
     check_regular_timestamps,
     check_resolution,
+    check_time_extents_agree,
     check_time_series_data_is_not_empty,
     check_time_series_duration,
     check_timestamp_of_the_first_sample_is_not_negative,
@@ -685,3 +686,72 @@ def test_check_time_series_data_is_not_empty_fail_with_empty_3d_array():
     result = check_time_series_data_is_not_empty(time_series=time_series)
     assert result is not None
     assert "empty" in result.message.lower()
+
+
+def _series(name, duration, rate=10.0, starting_time=0.0):
+    return pynwb.TimeSeries(
+        name=name, unit="n.a.", data=np.zeros(int(duration * rate)), rate=rate, starting_time=starting_time
+    )
+
+
+def test_check_time_extents_agree_pass():
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("lfp", 3600.0))
+    nwbfile.add_acquisition(_series("position", 3590.0))
+    assert check_time_extents_agree(nwbfile) is None
+
+
+def test_check_time_extents_agree_epochs_in_milliseconds_fail():
+    """Epoch times in milliseconds labelled as seconds, as in DANDI:000061 Rat11."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("lfp", 23214.0))
+    nwbfile.add_epoch(start_time=0.0, stop_time=11000000.0)
+    nwbfile.add_epoch(start_time=11000000.0, stop_time=23213900.0)
+    messages = check_time_extents_agree(nwbfile)
+    assert messages == [
+        InspectorMessage(
+            message=(
+                "TimeIntervals 'epochs' ends at 2.32139e+07 s, 1e+03 times later than everything else in the file "
+                "(the next latest, TimeSeries 'lfp', ends at 23213.9 s). Check its times for a unit, rate or offset "
+                "error."
+            ),
+            importance=Importance.BEST_PRACTICE_SUGGESTION,
+            check_function_name="check_time_extents_agree",
+            object_type="NWBFile",
+            object_name="root",
+            location="/",
+        )
+    ]
+
+
+def test_check_time_extents_agree_samples_written_twice_fail():
+    """A position series twice the session's length at its stated rate, as in DANDI:000061 Rat08-20130722."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("lfp", 22295.0))
+    nwbfile.add_acquisition(_series("position", 44590.0, rate=39.0625))
+    messages = check_time_extents_agree(nwbfile)
+    assert messages is not None and "'position' ends at" in messages[0].message
+
+
+def test_check_time_extents_agree_offset_fail():
+    """A stimulation series 2,700 s later than the behavior, as in the velocity sessions of DANDI:000559."""
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("syllables", 1800.0, rate=30.0))
+    nwbfile.add_stimulus(pynwb.TimeSeries(name="stimulation", unit="W", data=[0.0, 0.0], timestamps=[2700.0, 4500.0]))
+    messages = check_time_extents_agree(nwbfile)
+    assert messages is not None and "'stimulation' ends at 4500 s" in messages[0].message
+
+
+def test_check_time_extents_agree_single_object_pass():
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("lfp", 3600.0))
+    assert check_time_extents_agree(nwbfile) is None
+
+
+def test_check_time_extents_agree_long_recording_with_epochs_pass():
+    nwbfile = make_minimal_nwbfile()
+    nwbfile.add_acquisition(_series("lfp", 10800.0))
+    nwbfile.add_acquisition(_series("position", 1800.0))
+    nwbfile.add_epoch(start_time=0.0, stop_time=3600.0)
+    nwbfile.add_epoch(start_time=3600.0, stop_time=10800.0)
+    assert check_time_extents_agree(nwbfile) is None
