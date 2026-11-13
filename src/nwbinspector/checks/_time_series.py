@@ -328,3 +328,37 @@ def check_rate_not_below_threshold(
         )
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_timestamps_not_repeated(time_series: TimeSeries, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
+    """
+    Check that consecutive timestamps are not equal.
+
+    Timestamps should be strictly increasing. Repeated values usually mean that rows were written twice or that times
+    were rounded. Three windows of ``nelems`` timestamps are read: at the start, the middle and the end.
+    SpikeEventSeries are skipped, since spikes on different channels can share a time.
+
+    Best Practice: :ref:`best_practice_timestamps_ascending`
+    """
+    timestamps = time_series.timestamps
+    if timestamps is None or isinstance(time_series, SpikeEventSeries) or len(timestamps) < 2:
+        return None
+    n = len(timestamps)
+    if nelems is None or n <= 3 * nelems:
+        windows = [np.asarray(timestamps[:])]
+    else:
+        middle = (n - nelems) // 2
+        windows = [np.asarray(timestamps[start : start + nelems]) for start in (0, middle, n - nelems)]
+    repeats = sum(int(np.sum(np.diff(window) == 0)) for window in windows)
+    if repeats:
+        read = sum(len(window) for window in windows)
+        return InspectorMessage(
+            message=(
+                f"{time_series.name} has repeated timestamps: {repeats} of the {read} consecutive timestamps read "
+                "equal the one before. Timestamps should be strictly increasing; repeats often mean rows written "
+                "twice or times rounded too coarsely."
+            )
+        )
+
+    return None
