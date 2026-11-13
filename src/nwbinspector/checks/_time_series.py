@@ -6,8 +6,8 @@ import numpy as np
 from hdmf.common import DynamicTable
 from pynwb import TimeSeries
 from pynwb.core import NWBDataInterface
-from pynwb.event import EventsTable
 from pynwb.ecephys import SpikeEventSeries
+from pynwb.event import EventsTable
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check

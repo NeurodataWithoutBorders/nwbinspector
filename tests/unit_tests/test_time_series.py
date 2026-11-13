@@ -6,6 +6,9 @@ from pynwb.event import EventsTable
 from nwbinspector import Importance, InspectorMessage
 from nwbinspector.checks import (
     check_data_orientation,
+    check_events_table_timestamp_ascending,
+    check_events_timestamps_ascending,
+    check_events_timestamps_not_empty,
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
@@ -15,9 +18,6 @@ from nwbinspector.checks import (
     check_time_series_data_is_not_empty,
     check_time_series_duration,
     check_timestamp_of_the_first_sample_is_not_negative,
-    check_events_table_timestamp_ascending,
-    check_events_timestamps_ascending,
-    check_events_timestamps_not_empty,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
     check_timestamps_without_nans,
