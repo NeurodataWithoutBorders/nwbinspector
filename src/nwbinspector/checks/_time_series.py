@@ -338,7 +338,8 @@ def _end_time(neurodata_object: object) -> Optional[float]:
             if len(neurodata_object.timestamps) == 0:
                 return None
             return float(neurodata_object.timestamps[-1])
-        n_samples = get_data_shape(neurodata_object.data)[0] if neurodata_object.data is not None else 0
+        shape = get_data_shape(neurodata_object.data) if neurodata_object.data is not None else None
+        n_samples = shape[0] if shape else 0
         if not n_samples or not neurodata_object.rate:
             return None
         return float(neurodata_object.starting_time or 0.0) + (n_samples - 1) / float(neurodata_object.rate)
