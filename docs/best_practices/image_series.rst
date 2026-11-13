@@ -32,7 +32,12 @@ Use relative path for external mode
 
 When using ``external_file`` the paths passed in the ``external_file`` option should be relative to the location of the nwb file.
 
-Check function: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_relative`
+The paths should separate folders with forward slashes (``session_folder/video.avi``). A path with backslashes
+resolves only on Windows; on Linux and macOS, and so on the DANDI Archive, it names a single file with a backslash in
+its name.
+
+Check functions: :py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_relative`,
+:py:meth:`~nwbinspector.checks._image_series.check_image_series_external_file_forward_slashes`
 
 
 .. _best_practice_starting_frame_only_with_external_file:

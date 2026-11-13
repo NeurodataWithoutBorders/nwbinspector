@@ -154,6 +154,33 @@ def check_image_series_external_file_format_checked(nwbfile: NWBFile) -> Optiona
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
+def check_image_series_external_file_forward_slashes(
+    image_series: ImageSeries,
+) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that the paths in the external_file of an ImageSeries separate folders with forward slashes.
+
+    A path such as ``session_folder\\video.avi`` resolves only on Windows; on Linux and macOS, and so on the DANDI
+    Archive, it names a single file with a backslash in its name, and the link to the video is broken.
+
+    Best Practice: :ref:`best_practice_use_external_mode`
+    """
+    if image_series.external_file is None:
+        return None
+    for file_path in image_series.external_file:
+        file_path = file_path.decode() if isinstance(file_path, bytes) else file_path
+        if "\\" in file_path:
+            yield InspectorMessage(
+                message=(
+                    f"The external file '{file_path}' separates folders with backslashes, so it resolves only on "
+                    f"Windows. Use forward slashes: '{PureWindowsPath(file_path).as_posix()}'."
+                )
+            )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ImageSeries)
 def check_image_series_data_size(image_series: ImageSeries, gb_lower_bound: float = 20.0) -> Optional[InspectorMessage]:
     """
     Check if an ImageSeries stored is larger than gb_lower_bound and suggests external file.
