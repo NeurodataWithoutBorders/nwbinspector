@@ -16,6 +16,7 @@ from nwbinspector.checks import (
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
+    check_timestamps_not_repeated,
     check_timestamps_without_nans,
 )
 from nwbinspector.testing import check_streaming_tests_enabled, make_minimal_nwbfile
@@ -685,3 +686,50 @@ def test_check_time_series_data_is_not_empty_fail_with_empty_3d_array():
     result = check_time_series_data_is_not_empty(time_series=time_series)
     assert result is not None
     assert "empty" in result.message.lower()
+
+
+def test_check_timestamps_not_repeated_pass():
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1.0, 2.0, 3.0]
+    )
+    assert check_timestamps_not_repeated(time_series) is None
+
+
+def test_check_timestamps_not_repeated_rows_written_twice_fail():
+    timestamps = np.repeat(np.arange(500.0), 2)  # every row twice
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=np.zeros(1000), timestamps=timestamps
+    )
+    assert check_timestamps_not_repeated(time_series) == InspectorMessage(
+        message=(
+            "test_time_series has repeated timestamps: 300 of the 600 consecutive timestamps read equal the one "
+            "before. Timestamps should be strictly increasing; repeats often mean rows written twice or times "
+            "rounded too coarsely."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_timestamps_not_repeated",
+        object_type="TimeSeries",
+        object_name="test_time_series",
+        location="/",
+    )
+
+
+def test_check_timestamps_not_repeated_rounded_late_fail():
+    timestamps = np.arange(0.0, 20000.0, 1 / 30)[:600000]
+    timestamps[-1000:] = np.round(timestamps[-1000:])  # rounded to whole seconds late in the recording
+    time_series = pynwb.TimeSeries(
+        name="test_time_series", unit="test_units", data=np.zeros(600000), timestamps=timestamps
+    )
+    assert check_timestamps_not_repeated(time_series) is not None
+
+
+def test_check_timestamps_not_repeated_skips_spike_event_series():
+    nwbfile = make_minimal_nwbfile()
+    device = nwbfile.create_device(name="device")
+    group = nwbfile.create_electrode_group(name="group", description="", location="CA1", device=device)
+    nwbfile.add_electrode(location="CA1", group=group, group_name="group")
+    electrodes = nwbfile.create_electrode_table_region(region=[0], description="")
+    spikes = pynwb.ecephys.SpikeEventSeries(
+        name="spikes", data=np.zeros((3, 4)), timestamps=[1.0, 1.0, 2.0], electrodes=electrodes
+    )
+    assert check_timestamps_not_repeated(spikes) is None

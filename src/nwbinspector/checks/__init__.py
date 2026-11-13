@@ -114,6 +114,7 @@ from ._time_series import (
     check_timestamp_of_the_first_sample_is_not_negative,
     check_timestamps_ascending,
     check_timestamps_match_first_dimension,
+    check_timestamps_not_repeated,
     check_timestamps_without_nans,
 )
 
@@ -187,6 +188,7 @@ __all__ = [
     "check_missing_unit",
     "check_regular_timestamps",
     "check_timestamps_ascending",
+    "check_timestamps_not_repeated",
     "check_data_orientation",
     "check_timestamps_without_nans",
     "check_timestamps_match_first_dimension",

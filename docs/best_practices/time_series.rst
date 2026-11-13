@@ -86,9 +86,11 @@ If you only have data spanning specific segments of time, then only include thos
 
 A primary implication is that the values in :ref:`nwb-schema:TimeSeries.timestamps <sec-TimeSeries>`, as well as the
 corresponding ordering of their indices in the :ref:`nwb-schema:TimeSeries.data <sec-TimeSeries>` array, should always
-be strictly increasing.
+be strictly increasing. Repeated values are not increasing either: they usually mean that rows were written twice
+or that times were rounded too coarsely.
 
-Check function: :py:meth:`~nwbinspector.checks._time_series.check_timestamps_ascending`
+Check functions: :py:meth:`~nwbinspector.checks._time_series.check_timestamps_ascending`,
+:py:meth:`~nwbinspector.checks._time_series.check_timestamps_not_repeated`
 
 
 
