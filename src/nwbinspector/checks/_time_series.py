@@ -3,7 +3,10 @@
 from typing import Optional
 
 import numpy as np
+from hdmf.common import DynamicTable
 from pynwb import TimeSeries
+from pynwb.core import NWBDataInterface
+from pynwb.event import EventsTable
 from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
@@ -326,5 +329,81 @@ def check_rate_not_below_threshold(
                 f"If the sampling period of the data is indeed {time_series.rate} seconds, the rate should be set to {1.0 / time_series.rate} Hz instead."
             )
         )
+
+    return None
+
+
+def _sampled_is_ascending(timestamps, nelems: Optional[int]) -> bool:
+    """The first nelems values, and nelems more sampled evenly over the whole array, are ascending."""
+    if not is_ascending_series(timestamps, nelems=nelems):
+        return False
+    if nelems is not None and len(timestamps) > nelems:
+        indices = np.unique(np.linspace(0, len(timestamps) - 1, nelems).astype(int))
+        return is_ascending_series(np.asarray(timestamps[indices]))
+    return True
+
+
+def _non_time_series_timestamps(neurodata_object: NWBDataInterface):
+    """The timestamps of an object that is neither a TimeSeries nor a table, such as ndx-events Events, or None."""
+    if isinstance(neurodata_object, (TimeSeries, DynamicTable)):
+        return None  # TimeSeries have their own checks; tables keep times in columns
+    timestamps = getattr(neurodata_object, "timestamps", None)
+    if timestamps is None or isinstance(timestamps, (str, bytes)) or not hasattr(timestamps, "__len__"):
+        return None
+    return timestamps
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBDataInterface)
+def check_events_timestamps_ascending(
+    neurodata_object: NWBDataInterface, nelems: Optional[int] = 200
+) -> Optional[InspectorMessage]:
+    """
+    Check that the timestamps of an object that is not a TimeSeries, such as the Events and LabeledEvents of
+    ndx-events, are ascending, as the timestamps of a TimeSeries must be.
+
+    Best Practice: :ref:`best_practice_timestamps_ascending`
+    """
+    timestamps = _non_time_series_timestamps(neurodata_object)
+    if timestamps is None or len(timestamps) < 2:
+        return None
+    if not _sampled_is_ascending(timestamps, nelems=nelems):
+        return InspectorMessage(message=f"{neurodata_object.name} timestamps are not ascending.")
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBDataInterface)
+def check_events_timestamps_not_empty(neurodata_object: NWBDataInterface) -> Optional[InspectorMessage]:
+    """
+    Check that an object that is not a TimeSeries but holds timestamps, such as the Events and LabeledEvents of
+    ndx-events, has at least one.
+
+    Best Practice: :ref:`best_practice_data_not_empty`
+    """
+    timestamps = _non_time_series_timestamps(neurodata_object)
+    if timestamps is not None and len(timestamps) == 0:
+        return InspectorMessage(
+            message=(
+                f"{neurodata_object.name} has no timestamps. An empty object is often the result of a conversion "
+                "error; if no events occurred, consider leaving the object out of the file."
+            )
+        )
+
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=EventsTable)
+def check_events_table_timestamp_ascending(
+    events_table: EventsTable, nelems: Optional[int] = 200
+) -> Optional[InspectorMessage]:
+    """
+    Check that the timestamp column of an EventsTable is ascending.
+
+    Best Practice: :ref:`best_practice_timestamps_ascending`
+    """
+    if "timestamp" not in events_table.colnames or len(events_table.id) < 2:
+        return None
+    if not _sampled_is_ascending(events_table["timestamp"].data, nelems=nelems):
+        return InspectorMessage(message=f"The timestamp column of {events_table.name} is not ascending.")
 
     return None
