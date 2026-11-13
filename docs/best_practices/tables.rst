@@ -60,6 +60,20 @@ Check function :py:meth:`~nwbinspector.checks._tables.check_dynamic_table_region
 
 
 
+.. _best_practice_vector_index_consistency:
+
+Ragged Column Indices
+~~~~~~~~~~~~~~~~~~~~~
+
+A ragged column stores its values in one flat ``VectorData`` and a ``VectorIndex`` that holds, for each row, the end
+of that row in the flat data. The index values must not decrease, and the last value must equal the number of elements
+of the data it indexes. An index that does not match its data makes every row read back shifted, cut short or with
+data missing.
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_vector_index_consistency`
+
+
+
 .. _best_practice_column_binary_capability:
 
 Boolean Columns

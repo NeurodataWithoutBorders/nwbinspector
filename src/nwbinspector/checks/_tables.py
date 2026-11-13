@@ -502,3 +502,38 @@ def check_meanings_table_values_unique(
             "Each value should have exactly one entry, so that its meaning is unambiguous."
         )
     )
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+def check_vector_index_consistency(table: DynamicTable) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that each VectorIndex of a table matches the data it indexes.
+
+    A VectorIndex holds, for each row, the end of that row in its target. The values must not decrease, and the last
+    value must equal the length of the target; otherwise rows read back shifted, cut short, or with data missing.
+
+    Best Practice: :ref:`best_practice_vector_index_consistency`
+    """
+    for column in table.columns:
+        if not isinstance(column, VectorIndex) or column.target is None:
+            continue
+        index = np.asarray(column.data[:]).astype(np.int64)  # indices are unsigned: np.diff would wrap around
+        if index.size == 0:
+            continue
+        target_length = len(column.target.data)
+        if np.any(np.diff(index) < 0):
+            yield InspectorMessage(
+                message=(
+                    f"The index '{column.name}' decreases: each value must be the end of its row in "
+                    f"'{column.target.name}', so the values cannot decrease."
+                )
+            )
+        if int(index[-1]) != target_length:
+            yield InspectorMessage(
+                message=(
+                    f"The last value of the index '{column.name}' is {int(index[-1])}, but '{column.target.name}' "
+                    f"has {target_length} elements. The rows read back shifted or with data missing."
+                )
+            )
+
+    return None
