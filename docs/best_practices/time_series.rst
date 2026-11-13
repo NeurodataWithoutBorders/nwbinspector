@@ -53,6 +53,12 @@ Time Series: Time References
 The ``timestamps`` or ``rate`` of a :ref:`nwb-schema:sec-TimeSeries` should be in seconds with respect to
 the global ``timestamps_reference_time`` of the :ref:`nwb-schema:NWBFile <sec-NWBFile>`.
 
+Every time series and interval table of a file shares this clock, so their time extents should agree: an object that
+ends far later than everything else usually has times in another unit (milliseconds for seconds, or clock time for
+time since the session start), a wrong rate, samples written twice, or an offset the rest of the file does not share.
+
+Check function: :py:meth:`~nwbinspector.checks._time_series.check_time_extents_agree`
+
 
 
 .. _best_practice_time_series_subtypes:

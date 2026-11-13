@@ -1,10 +1,11 @@
 """Check functions that can apply to any descendant of TimeSeries."""
 
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
-from pynwb import TimeSeries
+from pynwb import NWBFile, TimeSeries
 from pynwb.ecephys import SpikeEventSeries
+from pynwb.epoch import TimeIntervals
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
@@ -324,6 +325,59 @@ def check_rate_not_below_threshold(
                 f"TimeSeries '{time_series.name}' has a sampling rate of {time_series.rate} Hz (one sample every {period:.2f} seconds). "
                 "This low value may indicate the sampling period was provided instead of the rate. "
                 f"If the sampling period of the data is indeed {time_series.rate} seconds, the rate should be set to {1.0 / time_series.rate} Hz instead."
+            )
+        )
+
+    return None
+
+
+def _end_time(neurodata_object: object) -> Optional[float]:
+    """The last time of a TimeSeries or of a TimeIntervals table, in seconds, from one or a few small reads."""
+    if isinstance(neurodata_object, TimeSeries):
+        if neurodata_object.timestamps is not None:
+            if len(neurodata_object.timestamps) == 0:
+                return None
+            return float(neurodata_object.timestamps[-1])
+        n_samples = get_data_shape(neurodata_object.data)[0] if neurodata_object.data is not None else 0
+        if not n_samples or not neurodata_object.rate:
+            return None
+        return float(neurodata_object.starting_time or 0.0) + (n_samples - 1) / float(neurodata_object.rate)
+    if isinstance(neurodata_object, TimeIntervals) and "stop_time" in neurodata_object.colnames:
+        if len(neurodata_object.id) == 0:
+            return None
+        stop_times = np.asarray(neurodata_object["stop_time"].data[:], dtype=float)
+        return float(np.nanmax(stop_times)) if np.isfinite(stop_times).any() else None
+    return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_time_extents_agree(
+    nwbfile: NWBFile, ratio_threshold: float = 1.5, gap_threshold: float = 60.0
+) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that no time series or interval table ends far later than everything else in the file.
+
+    An object whose last time is more than ``ratio_threshold`` times, and more than ``gap_threshold`` seconds, later
+    than the latest end of all other objects usually has times in another unit (milliseconds for seconds), a wrong
+    rate, samples written twice, or an offset the rest of the file does not share.
+
+    Best Practice: :ref:`best_practice_time_series_global_time_reference`
+    """
+    ends = []
+    for neurodata_object in nwbfile.objects.values():
+        end = _end_time(neurodata_object)
+        if end is not None and np.isfinite(end) and end > 0:
+            ends.append((neurodata_object, end))
+    if len(ends) < 2:
+        return None
+    ordered = sorted(ends, key=lambda item: item[1], reverse=True)
+    (latest, latest_end), (next_latest, next_end) = ordered[0], ordered[1]
+    if latest_end > ratio_threshold * next_end and latest_end - next_end > gap_threshold:
+        yield InspectorMessage(
+            message=(
+                f"{type(latest).__name__} '{latest.name}' ends at {latest_end:g} s, {latest_end / next_end:.3g} times "
+                f"later than everything else in the file (the next latest, {type(next_latest).__name__} "
+                f"'{next_latest.name}', ends at {next_end:g} s). Check its times for a unit, rate or offset error."
             )
         )
 
