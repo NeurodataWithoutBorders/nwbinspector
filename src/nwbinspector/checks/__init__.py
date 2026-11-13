@@ -100,6 +100,7 @@ from ._tables import (
     check_time_intervals_duration,
     check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
+    check_vector_index_consistency,
 )
 from ._time_series import (
     check_data_orientation,
@@ -173,6 +174,7 @@ __all__ = [
     "check_meanings_table_includes_all_values",
     "check_meanings_table_values_unique",
     "check_empty_table",
+    "check_vector_index_consistency",
     "check_col_not_nan",
     "check_column_binary_capability",
     "check_dynamic_table_region_data_validity",

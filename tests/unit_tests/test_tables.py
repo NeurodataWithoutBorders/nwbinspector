@@ -3,7 +3,13 @@ import platform
 from unittest import TestCase
 
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorData
+from hdmf.common import (
+    DynamicTable,
+    DynamicTableRegion,
+    MeaningsTable,
+    VectorData,
+    VectorIndex,
+)
 from numpy.lib import NumpyVersion
 from pynwb.file import Device, ElectrodeGroup, ElectrodesTable, TimeIntervals, Units
 
@@ -23,6 +29,7 @@ from nwbinspector.checks import (
     check_time_intervals_duration,
     check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
+    check_vector_index_consistency,
 )
 
 
@@ -856,3 +863,46 @@ def test_check_meanings_table_values_unique_compares_types():
     message = check_meanings_table_values_unique(meanings_table=meanings_table).message
     assert "'go' (2 entries)" in message
     assert "'1'" not in message
+
+
+def _ragged_table(index_values, target_length=10):
+    target = VectorData(name="maps", description="ragged values", data=np.arange(target_length, dtype=float))
+    index = VectorIndex(name="maps_index", data=np.asarray(index_values), target=target)
+    return DynamicTable(
+        name="ripples", description="test table", id=list(range(len(index_values))), columns=[target, index]
+    )
+
+
+def test_check_vector_index_consistency_pass():
+    assert check_vector_index_consistency(_ragged_table([3, 6, 10])) is None
+
+
+def test_check_vector_index_consistency_last_value_fail():
+    """An index of 0 to n-1, as written for DANDI:000552's ripple maps: every row shifted, the last one lost."""
+    messages = list(check_vector_index_consistency(_ragged_table([0, 1, 2], target_length=3 * 397)))
+    assert messages == [
+        InspectorMessage(
+            message=(
+                "The last value of the index 'maps_index' is 2, but 'maps' has 1191 elements. The rows read back "
+                "shifted or with data missing."
+            ),
+            importance=Importance.CRITICAL,
+            check_function_name="check_vector_index_consistency",
+            object_type="DynamicTable",
+            object_name="ripples",
+            location="/",
+        )
+    ]
+
+
+def test_check_vector_index_consistency_decreasing_fail():
+    messages = list(check_vector_index_consistency(_ragged_table([6, 3, 10])))
+    assert len(messages) == 1 and "decreases" in messages[0].message
+
+
+def test_check_vector_index_consistency_ragged_column_from_add_row_pass():
+    table = DynamicTable(name="table", description="test table")
+    table.add_column(name="values", description="ragged", index=True)
+    table.add_row(values=[1.0, 2.0])
+    table.add_row(values=[3.0])
+    assert check_vector_index_consistency(table) is None
