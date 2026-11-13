@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 from hdmf.common import DynamicTable
+from numpy.typing import ArrayLike
 from pynwb import TimeSeries
 from pynwb.core import NWBDataInterface
 from pynwb.ecephys import SpikeEventSeries
@@ -333,7 +334,7 @@ def check_rate_not_below_threshold(
     return None
 
 
-def _sampled_is_ascending(timestamps, nelems: Optional[int]) -> bool:
+def _sampled_is_ascending(timestamps: ArrayLike, nelems: Optional[int]) -> bool:
     """The first nelems values, and nelems more sampled evenly over the whole array, are ascending."""
     if not is_ascending_series(timestamps, nelems=nelems):
         return False
@@ -343,7 +344,7 @@ def _sampled_is_ascending(timestamps, nelems: Optional[int]) -> bool:
     return True
 
 
-def _non_time_series_timestamps(neurodata_object: NWBDataInterface):
+def _non_time_series_timestamps(neurodata_object: NWBDataInterface) -> Optional[ArrayLike]:
     """The timestamps of an object that is neither a TimeSeries nor a table, such as ndx-events Events, or None."""
     if isinstance(neurodata_object, (TimeSeries, DynamicTable)):
         return None  # TimeSeries have their own checks; tables keep times in columns
