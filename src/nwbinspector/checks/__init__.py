@@ -102,6 +102,7 @@ from ._tables import (
     check_time_intervals_stop_after_start,
 )
 from ._time_series import (
+    check_conversion_and_offset_finite,
     check_data_orientation,
     check_missing_unit,
     check_rate_is_not_zero,
@@ -187,6 +188,7 @@ __all__ = [
     "check_missing_unit",
     "check_regular_timestamps",
     "check_timestamps_ascending",
+    "check_conversion_and_offset_finite",
     "check_data_orientation",
     "check_timestamps_without_nans",
     "check_timestamps_match_first_dimension",
