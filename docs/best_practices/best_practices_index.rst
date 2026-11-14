@@ -32,5 +32,6 @@ Authors: Oliver Ruebel, Andrew Tritt, Ryan Ly, Cody Baker and Ben Dichter
    ogen
    image_series
    images
+   misc
    simulated_data
    extensions
