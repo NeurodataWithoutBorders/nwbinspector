@@ -42,6 +42,10 @@ class OrderScanResult:
 
 def is_remote_dataset(data) -> bool:
     """Best guess at whether reads from this dataset go over the network."""
+    # LINDI datasets subclass h5py.Dataset but have no HDF5 driver. LINDI is used to stream DANDI
+    # assets through a precomputed JSON index, so treat it as remote.
+    if type(data).__module__.split(".")[0] == "lindi":
+        return True
     if isinstance(data, h5py.Dataset):
         try:
             return data.file.driver in ("fileobj", "ros3")

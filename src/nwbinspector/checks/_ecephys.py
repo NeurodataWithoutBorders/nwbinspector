@@ -11,7 +11,7 @@ from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
-from ..utils._ordering import scan_ascending
+from ..utils._ordering import default_max_bytes, scan_ascending
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
@@ -318,12 +318,22 @@ def check_ascending_spike_times(
     descending_units = np.unique(np.searchsorted(index, descending_positions, side="right"))
 
     if scan.sampled:
-        # Also compare the first and last spike of every unit, which costs two reads per unit.
+        # Also compare the first and last spike of every unit. In a chunked or LINDI-backed array each of these
+        # reads pulls in a whole chunk, so only do this when the chunks it touches fit in what is left of the budget.
         first = np.clip(unit_starts, 0, n_spikes - 1)
         last = np.clip(index - 1, 0, n_spikes - 1)
         has_two_spikes = (index - unit_starts) >= 2
         boundary_positions = np.unique(np.concatenate([first[has_two_spikes], last[has_two_spikes]]))
-        boundary_values = dict(zip(boundary_positions.tolist(), np.asarray(spike_times_data[boundary_positions])))
+        if not _boundary_reads_fit_budget(
+            data=spike_times_data, positions=boundary_positions, n_checked=scan.n_checked, max_bytes=max_bytes
+        ):
+            boundary_positions = boundary_positions[:0]
+            has_two_spikes = np.zeros_like(has_two_spikes)
+        boundary_values = (
+            dict(zip(boundary_positions.tolist(), np.asarray(spike_times_data[boundary_positions])))
+            if len(boundary_positions)
+            else {}
+        )
         reversed_units = [
             unit
             for unit in np.flatnonzero(has_two_spikes)
@@ -363,6 +373,23 @@ def check_ascending_spike_times(
         )
 
     return None
+
+
+
+def _boundary_reads_fit_budget(data, positions: np.ndarray, n_checked: int, max_bytes: Optional[int]) -> bool:
+    """Estimate whether reading single elements at ``positions`` stays within the remaining read budget."""
+    if len(positions) == 0:
+        return True
+    itemsize = np.dtype(getattr(data, "dtype", np.float64)).itemsize
+    budget = max_bytes if max_bytes is not None else default_max_bytes(data)
+    remaining = budget - n_checked * itemsize
+    chunks = getattr(data, "chunks", None)
+    if chunks:
+        chunk_length = int(chunks[0])
+        n_chunks = len(np.unique(positions // chunk_length))
+        return n_chunks * chunk_length * itemsize <= remaining
+    # Contiguous data: each point read costs a small request, so allow up to a few thousand of them.
+    return len(positions) <= 5_000
 
 
 def _spike_times_index_overflow_hint(
