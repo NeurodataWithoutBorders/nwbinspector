@@ -132,6 +132,19 @@ Additional time columns in :ref:`nwb-schema:sec-TimeIntervals` tables, such as t
 
 Check functions: :py:meth:`~nwbinspector.checks._tables.check_time_intervals_duration`, :py:meth:`~nwbinspector.checks._tables.check_time_intervals_start_time_not_constant`, :py:meth:`~nwbinspector.checks._tables.check_time_intervals_stop_after_start`
 
+.. _best_practice_no_duplicate_rows:
+
+Repeated Rows
+~~~~~~~~~~~~~
+
+An event or interval should be stored once. In an event-like table (one with a time column such as ``start_time`` or
+``timestamp``), a row that repeats another row in every column is an event stored more than once. Likewise, an
+array-valued column whose per-row arrays repeat across rows (for example, a tuning curve per ROI that is the same for
+every ROI) usually holds one row's values written into every row. Columns whose rows all hold the same sorted axis,
+such as bin centers, are expected to repeat and are not reported.
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_duplicate_rows`
+
 .. _best_practice_unique_dynamic_table_ids:
 
 Unique ids

@@ -1,0 +1,1 @@
+Added `check_duplicate_rows`, which flags rows of an event-like table that repeat another row in every column, and array-valued columns whose per-row arrays repeat across rows. Columns whose rows all hold the same sorted axis, such as bin centers, are skipped.
