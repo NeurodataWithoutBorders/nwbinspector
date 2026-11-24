@@ -302,3 +302,25 @@ Date of Birth
 The ``date_of_birth`` of a :ref:`nwb-schema:sec-Subject` should use the :wikipedia:`ISO 8601 <ISO_8601>` format. For
 instance, indicating 30 minutes after noon on April 5th, 2007 would be "2007-04-05T12:30". It is not necessary to
 include both ``age`` and ``date_of_birth``, but at least one of them is recommended.
+
+
+
+.. _best_practice_subject_consistency:
+
+Subject Consistency Across Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a dataset contains several files for the same subject, for instance one file per session, the identity fields of
+the :ref:`nwb-schema:sec-Subject` should be the same in every file that uses that ``subject_id``. These fields are
+``species``, ``sex``, ``genotype``, ``strain``, and ``date_of_birth``. A difference between files usually means either
+that the metadata was copied from the wrong row of a lab spreadsheet, or that two different animals were given the
+same ``subject_id``. In the second case, give each animal its own ``subject_id``.
+
+Fields that change over time, such as ``age`` and ``weight``, are not compared. Values are compared exactly as
+stored, so different spellings of the same value, such as "M" and "male" or "Mus musculus" and "mouse", are
+reported; use one spelling throughout a dataset. A field that is set in one file and missing in another is not
+reported.
+
+This check runs when inspecting a folder of files with :py:func:`~nwbinspector.inspect_all`.
+
+Check function: :py:meth:`~nwbinspector.checks._subject_consistency.check_subject_consistency_across_files`
