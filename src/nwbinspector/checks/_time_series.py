@@ -121,13 +121,14 @@ def _read_columns(data: _comparison.DataLike, rows: slice, columns: list) -> np.
     return np.asarray(data[rows, low:high])[:, [column - low for column in columns]]
 
 
-@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_time_series_identical_columns(
     time_series: TimeSeries, max_fetch_bytes: int = MAX_COLUMN_FETCH_BYTES
 ) -> Optional[InspectorMessage]:
     """
-    Two columns (channels or dimensions) of a 2-D TimeSeries should not be identical, for example the z coordinate
-    of a position that copies y.
+    Two columns (channels or dimensions) of a 2-D TimeSeries should usually not be identical. Identical columns most
+    often mean one column was copied into another, such as a channel written twice, but they can also be legitimate,
+    for example a position whose z equals y because the animal moves along a diagonal.
 
     Small series are compared whole. Large series are compared in two stages: every column on a first block of
     rows, then only the columns that match there on further blocks. Blocks are aligned to the HDF5 chunk rows, and
@@ -189,7 +190,10 @@ def check_time_series_identical_columns(
         return None
     where = "in every row" if exact else f"on {n_blocks} sampled block(s) of rows"
     examples = _comparison.format_examples(["columns " + " = ".join(map(str, group)) for group in groups])
-    return InspectorMessage(message=f"{len(groups)} group(s) of columns of the data are identical {where}: {examples}.")
+    return InspectorMessage(
+        message=f"{len(groups)} group(s) of columns of the data are identical {where}: {examples}. "
+        "Check that no column was copied into another."
+    )
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)

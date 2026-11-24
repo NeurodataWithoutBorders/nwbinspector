@@ -55,7 +55,7 @@ def test_time_series_identical_columns(roundtrip):
     series = roundtrip(nwbfile).processing["behavior"]["Position"]["position"]
     message = check_time_series_identical_columns(series)
     assert message is not None
-    assert message.importance == Importance.CRITICAL
+    assert message.importance == Importance.BEST_PRACTICE_VIOLATION
     assert "columns 1 = 2" in message.message
 
 
