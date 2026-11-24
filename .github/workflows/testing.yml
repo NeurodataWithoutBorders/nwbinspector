@@ -23,6 +23,11 @@ jobs:
       matrix:
         os: ${{ fromJson(inputs.os-versions) }}
         python-version: ${{ fromJson(inputs.python-versions) }}
+        exclude:
+          # numcodecs (via hdmf-zarr -> zarr) has no macOS cp314 wheel yet, and its
+          # universal2 source build fails to link. Re-enable once wheels are published.
+          - os: macos-latest
+            python-version: "3.14"
     env:
       TESTING_FILES_FOLDER_PATH: ./204919/testing_files/
     steps:
@@ -62,7 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.13"]
+        python-version: ["3.14"]
     steps:
       - uses: actions/checkout@v6
       - run: git fetch --prune --unshallow --tags
@@ -90,7 +95,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
