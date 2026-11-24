@@ -78,8 +78,8 @@ def check_vector_index_data_validity(
     problems = []
 
     scan = scan_ascending(data=index_data, ignore_nan=False, max_bytes=max_bytes)
-    if scan.n_descending:
-        row = scan.first_descending_position
+    row = scan.first_descending_position
+    if scan.n_descending and row is not None:
         values = np.asarray(index_data[row - 1 : row + 1]).astype(np.int64)
         problems.append(
             f"its values decrease {scan.n_descending:,} time{'s' if scan.n_descending > 1 else ''}, "
