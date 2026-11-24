@@ -216,6 +216,8 @@ def check_rate_is_not_sampling_period(
 
     Slow signals such as temperature or trial-level series with a genuine low rate pass both tests, because their
     reciprocal matches nothing and their stated duration agrees with the session.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     rate = getattr(time_series, "rate", None)
     if rate is None or not np.isfinite(rate) or not (0 < rate < 1):
@@ -268,7 +270,10 @@ def check_rate_is_not_sampling_period(
 def check_imaging_rate_is_not_sampling_period(
     imaging_plane: ImagingPlane,
 ) -> Optional[InspectorMessage]:
-    """Check that an imaging_rate below 1 Hz is not the reciprocal of the rate of a series recorded with the plane."""
+    """Check that an imaging_rate below 1 Hz is not the reciprocal of the rate of a series recorded with the plane.
+
+    Best Practice: :ref:`best_practice_imaging_plane_imaging_rate`
+    """
     imaging_rate = imaging_plane.imaging_rate
     if imaging_rate is None or not np.isfinite(imaging_rate) or not (0 < imaging_rate < 1):
         return None
@@ -303,6 +308,8 @@ def check_timestamps_time_scale(time_series: TimeSeries) -> Optional[InspectorMe
     Reported when the last timestamp is more than ten times the end of the other series and dividing by 1e3, 1e6 or
     1e9 brings it inside the session (milliseconds, microseconds or nanoseconds), or when a long regular series ends before 1% of the session and multiplying
     by 1000 brings it inside (thousands of seconds, or a rate written as kHz).
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     if time_series.timestamps is None:
         return None
@@ -363,6 +370,8 @@ def check_rate_in_plausible_range(
     Voltage and current recordings (ElectricalSeries, PatchClampSeries) must be sampled between 10 Hz and 1 MHz.
     Any other series is reported only above 1 MHz. No lower bound is applied to other types, because behavioral,
     environmental and trial-level series can legitimately be sampled very slowly.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     if isinstance(time_series, SpikeEventSeries):
         return None
@@ -441,6 +450,8 @@ def check_imaging_rate_matches_series_rate(
 
     The rate of the series is its stated rate or the rate implied by regular timestamps. A plane with a missing or NaN
     imaging_rate is not reported, since the schema prefers the rate on the series.
+
+    Best Practice: :ref:`best_practice_imaging_plane_imaging_rate`
     """
     imaging_plane = getattr(image_series, "imaging_plane", None)
     if imaging_plane is None:
@@ -457,6 +468,8 @@ def check_imaging_rate_matches_roi_response_rate(
 
     This covers processed-only files, which have no imaging series. When an ImageSeries of the file uses the same
     plane, that series is checked instead and the traces are not reported again.
+
+    Best Practice: :ref:`best_practice_imaging_plane_imaging_rate`
     """
     rois = getattr(roi_response_series, "rois", None)
     plane_segmentation = getattr(rois, "table", None)
@@ -488,6 +501,8 @@ def check_equal_length_series_have_equal_duration(
     more than 10% different from the other's, one of the two timings is wrong. Only regularly sampled series without
     long pauses are compared, since a stimulus whose frames are shown in several blocks has a span that depends on
     the schedule.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     by_length: dict[int, list] = {}
     for row in _file_summary(nwbfile).values():
@@ -540,6 +555,8 @@ def check_starting_time_is_not_absolute(
     Reported when the first sample time is more than about three years and lies within a day of the Unix time of
     timestamps_reference_time (which defaults to session_start_time). A file whose timestamps_reference_time is the
     Unix epoch may legitimately store Unix times, and is not reported.
+
+    Best Practice: :ref:`best_practice_time_series_global_time_reference`
     """
     span = _span(time_series)
     if span is not None:
@@ -570,7 +587,10 @@ def check_starting_time_is_not_absolute(
 def check_starting_time_is_finite(
     time_series: TimeSeries,
 ) -> Optional[InspectorMessage]:
-    """Check that a series timed by starting_time and rate has a finite starting_time."""
+    """Check that a series timed by starting_time and rate has a finite starting_time.
+
+    Best Practice: :ref:`best_practice_time_series_global_time_reference`
+    """
     if time_series.timestamps is not None or time_series.starting_time is None:
         return None
     if math.isfinite(time_series.starting_time):
@@ -600,6 +620,8 @@ def check_series_ends_within_session(
     50 Hz). Series that the more specific checks above already explain are not reported again. This is a suggestion
     rather than a violation, since a long continuous recording beside short imaging runs can be legitimate, and the
     check cannot tell which side is wrong.
+
+    Best Practice: :ref:`best_practice_unit_of_measurement`
     """
     span = _span(time_series)
     n = _n_samples(time_series)
