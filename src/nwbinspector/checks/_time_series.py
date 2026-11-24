@@ -8,7 +8,7 @@ from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
-from ..utils import get_data_shape, is_ascending_series, is_regular_series
+from ..utils import _comparison, get_data_shape, is_ascending_series, is_regular_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -120,6 +120,48 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems: Optional[int] = 
         return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
 
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
+def check_timestamps_repeated(time_series: TimeSeries) -> Optional[InspectorMessage]:
+    """
+    Timestamps of a TimeSeries should usually not repeat; a repeat is most often a sample or event stored twice,
+    though some data can legitimately share a time, such as two events logged in the same sample.
+
+    Repeats are reported when they are at least 1% of the timestamps. Timestamps that are all multiples of 1 ms or
+    coarser are skipped, since events at that resolution can share a time. Large timestamp arrays are checked on
+    sampled blocks.
+
+    Best Practice: :ref:`best_practice_no_repeated_timestamps`
+    """
+    timestamps = time_series.timestamps
+    if timestamps is None or isinstance(timestamps, TimeSeries):
+        return None
+    try:
+        shape = _comparison.data_shape(timestamps)
+    except Exception:
+        return None
+    if len(shape) != 1 or shape[0] < 2:
+        return None
+    exact = shape[0] * _comparison.data_dtype(timestamps).itemsize <= _comparison.FULL_READ_BYTES // 4
+    blocks = (
+        [np.asarray(timestamps[:])]
+        if exact
+        else [np.asarray(timestamps[s]) for s in _comparison.sample_blocks(timestamps)]
+    )
+    if _comparison.is_coarse_resolution(np.concatenate(blocks)):
+        return None
+    repeats = sum(_comparison.count_repeats(block) for block in blocks)
+    n_values = sum(len(block) for block in blocks)
+    if not repeats or repeats / n_values < _comparison.MIN_REPEAT_FRACTION:
+        return None
+    where = "" if exact else f" in {_comparison.N_BLOCKS} sampled blocks"
+    return InspectorMessage(
+        message=(
+            f"{repeats} of {n_values} timestamps{where} repeat another timestamp ({100 * repeats / n_values:.1f}%). "
+            "Check that no samples or events were stored twice."
+        )
+    )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
