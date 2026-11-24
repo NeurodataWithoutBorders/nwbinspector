@@ -498,12 +498,13 @@ def check_electrodes_placeholder_coordinates(nwbfile: NWBFile, min_rows: int = 2
     Best Practice: :ref:`best_practice_ecephys_anatomical_coordinates`
     """
     columns = [_get_electrodes_float_column(nwbfile, name) for name in ("x", "y", "z")]
-    if any(values is None for values in columns) or len(columns[0]) < min_rows:
+    present = [values for values in columns if values is not None]
+    if len(present) < 3 or len(present[0]) < min_rows:
         return None
-    if all(np.all(values == 0) for values in columns):
+    if all(np.all(values == 0) for values in present):
         return InspectorMessage(
             message=(
-                f"The electrodes table's x, y and z are 0 on all {len(columns[0])} rows. If the positions are unknown, "
+                f"The electrodes table's x, y and z are 0 on all {len(present[0])} rows. If the positions are unknown, "
                 "use NaN (or omit the columns) so that 0 is not read as a real coordinate."
             )
         )
