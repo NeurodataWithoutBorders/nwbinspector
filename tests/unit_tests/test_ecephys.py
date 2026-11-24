@@ -17,6 +17,7 @@ from nwbinspector.checks import (
     check_electrical_series_reference_electrodes_table,
     check_electrical_series_unscaled_data,
     check_electrodes_location_allen_ccf,
+    check_electrodes_placeholder_coordinates,
     check_negative_spike_times,
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
@@ -897,3 +898,44 @@ def test_skip_check_electrodes_location_allen_ccf_no_subject():
         species=None,
     )
     assert check_electrodes_location_allen_ccf(nwbfile) is None
+
+
+def _make_nwbfile_with_electrode_groups(n_groups=4, rows_per_group=4, group_names=None, coordinates=None) -> tuple:
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    device = nwbfile.create_device(name="probe")
+    group_names = group_names or [f"Tetrode{index + 1}" for index in range(n_groups)]
+    groups = [
+        nwbfile.create_electrode_group(name=name, description="", location="CA1", device=device) for name in group_names
+    ]
+    for group_index, group in enumerate(groups):
+        for offset in range(rows_per_group):
+            row = group_index * rows_per_group + offset
+            x, y, z = coordinates(row) if coordinates else (float(row), float(2 * row), float(3 * row))
+            nwbfile.add_electrode(group=group, location="CA1", x=x, y=y, z=z)
+    return nwbfile, groups
+
+
+def test_check_electrodes_placeholder_coordinates_fail():
+    nwbfile, _ = _make_nwbfile_with_electrode_groups(coordinates=lambda row: (0.0, 0.0, 0.0))
+    assert check_electrodes_placeholder_coordinates(nwbfile=nwbfile) == InspectorMessage(
+        message=(
+            "The electrodes table's x, y and z are 0 on all 16 rows. If the positions are unknown, use NaN (or omit "
+            "the columns) so that 0 is not read as a real coordinate."
+        ),
+        importance=Importance.BEST_PRACTICE_VIOLATION,
+        check_function_name="check_electrodes_placeholder_coordinates",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_electrodes_placeholder_coordinates_pass():
+    nwbfile, _ = _make_nwbfile_with_electrode_groups()
+    assert check_electrodes_placeholder_coordinates(nwbfile=nwbfile) is None
+    nwbfile, _ = _make_nwbfile_with_electrode_groups(coordinates=lambda row: (np.nan, np.nan, np.nan))
+    assert check_electrodes_placeholder_coordinates(nwbfile=nwbfile) is None
