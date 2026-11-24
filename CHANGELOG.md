@@ -1,3 +1,8 @@
+# Upcoming
+
+### New Checks
+* Added `check_duplicate_data_across_files`, which runs when `inspect_all` is given a folder. It fingerprints the primary data arrays of each file from a strided sample and groups files by fingerprint, reporting files whose primary data all match as CRITICAL and files that share only some arrays as a BEST_PRACTICE_SUGGESTION.
+
 # v0.7.2 (May 19, 2026)
 
 ### New Checks
