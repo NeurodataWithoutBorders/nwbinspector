@@ -84,6 +84,19 @@ without the underlying spike data that gives them meaning. Always include ``spik
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_has_spikes`
 
 
+.. _best_practice_units_electrodes_consistency:
+
+Electrodes of Each Unit
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``electrodes`` column of the Units table holds, for each unit, the row indices of the electrodes table on which
+the unit was recorded. When the Units table also has an ``electrode_group`` column, the group of each unit
+should be the group of at least one of the electrodes it references. A disagreement between the two columns usually
+means that one of them was built in a different order from the electrodes table.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_electrode_group_matches_electrodes`
+
+
 .. _best_practice_units_table_duration:
 
 Duration

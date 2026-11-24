@@ -1,8 +1,10 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 
+from collections import Counter
 from typing import Iterable, Optional
 
 import numpy as np
+from hdmf.common import DynamicTableRegion, VectorIndex
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
@@ -478,3 +480,90 @@ def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[I
             )
 
     return None
+
+
+def _get_units_electrodes(units_table: Units) -> Optional[tuple]:
+    """Return (flat row indices, end offsets, DynamicTableRegion) for the units' electrodes column, or None."""
+    if "electrodes" not in units_table.colnames:
+        return None
+    column = units_table["electrodes"]
+    if isinstance(column, VectorIndex):
+        ends = np.asarray(column.data[:], dtype=np.int64)
+        region = column.target
+    else:
+        region = column
+        ends = None
+    if not isinstance(region, DynamicTableRegion) or region.table is None:
+        return None
+    flat = np.asarray(region.data[:], dtype=np.int64)
+    if ends is None:
+        ends = np.arange(1, len(flat) + 1)
+    return flat, ends, region
+
+
+def _get_group_names(groups: Iterable) -> np.ndarray:
+    return np.array([getattr(group, "name", str(group)) for group in groups], dtype=object)
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_units_electrode_group_matches_electrodes(units_table: Units) -> Optional[InspectorMessage]:
+    """
+    Check that each unit's electrode_group is the group of at least one electrode row that its electrodes reference.
+
+    Best Practice: :ref:`best_practice_units_electrodes_consistency`
+    """
+    if "electrode_group" not in units_table.colnames:
+        return None
+    parsed = _get_units_electrodes(units_table)
+    if parsed is None:
+        return None
+    flat, ends, region = parsed
+    electrodes_table = region.table
+    if "group" not in electrodes_table.colnames or len(ends) == 0:
+        return None
+
+    row_groups = _get_group_names(electrodes_table["group"].data[:])
+    unit_groups = _get_group_names(units_table["electrode_group"].data[:])
+    n_rows = len(row_groups)
+    unit_ids = units_table.id.data[:]
+
+    mismatches = []  # (unit position, unit group, referenced groups, referenced rows)
+    n_checked = 0
+    start = 0
+    for unit_index, end in enumerate(ends):
+        rows = flat[start:end]
+        start = end
+        # Out-of-range indices are reported by check_dynamic_table_region_data_validity
+        rows = rows[(rows >= 0) & (rows < n_rows)]
+        if rows.size == 0:
+            continue
+        n_checked += 1
+        referenced_groups = set(row_groups[rows])
+        if unit_groups[unit_index] not in referenced_groups:
+            mismatches.append((unit_index, unit_groups[unit_index], sorted(referenced_groups), rows))
+
+    if not mismatches:
+        return None
+
+    pairs = Counter((unit_group, ", ".join(referenced)) for _, unit_group, referenced, _ in mismatches)
+    pair_text = "; ".join(
+        f"{count} unit(s) with electrode_group '{unit_group}' reference rows of group '{referenced}'"
+        for (unit_group, referenced), count in pairs.most_common(4)
+    )
+    examples = "; ".join(
+        f"unit id {unit_ids[unit_index]}: electrode_group '{unit_group}', electrodes rows "
+        f"{[int(row) for row in rows[:4]]}{'...' if rows.size > 4 else ''}"
+        for unit_index, unit_group, _, rows in mismatches[:3]
+    )
+    permuted = ""
+    labels = {unit_group for unit_group, _ in pairs}
+    targets = {referenced for _, referenced in pairs}
+    if len(labels) > 1 and labels == targets:
+        permuted = " The group labels look permuted, as if the two columns were built in different orders."
+    return InspectorMessage(
+        message=(
+            f"{len(mismatches)} of {n_checked} units have an electrode_group that is not the group of any "
+            f"electrode row referenced by their electrodes column, so the two columns disagree about where these "
+            f"units were recorded. {pair_text}.{permuted} Examples: {examples}."
+        )
+    )

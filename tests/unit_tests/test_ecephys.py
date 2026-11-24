@@ -21,6 +21,7 @@ from nwbinspector.checks import (
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_spike_times_without_nans,
+    check_units_electrode_group_matches_electrodes,
     check_units_resolution_is_set,
     check_units_resolution_is_valid,
     check_units_table_duration,
@@ -897,3 +898,64 @@ def test_skip_check_electrodes_location_allen_ccf_no_subject():
         species=None,
     )
     assert check_electrodes_location_allen_ccf(nwbfile) is None
+
+
+def _make_nwbfile_with_electrode_groups(n_groups=4, rows_per_group=4, group_names=None, coordinates=None) -> tuple:
+    nwbfile = NWBFile(
+        session_description="test",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now().astimezone(),
+    )
+    device = nwbfile.create_device(name="probe")
+    group_names = group_names or [f"Tetrode{index + 1}" for index in range(n_groups)]
+    groups = [
+        nwbfile.create_electrode_group(name=name, description="", location="CA1", device=device) for name in group_names
+    ]
+    for group_index, group in enumerate(groups):
+        for offset in range(rows_per_group):
+            row = group_index * rows_per_group + offset
+            x, y, z = coordinates(row) if coordinates else (float(row), float(2 * row), float(3 * row))
+            nwbfile.add_electrode(group=group, location="CA1", x=x, y=y, z=z)
+    return nwbfile, groups
+
+
+def test_check_units_electrode_group_matches_electrodes_pass():
+    nwbfile, groups = _make_nwbfile_with_electrode_groups()
+    for group_index, group in enumerate(groups):
+        nwbfile.add_unit(spike_times=[0.1], electrodes=[4 * group_index, 4 * group_index + 1], electrode_group=group)
+    assert check_units_electrode_group_matches_electrodes(units_table=nwbfile.units) is None
+
+
+def test_check_units_electrode_group_matches_electrodes_unit_spanning_two_groups_pass():
+    nwbfile, groups = _make_nwbfile_with_electrode_groups(n_groups=2)
+    nwbfile.add_unit(spike_times=[0.1], electrodes=[3, 4], electrode_group=groups[1])
+    assert check_units_electrode_group_matches_electrodes(units_table=nwbfile.units) is None
+
+
+def test_check_units_electrode_group_matches_electrodes_no_electrode_group_column_pass():
+    nwbfile, _ = _make_nwbfile_with_electrode_groups(n_groups=2)
+    nwbfile.add_unit(spike_times=[0.1], electrodes=[0])
+    assert check_units_electrode_group_matches_electrodes(units_table=nwbfile.units) is None
+
+
+def test_check_units_electrode_group_matches_electrodes_fail():
+    nwbfile, groups = _make_nwbfile_with_electrode_groups(n_groups=2)
+    nwbfile.add_unit(spike_times=[0.1], electrodes=[0], electrode_group=groups[1])
+    nwbfile.add_unit(spike_times=[0.1], electrodes=[5], electrode_group=groups[0])
+    nwbfile.add_unit(spike_times=[0.1], electrodes=[6], electrode_group=groups[1])
+    result = check_units_electrode_group_matches_electrodes(units_table=nwbfile.units)
+    assert result == InspectorMessage(
+        message=(
+            "2 of 3 units have an electrode_group that is not the group of any electrode row referenced by their "
+            "electrodes column, so the two columns disagree about where these units were recorded. "
+            "1 unit(s) with electrode_group 'Tetrode2' reference rows of group 'Tetrode1'; "
+            "1 unit(s) with electrode_group 'Tetrode1' reference rows of group 'Tetrode2'. "
+            "The group labels look permuted, as if the two columns were built in different orders. "
+            "Examples: unit id 0: electrode_group 'Tetrode2', electrodes rows [0]; "
+            "unit id 1: electrode_group 'Tetrode1', electrodes rows [5]."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_units_electrode_group_matches_electrodes",
+        object_type="Units",
+        object_name="units",
+    )
