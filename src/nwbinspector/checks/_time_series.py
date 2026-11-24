@@ -122,10 +122,11 @@ def check_timestamps_ascending(time_series: TimeSeries, nelems: Optional[int] = 
     return None
 
 
-@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
 def check_timestamps_repeated(time_series: TimeSeries) -> Optional[InspectorMessage]:
     """
-    Timestamps of a TimeSeries should not repeat; each repeat is a sample or event stored twice.
+    Timestamps of a TimeSeries should usually not repeat; a repeat is most often a sample or event stored twice,
+    though some data can legitimately share a time, such as two events logged in the same sample.
 
     Repeats are reported when they are at least 1% of the timestamps. Timestamps that are all multiples of 1 ms or
     coarser are skipped, since events at that resolution can share a time. Large timestamp arrays are checked on
@@ -157,7 +158,8 @@ def check_timestamps_repeated(time_series: TimeSeries) -> Optional[InspectorMess
     where = "" if exact else f" in {_comparison.N_BLOCKS} sampled blocks"
     return InspectorMessage(
         message=(
-            f"{repeats} of {n_values} timestamps{where} repeat another timestamp ({100 * repeats / n_values:.1f}%)."
+            f"{repeats} of {n_values} timestamps{where} repeat another timestamp ({100 * repeats / n_values:.1f}%). "
+            "Check that no samples or events were stored twice."
         )
     )
 

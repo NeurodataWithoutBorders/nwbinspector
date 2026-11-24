@@ -52,7 +52,7 @@ def test_timestamps_repeated(roundtrip):
     read_nwbfile = roundtrip(nwbfile)
     message = check_timestamps_repeated(read_nwbfile.acquisition["doubled"])
     assert message is not None
-    assert message.importance == Importance.CRITICAL
+    assert message.importance == Importance.BEST_PRACTICE_VIOLATION
     assert "300 of 600 timestamps" in message.message
     assert check_timestamps_repeated(read_nwbfile.acquisition["clean"]) is None
 

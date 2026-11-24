@@ -97,8 +97,9 @@ Check function: :py:meth:`~nwbinspector.checks._time_series.check_timestamps_asc
 Repeated Timestamps
 ~~~~~~~~~~~~~~~~~~~
 
-The ``timestamps`` of a :ref:`nwb-schema:sec-TimeSeries` should not repeat, since a repeated timestamp is a sample or
-event stored twice. Repeats are reported when they make up at least 1% of the timestamps. Timestamps that are all
+The ``timestamps`` of a :ref:`nwb-schema:sec-TimeSeries` should usually not repeat. A repeated timestamp is most often a
+sample or event stored twice, though some data can legitimately share a time, such as two events logged in the same
+sample, so this is a best practice violation rather than a critical error. Repeats are reported when they make up at least 1% of the timestamps. Timestamps that are all
 multiples of 1 ms or coarser are not checked, since events recorded at that resolution can share a time without being
 stored twice. Timestamps too large to read whole are checked on a few sampled blocks.
 
