@@ -1,0 +1,1 @@
+Added `check_ragged_times_repeated`, which flags repeated times within a row of a ragged time column, such as the `event_times` of an event type that were stored several times. Spike times are left to `check_ascending_spike_times`.

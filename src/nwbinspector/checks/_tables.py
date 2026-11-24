@@ -10,6 +10,7 @@ from pynwb.file import TimeIntervals, Units
 
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import (
+    _comparison,
     cache_data_selection,
     format_byte_size,
     get_data_shape,
@@ -412,6 +413,65 @@ def check_time_intervals_duration(
                 )
             )
     return None
+
+
+# A ragged time column is reported when repeats are at least MIN_REPEAT_FRACTION of all its values, or at least
+# this fraction of one row with 100 values or more.
+MIN_ROW_REPEAT_FRACTION = 0.1
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+def check_ragged_times_repeated(table: DynamicTable) -> Optional[Iterable[InspectorMessage]]:
+    """
+    A ragged time column (such as the event_times of an event type) should not hold the same time more than once
+    in one row; a repeated time is an event stored twice.
+
+    Times that are all multiples of 1 ms or coarser are skipped, since events at that resolution can share a time.
+    Spike times of a Units table are left to check_ascending_spike_times.
+
+    Best Practice: :ref:`best_practice_no_repeated_ragged_times`
+    """
+    messages = []
+    for index_column in table.columns:
+        if not isinstance(index_column, VectorIndex):
+            continue
+        target = index_column.target
+        name = target.name
+        if not (name.endswith("times") or name.endswith("_time") or name == "timestamps"):
+            continue
+        if isinstance(table, Units) and name == "spike_times":
+            continue  # repeated spike times are reported by check_ascending_spike_times
+        dtype = _comparison.data_dtype(target.data)
+        shape = _comparison.data_shape(target.data)
+        if dtype.kind != "f" or len(shape) != 1 or shape[0] * dtype.itemsize > 4 * _comparison.FULL_READ_BYTES:
+            continue
+        values = np.asarray(target.data[:])
+        if _comparison.is_coarse_resolution(values):
+            continue
+        index = np.asarray(index_column.data[:], dtype=np.int64)
+        starts = np.concatenate([[0], index[:-1]])
+        per_row = [_comparison.count_repeats(values[start:stop]) for start, stop in zip(starts, index)]
+        total = sum(per_row)
+        if not total:
+            continue
+        lengths = (index - starts).tolist()
+        row_fraction = max((r / n for r, n in zip(per_row, lengths) if n >= 100), default=0.0)
+        if total / len(values) < _comparison.MIN_REPEAT_FRACTION and row_fraction < MIN_ROW_REPEAT_FRACTION:
+            continue
+        rows = [i for i, repeats in enumerate(per_row) if repeats]
+        ids = np.asarray(table.id.data[:])
+        worst = max(rows, key=lambda i: per_row[i] / max(1, lengths[i]))
+        messages.append(
+            InspectorMessage(
+                message=(
+                    f"Column '{name}' repeats a time within a row: {total} repeated values of {len(values)} in "
+                    f"{len(rows)} of {len(index)} rows (ids {_comparison.format_examples(ids[rows].tolist())}). "
+                    f"In row id {ids[worst]}, {per_row[worst]} of {lengths[worst]} times are repeats "
+                    f"({lengths[worst] - per_row[worst]} distinct)."
+                )
+            )
+        )
+    return messages or None
 
 
 def _normalize_categorical_value(value: object) -> object:
