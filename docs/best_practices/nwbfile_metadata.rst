@@ -316,10 +316,10 @@ the :ref:`nwb-schema:sec-Subject` should be the same in every file that uses tha
 that the metadata was copied from the wrong row of a lab spreadsheet, or that two different animals were given the
 same ``subject_id``. In the second case, give each animal its own ``subject_id``.
 
-Fields that change over time, such as ``age`` and ``weight``, are not compared. A field that is filled in one file and
-missing in another is also not reported, and neither are differences of form only, such as "M" and "male", "Mus
-musculus" and "mouse", "Dat-Cre" and "DAT_cre", or a strain written more specifically in one file ("C57BL/6J") than
-in another ("C57BL/6"). Dates of birth are compared to the day.
+Fields that change over time, such as ``age`` and ``weight``, are not compared. Values are compared exactly as
+stored, so different spellings of the same value, such as "M" and "male" or "Mus musculus" and "mouse", are
+reported; use one spelling throughout a dataset. A field that is set in one file and missing in another is not
+reported.
 
 This check runs when inspecting a folder of files with :py:func:`~nwbinspector.inspect_all`.
 

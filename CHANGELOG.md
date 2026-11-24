@@ -1,7 +1,7 @@
 # Upcoming
 
 ### New Checks
-* Added `check_subject_consistency_across_files`, which runs in `inspect_all` and reports a `subject_id` whose species, sex, genotype, strain, or date of birth differs between files. Differences of form only (such as "M" and "male", or a Latin and a common species name) and missing values are not reported.
+* Added `check_subject_consistency_across_files`, which runs in `inspect_all` and reports a `subject_id` whose species, sex, genotype, strain, or date of birth differs between files. Values are compared as stored, and a value missing from some files is not reported.
 
 # v0.7.2 (May 19, 2026)
 

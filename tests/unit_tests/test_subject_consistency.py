@@ -9,11 +9,6 @@ from nwbinspector import Importance, inspect_all
 from nwbinspector.checks._subject_consistency import (
     SubjectRecord,
     check_subject_consistency_across_files,
-    compare_subjects,
-    normalize_genotype,
-    normalize_sex,
-    normalize_species,
-    normalize_strain,
 )
 
 
@@ -25,42 +20,12 @@ def _messages(records):
     return list(check_subject_consistency_across_files(records))
 
 
-@pytest.mark.parametrize("a,b", [("M", "male"), ("F", "Female"), ("f", "F")])
-def test_sex_spellings_are_equal(a, b):
-    assert normalize_sex(a) == normalize_sex(b)
-
-
-def test_unknown_sex_is_missing():
-    assert normalize_sex("U") is None
-
-
-@pytest.mark.parametrize(
-    "a,b",
-    [
-        ("Mus musculus", "mouse"),
-        ("Mus musculus - House mouse", "Mus musculus"),
-        ("http://purl.obolibrary.org/obo/NCBITaxon_10090", "Mus musculus"),
-        ("Rattus norvegicus", "Rat"),
-        ("Danio rerio", "zebrafish"),
-    ],
-)
-def test_species_spellings_are_equal(a, b):
-    assert normalize_species(a) == normalize_species(b)
-
-
-def test_genotype_and_strain_spellings():
-    assert normalize_genotype("Dat-Cre") == normalize_genotype("DAT_cre") == normalize_genotype("dat cre")
-    assert normalize_genotype("WT") == normalize_genotype("wild-type")
-    assert normalize_genotype("Fmr1 +/-") != normalize_genotype("Fmr1 -/-")
-    assert normalize_strain("C57BL/6J") == normalize_strain("C57Bl6/J")
-    assert normalize_strain("Wild Type") is None
-
-
 def test_genotype_conflict():
     messages = _messages([_record("a.nwb", genotype="WT"), _record("b.nwb", genotype="Anxa1-flp")])
     assert len(messages) == 1
     assert "genotype: 'WT' in 1 file (a.nwb); 'Anxa1-flp' in 1 file (b.nwb)" in messages[0].message
     assert messages[0].importance == Importance.CRITICAL
+    assert messages[0].file_path == "a.nwb"
 
 
 def test_species_conflict_from_reused_subject_id():
@@ -77,39 +42,43 @@ def test_several_fields_give_one_message():
     assert "sex:" in messages[0].message and "genotype:" in messages[0].message
 
 
-def test_missing_value_is_not_a_conflict():
-    assert _messages([_record("a.nwb", genotype=None, sex="U"), _record("b.nwb", genotype="Dat-Cre", sex="M")]) == []
+def test_values_are_compared_as_stored():
+    records = [_record("a.nwb", sex="M", species="Mus musculus"), _record("b.nwb", sex="M", species="mouse")]
+    messages = _messages(records)
+    assert len(messages) == 1
+    assert "species:" in messages[0].message and "sex:" not in messages[0].message
 
 
-def test_spelling_differences_are_not_conflicts():
-    records = [_record("a.nwb", sex="M", species="mouse"), _record("b.nwb", sex="male", species="Mus musculus")]
+def test_same_values_are_not_reported():
+    records = [_record(f"{i}.nwb", sex="M", species="Mus musculus", genotype="WT") for i in range(3)]
     assert _messages(records) == []
-    _, normalizations = compare_subjects(records)
-    assert {n.field for n in normalizations} == {"sex", "species"}
 
 
-def test_more_specific_strain_is_not_a_conflict():
-    assert _messages([_record("a.nwb", strain="C57BL/6"), _record("b.nwb", strain="C57BL/6J")]) == []
+def test_missing_value_is_not_a_conflict():
+    records = [
+        _record("a.nwb", genotype=None, strain=""),
+        _record("b.nwb", genotype="Dat-Cre", strain="C57BL/6J"),
+        _record("c.nwb", genotype="Dat-Cre", strain=None),
+    ]
+    assert _messages(records) == []
 
 
 def test_date_of_birth():
-    same = [
-        _record("a.nwb", date_of_birth="2023-10-24T00:00:00+02:00"),
-        _record("b.nwb", date_of_birth="2023-10-23T22:00:00+00:00"),
-    ]
+    same = [_record("a.nwb", date_of_birth="2023-10-24T00:00:00-07:00") for _ in range(2)]
     assert _messages(same) == []
-    different = [_record("a.nwb", date_of_birth="2023-10-24"), _record("b.nwb", date_of_birth="2023-06-01")]
+    different = [
+        _record("a.nwb", date_of_birth="2023-01-10T00:00:00-07:00"),
+        _record("b.nwb", date_of_birth="2024-01-10T00:00:00-07:00"),
+    ]
     assert len(_messages(different)) == 1
-    placeholder = [_record("a.nwb", date_of_birth="1900-01-01"), _record("b.nwb", date_of_birth="2023-06-01")]
-    assert _messages(placeholder) == []
-
-
-def test_age_is_not_compared():
-    assert _messages([_record("a.nwb", age="P60D"), _record("b.nwb", age="P90D")]) == []
 
 
 def test_different_subject_ids_are_not_compared():
     assert _messages([_record("a.nwb", subject_id="1", sex="M"), _record("b.nwb", subject_id="2", sex="F")]) == []
+
+
+def test_files_without_subject_are_skipped():
+    assert _messages([_record("a.nwb", subject_id=None, sex="M"), _record("b.nwb", subject_id=None, sex="F")]) == []
 
 
 def _write_nwbfile(path: Path, identifier: str, subject: Subject) -> None:
@@ -125,15 +94,30 @@ def _write_nwbfile(path: Path, identifier: str, subject: Subject) -> None:
 
 @pytest.fixture
 def folder_with_conflict(tmp_path):
+    date_of_birth = datetime(2023, 10, 1, tzinfo=timezone.utc)
     _write_nwbfile(
         tmp_path / "ses1.nwb",
         identifier="1",
-        subject=Subject(subject_id="mouse1", species="Mus musculus", sex="M", genotype="WT", age="P60D"),
+        subject=Subject(
+            subject_id="mouse1",
+            species="Mus musculus",
+            sex="M",
+            genotype="WT",
+            age="P60D",
+            date_of_birth=date_of_birth,
+        ),
     )
     _write_nwbfile(
         tmp_path / "ses2.nwb",
         identifier="2",
-        subject=Subject(subject_id="mouse1", species="mouse", sex="male", genotype="Dat-Cre", age="P70D"),
+        subject=Subject(
+            subject_id="mouse1",
+            species="Mus musculus",
+            sex="M",
+            genotype="Dat-Cre",
+            age="P70D",
+            date_of_birth=date_of_birth,
+        ),
     )
     return tmp_path
 
@@ -146,7 +130,7 @@ def test_inspect_all_reports_conflict(folder_with_conflict):
     ]
     assert len(messages) == 1
     assert "genotype:" in messages[0].message
-    assert "sex:" not in messages[0].message and "species:" not in messages[0].message
+    assert "sex:" not in messages[0].message and "date_of_birth:" not in messages[0].message
 
 
 def test_inspect_all_respects_ignore_and_config(folder_with_conflict):
