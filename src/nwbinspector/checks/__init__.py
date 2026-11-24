@@ -103,10 +103,12 @@ from ._tables import (
 )
 from ._time_series import (
     check_data_orientation,
+    check_identical_time_series,
     check_missing_unit,
     check_rate_is_not_zero,
     check_rate_is_positive,
     check_rate_not_below_threshold,
+    check_redundant_time_series_copies,
     check_regular_timestamps,
     check_resolution,
     check_time_series_data_is_not_empty,
@@ -136,6 +138,8 @@ __all__ = [
     "check_order_of_images_len",
     "check_index_series_points_to_image",
     "check_time_series_data_is_not_empty",
+    "check_identical_time_series",
+    "check_redundant_time_series_copies",
     "check_empty_string_for_optional_attribute",
     "check_small_dataset_compression",
     "check_large_dataset_compression",
