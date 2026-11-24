@@ -1,11 +1,3 @@
-# Upcoming
-
-### New Checks
-* Added `check_vector_index_data_validity`, which reports a `VectorIndex` (such as `spike_times_index`) whose values decrease, are negative, or do not end at the length of the data they index. These cases read without error but give rows the elements of other rows, as in DANDI files whose first `spike_times_index` entry wrapped at 65,536 or that store start offsets instead of end offsets.
-
-### Improvements
-* `check_ascending_spike_times`, `check_timestamps_ascending`, `check_time_interval_time_columns` and `check_time_intervals_stop_after_start` now read the whole array in chunks instead of only the first 200 values (`nelems` now defaults to `None`; passing a number restores the old behavior). Arrays larger than a read budget (`max_bytes`, 1 GB for local files and 200 MB for files streamed with remfile, fsspec, ROS3 or LINDI) are checked on a reproducible sample of chunks. `check_ascending_spike_times` reads `spike_times` once for the whole table instead of once per unit, reports how many units are affected, and recognizes the signature of a `spike_times_index` entry that overflowed a 16-bit integer.
-
 # v0.7.2 (May 19, 2026)
 
 ### New Checks
