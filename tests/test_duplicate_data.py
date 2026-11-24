@@ -5,7 +5,6 @@ from pathlib import Path
 from uuid import uuid4
 
 import numpy as np
-import pytest
 from pynwb import NWBHDF5IO, NWBFile, TimeSeries
 from pynwb.file import Subject
 
