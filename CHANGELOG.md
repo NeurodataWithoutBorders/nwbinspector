@@ -1,3 +1,8 @@
+# Upcoming
+
+### New Checks
+* Added a family of checks for implausible sampling rates and time scales in `checks/_sampling_rate.py`. They compare each series with the rest of the file rather than with fixed thresholds alone: `check_rate_is_not_sampling_period` and `check_imaging_rate_is_not_sampling_period` (a sampling period stored as a rate), `check_timestamps_time_scale` (timestamps in milliseconds, microseconds, nanoseconds or thousands of seconds), `check_rate_in_plausible_range` (ephys rates outside 10 Hz to 1 MHz), `check_imaging_rate_matches_series_rate` and `check_imaging_rate_matches_roi_response_rate` (ImagingPlane.imaging_rate against the series that use the plane), `check_equal_length_series_have_equal_duration`, `check_series_ends_within_session`, `check_starting_time_is_not_absolute` (a Unix time in starting_time) and `check_starting_time_is_finite`.
+
 # v0.7.2 (May 19, 2026)
 
 ### New Checks

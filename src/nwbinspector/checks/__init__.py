@@ -85,6 +85,18 @@ from ._ophys import (
     check_roi_response_series_dims,
     check_roi_response_series_link_to_plane_segmentation,
 )
+from ._sampling_rate import (
+    check_equal_length_series_have_equal_duration,
+    check_imaging_rate_is_not_sampling_period,
+    check_imaging_rate_matches_roi_response_rate,
+    check_imaging_rate_matches_series_rate,
+    check_rate_in_plausible_range,
+    check_rate_is_not_sampling_period,
+    check_series_ends_within_session,
+    check_starting_time_is_finite,
+    check_starting_time_is_not_absolute,
+    check_timestamps_time_scale,
+)
 from ._tables import (
     check_col_not_nan,
     check_column_binary_capability,
@@ -212,4 +224,14 @@ __all__ = [
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
+    "check_equal_length_series_have_equal_duration",
+    "check_imaging_rate_is_not_sampling_period",
+    "check_imaging_rate_matches_roi_response_rate",
+    "check_imaging_rate_matches_series_rate",
+    "check_rate_in_plausible_range",
+    "check_rate_is_not_sampling_period",
+    "check_series_ends_within_session",
+    "check_starting_time_is_finite",
+    "check_starting_time_is_not_absolute",
+    "check_timestamps_time_scale",
 ]

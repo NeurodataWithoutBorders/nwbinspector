@@ -53,3 +53,20 @@ If the recording is volumetric, describe the depth geometry so the volume can be
 measured, rendered to scale, or registered to anything.
 
 Check function: :py:meth:`~nwbinspector.checks._ophys.check_photon_series_undeclared_depth`
+
+
+
+.. _best_practice_imaging_plane_imaging_rate:
+
+Imaging Rate
+~~~~~~~~~~~~
+
+The ``imaging_rate`` of an ``ImagingPlane`` should agree with the timing of the series recorded with it, whether that is
+the stated ``rate`` of the ``TwoPhotonSeries`` or ``OnePhotonSeries`` or the rate implied by its timestamps. For a
+processed file with no imaging series, it should agree with the timing of the ``RoiResponseSeries`` segmented from
+the plane. When one plane of a volume is stored, ``imaging_rate`` is the rate at which that plane was sampled, not the
+frame rate of the scanner. An ``imaging_rate`` that is the reciprocal of the series rate holds the sampling period.
+
+Check functions: :py:meth:`~nwbinspector.checks._sampling_rate.check_imaging_rate_matches_series_rate`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_imaging_rate_matches_roi_response_rate`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_imaging_rate_is_not_sampling_period`
