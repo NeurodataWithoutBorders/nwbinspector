@@ -5,11 +5,18 @@ from numbers import Real
 from typing import Iterable, Optional
 
 import numpy as np
-from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorIndex
+from hdmf.common import (
+    DynamicTable,
+    DynamicTableRegion,
+    MeaningsTable,
+    VectorData,
+    VectorIndex,
+)
 from pynwb.file import TimeIntervals, Units
 
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import (
+    _comparison,
     cache_data_selection,
     format_byte_size,
     get_data_shape,
@@ -321,6 +328,92 @@ def check_ids_unique(table: DynamicTable, nelems: Optional[int] = NELEMS) -> Opt
         return InspectorMessage(message="This table has ids that are not unique.")
 
     return None
+
+
+_DUPLICATE_ROWS_TIME_COLUMNS = ("start_time", "timestamp", "timestamps", "time", "event_time", "onset")
+
+
+def _is_axis(row: np.ndarray) -> bool:
+    """A strictly monotonic 1-D row reads as an axis (bin centers or edges), not as data."""
+    steps = np.diff(np.asarray(row, dtype=float))
+    return steps.size > 0 and (bool((steps > 0).all()) or bool((steps < 0).all()))
+
+
+def _row_keys(column: VectorData) -> Optional[list]:
+    """One hashable key per row of a column, so that rows can be compared across columns."""
+    data = column.data
+    if _comparison.is_reference_dtype(_comparison.data_dtype(data)):
+        return [data.file[reference].name if reference else None for reference in data[:]]
+    values = np.asarray(data[:])
+    if values.ndim == 1:
+        if values.dtype.kind == "f":
+            return [b"nan" if value != value else value for value in values.tolist()]  # NaN equals NaN here
+        if values.dtype.kind == "O":
+            return [repr(value) for value in values.tolist()]
+        return values.tolist()
+    return [_comparison.as_bytes(row) for row in values]
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+def check_duplicate_rows(table: DynamicTable) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Rows of an event-like table should not repeat each other in every column, and the per-row arrays of an
+    array-valued column should not repeat across rows.
+
+    Best Practice: :ref:`best_practice_no_duplicate_rows`
+    """
+    n_rows = len(table.id)
+    if n_rows < 2 or n_rows > _comparison.MAX_TABLE_ROWS:
+        return None
+    columns = _comparison.plain_columns(table)
+    if not columns:
+        return None
+    messages = []
+
+    # Array-valued columns, where each row holds a vector. Units tables are left out, since their array columns
+    # (mean waveforms, for example) are a different question from repeated events.
+    for column in [] if isinstance(table, Units) else columns:
+        shape = _comparison.data_shape(column.data)
+        if len(shape) < 2 or isinstance(column, DynamicTableRegion) or shape[0] != n_rows:
+            continue
+        values = np.asarray(column.data[:])
+        if values.ndim == 2 and values.dtype.kind in "fiu" and _is_axis(values[0]):
+            continue  # every row holds the same sorted axis (bin centers, frequencies, lags), which is expected
+        keys = Counter(_comparison.as_bytes(row) for row in values if not _comparison.is_constant(row))
+        repeated_rows = sum(count for count in keys.values() if count > 1)
+        if repeated_rows:
+            messages.append(
+                InspectorMessage(
+                    message=(
+                        f"Column '{column.name}' holds the same array in more than one row: {repeated_rows} of "
+                        f"{n_rows} rows repeat another row's values (largest group {max(keys.values())} rows)."
+                    )
+                )
+            )
+
+    # Event-like tables, where rows that are identical in every column are events stored more than once.
+    if any(column.name in _DUPLICATE_ROWS_TIME_COLUMNS or column.name.endswith("_time") for column in columns):
+        keyed = []
+        for column in columns:
+            try:
+                column_keys = _row_keys(column)
+            except Exception:
+                column_keys = None
+            if column_keys is not None and len(column_keys) == n_rows:
+                keyed.append(column_keys)
+        rows = Counter(zip(*keyed)) if keyed else Counter()
+        extra = sum(count - 1 for count in rows.values() if count > 1)
+        if extra:
+            messages.append(
+                InspectorMessage(
+                    message=(
+                        f"{extra} of {n_rows} rows repeat another row in every column "
+                        f"({', '.join(column.name for column in columns)}); the most repeated row appears "
+                        f"{max(rows.values())} times. Each repeated row is an event or interval stored more than once."
+                    )
+                )
+            )
+    return messages or None
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)

@@ -88,6 +88,7 @@ from ._ophys import (
 from ._tables import (
     check_col_not_nan,
     check_column_binary_capability,
+    check_duplicate_rows,
     check_dynamic_table_region_data_validity,
     check_empty_table,
     check_ids_unique,
@@ -170,6 +171,7 @@ __all__ = [
     "check_roi_response_series_link_to_plane_segmentation",
     "check_single_row",
     "check_ids_unique",
+    "check_duplicate_rows",
     "check_meanings_table_includes_all_values",
     "check_meanings_table_values_unique",
     "check_empty_table",
