@@ -157,51 +157,72 @@ def scan_ascending(
             values = values.reshape(len(values), -1)[:, 0]
         if values.dtype.kind == "u":  # differences of unsigned integers would wrap around instead of going negative
             values = values.astype(np.int64)
-        positions = np.arange(start, stop, dtype=np.int64)
+        # Positions are implicit (base, base + 1, ...) unless NaNs are dropped, which is the rare case.
+        base = start
+        positions = None
 
         if contiguous and carried_value is not None:
             values = np.concatenate([np.asarray([carried_value], dtype=values.dtype), values])
-            positions = np.concatenate([[carried_position], positions])
+            if carried_position == start - 1:
+                base = start - 1
+            else:
+                positions = np.concatenate([[carried_position], np.arange(start, stop, dtype=np.int64)])
         elif not contiguous and start > 0:
             # A sampled window: also read the element just before it so the first step is checked.
             previous = np.asarray(data[start - 1 : start]).ravel()[:1]
             values = np.concatenate([previous.astype(values.dtype), values])
-            positions = np.concatenate([[start - 1], positions])
+            base = start - 1
 
         if ignore_nan and np.issubdtype(values.dtype, np.floating):
             is_valid = ~np.isnan(values)
             if not is_valid.all():
+                if positions is None:
+                    positions = np.arange(base, base + len(values), dtype=np.int64)
                 values = values[is_valid]
                 positions = positions[is_valid]
 
         result.n_checked += stop - start
-        if len(values) >= 1:
-            carried_value, carried_position = values[-1], positions[-1]
         previous_window_stop = stop
+        if len(values) >= 1:
+            carried_value = values[-1]
+            carried_position = int(positions[-1]) if positions is not None else base + len(values) - 1
         if len(values) < 2:
             continue
 
         with np.errstate(invalid="ignore"):
             steps = np.diff(values)
-        step_positions = positions[1:]  # the element each step arrives at
-
         descending = steps < 0
         equal = steps == 0
-        if segment_starts is not None and len(segment_starts):
-            at_start = np.isin(step_positions, segment_starts, assume_unique=False)
-            descending &= ~at_start
-            equal &= ~at_start
 
-        n_descending = int(descending.sum())
+        # Step k arrives at position base + k + 1 (or positions[k + 1] when NaNs were dropped).
+        if positions is None:
+            first_position, last_position = base, base + len(values) - 1
+        else:
+            first_position, last_position = int(positions[0]), int(positions[-1])
+        if segment_starts is not None and len(segment_starts):
+            lo, hi = np.searchsorted(segment_starts, [first_position + 1, last_position + 1])
+            starts_here = segment_starts[lo:hi]
+            if len(starts_here):
+                if positions is None:
+                    step_indices = starts_here - base - 1
+                else:
+                    step_indices = np.flatnonzero(np.isin(positions[1:], starts_here))
+                descending[step_indices] = False
+                equal[step_indices] = False
+
+        n_descending = int(np.count_nonzero(descending))
         if n_descending:
             result.n_descending += n_descending
             room = max_positions - len(result.descending_positions)
             if room > 0:
-                result.descending_positions.extend(step_positions[descending][:room].tolist())
-        n_equal = int(equal.sum())
+                step_indices = np.flatnonzero(descending)[:room]
+                found = step_indices + base + 1 if positions is None else positions[1:][step_indices]
+                result.descending_positions.extend(found.tolist())
+        n_equal = int(np.count_nonzero(equal))
         if n_equal:
             result.n_equal += n_equal
             if result.first_equal_position is None:
-                result.first_equal_position = int(step_positions[equal][0])
+                first = int(np.flatnonzero(equal)[0])
+                result.first_equal_position = first + base + 1 if positions is None else int(positions[first + 1])
 
     return result
