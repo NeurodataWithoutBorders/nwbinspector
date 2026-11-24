@@ -155,9 +155,9 @@ def inspect_all(
         )
         if importance is None:
             continue
-        for message in cross_file_check(subject_records):
-            message.importance = importance
-            yield message
+        for cross_file_message in cross_file_check(subject_records):
+            cross_file_message.importance = importance
+            yield cross_file_message
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:
