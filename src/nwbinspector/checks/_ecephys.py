@@ -11,7 +11,7 @@ from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
-from ..utils._ordering import default_max_bytes, scan_ascending
+from ..utils._ordering import default_max_bytes, is_remote_dataset, scan_ascending
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
@@ -388,8 +388,9 @@ def _boundary_reads_fit_budget(data, positions: np.ndarray, n_checked: int, max_
         chunk_length = int(chunks[0])
         n_chunks = len(np.unique(positions // chunk_length))
         return n_chunks * chunk_length * itemsize <= remaining
-    # Contiguous data: each point read costs a small request, so allow up to a few thousand of them.
-    return len(positions) <= 5_000
+    # Contiguous data: each point read is its own small request. Locally that is cheap, but when streaming each
+    # request costs a round trip (about 0.2 s from DANDI with remfile), so allow only a handful.
+    return len(positions) <= (100 if is_remote_dataset(data) else 5_000)
 
 
 def _spike_times_index_overflow_hint(
