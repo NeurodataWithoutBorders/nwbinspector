@@ -15,6 +15,7 @@ from ._ecephys import (
     check_spike_times_not_in_samples,
     check_spike_times_not_in_unobserved_interval,
     check_spike_times_without_nans,
+    check_units_electrodes_look_like_group_numbers,
     check_units_resolution_is_set,
     check_units_resolution_is_valid,
     check_units_table_duration,
@@ -212,4 +213,5 @@ __all__ = [
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
+    "check_units_electrodes_look_like_group_numbers",
 ]

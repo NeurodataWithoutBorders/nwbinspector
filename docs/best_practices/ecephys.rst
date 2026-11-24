@@ -84,6 +84,18 @@ without the underlying spike data that gives them meaning. Always include ``spik
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_has_spikes`
 
 
+.. _best_practice_units_electrodes_consistency:
+
+Electrodes of Each Unit
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``electrodes`` column of the Units table holds, for each unit, the row indices of the electrodes table on which
+the unit was recorded. These are row indices, not channel numbers or electrode group (for example, tetrode or
+shank) numbers.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_electrodes_look_like_group_numbers`
+
+
 .. _best_practice_units_table_duration:
 
 Duration
