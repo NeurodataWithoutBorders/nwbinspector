@@ -13,8 +13,12 @@ from natsort import natsorted
 from packaging import version
 from tqdm import tqdm
 
-from ._configuration import configure_checks
+from ._configuration import configure_checks, configure_cross_file_check
 from ._registration import Importance, InspectorMessage, available_checks
+from .checks._subject_consistency import (
+    SubjectRecord,
+    check_subject_consistency_across_files,
+)
 from .tools._read_nwbfile import (
     _MissingHdmfZarrError,
     _read_nwbfile_and_io,
@@ -110,10 +114,12 @@ def inspect_all(
 
     # Manual identifier check over all files in the folder path
     identifiers = defaultdict(list)
+    subject_records = []
     for nwbfile_path in nwbfiles:
         try:
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
+            subject_records.append(SubjectRecord.from_nwbfile(nwbfile=nwbfile, file_path=str(nwbfile_path)))
         except _MissingHdmfZarrError:
             raise  # missing-hdmf-zarr propagates directly to the caller
         except Exception as exception:
@@ -137,6 +143,21 @@ def inspect_all(
                     location="/",
                     file_path=str(non_unique_files[-1]),  # report an example file_path with non-unique identifier
                 )
+
+    # Checks that compare the Subject metadata of the files in the folder path
+    for cross_file_check in (check_subject_consistency_across_files,):
+        importance = configure_cross_file_check(
+            check=cross_file_check,
+            config=config,
+            ignore=ignore,
+            select=select,
+            importance_threshold=importance_threshold,
+        )
+        if importance is None:
+            continue
+        for message in cross_file_check(subject_records):
+            message.importance = importance
+            yield message
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:

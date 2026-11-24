@@ -140,3 +140,39 @@ def configure_checks(
         checks_out = [x for x in checks_out if x.importance.value >= importance_threshold.value]  # type: ignore
 
     return checks_out
+
+
+def configure_cross_file_check(
+    check: Callable,
+    config: Optional[dict] = None,
+    ignore: Optional[list[str]] = None,
+    select: Optional[list[str]] = None,
+    importance_threshold: Importance = Importance.BEST_PRACTICE_SUGGESTION,
+) -> Optional[Importance]:
+    """
+    Apply the configuration to a check that runs over all files of a folder rather than one object.
+
+    Such checks are not in the registry of per-object checks, so ``configure_checks`` does not see them. The same
+    rules apply: a config may change the importance or SKIP the check, ``select`` and ``ignore`` filter by name, and
+    the threshold drops checks of lower importance.
+
+    Returns
+    -------
+    The importance to report the check's messages at, or None if the check should not run.
+    """
+    name = check.__name__
+    importance = check.importance  # type: ignore[attr-defined]
+    if config is not None:
+        validate_config(config=config)
+        for importance_name, func_names in config.items():
+            if name in func_names:
+                if importance_name == "SKIP":
+                    return None
+                importance = Importance[importance_name]
+    if select and name not in select:
+        return None
+    if ignore and name in ignore:
+        return None
+    if importance_threshold and importance.value < importance_threshold.value:
+        return None
+    return importance
