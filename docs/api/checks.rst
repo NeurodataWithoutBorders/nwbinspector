@@ -20,6 +20,10 @@ Time Series
 -----------
 .. automodule:: nwbinspector.checks._time_series
 
+Sampling Rates and Time Scales
+------------------------------
+.. automodule:: nwbinspector.checks._sampling_rate
+
 Tables
 ------
 .. automodule:: nwbinspector.checks._tables

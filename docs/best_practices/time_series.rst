@@ -39,9 +39,23 @@ A common mistake is to provide timestamps in milliseconds or microseconds instea
 unusually long durations (e.g., appearing to span years instead of hours). Similarly, providing the sampling period
 (time between samples) instead of the rate (frequency in Hz) leads to suspiciously low rate values.
 
+The sampling rate and timestamps of a series can also be compared with the rest of the file. A series whose stated
+rate is the reciprocal of another rate in the file, or whose duration at the stated rate is far longer than the
+session while the reciprocal would fit it, most likely holds a sampling period. Timestamps that end far past the rest
+of the file, but would fit it if divided by 1e3, 1e6 or 1e9, are most likely in milliseconds, microseconds or
+nanoseconds. Voltage and current recordings
+should have a rate between 10 Hz and 1 MHz. Series with the same number of samples usually share a clock and should
+cover the same duration. A series that runs far past every other series of the file is reported as a suggestion,
+since the check cannot tell which side is wrong.
+
 Check functions: :py:meth:`~nwbinspector.checks._time_series.check_missing_unit`,
 :py:meth:`~nwbinspector.checks._time_series.check_time_series_duration`,
-:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`
+:py:meth:`~nwbinspector.checks._time_series.check_rate_not_below_threshold`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_rate_is_not_sampling_period`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_timestamps_time_scale`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_rate_in_plausible_range`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_equal_length_series_have_equal_duration`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_series_ends_within_session`
 
 
 
@@ -52,6 +66,12 @@ Time Series: Time References
 
 The ``timestamps`` or ``rate`` of a :ref:`nwb-schema:sec-TimeSeries` should be in seconds with respect to
 the global ``timestamps_reference_time`` of the :ref:`nwb-schema:NWBFile <sec-NWBFile>`.
+A ``starting_time`` or first timestamp equal to the Unix time of ``timestamps_reference_time`` means that absolute
+times were written where relative times were expected. If absolute Unix times are intended, set
+``timestamps_reference_time`` to the Unix epoch. A ``starting_time`` of NaN leaves the timing of the series unknown.
+
+Check functions: :py:meth:`~nwbinspector.checks._sampling_rate.check_starting_time_is_not_absolute`,
+:py:meth:`~nwbinspector.checks._sampling_rate.check_starting_time_is_finite`
 
 
 
