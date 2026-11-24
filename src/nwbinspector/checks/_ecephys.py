@@ -504,11 +504,11 @@ def check_electrodes_identical_coordinate_columns(
     """
     for triplet in (("x", "y", "z"), ("rel_x", "rel_y", "rel_z")):
         columns = {name: _get_electrodes_float_column(nwbfile, name) for name in triplet}
-        columns = {name: values for name, values in columns.items() if values is not None}
-        names = list(columns)
+        present: dict[str, np.ndarray] = {name: values for name, values in columns.items() if values is not None}
+        names = list(present)
         for index, first in enumerate(names):
             for second in names[index + 1 :]:
-                first_values, second_values = columns[first], columns[second]
+                first_values, second_values = present[first], present[second]
                 finite = np.isfinite(first_values)
                 if finite.sum() < min_rows or np.unique(first_values[finite]).size < 2:
                     continue
