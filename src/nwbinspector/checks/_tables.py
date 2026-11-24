@@ -224,10 +224,12 @@ def check_column_binary_capability(
     return None
 
 
-@register_check(importance=Importance.CRITICAL, neurodata_type=DynamicTable)
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
 def check_identical_columns(table: DynamicTable) -> Optional[Iterable[InspectorMessage]]:
     """
-    Two scalar numeric columns of one table should not hold identical, non-trivial values.
+    Two scalar numeric columns of one table should usually not hold identical, non-trivial values. Most often one
+    column was copied into the other, but two columns can also coincide legitimately, for example the x and y
+    coordinates of electrode sites that lie on a diagonal.
 
     Columns with fewer than three distinct values are not compared, and pairs of time columns are skipped, since
     they often coincide by design.
@@ -267,7 +269,7 @@ def check_identical_columns(table: DynamicTable) -> Optional[Iterable[InspectorM
                 InspectorMessage(
                     message=(
                         f"Columns {', '.join(repr(column.name) for column in same)} hold identical values in all "
-                        f"{n_rows} rows. One of them most likely holds the other's data."
+                        f"{n_rows} rows. Check that one of them does not hold the other's data."
                     )
                 )
             )

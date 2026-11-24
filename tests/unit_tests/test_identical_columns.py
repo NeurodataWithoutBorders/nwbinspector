@@ -62,7 +62,7 @@ def test_identical_columns(roundtrip):
     nwbfile.add_acquisition(table)
     messages = _messages(check_identical_columns(roundtrip(nwbfile).acquisition["coordinates"]))
     assert len(messages) == 1
-    assert messages[0].importance == Importance.CRITICAL
+    assert messages[0].importance == Importance.BEST_PRACTICE_VIOLATION
     assert "'y', 'z'" in messages[0].message
 
 

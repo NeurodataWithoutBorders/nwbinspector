@@ -116,8 +116,10 @@ Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capabil
 Identical Columns
 ~~~~~~~~~~~~~~~~~
 
-Two numeric columns of one table should not hold identical values, for example a ``z`` coordinate that copies ``y``
-in the electrodes table. Columns with fewer than three distinct values are not compared, nor are pairs of time
+Two numeric columns of one table should usually not hold identical values. Most often this means one column was copied
+into the other, for example a ``z`` coordinate that copies ``y`` in the electrodes table. Two columns can also coincide
+legitimately, for example the ``x`` and ``y`` coordinates of electrode sites that lie on a diagonal, so this is a best
+practice violation rather than a critical error. Columns with fewer than three distinct values are not compared, nor are pairs of time
 columns, which often coincide by design (``stop_time`` and a custom ``return_stop_time``, for example).
 
 Check function: :py:meth:`~nwbinspector.checks._tables.check_identical_columns`
