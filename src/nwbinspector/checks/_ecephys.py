@@ -478,3 +478,46 @@ def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[I
             )
 
     return None
+
+
+def _get_electrodes_float_column(nwbfile: NWBFile, column_name: str) -> Optional[np.ndarray]:
+    if nwbfile.electrodes is None or column_name not in nwbfile.electrodes.colnames:
+        return None
+    try:
+        values = np.asarray(nwbfile.electrodes[column_name].data[:], dtype=float)
+    except (TypeError, ValueError):
+        return None
+    return values if values.ndim == 1 else None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=NWBFile)
+def check_electrodes_identical_coordinate_columns(
+    nwbfile: NWBFile, min_rows: int = 4
+) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Check that no two coordinate columns of the electrodes table are identical while varying across rows.
+
+    Compares x, y and z with each other, and rel_x, rel_y and rel_z with each other. Columns that are constant or
+    have fewer than ``min_rows`` finite values are skipped.
+
+    Best Practice: :ref:`best_practice_ecephys_anatomical_coordinates`
+    """
+    for triplet in (("x", "y", "z"), ("rel_x", "rel_y", "rel_z")):
+        columns = {name: _get_electrodes_float_column(nwbfile, name) for name in triplet}
+        columns = {name: values for name, values in columns.items() if values is not None}
+        names = list(columns)
+        for index, first in enumerate(names):
+            for second in names[index + 1 :]:
+                first_values, second_values = columns[first], columns[second]
+                finite = np.isfinite(first_values)
+                if finite.sum() < min_rows or np.unique(first_values[finite]).size < 2:
+                    continue
+                if np.array_equal(first_values, second_values, equal_nan=True):
+                    yield InspectorMessage(
+                        message=(
+                            f"The electrodes table's '{first}' and '{second}' columns are identical on all "
+                            f"{len(first_values)} rows, which suggests that one was written in place of the other "
+                            "and one coordinate is missing."
+                        )
+                    )
+    return None
