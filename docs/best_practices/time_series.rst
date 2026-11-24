@@ -55,6 +55,25 @@ the global ``timestamps_reference_time`` of the :ref:`nwb-schema:NWBFile <sec-NW
 
 
 
+.. _best_practice_no_identical_series:
+
+Identical TimeSeries
+~~~~~~~~~~~~~~~~~~~~
+
+Two :ref:`nwb-schema:sec-TimeSeries` in one file should not hold identical data. When the two are of different kinds,
+one of them most likely holds the wrong data. This includes a processed series that is identical to a series in
+``acquisition`` (an LFP that is the raw signal, for example), two series of different neurodata types or units, and two
+event-like series (constant values at explicit timestamps) that share their timestamps under different names.
+
+When the two series are of the same kind, the second is more likely a redundant copy. If both are meant to hold the
+same data, store the data once and link the second series to it, which keeps the file smaller and makes the
+relationship explicit. Series that are HDF5 links to the same dataset are not reported, nor are constant data on a
+rate-based time base (two empty or all-zero channels, for example). Datasets too large to read whole are compared on
+a few sampled blocks, and the message says so.
+
+Check functions: :py:meth:`~nwbinspector.checks._time_series.check_identical_time_series`,
+:py:meth:`~nwbinspector.checks._time_series.check_redundant_time_series_copies`
+
 .. _best_practice_time_series_subtypes:
 
 Subtypes
