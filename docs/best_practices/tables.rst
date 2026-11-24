@@ -60,6 +60,21 @@ Check function :py:meth:`~nwbinspector.checks._tables.check_dynamic_table_region
 
 
 
+.. _best_practice_vector_index_data_validity:
+
+Ragged Column Indexes
+~~~~~~~~~~~~~~~~~~~~~
+
+The values of a ``VectorIndex`` (for example, ``spike_times_index`` in the :ref:`nwb-schema:sec-units-src` table)
+are the end offset of each row in the ragged column it indexes. They must be non-negative and non-decreasing, and the
+last value must equal the length of the indexed data. An index that holds start offsets instead of end offsets, or
+whose values overflowed a small integer type when the file was written, still reads without error, but every reader
+then gives some rows the elements of another row.
+
+Check function :py:meth:`~nwbinspector.checks._tables.check_vector_index_data_validity`
+
+
+
 .. _best_practice_column_binary_capability:
 
 Boolean Columns

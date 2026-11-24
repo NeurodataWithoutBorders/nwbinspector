@@ -179,6 +179,9 @@ equal consecutive spike times may be expected. In this case, set the ``resolutio
 the smallest resolvable difference between spike times in seconds (e.g., ``Units(resolution=1/30000)`` for a
 30 kHz sampling rate). When ``resolution`` is set, equal consecutive spike times are allowed.
 
+The check reads every spike time, in chunks. Very large spike time arrays (over 1 GB locally, or 200 MB when streaming)
+are checked on a sample of chunks plus the first and last spike of each unit.
+
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times`
 
 

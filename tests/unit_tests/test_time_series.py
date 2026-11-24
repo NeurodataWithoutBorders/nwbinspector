@@ -256,7 +256,7 @@ def test_pass_check_timestamps_ascending_with_nans_pass():
 def test_check_timestamps_ascending_fail():
     time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[1, 3, 2])
     assert check_timestamps_ascending(time_series) == InspectorMessage(
-        message="test_time_series timestamps are not ascending.",
+        message="test_time_series timestamps are not ascending. They go backwards 1 time, first at index 2 of 3.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_timestamps_ascending",
         object_type="TimeSeries",
@@ -270,12 +270,53 @@ def test_check_timestamps_ascending_with_nans_fail():
         name="test_time_series", unit="test_units", data=[1, 2, 3], timestamps=[np.nan, 3, 2]
     )
     assert check_timestamps_ascending(time_series) == InspectorMessage(
-        message="test_time_series timestamps are not ascending.",
+        message="test_time_series timestamps are not ascending. They go backwards 1 time, first at index 2 of 3.",
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_timestamps_ascending",
         object_type="TimeSeries",
         object_name="test_time_series",
         location="/",
+    )
+
+
+def test_check_timestamps_ascending_fail_after_first_200():
+    timestamps = np.arange(1000, dtype=float)
+    timestamps[600:] -= 10.0
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=timestamps, timestamps=timestamps)
+    assert check_timestamps_ascending(time_series, nelems=200) is None
+    result = check_timestamps_ascending(time_series)
+    assert result.message == (
+        "test_time_series timestamps are not ascending. They go backwards 1 time, first at index 600 of 1,000."
+    )
+
+
+def test_check_timestamps_ascending_across_read_windows(tmp_path):
+    """A backward step that falls exactly on the boundary between two reads is still found."""
+    from nwbinspector.utils import _ordering
+
+    timestamps = np.arange(100, dtype=float)
+    timestamps[50] = 10.0
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=timestamps, timestamps=timestamps)
+    original_window_length = _ordering.DEFAULT_WINDOW_LENGTH
+    _ordering.DEFAULT_WINDOW_LENGTH = 50
+    try:
+        result = check_timestamps_ascending(time_series)
+    finally:
+        _ordering.DEFAULT_WINDOW_LENGTH = original_window_length
+    assert result.message == (
+        "test_time_series timestamps are not ascending. They go backwards 1 time, first at index 50 of 100."
+    )
+
+
+def test_check_timestamps_ascending_sampled():
+    """Over the read budget, the first and last chunks are always checked."""
+    timestamps = np.arange(4_000_000, dtype=float)
+    timestamps[-1] = 0.0
+    time_series = pynwb.TimeSeries(name="test_time_series", unit="test_units", data=timestamps, timestamps=timestamps)
+    result = check_timestamps_ascending(time_series, max_bytes=1_000_000)
+    assert result.message == (
+        "test_time_series timestamps are not ascending. "
+        "They go backwards 1 time in the sampled chunks, first at index 3,999,999 of 4,000,000."
     )
 
 
