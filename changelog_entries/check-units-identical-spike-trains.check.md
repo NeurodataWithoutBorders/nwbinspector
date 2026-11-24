@@ -1,0 +1,1 @@
+Added `check_units_identical_spike_trains`, which flags rows of a `Units` table that hold the identical spike train, either under the same id (a unit stored twice) or under different ids. Units are grouped by spike count from the index first, so only spike trains that could match are read.

@@ -84,6 +84,17 @@ without the underlying spike data that gives them meaning. Always include ``spik
 Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_table_has_spikes`
 
 
+.. _best_practice_no_duplicate_units:
+
+Units Stored Twice
+~~~~~~~~~~~~~~~~~~
+
+Each row of the :ref:`nwb-schema:sec-Units` table should hold a distinct unit. Two rows with identical spike trains
+almost always mean that one unit was written twice, either under the same ``id`` or under two different ids, and an
+analysis that treats each row as a unit will count it twice.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_units_identical_spike_trains`
+
 .. _best_practice_units_table_duration:
 
 Duration
