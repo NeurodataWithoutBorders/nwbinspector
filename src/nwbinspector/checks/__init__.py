@@ -89,7 +89,6 @@ from ._tables import (
     check_col_not_nan,
     check_column_binary_capability,
     check_dynamic_table_region_data_validity,
-    check_vector_index_data_validity,
     check_empty_table,
     check_ids_unique,
     check_meanings_table_includes_all_values,
@@ -101,6 +100,7 @@ from ._tables import (
     check_time_intervals_duration,
     check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
+    check_vector_index_data_validity,
 )
 from ._time_series import (
     check_data_orientation,

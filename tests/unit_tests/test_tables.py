@@ -883,10 +883,10 @@ def test_check_meanings_table_values_unique_compares_types():
 
 class TestCheckVectorIndexDataValidity(TestCase):
     def _write_units_and_rewrite_index(self, tmp_path, spike_times_per_unit, new_index):
-        import h5py
         from datetime import datetime
         from uuid import uuid4
 
+        import h5py
         from pynwb import NWBHDF5IO, NWBFile
 
         nwbfile_path = tmp_path / "units.nwb"

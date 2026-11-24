@@ -9,7 +9,6 @@ from hdmf.common import DynamicTable, DynamicTableRegion, MeaningsTable, VectorI
 from pynwb.file import TimeIntervals, Units
 
 from .._registration import Importance, InspectorMessage, register_check
-from ..utils._ordering import plan_windows, scan_ascending
 from ..utils import (
     cache_data_selection,
     format_byte_size,
@@ -18,6 +17,7 @@ from ..utils import (
     is_dict_in_string,
     is_string_json_loadable,
 )
+from ..utils._ordering import plan_windows, scan_ascending
 
 NELEMS = 200
 MAX_DURATION = 3600 * 24 * 365.25  # default: 1 year
@@ -232,9 +232,7 @@ def check_time_intervals_stop_after_start(
         window_stop = min(window_stop, n_rows)
         if window_stop <= window_start:
             continue
-        durations = np.asarray(stop_data[window_start:window_stop]) - np.asarray(
-            start_data[window_start:window_stop]
-        )
+        durations = np.asarray(stop_data[window_start:window_stop]) - np.asarray(start_data[window_start:window_stop])
         bad = np.flatnonzero(durations <= 0)
         n_bad += len(bad)
         if first_bad_row is None and len(bad):

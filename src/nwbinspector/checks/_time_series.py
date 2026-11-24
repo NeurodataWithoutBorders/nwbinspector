@@ -8,8 +8,8 @@ from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
-from ..utils._ordering import scan_ascending
 from ..utils import get_data_shape, is_ascending_series, is_regular_series
+from ..utils._ordering import scan_ascending
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)

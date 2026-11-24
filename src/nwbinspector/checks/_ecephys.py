@@ -3,6 +3,7 @@
 from typing import Iterable, Optional
 
 import numpy as np
+from numpy.typing import ArrayLike
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
@@ -309,9 +310,7 @@ def check_ascending_spike_times(
 
     unit_starts = np.concatenate([[0], index[:-1]])
     segment_starts = unit_starts[(unit_starts > 0) & (unit_starts < n_spikes)]
-    scan = scan_ascending(
-        data=spike_times_data, ignore_nan=False, segment_starts=segment_starts, max_bytes=max_bytes
-    )
+    scan = scan_ascending(data=spike_times_data, ignore_nan=False, segment_starts=segment_starts, max_bytes=max_bytes)
 
     # Positions are converted to unit rows with the stored index, as a reader would.
     descending_positions = np.asarray(scan.descending_positions, dtype=np.int64)
@@ -375,8 +374,9 @@ def check_ascending_spike_times(
     return None
 
 
-
-def _boundary_reads_fit_budget(data, positions: np.ndarray, n_checked: int, max_bytes: Optional[int]) -> bool:
+def _boundary_reads_fit_budget(
+    data: ArrayLike, positions: np.ndarray, n_checked: int, max_bytes: Optional[int]
+) -> bool:
     """Estimate whether reading single elements at ``positions`` stays within the remaining read budget."""
     if len(positions) == 0:
         return True

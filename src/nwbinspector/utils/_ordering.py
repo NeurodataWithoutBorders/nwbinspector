@@ -40,7 +40,7 @@ class OrderScanResult:
         return self.descending_positions[0] if self.descending_positions else None
 
 
-def is_remote_dataset(data) -> bool:
+def is_remote_dataset(data: ArrayLike) -> bool:
     """Best guess at whether reads from this dataset go over the network."""
     # LINDI datasets subclass h5py.Dataset but have no HDF5 driver. LINDI is used to stream DANDI
     # assets through a precomputed JSON index, so treat it as remote.
@@ -57,11 +57,11 @@ def is_remote_dataset(data) -> bool:
     return False
 
 
-def default_max_bytes(data) -> int:
+def default_max_bytes(data: ArrayLike) -> int:
     return DEFAULT_MAX_BYTES_REMOTE if is_remote_dataset(data) else DEFAULT_MAX_BYTES_LOCAL
 
 
-def _length_and_itemsize(data) -> tuple[int, int]:
+def _length_and_itemsize(data: ArrayLike) -> tuple[int, int]:
     if isinstance(data, (list, tuple)):
         data = np.asarray(data)
     length = len(data)
@@ -71,7 +71,7 @@ def _length_and_itemsize(data) -> tuple[int, int]:
 
 
 def plan_windows(
-    data,
+    data: ArrayLike,
     max_bytes: Optional[int] = None,
     window_length: Optional[int] = None,
     seed: int = 0,
