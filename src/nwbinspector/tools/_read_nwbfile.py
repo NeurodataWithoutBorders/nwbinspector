@@ -33,6 +33,37 @@ if is_module_installed("hdmf_zarr"):
     BACKEND_IO_CLASSES["zarr"] = NWBZarrIO
 
 
+def _raise_if_hdmf_zarr_is_missing(nwbfile_path: str) -> None:
+    """Raise the install hint for a Zarr store when ``hdmf-zarr`` is not installed."""
+    if nwbfile_path.endswith(".nwb.zarr") and not is_module_installed("hdmf_zarr"):
+        raise _MissingHdmfZarrError(
+            f"Reading the Zarr-backed NWB file at '{nwbfile_path}' requires the 'hdmf-zarr' package.\n"
+            "Install it with `pip install nwbinspector[zarr]` or `pip install hdmf-zarr`."
+        )
+
+
+def _read_nwbfile_identifier(nwbfile_path: Union[str, Path]) -> str:
+    """
+    Read only the ``/identifier`` dataset of a local NWB file, without building the NWBFile.
+
+    Both backends keep the identifier as a root dataset. An HDF5 file is opened with h5py and a Zarr store with
+    zarr, and neither leaves anything open once the value is read.
+    """
+    nwbfile_path = str(nwbfile_path)
+
+    if h5py.is_hdf5(nwbfile_path):
+        with h5py.File(name=nwbfile_path, mode="r") as file:
+            identifier = file["identifier"][()]
+    else:
+        _raise_if_hdmf_zarr_is_missing(nwbfile_path=nwbfile_path)
+        import zarr
+
+        # hdmf-zarr writes the scalar as a shape (1,) object array, so the value is at index 0
+        identifier = zarr.open(store=nwbfile_path, mode="r")["identifier"][0]
+
+    return identifier.decode() if isinstance(identifier, bytes) else str(identifier)
+
+
 def _get_method(path: str) -> Literal["local", "fsspec"]:
     if path.startswith(("https://", "http://", "s3://")):
         return "fsspec"
@@ -134,11 +165,7 @@ def _read_nwbfile_and_io(
     filterwarnings(action="ignore", message="Ignoring cached namespace .*")
 
     if method == "local":
-        if nwbfile_path.endswith(".nwb.zarr") and not is_module_installed("hdmf_zarr"):
-            raise _MissingHdmfZarrError(
-                f"Reading the Zarr-backed NWB file at '{nwbfile_path}' requires the 'hdmf-zarr' package.\n"
-                "Install it with `pip install nwbinspector[zarr]` or `pip install hdmf-zarr`."
-            )
+        _raise_if_hdmf_zarr_is_missing(nwbfile_path=nwbfile_path)
         nwbfile = read_nwb(path=nwbfile_path)
         return nwbfile, nwbfile.get_read_io()
 
