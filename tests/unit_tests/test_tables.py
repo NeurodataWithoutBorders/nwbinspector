@@ -23,6 +23,7 @@ from nwbinspector.checks import (
     check_time_intervals_duration,
     check_time_intervals_start_time_not_constant,
     check_time_intervals_stop_after_start,
+    check_vector_index_data_validity,
 )
 
 
@@ -208,7 +209,7 @@ def test_check_time_intervals_stop_after_start():
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
         message=(
             "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
-            "session start time."
+            "session start time. 2 rows have a stop_time at or before its start_time, first at row 0."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_intervals_stop_after_start",
@@ -226,7 +227,7 @@ def test_check_time_intervals_stop_equal_start():
     assert check_time_intervals_stop_after_start(time_intervals) == InspectorMessage(
         message=(
             "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
-            "session start time."
+            "session start time. 1 row has a stop_time at or before its start_time, first at row 0."
         ),
         importance=Importance.BEST_PRACTICE_VIOLATION,
         check_function_name="check_time_intervals_stop_after_start",
@@ -234,6 +235,28 @@ def test_check_time_intervals_stop_equal_start():
         object_name="test_table",
         location="/",
     )
+
+
+def test_check_time_intervals_stop_after_start_after_first_200():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    for row in range(300):
+        stop_time = row - 0.5 if row >= 250 else row + 0.5
+        time_intervals.add_row(start_time=float(row), stop_time=stop_time)
+
+    assert check_time_intervals_stop_after_start(time_intervals, nelems=200) is None
+    assert check_time_intervals_stop_after_start(time_intervals).message.endswith(
+        "50 rows have a stop_time at or before its start_time, first at row 250."
+    )
+
+
+def test_check_time_interval_time_columns_after_first_200():
+    time_intervals = TimeIntervals(name="test_table", description="desc")
+    for row in range(300):
+        start_time = float(row) if row != 250 else 0.0
+        time_intervals.add_row(start_time=start_time, stop_time=start_time + 0.5)
+
+    assert check_time_interval_time_columns(time_intervals, nelems=200) is None
+    assert check_time_interval_time_columns(time_intervals) is not None
 
 
 def test_pass_check_time_intervals_stop_after_start():
@@ -856,3 +879,76 @@ def test_check_meanings_table_values_unique_compares_types():
     message = check_meanings_table_values_unique(meanings_table=meanings_table).message
     assert "'go' (2 entries)" in message
     assert "'1'" not in message
+
+
+class TestCheckVectorIndexDataValidity(TestCase):
+    def _write_units_and_rewrite_index(self, tmp_path, spike_times_per_unit, new_index):
+        from datetime import datetime
+        from uuid import uuid4
+
+        import h5py
+        from pynwb import NWBHDF5IO, NWBFile
+
+        nwbfile_path = tmp_path / "units.nwb"
+        nwbfile = NWBFile(
+            session_description="", identifier=str(uuid4()), session_start_time=datetime.now().astimezone()
+        )
+        for spike_times in spike_times_per_unit:
+            nwbfile.add_unit(spike_times=spike_times)
+        with NWBHDF5IO(path=nwbfile_path, mode="w") as io:
+            io.write(nwbfile)
+        with h5py.File(name=nwbfile_path, mode="r+") as file:
+            index_dataset = file["units/spike_times_index"]
+            attributes = dict(index_dataset.attrs)
+            del file["units/spike_times_index"]
+            new_dataset = file.create_dataset(name="units/spike_times_index", data=np.asarray(new_index))
+            for key, value in attributes.items():
+                new_dataset.attrs[key] = value
+        return nwbfile_path
+
+    def test_valid(self):
+        units = Units()
+        units.add_unit(spike_times=[0.1, 0.2])
+        units.add_unit(spike_times=[0.3])
+        assert check_vector_index_data_validity(units["spike_times"]) is None
+
+    def test_start_offsets_instead_of_end_offsets(self):
+        import tempfile
+        from pathlib import Path
+
+        from pynwb import NWBHDF5IO
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            nwbfile_path = self._write_units_and_rewrite_index(
+                tmp_path=Path(tmp_dir),
+                spike_times_per_unit=[[0.1, 0.2], [0.3, 0.4, 0.5], [0.6]],
+                new_index=np.array([0, 2, 5], dtype=np.uint8),
+            )
+            with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+                units = io.read().units
+                result = check_vector_index_data_validity(units["spike_times"])
+                assert result.importance == Importance.CRITICAL
+                assert result.message == (
+                    "The index 'spike_times_index' is not a valid set of end offsets into 'spike_times': its last "
+                    "value is 5 but 'spike_times' has 6 elements, so the last 1 elements belong to no row. The values "
+                    "of an index must be non-decreasing and end at the length of the data it indexes, otherwise rows "
+                    "are given the wrong elements. The first value is 0, so the index may hold the start offset of "
+                    "each row instead of the end offset, which gives every row the elements of the row before it."
+                )
+
+    def test_decreasing(self):
+        import tempfile
+        from pathlib import Path
+
+        from pynwb import NWBHDF5IO
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            nwbfile_path = self._write_units_and_rewrite_index(
+                tmp_path=Path(tmp_dir),
+                spike_times_per_unit=[[0.1, 0.2], [0.3, 0.4, 0.5], [0.6]],
+                new_index=np.array([5, 2, 6], dtype=np.int64),
+            )
+            with NWBHDF5IO(path=nwbfile_path, mode="r") as io:
+                units = io.read().units
+                result = check_vector_index_data_validity(units["spike_times"])
+                assert "its values decrease 1 time, first at row 1 (from 5 to 2)" in result.message

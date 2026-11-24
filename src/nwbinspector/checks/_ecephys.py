@@ -3,6 +3,7 @@
 from typing import Iterable, Optional
 
 import numpy as np
+from numpy.typing import ArrayLike
 from pynwb import NWBFile
 from pynwb.ecephys import ElectricalSeries, SpikeEventSeries
 from pynwb.misc import Units
@@ -11,6 +12,7 @@ from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import get_data_shape
+from ..utils._ordering import default_max_bytes, is_remote_dataset, scan_ascending
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
@@ -262,7 +264,9 @@ def check_spike_times_without_nans(units_table: Units) -> Optional[InspectorMess
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=Units)
-def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELEMS) -> Optional[InspectorMessage]:
+def check_ascending_spike_times(
+    units_table: Units, nelems: Optional[int] = None, max_bytes: Optional[int] = None
+) -> Optional[InspectorMessage]:
     """
     Check that spike times are strictly ascending for each unit.
 
@@ -271,18 +275,156 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
     single-unit data. If the ``resolution`` field on the Units table is set, equal consecutive spike
     times are allowed because they may reflect hardware timing precision limits.
 
+    The whole spike_times array is read in chunks, so a problem anywhere in any unit is found. Arrays
+    larger than ``max_bytes`` are checked on a sample of chunks plus the first and last spike of every unit.
+
     Best Practice :ref:`best_practice_ascending_spike_times`
+
+    Parameters
+    ----------
+    units_table : Units
+    nelems : int, optional
+        Only check the first ``nelems`` spikes of each unit. The default, None, checks every spike.
+    max_bytes : int, optional
+        Read budget for the spike_times array. Defaults to 1 GB for local files and 200 MB for streamed files.
     """
     if "spike_times" not in units_table:
         return None
 
     resolution_is_set = units_table.resolution is not None
 
-    for unit_id in range(len(units_table)):
-        spike_times = units_table["spike_times"][unit_id]
-        if nelems is not None:
-            spike_times = spike_times[:nelems]
+    if nelems is not None:
+        return _check_ascending_spike_times_first_elements(
+            units_table=units_table, nelems=nelems, resolution_is_set=resolution_is_set
+        )
 
+    spike_times_index = units_table["spike_times"]
+    spike_times_data = spike_times_index.target.data
+    if isinstance(spike_times_data, list):
+        spike_times_data = np.asarray(spike_times_data)
+    n_spikes = len(spike_times_data)
+    index = np.asarray(spike_times_index.data[:]).astype(np.int64)
+    n_units = len(index)
+    if n_units == 0 or n_spikes == 0:
+        return None
+
+    unit_starts = np.concatenate([[0], index[:-1]])
+    segment_starts = unit_starts[(unit_starts > 0) & (unit_starts < n_spikes)]
+    scan = scan_ascending(data=spike_times_data, ignore_nan=False, segment_starts=segment_starts, max_bytes=max_bytes)
+
+    # Positions are converted to unit rows with the stored index, as a reader would.
+    descending_positions = np.asarray(scan.descending_positions, dtype=np.int64)
+    descending_units = np.unique(np.searchsorted(index, descending_positions, side="right"))
+
+    if scan.sampled:
+        # Also compare the first and last spike of every unit. In a chunked or LINDI-backed array each of these
+        # reads pulls in a whole chunk, so only do this when the chunks it touches fit in what is left of the budget.
+        first = np.clip(unit_starts, 0, n_spikes - 1)
+        last = np.clip(index - 1, 0, n_spikes - 1)
+        has_two_spikes = (index - unit_starts) >= 2
+        boundary_positions = np.unique(np.concatenate([first[has_two_spikes], last[has_two_spikes]]))
+        if not _boundary_reads_fit_budget(
+            data=spike_times_data, positions=boundary_positions, n_checked=scan.n_checked, max_bytes=max_bytes
+        ):
+            boundary_positions = boundary_positions[:0]
+            has_two_spikes = np.zeros_like(has_two_spikes)
+        boundary_values = (
+            dict(zip(boundary_positions.tolist(), np.asarray(spike_times_data[boundary_positions])))
+            if len(boundary_positions)
+            else {}
+        )
+        reversed_units = [
+            unit
+            for unit in np.flatnonzero(has_two_spikes)
+            if boundary_values[int(last[unit])] < boundary_values[int(first[unit])]
+        ]
+        descending_units = np.union1d(descending_units, reversed_units).astype(np.int64)
+
+    if len(descending_units):
+        first_unit = int(descending_units[0])
+        if len(descending_units) == 1:
+            message = f"Unit {first_unit} contains descending spike times, which is always a data error. "
+        else:
+            message = (
+                f"{len(descending_units)} of {n_units} units contain descending spike times (the first is unit "
+                f"{first_unit}), which is always a data error. "
+            )
+        message += "Spike times should be sorted in strictly ascending order."
+        message += _spike_times_index_overflow_hint(
+            descending_positions=descending_positions, index=index, unit_starts=unit_starts
+        )
+        if scan.sampled:
+            message += (
+                f" This was found in a sample of {scan.n_checked:,} of {n_spikes:,} spike times, "
+                "so more units may be affected."
+            )
+        return InspectorMessage(message=message)
+
+    if not resolution_is_set and scan.n_equal > 0:
+        unit = int(np.searchsorted(index, scan.first_equal_position, side="right"))
+        return InspectorMessage(
+            message=(
+                f"Unit {unit} contains equal consecutive spike times. "
+                "This violates the neural refractory period for single-unit data. "
+                "If your recording resolution does not allow distinguishing these spikes, "
+                "set the `resolution` field on the Units table to suppress this check."
+            )
+        )
+
+    return None
+
+
+def _boundary_reads_fit_budget(
+    data: ArrayLike, positions: np.ndarray, n_checked: int, max_bytes: Optional[int]
+) -> bool:
+    """Estimate whether reading single elements at ``positions`` stays within the remaining read budget."""
+    if len(positions) == 0:
+        return True
+    itemsize = np.dtype(getattr(data, "dtype", np.float64)).itemsize
+    budget = max_bytes if max_bytes is not None else default_max_bytes(data)
+    remaining = budget - n_checked * itemsize
+    chunks = getattr(data, "chunks", None)
+    if chunks:
+        chunk_length = int(chunks[0])
+        n_chunks = len(np.unique(positions // chunk_length))
+        return n_chunks * chunk_length * itemsize <= remaining
+    # Contiguous data: each point read is its own small request. Locally that is cheap, but when streaming each
+    # request costs a round trip (about 0.2 s from DANDI with remfile), so allow only a handful.
+    return len(positions) <= (100 if is_remote_dataset(data) else 5_000)
+
+
+def _spike_times_index_overflow_hint(
+    descending_positions: np.ndarray, index: np.ndarray, unit_starts: np.ndarray
+) -> str:
+    """
+    Recognize spikes moved to the next unit by a spike_times_index entry that wrapped at 2**16.
+
+    If the end index of unit k was stored modulo 65,536, the tail of unit k's train opens unit k + 1, and
+    unit k + 1 steps backwards exactly a multiple of 65,536 spikes after its stored start.
+    """
+    if len(descending_positions) == 0:
+        return ""
+    units = np.searchsorted(index, descending_positions, side="right")
+    offsets = descending_positions - unit_starts[np.clip(units, 0, len(unit_starts) - 1)]
+    is_wrap = (offsets > 0) & (offsets % 65536 == 0)
+    if not is_wrap.any():
+        return ""
+    unit = int(units[is_wrap][0])
+    offset = int(offsets[is_wrap][0])
+    return (
+        f" In unit {unit} the first backward step comes exactly {offset:,} spikes ({offset // 65536} x 65,536) "
+        f"after the unit's start, which suggests that the end index of unit {unit - 1} in spike_times_index "
+        "overflowed a 16-bit integer when the file was written, so its last spikes were assigned to "
+        f"unit {unit}."
+    )
+
+
+def _check_ascending_spike_times_first_elements(
+    units_table: Units, nelems: int, resolution_is_set: bool
+) -> Optional[InspectorMessage]:
+    """Check only the first ``nelems`` spike times of each unit (the behavior before full-length scans)."""
+    for unit_id in range(len(units_table)):
+        spike_times = units_table["spike_times"][unit_id][:nelems]
         diffs = np.diff(spike_times)
 
         if np.any(diffs < 0):

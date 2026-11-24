@@ -9,6 +9,7 @@ from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
 from ..utils import get_data_shape, is_ascending_series, is_regular_series
+from ..utils._ordering import scan_ascending
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -114,12 +115,42 @@ def check_timestamps_match_first_dimension(time_series: TimeSeries) -> Optional[
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
-def check_timestamps_ascending(time_series: TimeSeries, nelems: Optional[int] = 200) -> Optional[InspectorMessage]:
-    """Check that the values in the timestamps array are strictly increasing."""
-    if time_series.timestamps is not None and not is_ascending_series(time_series.timestamps, nelems=nelems):
-        return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
+def check_timestamps_ascending(
+    time_series: TimeSeries, nelems: Optional[int] = None, max_bytes: Optional[int] = None
+) -> Optional[InspectorMessage]:
+    """
+    Check that the values in the timestamps array are ascending.
 
-    return None
+    The whole array is read in chunks. Arrays larger than ``max_bytes`` are checked on a sample of chunks
+    that always includes the first and last.
+
+    Parameters
+    ----------
+    time_series : TimeSeries
+    nelems : int, optional
+        Only check the first ``nelems`` timestamps. The default, None, checks every timestamp.
+    max_bytes : int, optional
+        Read budget for the timestamps. Defaults to 1 GB for local files and 200 MB for streamed files.
+    """
+    if time_series.timestamps is None:
+        return None
+
+    if nelems is not None:
+        if not is_ascending_series(time_series.timestamps, nelems=nelems):
+            return InspectorMessage(f"{time_series.name} timestamps are not ascending.")
+        return None
+
+    scan = scan_ascending(data=time_series.timestamps, ignore_nan=True, max_bytes=max_bytes)
+    if scan.n_descending == 0:
+        return None
+
+    first = scan.first_descending_position
+    message = (
+        f"{time_series.name} timestamps are not ascending. "
+        f"They go backwards {scan.n_descending:,} time{'s' if scan.n_descending > 1 else ''}"
+        f"{' in the sampled chunks' if scan.sampled else ''}, first at index {first:,} of {scan.n_total:,}."
+    )
+    return InspectorMessage(message=message)
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)

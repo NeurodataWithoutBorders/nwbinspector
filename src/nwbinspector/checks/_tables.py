@@ -17,6 +17,7 @@ from ..utils import (
     is_dict_in_string,
     is_string_json_loadable,
 )
+from ..utils._ordering import plan_windows, scan_ascending
 
 NELEMS = 200
 MAX_DURATION = 3600 * 24 * 365.25  # default: 1 year
@@ -49,6 +50,77 @@ def check_empty_table(table: DynamicTable) -> Optional[InspectorMessage]:
         return InspectorMessage(message="This table has no data added to it.")
 
     return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=VectorIndex)
+def check_vector_index_data_validity(
+    vector_index: VectorIndex, max_bytes: Optional[int] = None
+) -> Optional[InspectorMessage]:
+    """
+    Check that a VectorIndex is a valid set of end offsets into its target.
+
+    The values of a VectorIndex are the end offset of each row in the target array, so they must be
+    non-negative and non-decreasing, and the last value must equal the length of the target. When any
+    of these fails, readers silently give rows the wrong elements (for example, the spikes of another unit).
+    Indexes hold one value per row, so this check is cheap.
+
+    Best Practice: :ref:`best_practice_vector_index_data_validity`
+    """
+    index_data = vector_index.data
+    if isinstance(index_data, (list, tuple)):
+        index_data = np.asarray(index_data)
+    n_rows = len(index_data)
+    target = vector_index.target
+    if n_rows == 0 or target is None or getattr(target, "data", None) is None:
+        return None
+    target_length = len(target.data)
+    target_name = target.name
+    problems = []
+
+    scan = scan_ascending(data=index_data, ignore_nan=False, max_bytes=max_bytes)
+    row = scan.first_descending_position
+    if scan.n_descending and row is not None:
+        values = np.asarray(index_data[row - 1 : row + 1]).astype(np.int64)
+        problems.append(
+            f"its values decrease {scan.n_descending:,} time{'s' if scan.n_descending > 1 else ''}, "
+            f"first at row {row:,} (from {values[0]:,} to {values[1]:,})"
+        )
+
+    first_value = int(np.asarray(index_data[0:1])[0])
+    last_value = int(np.asarray(index_data[n_rows - 1 : n_rows])[0])
+    if first_value < 0:
+        problems.append(f"its first value is negative ({first_value:,})")
+    if last_value < target_length:
+        problems.append(
+            f"its last value is {last_value:,} but '{target_name}' has {target_length:,} elements, "
+            f"so the last {target_length - last_value:,} elements belong to no row"
+        )
+    elif last_value > target_length:
+        problems.append(
+            f"its last value is {last_value:,} but '{target_name}' has only {target_length:,} elements, "
+            "so the last row reads past the end of the data"
+        )
+
+    if not problems:
+        return None
+
+    message = (
+        f"The index '{vector_index.name}' is not a valid set of end offsets into '{target_name}': "
+        + "; ".join(problems)
+        + ". The values of an index must be non-decreasing and end at the length of the data it indexes, "
+        "otherwise rows are given the wrong elements."
+    )
+    stored_max = np.iinfo(index_data.dtype).max if np.issubdtype(index_data.dtype, np.integer) else None
+    if stored_max is not None and stored_max < target_length:
+        message += f" The index is stored as {index_data.dtype}, which cannot hold offsets up to {target_length:,}."
+    elif target_length >= 2**16 and (scan.n_descending or (target_length - last_value) % 2**16 == 0):
+        message += " The offsets may have wrapped at 65,536 (a 16-bit integer overflow) when the file was written."
+    if last_value < target_length and first_value == 0 and n_rows > 1:
+        message += (
+            " The first value is 0, so the index may hold the start offset of each row instead of the end offset, "
+            "which gives every row the elements of the row before it."
+        )
+    return InspectorMessage(message=message)
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeIntervals)
@@ -86,7 +158,7 @@ def check_time_intervals_start_time_not_constant(
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_interval_time_columns(
-    time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
+    time_intervals: TimeIntervals, nelems: Optional[int] = None, max_bytes: Optional[int] = None
 ) -> Optional[InspectorMessage]:
     """
     Check that start_time values are in non-decreasing order.
@@ -104,14 +176,18 @@ def check_time_interval_time_columns(
     ----------
     time_intervals: TimeIntervals
     nelems: int, optional
-        Only check the first {nelems} elements. This is useful in case there columns are
-        very long so you don't need to load the entire array into memory. Use None to
-        load the entire arrays.
+        Only check the first {nelems} elements. The default, None, checks the whole column in chunks.
+    max_bytes : int, optional
+        Read budget for the column; longer columns are checked on a sample of chunks.
     """
     unsorted_cols = []
     for column in time_intervals.columns:
         if column.name == "start_time":
-            if not is_ascending_series(column.data, nelems):
+            if nelems is not None:
+                is_sorted = is_ascending_series(column.data, nelems)
+            else:
+                is_sorted = scan_ascending(data=column.data, ignore_nan=True, max_bytes=max_bytes).n_descending == 0
+            if not is_sorted:
                 unsorted_cols.append(column.name)
     if unsorted_cols:
         return InspectorMessage(
@@ -126,7 +202,7 @@ def check_time_interval_time_columns(
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeIntervals)
 def check_time_intervals_stop_after_start(
-    time_intervals: TimeIntervals, nelems: Optional[int] = NELEMS
+    time_intervals: TimeIntervals, nelems: Optional[int] = None, max_bytes: Optional[int] = None
 ) -> Optional[InspectorMessage]:
     """
     Check that all stop times on a TimeInterval object occur after their corresponding start times.
@@ -137,19 +213,38 @@ def check_time_intervals_stop_after_start(
     ----------
     time_intervals: TimeIntervals
     nelems: int, optional
-        Only check the first {nelems} elements. This is useful in case there columns are
-        very long so you don't need to load the entire array into memory. Use None to
-        load the entire arrays.
+        Only check the first {nelems} elements. The default, None, checks every row in chunks.
+    max_bytes : int, optional
+        Read budget for each column; longer columns are checked on a sample of chunks.
     """
-    if np.any(
-        np.asarray(cache_data_selection(data=time_intervals["stop_time"].data, selection=slice(nelems)))
-        - np.asarray(cache_data_selection(data=time_intervals["start_time"].data, selection=slice(nelems)))
-        <= 0
-    ):
+    start_data = time_intervals["start_time"].data
+    stop_data = time_intervals["stop_time"].data
+    n_rows = min(len(start_data), len(stop_data))
+    if nelems is not None:
+        n_rows = min(n_rows, nelems)
+        windows, sampled = [(0, n_rows)], False
+    else:
+        windows, sampled = plan_windows(data=start_data, max_bytes=max_bytes)
+
+    n_bad = 0
+    first_bad_row = None
+    for window_start, window_stop in windows:
+        window_stop = min(window_stop, n_rows)
+        if window_stop <= window_start:
+            continue
+        durations = np.asarray(stop_data[window_start:window_stop]) - np.asarray(start_data[window_start:window_stop])
+        bad = np.flatnonzero(durations <= 0)
+        n_bad += len(bad)
+        if first_bad_row is None and len(bad):
+            first_bad_row = window_start + int(bad[0])
+
+    if n_bad:
         return InspectorMessage(
             message=(
                 "stop_times should be greater than start_times. Make sure the stop times are with respect to the "
-                "session start time."
+                f"session start time. {n_bad:,} row{'s' if n_bad > 1 else ''}"
+                f"{' in the sampled chunks' if sampled else ''} ha{'ve' if n_bad > 1 else 's'} a stop_time at or "
+                f"before its start_time, first at row {first_bad_row:,}."
             )
         )
 

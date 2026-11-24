@@ -513,6 +513,61 @@ class TestCheckAscendingSpikeTimes(TestCase):
         self.units_table.add_unit(spike_times=[0.0, 0.1, 0.05])
         assert check_ascending_spike_times(units_table=self.units_table, nelems=2) is None
 
+    def test_descending_spike_times_after_first_200(self):
+        spike_times = np.arange(1000) * 0.01
+        spike_times[800] = 0.0
+        self.units_table.add_unit(spike_times=np.arange(10) * 0.1)
+        self.units_table.add_unit(spike_times=spike_times)
+        assert check_ascending_spike_times(units_table=self.units_table, nelems=200) is None
+        assert check_ascending_spike_times(units_table=self.units_table).message == (
+            "Unit 1 contains descending spike times, which is always a data error. "
+            "Spike times should be sorted in strictly ascending order."
+        )
+
+    def test_unit_boundaries_are_not_steps(self):
+        """The first spike of a unit may be earlier than the last spike of the unit before it."""
+        self.units_table.add_unit(spike_times=[5.0, 6.0, 7.0])
+        self.units_table.add_unit(spike_times=[1.0, 2.0, 3.0])
+        self.units_table.add_unit(spike_times=[0.5, 9.0])
+        assert check_ascending_spike_times(units_table=self.units_table) is None
+
+    def test_descending_spike_times_several_units(self):
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.2])
+        self.units_table.add_unit(spike_times=[0.3, 0.1, 0.2])
+        self.units_table.add_unit(spike_times=[0.0, 0.1, 0.2])
+        self.units_table.add_unit(spike_times=[0.5, 0.4])
+        assert check_ascending_spike_times(units_table=self.units_table).message == (
+            "2 of 4 units contain descending spike times (the first is unit 1), which is always a data error. "
+            "Spike times should be sorted in strictly ascending order."
+        )
+
+    def test_spike_times_index_overflow_signature(self):
+        """Unit 0's end index wrapped at 65,536, so its last spikes open unit 1."""
+        true_spike_times_unit_0 = np.arange(70_000) * 0.001
+        spike_times_unit_1 = 0.0005 + np.arange(1_000) * 0.01
+        wrapped_end = 70_000 - 65_536
+        self.units_table.add_unit(spike_times=true_spike_times_unit_0[:wrapped_end])
+        self.units_table.add_unit(
+            spike_times=np.concatenate([true_spike_times_unit_0[wrapped_end:], spike_times_unit_1])
+        )
+        assert check_ascending_spike_times(units_table=self.units_table).message == (
+            "Unit 1 contains descending spike times, which is always a data error. "
+            "Spike times should be sorted in strictly ascending order. "
+            "In unit 1 the first backward step comes exactly 65,536 spikes (1 x 65,536) after the unit's start, "
+            "which suggests that the end index of unit 0 in spike_times_index overflowed a 16-bit integer when "
+            "the file was written, so its last spikes were assigned to unit 1."
+        )
+
+    def test_descending_spike_times_sampled(self):
+        """Over the read budget, the first and last spikes of every unit are still compared."""
+        spike_times = np.arange(2_000_000) * 0.001
+        spike_times[-1] = 0.0
+        self.units_table.add_unit(spike_times=np.arange(10) * 0.1)
+        self.units_table.add_unit(spike_times=spike_times)
+        message = check_ascending_spike_times(units_table=self.units_table, max_bytes=1_000_000).message
+        assert message.startswith("Unit 1 contains descending spike times")
+        assert "found in a sample of" in message
+
 
 def test_check_units_table_duration_pass():
     """Test that units table with reasonable duration passes."""
