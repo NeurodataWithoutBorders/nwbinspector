@@ -143,6 +143,19 @@ descendants of :ref:`hdmf-schema:sec-dynamictable` such as :ref:`nwb-schema:sec-
 variable is unique by default. If you would like to make values of ``id`` non-unique, a better
 solution would be to store these values as a custom column and use the default ``id`` values.
 
+.. _best_practice_no_repeated_ragged_times:
+
+Repeated Times in Ragged Columns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Times within one row of a ragged time column, such as the ``event_times`` of an event type, should not repeat, since a
+repeated time is an event stored twice. Repeats are reported when they make up at least 1% of all values, or at least
+10% of one row with 100 values or more. Times that are all multiples of 1 ms or coarser are not checked, since events
+recorded at that resolution can share a time without being stored twice. Repeated spike times are reported by
+:py:meth:`~nwbinspector.checks._ecephys.check_ascending_spike_times` instead.
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_ragged_times_repeated`
+
 .. _best_practice_meanings_table_includes_all_values:
 
 Complete MeaningsTables
