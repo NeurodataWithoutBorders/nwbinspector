@@ -10,6 +10,7 @@ from pynwb.file import TimeIntervals, Units
 
 from .._registration import Importance, InspectorMessage, register_check
 from ..utils import (
+    _comparison,
     cache_data_selection,
     format_byte_size,
     get_data_shape,
@@ -221,6 +222,58 @@ def check_column_binary_capability(
                     )
                 )
     return None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=DynamicTable)
+def check_identical_columns(table: DynamicTable) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Two scalar numeric columns of one table should usually not hold identical, non-trivial values. Most often one
+    column was copied into the other, but two columns can also coincide legitimately, for example the x and y
+    coordinates of electrode sites that lie on a diagonal.
+
+    Columns with fewer than three distinct values are not compared, and pairs of time columns are skipped, since
+    they often coincide by design.
+
+    Best Practice: :ref:`best_practice_no_identical_table_columns`
+    """
+    n_rows = len(table.id)
+    if n_rows < _comparison.MIN_DISTINCT_FOR_COLUMNS or n_rows > _comparison.MAX_TABLE_ROWS:
+        return None
+    by_type: dict[tuple, list] = {}
+    for column in _comparison.plain_columns(table):
+        if isinstance(column, DynamicTableRegion):
+            continue
+        shape = _comparison.data_shape(column.data)
+        dtype = _comparison.data_dtype(column.data)
+        if len(shape) != 1 or dtype.kind not in "fiub" or _comparison.is_reference_dtype(dtype):
+            continue
+        by_type.setdefault((shape, dtype.kind), []).append(column)
+
+    messages = []
+    for columns in by_type.values():
+        if len(columns) < 2:
+            continue
+        by_hash: dict[str, list] = {}
+        for column in columns:
+            values = np.asarray(column.data[:])
+            finite = values[~np.isnan(values)] if values.dtype.kind == "f" else values
+            if len(np.unique(finite)) < _comparison.MIN_DISTINCT_FOR_COLUMNS:
+                continue
+            by_hash.setdefault(_comparison.digest(values.astype(np.float64)), []).append(column)
+        for same in by_hash.values():
+            # time columns of one table often coincide by design (stop_time and a custom return_stop_time)
+            same = [column for column in same if not column.name.endswith("time")] if len(same) > 1 else same
+            if len(same) < 2:
+                continue
+            messages.append(
+                InspectorMessage(
+                    message=(
+                        f"Columns {', '.join(repr(column.name) for column in same)} hold identical values in all "
+                        f"{n_rows} rows. Check that one of them does not hold the other's data."
+                    )
+                )
+            )
+    return messages or None
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=DynamicTable)
