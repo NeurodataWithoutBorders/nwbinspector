@@ -8,7 +8,7 @@ from pynwb.ecephys import SpikeEventSeries
 from pynwb.image import ImageSeries, IndexSeries
 
 from .._registration import Importance, InspectorMessage, Severity, register_check
-from ..utils import get_data_shape, is_ascending_series, is_regular_series
+from ..utils import _comparison, get_data_shape, is_ascending_series, is_regular_series
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=TimeSeries)
@@ -68,6 +68,128 @@ def check_data_orientation(time_series: TimeSeries) -> Optional[InspectorMessage
         )
 
     return None
+
+
+# Most uncompressed chunk data that the sampled column comparison of one series may decompress.
+MAX_COLUMN_FETCH_BYTES = 64 * 1024**2
+# Most columns a 2-D TimeSeries may have for the column comparison.
+MAX_COMPARED_COLUMNS = 1024
+
+
+def _fetch_bytes(data: _comparison.DataLike, rows: slice, columns: Optional[list] = None) -> int:
+    """
+    Uncompressed bytes that reading data[rows, columns] of a 2-D dataset decompresses. HDF5 reads whole chunks,
+    so a few rows of a dataset chunked as (1048576, 16) cost far more than their size.
+    """
+    shape = _comparison.data_shape(data)
+    itemsize = _comparison.data_dtype(data).itemsize
+    columns = list(range(shape[1])) if columns is None else columns
+    dataset = _comparison.h5_dataset(data)
+    if dataset is None or not dataset.chunks:
+        return (rows.stop - rows.start) * len(columns) * itemsize
+    chunk_rows, chunk_columns = dataset.chunks[0], dataset.chunks[1]
+    n_row_chunks = (min(rows.stop, shape[0]) - 1) // chunk_rows - rows.start // chunk_rows + 1
+    n_column_chunks = len({column // chunk_columns for column in columns})
+    return n_row_chunks * n_column_chunks * chunk_rows * chunk_columns * itemsize
+
+
+def _row_blocks(data: _comparison.DataLike) -> list[slice]:
+    """
+    Row slices that sample a 2-D dataset at N_BLOCKS places, each of at most about BLOCK_BYTES and each inside a
+    single chunk row, so that a block decompresses one row of chunks and not two.
+    """
+    n_rows, n_columns = _comparison.data_shape(data)[:2]
+    itemsize = _comparison.data_dtype(data).itemsize
+    size = max(1, min(n_rows, _comparison.BLOCK_BYTES // max(1, n_columns * itemsize)))
+    dataset = _comparison.h5_dataset(data)
+    chunk_rows = dataset.chunks[0] if dataset is not None and dataset.chunks else None
+    if chunk_rows:
+        size = min(size, chunk_rows)
+    blocks: list[slice] = []
+    for start in np.linspace(0, max(0, n_rows - size), _comparison.N_BLOCKS).astype(int).tolist():
+        if chunk_rows:
+            start = min((start // chunk_rows) * chunk_rows, n_rows - size)
+        if not blocks or start != blocks[-1].start:
+            blocks.append(slice(start, start + size))
+    return blocks
+
+
+def _read_columns(data: _comparison.DataLike, rows: slice, columns: list) -> np.ndarray:
+    if _comparison.h5_dataset(data) is not None:
+        return np.asarray(data[rows, columns])
+    low, high = min(columns), max(columns) + 1
+    return np.asarray(data[rows, low:high])[:, [column - low for column in columns]]
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)
+def check_time_series_identical_columns(
+    time_series: TimeSeries, max_fetch_bytes: int = MAX_COLUMN_FETCH_BYTES
+) -> Optional[InspectorMessage]:
+    """
+    Two columns (channels or dimensions) of a 2-D TimeSeries should not be identical, for example the z coordinate
+    of a position that copies y.
+
+    Small series are compared whole. Large series are compared in two stages: every column on a first block of
+    rows, then only the columns that match there on further blocks. Blocks are aligned to the HDF5 chunk rows, and
+    a series whose first block alone would decompress more than max_fetch_bytes of chunks is skipped, since reading
+    it remotely is slow.
+
+    Best Practice: :ref:`best_practice_no_identical_time_series_columns`
+    """
+    data = time_series.data
+    if data is None or isinstance(data, TimeSeries):
+        return None
+    try:
+        shape = _comparison.data_shape(data)
+    except Exception:
+        return None
+    if len(shape) != 2 or not 2 <= shape[1] <= MAX_COMPARED_COLUMNS or shape[0] < _comparison.MIN_DISTINCT_FOR_COLUMNS:
+        return None
+    if _comparison.data_dtype(data).kind not in "fiub":
+        return None
+
+    def nontrivial(column: np.ndarray) -> bool:
+        finite = column[~np.isnan(column)] if column.dtype.kind == "f" else column
+        return len(np.unique(finite)) >= _comparison.MIN_DISTINCT_FOR_COLUMNS
+
+    keys: dict[int, tuple[str, ...]]
+    exact = shape[0] * shape[1] * _comparison.data_dtype(data).itemsize <= _comparison.FULL_READ_BYTES
+    if exact:
+        values = np.asarray(data[:])
+        keys = {j: (_comparison.digest(values[:, j]),) for j in range(shape[1]) if nontrivial(values[:, j])}
+        n_blocks = 0
+    else:
+        blocks = _row_blocks(data)
+        budget = max_fetch_bytes - _fetch_bytes(data, blocks[0])
+        if budget < 0:
+            return None
+        head = np.asarray(data[blocks[0]])
+        keys = {j: (_comparison.digest(head[:, j]),) for j in range(shape[1]) if nontrivial(head[:, j])}
+        n_blocks = 1
+        for rows in blocks[1:]:
+            counts: dict[tuple, int] = {}
+            for key in keys.values():
+                counts[key] = counts.get(key, 0) + 1
+            candidates = sorted(j for j, key in keys.items() if counts[key] > 1)
+            if not candidates:
+                break
+            cost = _fetch_bytes(data, rows, candidates)
+            if cost > budget:
+                break
+            budget -= cost
+            block = _read_columns(data, rows, candidates)
+            keys = {j: keys[j] + (_comparison.digest(block[:, i]),) for i, j in enumerate(candidates)}
+            n_blocks += 1
+
+    by_key: dict[tuple, list] = {}
+    for j, key in keys.items():
+        by_key.setdefault(key, []).append(j)
+    groups = [group for group in by_key.values() if len(group) > 1]
+    if not groups:
+        return None
+    where = "in every row" if exact else f"on {n_blocks} sampled block(s) of rows"
+    examples = _comparison.format_examples(["columns " + " = ".join(map(str, group)) for group in groups])
+    return InspectorMessage(message=f"{len(groups)} group(s) of columns of the data are identical {where}: {examples}.")
 
 
 @register_check(importance=Importance.CRITICAL, neurodata_type=TimeSeries)

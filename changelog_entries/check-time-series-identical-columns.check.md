@@ -1,0 +1,1 @@
+Added `check_time_series_identical_columns`, which flags identical columns in the data of a 2-D TimeSeries, such as a position whose `z` copies `y`. Large series are compared on sampled blocks aligned to HDF5 chunks, within a limit on how much data the check decompresses.
