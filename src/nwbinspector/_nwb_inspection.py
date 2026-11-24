@@ -14,6 +14,11 @@ from packaging import version
 from tqdm import tqdm
 
 from ._configuration import configure_checks
+from ._duplicate_data import (
+    CHECK_DUPLICATE_DATA_ACROSS_FILES,
+    check_duplicate_data_across_files,
+    get_primary_data_fingerprints,
+)
 from ._registration import Importance, InspectorMessage, available_checks
 from .tools._read_nwbfile import (
     _MissingHdmfZarrError,
@@ -108,12 +113,20 @@ def inspect_all(
     # Filtering of checks should apply after external modules are imported, in case those modules have their own checks
     checks = configure_checks(config=config, ignore=ignore, select=select, importance_threshold=importance_threshold)
 
-    # Manual identifier check over all files in the folder path
+    # Checks that span files are run here rather than through the check registry; they share one read of each file
+    run_duplicate_data_check = (
+        len(nwbfiles) > 1
+        and CHECK_DUPLICATE_DATA_ACROSS_FILES not in (ignore or [])
+        and (select is None or CHECK_DUPLICATE_DATA_ACROSS_FILES in select)
+    )
     identifiers = defaultdict(list)
+    fingerprints_by_file = dict()
     for nwbfile_path in nwbfiles:
         try:
             nwbfile = read_nwbfile(nwbfile_path=nwbfile_path)
             identifiers[nwbfile.identifier].append(nwbfile_path)
+            if run_duplicate_data_check:
+                fingerprints_by_file[str(nwbfile_path)] = get_primary_data_fingerprints(nwbfile=nwbfile)
         except _MissingHdmfZarrError:
             raise  # missing-hdmf-zarr propagates directly to the caller
         except Exception as exception:
@@ -137,6 +150,11 @@ def inspect_all(
                     location="/",
                     file_path=str(non_unique_files[-1]),  # report an example file_path with non-unique identifier
                 )
+
+    if run_duplicate_data_check:
+        for message in check_duplicate_data_across_files(fingerprints_by_file=fingerprints_by_file):
+            if message.importance.value >= importance_threshold.value:
+                yield message
 
     nwbfiles_iterable = nwbfiles
     if progress_bar:

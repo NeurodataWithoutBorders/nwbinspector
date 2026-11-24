@@ -116,6 +116,25 @@ use a well-established algorithmic generator such as ``uuid`` to ensure uniquene
 :uuid:`used in PyNWB <>`, and MatNWB will automatically set the field using ``java.util.UUID.randomUUID().toString()``.
 The ``identifier`` field does not need to be easily human-readable.
 
+.. _best_practice_duplicate_data_across_files:
+
+Duplicate Data Across Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each recording should be deposited once. A common mistake when converting a dataset is to write the same recording
+to two files, for example by re-running a conversion and keeping both outputs, or by copying a session under a second
+subject or session label. Files that split one session (raw and processed data, one file per probe or imaging plane)
+are expected, but they should not repeat the same acquired or processed data.
+
+When a folder of files is inspected, the primary data arrays of each file (the data and timestamps of every TimeSeries
+outside of ``/stimulus``, and the spike times of every ``Units`` table) are fingerprinted from a sample of each array,
+and the fingerprints are compared across files. Files whose primary arrays all match are reported as critical. Files
+that share only some arrays are reported as a suggestion that names the shared arrays, since a split session can
+legitimately repeat, for example, a behavioral series. Stimuli, constant arrays and arrays with fewer than 100 elements
+are not compared.
+
+Check function: ``check_duplicate_data_across_files`` (run by ``inspect_all`` on folders of files)
+
 
 
 .. _best_practice_experimenter:
