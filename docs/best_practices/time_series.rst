@@ -24,6 +24,23 @@ Check functions: :py:meth:`~nwbinspector.checks._time_series.check_data_orientat
 
 
 
+.. _best_practice_no_identical_time_series_columns:
+
+Identical Columns
+~~~~~~~~~~~~~~~~~
+
+Two columns of the ``data`` of a 2-D :ref:`nwb-schema:sec-TimeSeries` should usually not hold identical values.
+Identical columns most often mean one column was copied into another, for example two channels of a recording that are
+the same channel written twice. They can also be legitimate, for example a position whose ``z`` equals ``y`` because the
+animal moves along a diagonal, so this is a best practice violation rather than a critical error. Columns with fewer than three distinct values are not compared.
+
+For large series, the comparison is limited by how the data are chunked. It reads one block of rows for every column
+and then only the columns that match there, and it skips a series whose first block alone would decompress more than
+64 MB of chunks. This keeps the check fast when files are streamed, at the cost of not checking raw recordings that
+are chunked across many rows.
+
+Check function: :py:meth:`~nwbinspector.checks._time_series.check_time_series_identical_columns`
+
 .. _best_practice_unit_of_measurement:
 
 Units of Measurement
