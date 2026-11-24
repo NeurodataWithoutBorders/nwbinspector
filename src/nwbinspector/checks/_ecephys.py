@@ -1,5 +1,6 @@
 """Check functions specific to extracellular electrophysiology neurodata types."""
 
+from collections import defaultdict
 from typing import Iterable, Optional
 
 import numpy as np
@@ -10,7 +11,7 @@ from pynwb.misc import Units
 from ._common import MOUSE_SPECIES_VALUES
 from .._internal_configs._allen_ccf import get_allen_ccf_location_terms
 from .._registration import Importance, InspectorMessage, register_check
-from ..utils import get_data_shape
+from ..utils import _comparison, get_data_shape
 
 NELEMS = 200
 # Default duration threshold: 1 year in seconds
@@ -304,6 +305,77 @@ def check_ascending_spike_times(units_table: Units, nelems: Optional[int] = NELE
             )
 
     return None
+
+
+@register_check(importance=Importance.CRITICAL, neurodata_type=Units)
+def check_units_identical_spike_trains(units_table: Units, min_spikes: int = 1) -> Optional[Iterable[InspectorMessage]]:
+    """
+    Rows of the units table should not hold the same spike train.
+
+    Units are grouped by spike count, which comes from the index alone, and only units that share a count with
+    another unit have their spike times read and hashed. Same-id and different-id groups are reported separately.
+
+    Best Practice: :ref:`best_practice_no_duplicate_units`
+    """
+    if "spike_times" not in units_table.colnames or len(units_table.id) < 2:
+        return None
+    index = np.asarray(units_table.spike_times_index.data[:], dtype=np.int64)
+    starts = np.concatenate([[0], index[:-1]])
+    counts = index - starts
+    by_count = defaultdict(list)
+    for row, count in enumerate(counts.tolist()):
+        if count >= min_spikes:
+            by_count[count].append(row)
+    candidates = [rows for rows in by_count.values() if len(rows) > 1]
+    if not candidates:
+        return None
+
+    spike_data = units_table.spike_times.data
+    total_bytes = int(_comparison.data_shape(spike_data)[0]) * _comparison.data_dtype(spike_data).itemsize
+    all_spikes = np.asarray(spike_data[:]) if total_bytes <= 4 * _comparison.FULL_READ_BYTES else None
+
+    def train(row: int) -> np.ndarray:
+        start, stop = int(starts[row]), int(index[row])
+        return all_spikes[start:stop] if all_spikes is not None else np.asarray(spike_data[start:stop])
+
+    groups = []
+    for rows in candidates:
+        by_hash = defaultdict(list)
+        for row in rows:
+            by_hash[_comparison.digest(train(row))].append(row)
+        groups += [group for group in by_hash.values() if len(group) > 1]
+    if not groups:
+        return None
+
+    ids = np.asarray(units_table.id.data[:])
+    same_id = [group for group in groups if len(set(ids[group].tolist())) == 1]
+    different_id = [group for group in groups if len(set(ids[group].tolist())) > 1]
+    messages = []
+    if same_id:
+        extra = sum(len(group) - 1 for group in same_id)
+        examples = [f"id {ids[group[0]]} (rows {', '.join(map(str, group))})" for group in same_id]
+        messages.append(
+            InspectorMessage(
+                message=(
+                    f"{len(same_id)} unit id(s) are stored in more than one row with the identical spike train "
+                    f"({extra} extra rows of {len(ids)}): {_comparison.format_examples(examples)}. The unit is "
+                    "stored twice, so an analysis that treats each row as a unit counts it twice."
+                )
+            )
+        )
+    if different_id:
+        examples = [
+            f"ids {', '.join(str(ids[r]) for r in group)} ({counts[group[0]]} spikes)" for group in different_id
+        ]
+        messages.append(
+            InspectorMessage(
+                message=(
+                    f"{len(different_id)} group(s) of units with different ids hold the identical spike train: "
+                    f"{_comparison.format_examples(examples)}."
+                )
+            )
+        )
+    return messages
 
 
 @register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=ElectricalSeries)
