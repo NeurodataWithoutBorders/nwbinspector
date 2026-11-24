@@ -111,6 +111,17 @@ Check function :py:meth:`~nwbinspector.checks.tables.check_column_binary_capabil
 
 
 
+.. _best_practice_no_identical_table_columns:
+
+Identical Columns
+~~~~~~~~~~~~~~~~~
+
+Two numeric columns of one table should not hold identical values, for example a ``z`` coordinate that copies ``y``
+in the electrodes table. Columns with fewer than three distinct values are not compared, nor are pairs of time
+columns, which often coincide by design (``stop_time`` and a custom ``return_stop_time``, for example).
+
+Check function: :py:meth:`~nwbinspector.checks._tables.check_identical_columns`
+
 .. _best_practice_time_interval_time_columns:
 
 Timing Columns

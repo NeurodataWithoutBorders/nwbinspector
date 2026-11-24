@@ -1,0 +1,1 @@
+Added `check_identical_columns`, which flags two numeric columns of a table that hold identical values, such as a `z` coordinate that copies `y` in the electrodes table. Columns with fewer than three distinct values and pairs of time columns are not compared.
