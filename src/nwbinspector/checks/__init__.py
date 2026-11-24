@@ -10,6 +10,7 @@ from ._ecephys import (
     check_electrical_series_dims,
     check_electrical_series_reference_electrodes_table,
     check_electrical_series_unscaled_data,
+    check_electrodes_identical_coordinate_columns,
     check_electrodes_location_allen_ccf,
     check_negative_spike_times,
     check_spike_times_not_in_samples,
@@ -212,4 +213,5 @@ __all__ = [
     "check_electrodes_location_allen_ccf",
     "check_intracellular_electrode_location_allen_ccf",
     "check_units_table_has_spikes",
+    "check_electrodes_identical_coordinate_columns",
 ]

@@ -48,6 +48,11 @@ coordinates within the Subject. For mice, use the
 :allen-brain-map:`Allen Institute Common Coordinate Framework v3 <atlas>`, which follows the convention
 (+x = posterior, +y = inferior, +z = subject's right).
 
+Each coordinate column should hold its own values: two columns that are identical on every row usually mean that
+one column was written in place of another.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_electrodes_identical_coordinate_columns`
+
 
 
 .. _best_practice_ecephys_relative_coordinates:
