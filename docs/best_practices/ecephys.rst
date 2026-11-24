@@ -48,6 +48,11 @@ coordinates within the Subject. For mice, use the
 :allen-brain-map:`Allen Institute Common Coordinate Framework v3 <atlas>`, which follows the convention
 (+x = posterior, +y = inferior, +z = subject's right).
 
+If the coordinates of an electrode are unknown, leave them as NaN (or omit the columns) rather than writing 0, which
+is a valid coordinate.
+
+Check function: :py:meth:`~nwbinspector.checks._ecephys.check_electrodes_placeholder_coordinates`
+
 
 
 .. _best_practice_ecephys_relative_coordinates:

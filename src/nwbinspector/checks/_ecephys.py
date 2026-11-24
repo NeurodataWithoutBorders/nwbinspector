@@ -478,3 +478,34 @@ def check_electrodes_location_allen_ccf(nwbfile: NWBFile) -> Optional[Iterable[I
             )
 
     return None
+
+
+def _get_electrodes_float_column(nwbfile: NWBFile, column_name: str) -> Optional[np.ndarray]:
+    if nwbfile.electrodes is None or column_name not in nwbfile.electrodes.colnames:
+        return None
+    try:
+        values = np.asarray(nwbfile.electrodes[column_name].data[:], dtype=float)
+    except (TypeError, ValueError):
+        return None
+    return values if values.ndim == 1 else None
+
+
+@register_check(importance=Importance.BEST_PRACTICE_VIOLATION, neurodata_type=NWBFile)
+def check_electrodes_placeholder_coordinates(nwbfile: NWBFile, min_rows: int = 2) -> Optional[InspectorMessage]:
+    """
+    Check that x, y and z of the electrodes table are not 0 on every row.
+
+    Best Practice: :ref:`best_practice_ecephys_anatomical_coordinates`
+    """
+    columns = [_get_electrodes_float_column(nwbfile, name) for name in ("x", "y", "z")]
+    present = [values for values in columns if values is not None]
+    if len(present) < 3 or len(present[0]) < min_rows:
+        return None
+    if all(np.all(values == 0) for values in present):
+        return InspectorMessage(
+            message=(
+                f"The electrodes table's x, y and z are 0 on all {len(present[0])} rows. If the positions are unknown, "
+                "use NaN (or omit the columns) so that 0 is not read as a real coordinate."
+            )
+        )
+    return None
