@@ -413,7 +413,10 @@ def test_check_subject_sex_caenorhabditis_elegans_default_sex():
     subject = Subject(subject_id="001", species="Caenorhabditis elegans", sex="F")
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
-        message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
+        message=(
+            "For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite), "
+            "or 'O' with 'XO' or 'XX' in `c_elegans_sex` (CElegansSubject of ndx-subjects)."
+        ),
         importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
@@ -426,7 +429,10 @@ def test_check_subject_sex_c_elegans_default_sex():
     subject = Subject(subject_id="001", species="C. elegans", sex="F")
 
     assert check_subject_sex(subject=subject) == InspectorMessage(
-        message="For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite).",
+        message=(
+            "For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite), "
+            "or 'O' with 'XO' or 'XX' in `c_elegans_sex` (CElegansSubject of ndx-subjects)."
+        ),
         importance=Importance.CRITICAL,
         check_function_name="check_subject_sex",
         object_type="Subject",
@@ -445,6 +451,38 @@ def test_check_subject_sex_c_elegans_xx_sex():
     subject = Subject(subject_id="001", species="C. elegans", sex="XX")
 
     assert check_subject_sex(subject) is None
+
+
+class _CElegansSubject(Subject):
+    """Stand-in for CElegansSubject of ndx-subjects, which adds a ``c_elegans_sex`` field."""
+
+    def __init__(self, c_elegans_sex=None, **kwargs):
+        super().__init__(**kwargs)
+        self.c_elegans_sex = c_elegans_sex
+
+
+@pytest.mark.parametrize("sex", ["O", None])
+@pytest.mark.parametrize("c_elegans_sex", ["XX", "XO"])
+def test_check_subject_sex_c_elegans_ndx_subjects(sex, c_elegans_sex):
+    subject = _CElegansSubject(subject_id="001", species="Caenorhabditis elegans", sex=sex, c_elegans_sex=c_elegans_sex)
+
+    assert check_subject_sex(subject) is None
+
+
+def test_check_subject_sex_c_elegans_ndx_subjects_invalid():
+    subject = _CElegansSubject(subject_id="001", species="Caenorhabditis elegans", sex="O", c_elegans_sex="F")
+
+    assert check_subject_sex(subject=subject) == InspectorMessage(
+        message=(
+            "For C. elegans, Subject.sex should be 'XO' (male) or 'XX' (hermaphrodite), "
+            "or 'O' with 'XO' or 'XX' in `c_elegans_sex` (CElegansSubject of ndx-subjects)."
+        ),
+        importance=Importance.CRITICAL,
+        check_function_name="check_subject_sex",
+        object_type="_CElegansSubject",
+        object_name="subject",
+        location="/general/subject",
+    )
 
 
 def test_pass_check_subject_age_with_dob():
